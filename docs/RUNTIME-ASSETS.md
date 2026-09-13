@@ -7,15 +7,15 @@ The project is not yet published to npm. Install the locally assembled archive:
 npm run build
 python3 scripts/package-beta.py --output build/my-candidate
 # In a clean application:
-npm install /absolute/path/to/webmpv-0.3.0-beta.2.tgz
-npx webmpv copy-assets public/assets/webmpv
+npm install /absolute/path/to/deplexr-0.3.0-beta.2.tgz
+npx deplexr copy-assets public/assets/webmpv
 ```
 
 ```js
-import {Player} from 'webmpv';
+import {Player} from 'deplexr';
 const player = new Player(container, {assetBase:'/assets/webmpv/'});
 // Optional, separate UI entry:
-import {definePlayerElement} from 'webmpv/player';
+import {definePlayerElement} from 'deplexr/player';
 definePlayerElement();
 ```
 

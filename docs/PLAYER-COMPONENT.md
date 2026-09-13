@@ -1,7 +1,7 @@
 # Optional player component
 
 This is the target contract; qualification is recorded separately. Import
-`definePlayerElement` from `webmpv/player` and call it once (repeat calls with the
+`definePlayerElement` from `deplexr/player` and call it once (repeat calls with the
 same implementation are harmless). Core import does not import UI or register a
 tag. SSR imports are safe; registration and construction require a browser.
 
@@ -39,7 +39,7 @@ lifecycle failures use error with a structured operation-scoped detail.
 ## Embedding and styling
 
 ```js
-import {definePlayerElement} from 'webmpv/player';
+import {definePlayerElement} from 'deplexr/player';
 definePlayerElement();
 const element = document.querySelector('webmpv-player');
 element.labels = {play: 'Lire', pause: 'Pause', settings: 'Réglages'};
@@ -69,7 +69,10 @@ webmpv-player::part(controls) { padding-inline: 20px; }
 
 Stable parts: container, stage, controls, settings, error, status. Limited slots:
 before-controls and after-controls. Shadow IDs/classes are implementation details.
-Controls stay visible, including while focused. Keyboard shortcuts apply only to
+Controls overlay the video: open/close actions at the top, transport at the bottom,
+and a scrollable settings menu inside the player. During playback, controls fade
+after inactivity; pointer interaction reveals them. Paused playback, keyboard
+focus, and an open menu keep controls visible. Keyboard shortcuts apply only to
 focus inside the component stage: Space/K, arrows, J/L, M, C, brackets, digits,
 Home/End, F and ?. Inputs, buttons, selects, editable content and modified keys
 retain their normal handling. C uses the core's subtitle visibility setting;
@@ -77,7 +80,8 @@ it does not select a different language. Scrubbing previews locally; release
 commits one seek. Settings are an accessible disclosure and restore trigger focus.
 
 Local file/subtitle pickers are available in settings; opening files never uploads
-them. The component contains no example media, remote URL form, engine selector,
+them. File drop, Close media, and a URL form (File, HLS, DASH, and live input)
+are also built into the component. The component contains no example media, engine selector,
 raw filters, memory metrics or diagnostics panel. The playground supplies these
 surrounding developer tools. A live stream with no known seek window shows LIVE
 and disables the finite seek control. Browser fullscreen denial produces a message;

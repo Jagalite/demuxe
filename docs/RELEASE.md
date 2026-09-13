@@ -56,13 +56,13 @@ matching input/configuration/engine hashes. It also produces the source companio
 
 ```sh
 python3 scripts/package-beta.py --release-tag <tag> --output build/release
-BETA_ARCHIVE=/absolute/path/to/build/release/webmpv-<version>.tgz \
+BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
   node tests/beta-consumer.mjs
-BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/webmpv-<version>.tgz \
+BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
   node tests/beta-consumer.mjs
-BETA_ARCHIVE=/absolute/path/to/build/release/webmpv-<version>.tgz \
+BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
   node tests/beta-streaming.mjs
-BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/webmpv-<version>.tgz \
+BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
   node tests/beta-streaming.mjs
 ```
 
@@ -78,7 +78,7 @@ Extract that same archive and run the deterministic timeout regressions against 
 
 ```sh
 mkdir -p build/release/extracted
-tar -xzf build/release/webmpv-<version>.tgz -C build/release/extracted
+tar -xzf build/release/deplexr-<version>.tgz -C build/release/extracted
 RANGE_READER_MODULE="$PWD/build/release/extracted/package/web/range-reader.js" \
   node --test tests/range-reader-deadline.mjs
 ```
@@ -95,8 +95,8 @@ against the archived reader, then write the final verification record:
 
 ```sh
 python3 scripts/verify-beta-release.py \
-  --archive build/release/webmpv-<version>.tgz \
-  --source build/release/webmpv-<version>-source.tar.gz \
+  --archive build/release/deplexr-<version>.tgz \
+  --source build/release/deplexr-<version>-source.tar.gz \
   --consumer <chrome-consumer-result.json> <firefox-consumer-result.json> \
   --streaming <chrome-streaming-result.json> <firefox-streaming-result.json>
 ```

@@ -20,8 +20,8 @@ for name in build['configurations']:
 for name in ['build/beta-build.json','build/beta-build-start.json','build/clean-build.log']:
  if not (root/name).is_file():raise SystemExit('Missing release build material: '+name)
  files['build-materials/'+name]=root/name
-version=json.loads((root/'package.json').read_text())['version'];args.output.mkdir(parents=True,exist_ok=True)
-out=args.output/f'webmpv-{version}-source.tar.gz';hashes={}
+project=json.loads((root/'package.json').read_text());version=project['version'];args.output.mkdir(parents=True,exist_ok=True)
+out=args.output/f"{project['name']}-{version}-source.tar.gz";hashes={}
 with out.open('wb')as dest,gzip.GzipFile(filename='',mode='wb',fileobj=dest,mtime=0)as gz,tarfile.open(fileobj=gz,mode='w|',format=tarfile.PAX_FORMAT)as tar:
  for name,file in sorted(files.items()):
   data=file.read_bytes();hashes[name]=hashlib.sha256(data).hexdigest();info=tarfile.TarInfo(name);info.size=len(data);info.mode=0o755 if file.stat().st_mode&0o111 else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))

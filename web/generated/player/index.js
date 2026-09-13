@@ -3,9 +3,20 @@ import { PLAYER_EVENTS } from '../types.js';
 import { PlayerError, playerError } from '../internal/errors.js';
 import { formatTime, outputDimensions, shortcut } from './interaction.js';
 import { styles } from './styles.js';
+const icons = {
+    play: '<path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/>',
+    pause: '<path d="M8 5v14M16 5v14" stroke-width="4"/>',
+    volume: '<path d="m11 5-6 4H2v6h3l6 4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>',
+    muted: '<path d="m11 5-6 4H2v6h3l6 4Z"/><path d="m16 9 6 6m0-6-6 6"/>',
+    settings: '<path d="M9 3h6l.6 2.3 2 1.2 2.3-.6 3 5.2-1.7 1.7v2.4l1.7 1.7-3 5.2-2.3-.6-2 1.2L15 24H9l-.6-2.3-2-1.2-2.3.6-3-5.2 1.7-1.7v-2.4L1.1 11l3-5.2 2.3.6 2-1.2Z" transform="translate(1 0) scale(.9)"/><circle cx="12" cy="12" r="3"/>',
+    expand: '<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',
+    collapse: '<path d="M3 8h5V3m8 0v5h5M8 21v-5H3m13 5v-5h5"/>',
+    folder: '<path d="M3 8V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v2M3 8h17a1 1 0 0 1 1 1l-2 10H3L1 9a1 1 0 0 1 1-1Z"/>',
+    close: '<path d="m6 6 12 12M18 6 6 18"/>'
+};
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', mediaFile: 'Media file', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', mediaFile: 'Media file', subtitleFile: 'Subtitle file' });
 export class WebmpvPlayerElement extends Base {
     static observedAttributes = ['src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base'];
     core;
@@ -22,6 +33,11 @@ export class WebmpvPlayerElement extends Base {
     rejectReady;
     readiness;
     overrides = {};
+    menuTrigger = 'settings-toggle';
+    hideTimer;
+    revealControls = () => { this.$('shell').classList.remove('idle'); clearTimeout(this.hideTimer); if (this.core?.state.status === 'playing')
+        this.hideTimer = setTimeout(() => { if (this.core?.state.status === 'playing' && this.$('settings').hidden && !this.dragging && !this.shadowRoot?.activeElement && this.isConnected)
+            this.$('shell').classList.add('idle'); }, 2800); };
     dragging = false;
     dimensions = '';
     trackSignature = '';
@@ -31,7 +47,7 @@ export class WebmpvPlayerElement extends Base {
     resizeObserver;
     lastAnnouncement = '';
     lastFailure;
-    fullscreenChanged = () => { this.$('fullscreen').textContent = document.fullscreenElement === this ? this.labels.exitFullscreen : this.labels.fullscreen; };
+    fullscreenChanged = () => { const active = document.fullscreenElement === this; this.iconButton('fullscreen', active ? 'collapse' : 'expand', active ? this.labels.exitFullscreen : this.labels.fullscreen); };
     constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); }
     newReady() { this.readiness = new Promise((resolve, reject) => { this.resolveReady = resolve; this.rejectReady = reject; }); void this.readiness.catch(() => { }); }
     get ready() { return this.readiness; }
@@ -122,6 +138,7 @@ export class WebmpvPlayerElement extends Base {
         queueMicrotask(() => {
             if (this.isConnected || token !== this.connection || this.terminal)
                 return;
+            clearTimeout(this.hideTimer);
             this.sourceVersion++;
             this.sourceAbort?.abort();
             this.lastSource = undefined;
@@ -162,8 +179,10 @@ export class WebmpvPlayerElement extends Base {
         }
         if (this.core)
             this.update(this.core.state);
-        else
+        else {
             this.$('controls').hidden = !this.controls;
+            this.$('topbar').hidden = !this.controls;
+        }
     }
     scheduleSource() { if (this.attributeScheduled)
         return; this.attributeScheduled = true; queueMicrotask(() => { this.attributeScheduled = false; if (!this.core || this.terminal)
@@ -211,6 +230,7 @@ export class WebmpvPlayerElement extends Base {
     destroy() {
         if (this.terminal)
             return this.cleanup;
+        clearTimeout(this.hideTimer);
         this.terminal = true;
         this.connection++;
         this.sourceVersion++;
@@ -244,12 +264,19 @@ export class WebmpvPlayerElement extends Base {
     } }
     update(state) {
         const labels = this.labels, pending = state.pendingOperation !== null;
-        this.$('controls').hidden = !this.controls;
+        this.$('topbar').hidden = !this.controls;
+        this.$('close-media').hidden = !state.sourceId && !pending;
+        const playing = state.status === 'playing';
+        if (this.$('shell').classList.contains('playing') !== playing) {
+            this.$('shell').classList.toggle('playing', playing);
+            this.revealControls();
+        }
+        this.$('controls').hidden = !this.controls || !state.sourceId;
         this.$('empty').hidden = !!state.sourceId;
         this.$('poster').hidden = !this.poster || !!state.sourceId;
-        this.$('play').textContent = state.playbackIntent === 'play' ? labels.pause : labels.play;
+        this.iconButton('play', state.playbackIntent === 'play' ? 'pause' : 'play', state.playbackIntent === 'play' ? labels.pause : labels.play);
         this.$('play').disabled = !state.sourceId || pending;
-        this.$('mute').textContent = state.muted ? labels.unmute : labels.mute;
+        this.iconButton('mute', state.muted ? 'muted' : 'volume', state.muted ? labels.unmute : labels.mute);
         this.$('mute').setAttribute('aria-pressed', String(state.muted));
         this.reflected = true;
         this.toggleAttribute('muted', state.muted);
@@ -283,22 +310,43 @@ export class WebmpvPlayerElement extends Base {
     }
     trackOptions(id, list) { const select = this.$(id); select.replaceChildren(new Option(this.labels.automatic, 'auto'), new Option(this.labels.off, '')); for (const t of list)
         select.add(new Option(t.label, t.id)); select.value = list.find(t => t.selected)?.id ?? (list.length ? '' : 'auto'); select.disabled = !list.length; }
-    settings(open) { this.$('settings').hidden = !open; this.$('settings-toggle').setAttribute('aria-expanded', String(open)); if (open)
+    settings(open) { if (open)
+        this.menuTrigger = this.$('controls').hidden ? 'open-menu' : (this.shadowRoot?.activeElement?.id === 'open-menu' ? 'open-menu' : 'settings-toggle'); this.revealControls(); this.$('settings').hidden = !open; this.$('settings-toggle').setAttribute('aria-expanded', String(open)); if (open)
         this.$('settings-close').focus();
     else
-        this.$('settings-toggle').focus(); }
+        this.$(this.menuTrigger).focus(); }
     fullscreen() { const active = document.fullscreenElement === this; const request = active ? document.exitFullscreen() : this.requestFullscreen?.(); if (!request) {
         this.announce(this.labels.noFullscreen);
         return;
-    } void request.then(() => { this.$('fullscreen').textContent = document.fullscreenElement === this ? this.labels.exitFullscreen : this.labels.fullscreen; }, () => this.announce(this.labels.noFullscreen)); }
-    labelControls() { for (const [id, key] of Object.entries({ mute: 'mute', 'settings-toggle': 'settings', 'settings-close': 'closeSettings', fullscreen: 'fullscreen', 'open': 'open', 'retry': 'retry' }))
-        this.$(id).textContent = this.labels[key]; for (const [id, key] of Object.entries({ timeline: 'seek', volume: 'volume', file: 'open', subtitleFile: 'addSubtitle' }))
+    } void request.then(() => { this.fullscreenChanged(); }, () => this.announce(this.labels.noFullscreen)); }
+    iconButton(id, icon, label) { const button = this.$(id); if (button.dataset.icon !== icon) {
+        button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;
+        button.dataset.icon = icon;
+    } button.classList.add('icon-button'); button.setAttribute('aria-label', label); button.setAttribute('title', label); }
+    labelControls() { for (const [id, key] of Object.entries({ mute: 'mute', 'settings-toggle': 'settings', 'settings-close': 'closeSettings', fullscreen: 'fullscreen', 'open': 'open', 'open-menu': 'open', 'close-media': 'closeMedia', 'url-submit': 'openURL', 'retry': 'retry' }))
+        this.$(id).textContent = this.labels[key]; for (const [id, icon, key] of [['play', 'play', 'play'], ['mute', 'volume', 'mute'], ['settings-toggle', 'settings', 'settings'], ['settings-close', 'close', 'closeSettings'], ['open-menu', 'folder', 'open'], ['close-media', 'close', 'closeMedia']]) {
+        delete this.$(id).dataset.icon;
+        this.iconButton(id, icon, this.labels[key]);
+    } delete this.$('fullscreen').dataset.icon; this.fullscreenChanged(); for (const [id, key] of Object.entries({ timeline: 'seek', volume: 'volume', file: 'open', subtitleFile: 'addSubtitle' }))
         this.$(id).setAttribute('aria-label', this.labels[key]); this.$('empty-title').textContent = this.labels.empty; this.$('empty-description').textContent = this.labels.drop; this.$('help').textContent = this.labels.shortcuts; for (const id of ['speed', 'audio', 'subtitles'])
-        this.$(id + '-label').textContent = this.labels[id]; this.$('settings-title').textContent = this.labels.settings; this.$('media-file-label').textContent = this.labels.mediaFile; this.$('subtitle-file-label').textContent = this.labels.subtitleFile; }
+        this.$(id + '-label').textContent = this.labels[id]; this.$('settings-title').textContent = this.labels.settings; this.$('media-file-label').textContent = this.labels.mediaFile; this.$('subtitle-file-label').textContent = this.labels.subtitleFile; for (const id of ['url', 'format', 'live'])
+        this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id]; }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}</style><section class="shell" part="container" aria-label="Media player"><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><div class="emblem" aria-hidden="true">▷</div><strong id="empty-title"></strong><p id="empty-description"></p><button id="open"></button></div><div id="busy" class="busy" hidden></div></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><input id="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="row"><button id="play" class="play" disabled>Play</button><span id="time" class="time">0:00 / —</span><span class="space"></span><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><label><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label><span id="audio-label"></span><select id="audio" disabled></select></label><label><span id="subtitles-label"></span><select id="subtitles" disabled></select></label><label><span id="media-file-label"></span><input id="file" type="file"></label><label><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><p class="help" id="help"></p></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
+        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar"><span class="player-title">deplexr</span><span class="space"></span><button id="open-menu"></button><button id="close-media" hidden></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><div class="emblem" aria-hidden="true">▷</div><strong id="empty-title"></strong><p id="empty-description"></p><button id="open"></button></div><div id="busy" class="busy" hidden></div></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><input id="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="row"><button id="play" class="play" disabled>Play</button><span id="time" class="time">0:00 / —</span><span class="space"></span><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><label><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label><span id="audio-label"></span><select id="audio" disabled></select></label><label><span id="subtitles-label"></span><select id="subtitles" disabled></select></label><label><span id="media-file-label"></span><input id="file" type="file"></label><label><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form><p class="help" id="help"></p></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
         this.labelControls();
         this.$('controls').hidden = !this.controls;
+        this.$('topbar').hidden = !this.controls;
+        this.addEventListener('pointermove', this.revealControls);
+        this.addEventListener('pointerdown', this.revealControls);
+        this.addEventListener('focusin', this.revealControls);
+        this.addEventListener('focusout', this.revealControls);
+        this.$('open-menu').onclick = () => this.settings(true);
+        this.$('close-media').onclick = () => { this.run(this.close()); this.$('stage').focus(); };
+        this.$('remote').onsubmit = event => { event.preventDefault(); const format = this.$('format').value; this.run(this.open({ url: this.input('url').value, format, ...(format !== 'file' ? { streaming: { live: this.input('live').checked } } : {}) })); this.settings(false); };
+        this.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files'))
+            event.preventDefault(); });
+        this.addEventListener('drop', event => { if (!event.dataTransfer?.files.length)
+            return; event.preventDefault(); this.run(this.open(event.dataTransfer.files[0])); });
         this.$('play').onclick = () => { if (this.core)
             this.run(this.core.state.playbackIntent === 'play' ? this.pause() : this.play()); };
         this.$('mute').onclick = () => { if (this.core)
@@ -316,8 +364,10 @@ export class WebmpvPlayerElement extends Base {
         this.$('fullscreen').onclick = () => this.fullscreen();
         this.$('stage').ondblclick = () => this.fullscreen();
         this.$('open').onclick = () => this.input('file').click();
-        this.input('file').onchange = () => { const file = this.input('file').files?.[0]; this.input('file').value = ''; if (file)
-            this.run(this.open(file)); };
+        this.input('file').onchange = () => { const file = this.input('file').files?.[0]; this.input('file').value = ''; if (file) {
+            this.run(this.open(file));
+            this.settings(false);
+        } };
         this.input('subtitleFile').onchange = () => { const file = this.input('subtitleFile').files?.[0]; this.input('subtitleFile').value = ''; if (file)
             this.run(this.addSubtitle(file)); };
         this.$('retry').onclick = () => { const error = this.lastFailure; this.clearError(); if (error?.code === 'AUTOPLAY_BLOCKED')

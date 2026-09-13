@@ -18,7 +18,7 @@ session to cancel a replacement. Catch PlayerError; the error event now carries
 structured error detail instead of an untyped backend string. mpv, modechange and
 selectionchange remain advanced interfaces.
 
-The optional component is a separate `webmpv/player` import. Custom controls use
+The optional component is a separate `deplexr/player` import. Custom controls use
 exactly the same Player API. Runtime static directories continue to work; the
 assetBase and copy-assets interfaces are described in RUNTIME-ASSETS.md. These
 interfaces are undergoing milestone validation; see PUBLIC-API-VALIDATION.md for

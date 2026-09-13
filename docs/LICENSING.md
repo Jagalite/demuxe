@@ -46,7 +46,7 @@ original-code license does not replace those upstream terms. The dated release r
 
 ## Source and build materials accompanying a distribution
 
-Ship the runtime archive and its matching `webmpv-*-source.tar.gz` together from the
+Ship the runtime archive and its matching `deplexr-*-source.tar.gz` together from the
 same download location. The source companion must contain:
 
 - The exact webmpv source revision, native wrappers, browser bindings, patches,

@@ -26,7 +26,7 @@ if args.release_tag:
  for item in json.loads((root/'sources.lock.json').read_text())['sources']:
   if hashlib.sha256((root/'build/downloads'/(item['name']+'.tar.gz')).read_bytes()).hexdigest()!=item['sha256']:raise SystemExit('Source archive mismatch: '+item['name'])
  subprocess.run(['python3',str(root/'scripts/package-beta-source.py'),'--output',str(args.output),'--tag',args.release_tag],check=True)
- source_path=args.output/f"webmpv-{project['version']}-source.tar.gz"
+ source_path=args.output/f"{project['name']}-{project['version']}-source.tar.gz"
  source_archive={'filename':source_path.name,'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),'bytes':source_path.stat().st_size}
 
 files={}
@@ -55,11 +55,11 @@ files['index.d.ts']=b"export * from './web/generated/index.js';\n"
 files['README.md']=files['docs/BETA.md']
 for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
-package={'name':'webmpv','version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'webmpvOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{'webmpv':'./bin/webmpv.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'webmpvOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/webmpv.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
-args.output.mkdir(parents=True,exist_ok=True);out=args.output/f"webmpv-{package['version']}.tgz"
+args.output.mkdir(parents=True,exist_ok=True);out=args.output/f"{package['name']}-{package['version']}.tgz"
 with out.open('wb')as f:
  with gzip.GzipFile(filename='',mode='wb',fileobj=f,mtime=0)as gz:
   with tarfile.open(fileobj=gz,mode='w',format=tarfile.PAX_FORMAT)as tar:

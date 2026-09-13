@@ -1,4 +1,4 @@
-# webmpv
+# deplexr
 
 **[Try the live demo](https://jagalite.github.io/webmpv/)** — play local media in your browser; files are not uploaded. The first visit reloads once to enable the playback engines.
 
@@ -24,18 +24,18 @@ core. It is not yet an npm release. Install the locally assembled archive and
 copy its verified runtime assets:
 
 ```sh
-npm install /path/to/webmpv-0.3.0-beta.2.tgz
-npx webmpv copy-assets public/assets/webmpv
+npm install /path/to/deplexr-0.3.0-beta.2.tgz
+npx deplexr copy-assets public/assets/webmpv
 ```
 
 ```js
-import {Player} from 'webmpv';
+import {Player} from 'deplexr';
 const player = new Player(container, {assetBase: '/assets/webmpv/'});
 const unsubscribe = player.subscribe(state => render(state));
 await player.open(file);
 ```
 
-For ready-made controls, import `definePlayerElement` from `webmpv/player`, call
+For ready-made controls, import `definePlayerElement` from `deplexr/player`, call
 it, and use `<webmpv-player controls asset-base="/assets/webmpv/"></webmpv-player>`.
 See the [API contract](docs/PUBLIC-API.md), [component guide](docs/PLAYER-COMPONENT.md),
 [migration notes](docs/API-MIGRATION.md), [runtime installation](docs/RUNTIME-ASSETS.md)

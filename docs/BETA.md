@@ -13,10 +13,10 @@ From a checkout with the three current engine builds available:
 npm ci
 npm run build
 python3 scripts/package-beta.py
-npm install --offline /absolute/path/build/beta/webmpv-0.3.0-beta.2.tgz
+npm install --offline /absolute/path/build/beta/deplexr-0.3.0-beta.2.tgz
 ```
 
-Copy the entire installed `node_modules/webmpv` directory to your application's
+Copy the entire installed `node_modules/deplexr` directory to your application's
 static `/vendor/webmpv/` directory. Preserve the relative layout. Do not bundle just
 `index.js`: dynamic imports, module workers, pthread workers, fonts and AudioWorklet
 modules resolve relative to their own module URLs.

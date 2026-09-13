@@ -32,6 +32,11 @@ export declare const defaultLabels: Readonly<{
     shortcuts: "K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen";
     noFullscreen: "Fullscreen is unavailable here. Open this page in a browser tab.";
     noWindow: "Live playback · seek window unavailable";
+    openURL: "Open URL";
+    closeMedia: "Close media";
+    url: "Media URL";
+    format: "Source format";
+    streamLive: "Live stream";
     mediaFile: "Media file";
     subtitleFile: "Subtitle file";
 }>;
@@ -52,6 +57,9 @@ export declare class WebmpvPlayerElement extends Base {
     private rejectReady;
     private readiness;
     private overrides;
+    private menuTrigger;
+    private hideTimer?;
+    private revealControls;
     private dragging;
     private dimensions;
     private trackSignature;
@@ -109,6 +117,7 @@ export declare class WebmpvPlayerElement extends Base {
     private trackOptions;
     private settings;
     private fullscreen;
+    private iconButton;
     private labelControls;
     private renderShell;
 }
