@@ -3,12 +3,12 @@ export function formatTime(value) {
     return n >= 3600 ? `${Math.floor(n / 3600)}:${minutes}:${seconds}` : `${Math.floor(n / 60)}:${seconds}`;
 }
 export function outputDimensions(ratio) { const width = Math.min(1920, 1080 * ratio); return { width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(width / ratio)) }; }
-export function shortcut(event) {
+export function shortcut(event, spaceControlsPlayback = false) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing || event.defaultPrevented)
         return null;
     if (event.composedPath().some(node => node instanceof HTMLElement && (node.matches('input,select,textarea,[role="slider"]') || node.isContentEditable)))
         return null;
-    if ([' ', 'Enter'].includes(event.key) && event.composedPath().some(node => node instanceof HTMLElement && node.matches('button,a,summary,[role="button"]')))
+    if ((event.key === 'Enter' || event.key === ' ' && !spaceControlsPlayback) && event.composedPath().some(node => node instanceof HTMLElement && node.matches('button,a,summary,[role="button"]')))
         return null;
     return event.key.toLowerCase();
 }

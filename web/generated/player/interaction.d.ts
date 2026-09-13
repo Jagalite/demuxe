@@ -3,4 +3,4 @@ export declare function outputDimensions(ratio: number): {
     width: number;
     height: number;
 };
-export declare function shortcut(event: KeyboardEvent): string | null;
+export declare function shortcut(event: KeyboardEvent, spaceControlsPlayback?: boolean): string | null;

@@ -2,6 +2,7 @@ import { Player } from '../unified-player.js';
 import type { MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
+    diagnostics: "Session diagnostics";
     moreOptions: "More options";
     back: "Seek backward 10 seconds";
     forward: "Seek forward 10 seconds";
@@ -70,6 +71,7 @@ export declare class WebmpvPlayerElement extends Base {
     private stageWasIdle;
     private isScreenPress;
     private wasSeeking;
+    private diagnosticsUpdated;
     private dragging;
     private dimensions;
     private trackSignature;
@@ -125,6 +127,7 @@ export declare class WebmpvPlayerElement extends Base {
     private announce;
     private geometry;
     private update;
+    private updateDiagnostics;
     private timelineProgress;
     private skip;
     private trackOptions;

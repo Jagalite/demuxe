@@ -75,7 +75,9 @@ and a thin full-width timeline with elapsed and total times at opposite ends.
 Seek buttons clamp to available seek ranges and disable while an operation is
 pending or no seek window exists. Volume shares the timestamp row below the
 timeline; settings and fullscreen sit at the top right. The gear opens compact playback settings; the folder opens file/URL
-inputs separately. Subtitle import and shortcut help live under More options.
+inputs and subtitle upload separately. The eye toggles a live session diagnostics
+text overlay that remains visible when playback controls hide. Top-right icons
+use motion on hover and a stronger accent stroke when active.
 Control sizes and compact layouts follow the player container width, including
 small embeds in wide browser windows. Pointer controls retain 36px targets and
 coarse-pointer devices use 44px targets. On narrow players, opening a menu hides
@@ -86,7 +88,8 @@ in playing or paused playback. Clicking outside a menu dismisses it without
 stealing focus; Escape returns focus to its trigger. Hiding controls preserves
 focus on the stage; keyboard navigation reveals controls. Keyboard shortcuts apply to
 focus inside the component; inputs keep their native keys, and buttons retain
-Space/Enter activation: Space/K, arrows, J/L, M, C, brackets, digits,
+Space/Enter activation, except top-right icons reserve Space for playback
+and use Enter for activation. Playback keys: Space/K, arrows, J/L, M, C, brackets, digits,
 Home/End, F and ?. Inputs, selects, editable content and modified keys
 retain their normal handling. C uses the core's subtitle visibility setting;
 it does not select a different language. Scrubbing previews locally; release
