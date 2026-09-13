@@ -43,7 +43,10 @@ Create `build/` before redirecting the log. The clean flag rejects existing engi
 outputs, extracted sources, dependency prefixes, objects or compiler cache. The
 build verifies locked archives, applies the complete patch series, builds all
 static dependencies and all three engines, and records actual configuration and
-input/output hashes in `build/beta-build.json`. Inputs may not change during the
+input/output hashes in `build/beta-build.json`. Compiler file-prefix maps and
+normalized generated configuration headers use `/deplexr/` as a virtual build root;
+the npm packager rejects leaked host paths in any runtime file, including Wasm.
+Full host paths remain only in build evidence and the source companion. Inputs may not change during the
 build. Generated tracked bindings must match the tag; otherwise fix the source,
 review and make a new candidate revision.
 
@@ -98,7 +101,8 @@ python3 scripts/verify-beta-release.py \
   --archive build/release/deplexr-<version>.tgz \
   --source build/release/deplexr-<version>-source.tar.gz \
   --consumer <chrome-consumer-result.json> <firefox-consumer-result.json> \
-  --streaming <chrome-streaming-result.json> <firefox-streaming-result.json>
+  --streaming <chrome-streaming-result.json> <firefox-streaming-result.json> \
+  --extra <release-extra-result.json>
 ```
 
 A changed runtime hash, source companion, tagged test harness, failed test, filtered

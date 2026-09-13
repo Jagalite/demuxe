@@ -8,7 +8,7 @@ source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$ROOT/build/venv/bin:$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
 PREFIX="$ROOT/build/prefix-playback"
-export CFLAGS='-O2 -pthread -msimd128'
+export CFLAGS="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/deplexr"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS='-pthread'
 mkdir -p "$PREFIX"

@@ -16,7 +16,7 @@ source scripts/decoder-simd.sh
 if [ "${WEBMPV_BROWSER_DECODER:-0}" = 1 ]; then
   BROWSER_SOURCES=(native/vd_browser.c -Ibuild/sources/mpv -Ibuild/obj-mpv)
 fi
-emcc "${WEBMPV_LINK_OPT:--O2}" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c "${BROWSER_SOURCES[@]}" "${DECODER_SIMD_SOURCES[@]}" \
+emcc "${WEBMPV_LINK_OPT:--O2}" "-ffile-prefix-map=$ROOT=/deplexr" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c "${BROWSER_SOURCES[@]}" "${DECODER_SIMD_SOURCES[@]}" \
   $(pkg-config --cflags --libs --static mpv) -lstdc++ \
   -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine \
   -sENVIRONMENT=worker -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \

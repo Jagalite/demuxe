@@ -24,11 +24,11 @@ if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ] && { [ ! -f "$OBJ/Makefile" ] || ! rg -
  --enable-demuxers \
  --enable-muxer=mp4,webm --enable-parsers \
  --enable-bsfs \
- --extra-cflags='-O2 -pthread -msimd128' --extra-ldflags='-pthread')
+ --extra-cflags="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/deplexr" --extra-ldflags='-pthread')
 fi
-if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ]; then (cd "$OBJ"; emmake make -j 4); fi
+if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ]; then python3 scripts/normalize-build-paths.py "$OBJ/config.h"; (cd "$OBJ"; emmake make -j 4); fi
 LINK_OUT=$(mktemp -d "$ROOT/build/native-remux/link.XXXXXX")
-emcc -O2 -pthread -msimd128 -I"$OBJ" -Ibuild/sources/ffmpeg \
+emcc -O2 "-ffile-prefix-map=$ROOT=/deplexr" -pthread -msimd128 -I"$OBJ" -Ibuild/sources/ffmpeg \
  native/remux/remux.c \
  "$OBJ/libavformat/libavformat.a" "$OBJ/libavcodec/libavcodec.a" "$OBJ/libavutil/libavutil.a" \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createRemux -sENVIRONMENT=worker \

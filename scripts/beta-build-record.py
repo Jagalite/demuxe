@@ -27,7 +27,7 @@ if args.phase=='start':
 else:
  start=json.loads(record.read_text())
  if start['inputs']!=inputs():raise SystemExit('Build inputs changed while building')
- configs=['build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-ffmpeg/config.h','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/beta.emscripten']
+ configs=['build/cross.ini','build/obj-libxml2/config.h','build/software-vo/compile-command.json','build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-ffmpeg/config.h','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/beta.emscripten']
  def license_at(file,gpl):
   text=(root/file).read_text()
   for name,value in [('GPL',gpl),('VERSION3',0),('NONFREE',0)]:
