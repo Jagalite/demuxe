@@ -127,7 +127,9 @@ export declare class WebmpvPlayerElement extends Base {
     private announce;
     private geometry;
     private update;
+    private setDiagnostics;
     private updateDiagnostics;
+    private bufferedProgress;
     private timelineProgress;
     private skip;
     private trackOptions;

@@ -14,7 +14,8 @@ src is a remote URL. Changing it cancels a previous pending source open; only th
 latest accepted change wins. Removing src closes media. Programmatic open accepts
 all core source types. autoplay requests play only after acceptance and reports
 normal browser policy rejection without fallback. muted reflects configured mute;
-controls toggles controls; poster is an idle/loading preview. asset-base is fixed
+controls toggles controls and closes open settings/stats overlays when disabled;
+poster is an idle/loading preview. asset-base is fixed
 after initialization and rejects changes. Set it before connection. Pre-upgrade
 properties are replayed on upgrade. Boolean attributes follow HTML presence rules.
 
@@ -76,8 +77,12 @@ Seek buttons clamp to available seek ranges and disable while an operation is
 pending or no seek window exists. Volume shares the timestamp row below the
 timeline; settings and fullscreen sit at the top right. The gear opens compact playback settings; the folder opens file/URL
 inputs and subtitle upload separately. The eye toggles a live session diagnostics
-text overlay that remains visible when playback controls hide. Top-right icons
-use motion on hover and a stronger accent stroke when active.
+text overlay that remains visible when playback controls hide. The overlay is
+scrollable and keyboard-focusable; navigation keys scroll it, and Escape closes
+it and returns focus to the eye. Top-right icons
+use motion on hover and a stronger accent stroke when active. Buffering displays
+a small central ring even with hidden controls. Timeline shading uses reported
+buffered ranges (currently Native only); unavailable ranges are not estimated.
 Control sizes and compact layouts follow the player container width, including
 small embeds in wide browser windows. Pointer controls retain 36px targets and
 coarse-pointer devices use 44px targets. On narrow players, opening a menu hides
