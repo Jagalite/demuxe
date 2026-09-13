@@ -45,9 +45,31 @@ export declare const defaultLabels: Readonly<{
     subtitleFile: "Subtitle file";
 }>;
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
+export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 export declare class DeplexrPlayerElement extends Base {
     static observedAttributes: string[];
     private core?;
+    private sourceName;
+    private sourceNameId;
+    private sourceControls;
+    private diagnosticsControl;
+    private fileDrop;
+    private seekSeconds;
+    private autoHideDelay;
+    get titleMode(): PlayerTitleMode;
+    set titleMode(value: PlayerTitleMode);
+    get showSourceControls(): boolean;
+    set showSourceControls(value: boolean);
+    get showDiagnostics(): boolean;
+    set showDiagnostics(value: boolean);
+    get allowFileDrop(): boolean;
+    set allowFileDrop(value: boolean);
+    get seekStep(): number;
+    set seekStep(value: number);
+    get controlsAutoHideDelay(): number;
+    set controlsAutoHideDelay(value: number);
+    private updateTitle;
+    private updateUtilities;
     private terminal;
     private cleanup;
     private connecting?;
@@ -140,4 +162,9 @@ export declare class DeplexrPlayerElement extends Base {
     private renderShell;
 }
 export declare function definePlayerElement(name?: string): typeof DeplexrPlayerElement;
+declare global {
+    interface HTMLElementTagNameMap {
+        'deplexr-player': DeplexrPlayerElement;
+    }
+}
 export {};

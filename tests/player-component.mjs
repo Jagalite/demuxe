@@ -6,6 +6,144 @@ const result={family,browser:browser.version(),checks:[],hashes:{},screenReader:
 async function check(name,fn){try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
 try{await page.goto(origin+'/examples/player-element.html');await page.evaluate(async()=>{window.a=document.querySelectorAll('deplexr-player')[0];window.b=document.querySelectorAll('deplexr-player')[1];await Promise.all([a.ready,b.ready]);});
 await check('two idle instances, lazy engines and idempotent registration',async()=>{const d=await page.evaluate(async()=>{const m=await import('/web/generated/player/index.js');m.definePlayerElement();m.definePlayerElement();return {same:a.player===await a.ready,different:a.player!==b.player,requests:performance.getEntriesByType('resource').filter(e=>/\.wasm|engine-worker/.test(e.name)).length,shadow:a.shadowRoot.mode};});assert.deepEqual(d,{same:true,different:true,requests:0,shadow:'open'});assert.equal(page.workers().length,0);});
+await check('custom titles update live as plain text with explicit policies',async()=>{
+ const data=await page.evaluate(()=>{
+   const title=a.shadowRoot.getElementById('title');
+   a.setAttribute('title','Movie Night <b>🎬</b>');const attribute=title.textContent;
+   a.title='A different movie — 日本語';const property=title.textContent;
+   a.titleMode='none';const hidden=title.hidden;
+   a.titleMode='custom';const custom=title.textContent;
+   a.title='';const empty=title.hidden;
+   a.titleMode='auto';
+   return {attribute,property,hidden,custom,empty,children:title.children.length,mode:a.titleMode};
+ });
+ assert.deepEqual(data,{attribute:'Movie Night <b>🎬</b>',property:'A different movie — 日本語',hidden:true,custom:'A different movie — 日本語',empty:true,children:0,mode:'auto'});
+});
+await check('source titles use filenames, redact URL metadata and honor custom precedence',async()=>{
+ await page.route('**/movies/**',route=>route.continue({url:origin+'/fixtures/example.mp4'}));
+ const data=await page.evaluate(async()=>{
+   const title=()=>a.shadowRoot.getElementById('title').textContent;
+   await a.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'Local movie 🎬.mp4'));const file=title();
+   a.title='My Movie';const precedence=title();a.titleMode='source';const source=title();
+   await a.open(location.origin+'/movies/My%20Movie.mp4?token=SECRET#PRIVATE');const url=title();
+   await a.open(new URL(location.origin+'/movies/object.mp4?auth=SECRET#PRIVATE'));const urlObject=title();
+   await a.open({url:location.origin+'/movies/descriptor.mp4?token=SECRET'});const descriptor=title();
+   await a.open(location.origin+'/movies/');const directory=title();
+   a.titleMode='custom';const custom=title();a.title='';a.titleMode='auto';
+   await a.close();return {file,precedence,source,url,urlObject,descriptor,directory,custom,closed:title()};
+ });assert.deepEqual(data,{file:'Local movie 🎬.mp4',precedence:'My Movie',source:'Local movie 🎬.mp4',url:'My Movie.mp4',urlObject:'object.mp4',descriptor:'descriptor.mp4',directory:'',custom:'My Movie',closed:''});
+ await page.unroute('**/movies/**');
+});
+await check('unnamed and opaque sources do not expose a generated or stale title',async()=>{
+ const data=await page.evaluate(async()=>{
+   const bytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer();
+   await a.open(bytes);const buffer=a.shadowRoot.getElementById('title').textContent;
+   const url=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));
+   try{await a.open(url).catch(()=>{});return {buffer,blob:a.shadowRoot.getElementById('title').textContent};}
+   finally{await a.close();URL.revokeObjectURL(url);}
+ });assert.deepEqual(data,{buffer:'',blob:''});
+});
+await check('disabled source controls close their menu, block handlers and allow programmatic open',async()=>{
+ const data=await page.evaluate(async()=>{
+   const $=id=>a.shadowRoot.getElementById(id);
+   $('open-menu').click();$('url').focus();a.showSourceControls=false;
+   const disabled=['open-menu','open','file','subtitleFile','url','format','live','url-submit'].every(id=>$(id).disabled);
+   const closed=$('settings').hidden,focus=a.shadowRoot.activeElement.id;
+   let calls=0;const open=a.open,subtitle=a.addSubtitle;
+   a.open=async()=>{calls++;};a.addSubtitle=async()=>{calls++;};
+   try {
+     $('open-menu').dispatchEvent(new MouseEvent('click'));
+     $('remote').dispatchEvent(new Event('submit',{cancelable:true}));
+     const transfer=new DataTransfer();transfer.items.add(new File(['data'],'ignored.mp4'));
+     for(const id of ['file','subtitleFile']){$(id).files=transfer.files;$(id).dispatchEvent(new Event('change'));}
+   }finally{a.open=open;a.addSubtitle=subtitle;}
+   await a.open(location.origin+'/fixtures/example.mp4');
+   const result={disabled,closed,focus,calls,menu:$('settings').hidden,folder:$('open-menu').hidden,empty:$('empty').hidden,opened:!!a.player.state.sourceId,transport:!$('transport').hidden};
+   a.showSourceControls=true;await a.close();return result;
+ });assert.deepEqual(data,{disabled:true,closed:true,focus:'stage',calls:0,menu:true,folder:true,empty:true,opened:true,transport:true});
+});
+await check('disabled diagnostics close the overlay and restore focus without disabling core diagnostics',async()=>{
+ const data=await page.evaluate(()=>{
+   const $=id=>a.shadowRoot.getElementById(id);$('diagnostics-toggle').click();$('diagnostics-overlay').focus();a.showDiagnostics=false;
+   const focus=a.shadowRoot.activeElement.id;$('diagnostics-toggle').dispatchEvent(new MouseEvent('click'));
+   const result={focus,hidden:$('diagnostics-toggle').hidden,disabled:$('diagnostics-toggle').disabled,overlay:$('diagnostics-overlay').hidden,core:!!a.player.diagnostics};
+   a.showDiagnostics=true;return result;
+ });assert.deepEqual(data,{focus:'stage',hidden:true,disabled:true,overlay:true,core:true});
+});
+await check('file drop opt-out preserves browser defaults and is independent of source controls',async()=>{
+ const data=await page.evaluate(async()=>{
+   const dt=new DataTransfer();dt.items.add(new File(['data'],'drop.mp4'));let calls=0;const open=a.open;
+   a.open=async()=>{calls++;};a.allowFileDrop=false;
+   const send=type=>{const event=new DragEvent(type,{dataTransfer:dt,bubbles:true,cancelable:true});a.dispatchEvent(event);return event.defaultPrevented;};
+   try {const disabled=[send('dragover'),send('drop'),calls];a.allowFileDrop=true;a.showSourceControls=false;const enabled=[send('dragover'),send('drop'),calls];return {disabled,enabled};}
+   finally {a.open=open;a.showSourceControls=true;a.allowFileDrop=true;}
+ });assert.deepEqual(data,{disabled:[false,false,0],enabled:[true,true,1]});
+});
+await check('custom seek step changes actual seeking, labels and numerals',async()=>{
+ await page.evaluate(async()=>{await a.open(location.origin+'/fixtures/example.mp4');a.seekStep=2.5;});
+ const v=page.locator('deplexr-player').first();
+ assert.equal(await v.locator('#forward').getAttribute('aria-label'),'Seek forward 2.5 seconds');
+ assert.equal(await v.locator('#back text').textContent(),'2.5');
+ await v.locator('#forward').click();await page.waitForFunction(()=>!a.player.state.pendingOperation&&Math.abs(a.player.state.currentTime-2.5)<.2);
+ await v.locator('#back').click();await page.waitForFunction(()=>!a.player.state.pendingOperation&&a.player.state.currentTime<.2);
+ await page.evaluate(()=>{a.seekStep=10;});
+});
+await check('live seek and label updates preserve the active menu and its accessible name',async()=>{
+ const v=page.locator('deplexr-player').first();
+ for(const [trigger,section,label] of [['open-menu','source-options','Open media'],['settings-toggle','playback-options','Playback settings']]){
+   await v.locator('#'+trigger).click();
+   await v.locator('#settings-close').focus();
+   await v.evaluate(el=>{el.seekStep=5;});
+   assert.equal(await v.locator('#settings-title').textContent(),label);
+   assert.ok(await v.locator('#'+section).isVisible());
+   assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'settings-close');
+   assert.equal(await v.locator('#'+trigger).getAttribute('aria-expanded'),'true');
+   await v.evaluate(el=>{el.labels={open:'Choose media',settings:'Playback options'};});
+   assert.equal(await v.locator('#settings-title').textContent(),trigger==='open-menu'?'Choose media':'Playback options');
+   await page.keyboard.press('Escape');
+   assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),trigger);
+   await v.evaluate(el=>{el.labels={};el.seekStep=10;});
+ }
+});
+await check('configuration updates cannot revive a terminally destroyed player',async()=>{
+ const data=await page.evaluate(async()=>{
+   const el=document.createElement('deplexr-player');el.controls=true;document.body.append(el);await el.ready;
+   await el.destroy();
+   const hidden=()=>['empty','topbar','controls','transport','settings','diagnostics-overlay'].every(id=>el.shadowRoot.getElementById(id).hidden);
+   const states=[hidden()];
+   for(const value of [false,true]){
+     el.showDiagnostics=value;states.push(hidden());
+     el.showSourceControls=value;states.push(hidden());
+     el.controls=value;el.title='Updated';el.titleMode='source';states.push(hidden());
+   }
+   const code=await el.open(location.origin+'/fixtures/example.mp4').catch(error=>error.code);
+   el.remove();document.body.append(el);await new Promise(resolve=>setTimeout(resolve,0));
+   const result={states,code,core:!!el.player,hidden:hidden()};el.remove();return result;
+ });
+ assert.ok(data.states.every(Boolean));assert.equal(data.code,'ABORTED');assert.equal(data.core,false);assert.ok(data.hidden);
+});
+await check('custom auto-hide delay and zero opt-out apply live',async()=>{
+ await page.evaluate(async()=>{a.controlsAutoHideDelay=180;await a.play();a.shadowRoot.activeElement?.blur();a.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse'}));});
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('shell').classList.contains('idle'),null,{timeout:1500});
+ await page.evaluate(()=>{a.controlsAutoHideDelay=0;});
+ await page.waitForTimeout(350);
+ assert.equal(await page.evaluate(()=>a.shadowRoot.getElementById('shell').classList.contains('idle')),false);
+ await page.evaluate(async()=>{await a.pause();a.controlsAutoHideDelay=2800;await a.close();});
+});
+await check('stable parts, light theme and long titles preserve embedded layout',async()=>{
+ const data=await page.evaluate(()=>{
+   const parts=[...a.shadowRoot.querySelectorAll('[part]')].flatMap(el=>el.part.value.split(' '));
+   a.style.cssText='width:320px;--deplexr-background:#ffffff;--deplexr-stage-background:#eeeeee;--deplexr-foreground:#111111;--deplexr-muted-foreground:#555555;--deplexr-panel-background:#fafafa;--deplexr-control-background:#dddddd;--deplexr-overlay-background:#ffffffcc;color-scheme:light';
+   a.title='Very long custom title '.repeat(40);
+   const $=id=>a.shadowRoot.getElementById(id);$('settings-toggle').click();
+   const style=getComputedStyle($('settings')),stage=getComputedStyle($('stage'));
+   const title=$('title').getBoundingClientRect(),folder=$('diagnostics-toggle').getBoundingClientRect();
+   const result={parts,background:style.backgroundColor,color:style.color,stage:stage.backgroundColor,bounded:title.right<=folder.left,overflow:a.scrollWidth>a.clientWidth};
+   $('settings-close').click();a.title='';a.removeAttribute('style');return result;
+ });
+ for(const part of ['container','stage','controls','settings','error','status','title','topbar','transport','timeline','volume'])assert.ok(data.parts.includes(part),part);
+ assert.equal(data.background,'rgb(250, 250, 250)');assert.equal(data.color,'rgb(17, 17, 17)');assert.equal(data.stage,'rgb(238, 238, 238)');assert.ok(data.bounded);assert.equal(data.overflow,false);
+});
 await check('same public core and independent playback',async()=>{await page.evaluate(async()=>{const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4');await a.open(file);await b.open(file);window.events=[];a.addEventListener('sourcechange',e=>events.push(e.detail));});await page.locator('deplexr-player').first().getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>a.player.state.status==='playing'&&a.player.state.currentTime>.3);assert.equal(await page.evaluate(()=>b.player.state.status),'paused');await page.evaluate(()=>a.pause());});
 await check('keyboard shortcuts scoped and focused controls retain native behavior',async()=>{const a=page.locator('deplexr-player').first();await a.locator('#stage').focus();await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.playbackIntent==='play');assert.equal(await page.evaluate(()=>b.player.state.playbackIntent),'pause');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');await a.locator('#timeline').focus();const before=await page.evaluate(()=>a.player.state.currentTime);await page.keyboard.press('ArrowRight');await page.waitForTimeout(200);assert.ok((await page.evaluate(()=>a.player.state.currentTime))-before<1);});
 await check('hidden controls retain shortcuts and button focus allows playback keys',async()=>{
@@ -47,8 +185,8 @@ await check('timeline previews locally and commits once',async()=>{const d=await
 await check('settings focus restoration and accessible controls',async()=>{const a=page.locator('deplexr-player').first();await a.getByRole('button',{name:'Playback settings',exact:true}).click();await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>a.shadowRoot.activeElement.id),'settings-toggle');const tree=await a.ariaSnapshot();assert.match(tree,/button "Play"/);assert.match(tree,/slider "Playback position"/);assert.match(tree,/slider "Volume"/);result.accessibility=tree;});
 await check('fullscreen contains controls and keeps settings inside',async()=>{const a=page.locator('deplexr-player').first();await a.getByRole('button',{name:'Fullscreen',exact:true}).click();await page.waitForFunction(()=>document.fullscreenElement===a);await a.getByRole('button',{name:'Playback settings',exact:true}).click();assert.ok(await a.locator('#settings').isVisible());await page.keyboard.press('Escape');await page.evaluate(()=>document.fullscreenElement?document.exitFullscreen():undefined);});
 await check('synchronous DOM moves keep the same core',async()=>{const d=await page.evaluate(()=>{const core=a.player;a.remove();document.body.append(a);return a.player===core;});assert.ok(d);});
-await check('removal releases resources and reconnect waits for cleanup',async()=>{await page.evaluate(async()=>{window.old=a.player;a.remove();await new Promise(r=>setTimeout(r,1));document.body.append(a);await a.ready;});assert.ok(await page.evaluate(()=>a.player!==old));assert.equal(await page.evaluate(()=>a.player.state.status),'idle');assert.equal(await page.evaluate(()=>old.state.status),'idle');assert.equal(await page.evaluate(()=>a.lastSource),undefined);});
-await check('src changes cancel stale opens; property reflection and pre-upgrade properties',async()=>{await page.route('**/hung.mp4',()=>{});await page.evaluate(async()=>{a.src=location.origin+'/hung.mp4';await new Promise(r=>setTimeout(r,40));a.src=location.origin+'/fixtures/example.mp4';});await page.waitForFunction(()=>a.player.state.sourceId!==null&&a.player.state.pendingOperation===null);await page.unroute('**/hung.mp4');await page.evaluate(async()=>{a.muted=true;await new Promise(r=>setTimeout(r,20));});assert.equal(await page.evaluate(()=>a.player.state.muted),true);
+await check('removal releases resources and reconnect waits for cleanup',async()=>{await page.evaluate(async()=>{window.old=a.player;a.remove();await new Promise(r=>setTimeout(r,1));document.body.append(a);await a.ready;});assert.ok(await page.evaluate(()=>a.player!==old));assert.equal(await page.evaluate(()=>a.player.state.status),'idle');assert.equal(await page.evaluate(()=>old.state.status),'idle');assert.equal(await page.evaluate(()=>a.lastSource),undefined);assert.equal(await page.evaluate(()=>a.shadowRoot.getElementById('title').textContent),'');});
+await check('src changes cancel stale opens; property reflection and pre-upgrade properties',async()=>{await page.route('**/hung.mp4',()=>{});await page.evaluate(async()=>{a.src=location.origin+'/hung.mp4';await new Promise(r=>setTimeout(r,40));a.src=location.origin+'/fixtures/example.mp4';});await page.waitForFunction(()=>a.player.state.sourceId!==null&&a.player.state.pendingOperation===null);await page.unroute('**/hung.mp4');await page.waitForFunction(()=>a.shadowRoot.getElementById('title').textContent==='example.mp4');await page.evaluate(async()=>{a.muted=true;await new Promise(r=>setTimeout(r,20));});assert.equal(await page.evaluate(()=>a.player.state.muted),true);
  const d=await page.evaluate(async()=>{const m=await import('/web/generated/player/index.js');const pre=document.createElement('future-deplexr');pre.muted=true;pre.controls=true;document.body.append(pre);class Other extends m.DeplexrPlayerElement {}customElements.define('future-deplexr',Other);await pre.ready;const data={muted:pre.player.state.muted,controls:pre.controls};await pre.destroy();pre.remove();return data;});assert.deepEqual(d,{muted:true,controls:true});});
 await check('close cancels an open waiting for initial connection',async()=>{const code=await page.evaluate(async()=>{const x=document.createElement('deplexr-player');const pending=x.open(location.origin+'/fixtures/example.mp4').catch(e=>e.code);await x.close();const code=await pending;await x.destroy();return code;});assert.equal(code,'ABORTED');});
 await check('terminal destruction before connection settles ready',async()=>{await page.evaluate(()=>b.destroy());assert.equal(await page.evaluate(()=>b.lastSource),undefined);const d=await page.evaluate(async()=>{const x=document.createElement('deplexr-player');const ready=x.ready.catch(e=>e.code);const first=x.destroy(),second=x.destroy();await first;document.body.append(x);return {same:first===second,ready:await ready,core:!!x.player,sourceRetained:x.lastSource!==undefined};});assert.deepEqual(d,{same:true,ready:'ABORTED',core:false,sourceRetained:false});});

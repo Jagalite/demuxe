@@ -25,7 +25,7 @@ before creating the next core. Explicit destroy is terminal, including reinserti
 ready waits for connection; destroy before connection rejects it.
 
 The open shadow root includes stage, controls, settings and status parts, CSS
-variables for background/foreground/accent/border/radius, and before-controls /
+public Deplexr theme variables, and before-controls /
 after-controls slots. Labels can be overridden before or after connection.
 Controls use semantic buttons/ranges/selects, visible focus, scoped keyboard
 shortcuts, local drag preview, and an aria-live status that excludes time updates.
@@ -37,7 +37,71 @@ Forwarded core events are dispatched once with unchanged detail, bubbles:false;
 listen directly on the element. No event-name aliases are generated. Component
 lifecycle failures use error with a structured operation-scoped detail.
 
-## Embedding and styling
+## Customization
+
+```html
+<deplexr-player
+  controls
+  title="Movie Night"
+  asset-base="/assets/deplexr/">
+</deplexr-player>
+```
+
+The standard HTML `title` property/attribute updates the displayed title live.
+`titleMode` (also `title-mode`) has four policies:
+
+* `auto` (default): a nonempty custom `title`, otherwise the accepted source
+  filename, otherwise nothing.
+* `custom`: only `title`; an empty string hides it.
+* `source`: only the accepted source filename, even when a custom title exists.
+* `none`: hide the title.
+
+Local files use `File.name`. HTTP(S)/file URLs, including remote source
+descriptors, use the decoded final pathname filename only. Origins, credentials,
+query strings and fragments are excluded. Directory URLs, ArrayBuffers, opaque
+URLs such as blob/data URLs, and unnamed sources show nothing. Source titles
+track successful `element.open()` / `src` opens and clear when that source closes
+or is replaced through the core; applications opening directly through
+`element.player` should manage a custom title. Titles are plain text and truncate
+visually to fit the player.
+
+```ts
+const element = document.querySelector("deplexr-player");
+element.titleMode = "source";
+```
+
+For an embedded app, disable utility UI while retaining playback controls:
+
+```ts
+element.showSourceControls = false;
+element.showDiagnostics = false;
+element.allowFileDrop = false;
+await element.open(source); // The host application owns source selection.
+```
+
+These three properties default to `true` and update live. Source controls include
+the empty-state opener, folder menu, URL form and local media/subtitle pickers.
+Disabling them closes their menu and disables the input handlers. Programmatic
+`open()` and `addSubtitle()`, plus existing subtitle track selection, still work.
+Disabling diagnostics closes its overlay; `element.player.diagnostics` remains
+available. Disabling file drop leaves browser drag/drop defaults alone. Drop
+handling is independent of source-control visibility: disable both when the host
+owns all source input. Focus moves to the stage if a focused utility is disabled.
+These options are JavaScript properties, not HTML boolean attributes.
+
+`seekStep` defaults to 10 seconds and accepts a positive finite number. It
+controls both seek buttons, their default accessible labels/numerals, and J/L.
+Arrow keys retain their five-second steps. Explicit localized `labels.back` and
+`labels.forward` override the default labels; keep them consistent with your step.
+`controlsAutoHideDelay` defaults to 2800 milliseconds; zero disables inactivity
+hiding, and positive values up to 2147483647 set the delay. Changing it restarts
+the timer. Playing with the play button/shortcut still hides controls immediately;
+screen taps still toggle visibility. Invalid numeric property values throw
+`INVALID_ARGUMENT`.
+
+For entirely custom controls, import `Player` from `deplexr` and build your own
+layout. The optional component delegates to that same core and adds no playback
+modes or routing policy.
 
 ```js
 import {definePlayerElement} from 'deplexr/player';
@@ -60,18 +124,30 @@ change after initialization is reverted and reports INVALID_ARGUMENT.
 ```css
 deplexr-player {
   --deplexr-background: #121318;
+  --deplexr-stage-background: #090a10;
   --deplexr-foreground: #f2f1f7;
+  --deplexr-muted-foreground: #bbb8ca;
+  --deplexr-panel-background: #20212a;
+  --deplexr-control-background: #30313e;
+  --deplexr-overlay-background: #171824bb;
   --deplexr-accent: #b7a0ff;
   --deplexr-border: #393941;
   --deplexr-radius: 16px;
 }
 deplexr-player::part(controls) { padding-inline: 20px; }
+deplexr-player::part(title) { font-weight: 600; }
+deplexr-player::part(timeline) { height: 32px; }
 ```
 
-Stable parts: container, stage, controls, settings, error, status. Limited slots:
+For a light skin, set the same surface variables to light colors, foregrounds to
+dark colors, and `color-scheme: light` on the element for native form controls.
+All public theme names use `--deplexr-*`; there are no legacy branding aliases.
+
+Stable parts: container, stage, controls, settings, error, status, title, topbar,
+transport, timeline, volume. The volume part wraps the mute button and slider. Limited slots:
 before-controls and after-controls. Shadow IDs/classes are implementation details.
 Air controls overlay the video: an open-media action at the top, a large unboxed
-play/pause icon between backward/forward ten-second seek buttons at the center,
+play/pause icon between backward/forward seek buttons (ten seconds by default) at the center,
 and a thin full-width timeline with elapsed and total times at opposite ends.
 Seek buttons clamp to available seek ranges and disable while an operation is
 pending or no seek window exists. Volume shares the timestamp row below the
@@ -104,7 +180,7 @@ Local file/subtitle pickers are available in settings; opening files never uploa
 them. File drop and a URL form (File, HLS, DASH, and live input)
 are also built into the component. File selection, URL submission, and file drop
 focus the stage so Space controls playback; the public close() method closes media. The component contains no example media, engine selector,
-raw filters, memory metrics or diagnostics panel. The playground supplies these
+raw filters or memory metrics. The playground supplies these
 surrounding developer tools. A live stream with no known seek window shows LIVE
 and disables the finite seek control. Browser fullscreen denial produces a message;
 no fake fullscreen, PiP or casting fallback is applied.
