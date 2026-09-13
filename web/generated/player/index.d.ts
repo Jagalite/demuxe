@@ -61,10 +61,15 @@ export declare class WebmpvPlayerElement extends Base {
     private readiness;
     private overrides;
     private menuTrigger;
+    private seekPreviewTimer?;
     private hideTimer?;
     private revealControls;
+    private playFromControls;
+    private hideControls;
     private dismissMenu;
     private stageWasIdle;
+    private isScreenPress;
+    private wasSeeking;
     private dragging;
     private dimensions;
     private trackSignature;
@@ -98,6 +103,7 @@ export declare class WebmpvPlayerElement extends Base {
     connectedCallback(): void;
     disconnectedCallback(): void;
     attributeChangedCallback(name: string, old: string | null, value: string | null): void;
+    private openFromControls;
     private scheduleSource;
     private waitReady;
     open(source: MediaSourceInput, options?: OpenOptions): Promise<void>;

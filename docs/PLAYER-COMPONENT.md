@@ -73,25 +73,29 @@ Air controls overlay the video: an open-media action at the top, a large unboxed
 play/pause icon between backward/forward ten-second seek buttons at the center,
 and a thin full-width timeline with elapsed and total times at opposite ends.
 Seek buttons clamp to available seek ranges and disable while an operation is
-pending or no seek window exists. Volume, settings, and fullscreen sit above the
-timeline. The gear opens compact playback settings; the folder opens file/URL
+pending or no seek window exists. Volume shares the timestamp row below the
+timeline; settings and fullscreen sit at the top right. The gear opens compact playback settings; the folder opens file/URL
 inputs separately. Subtitle import and shortcut help live under More options.
 Control sizes and compact layouts follow the player container width, including
 small embeds in wide browser windows. Pointer controls retain 36px targets and
 coarse-pointer devices use 44px targets. On narrow players, opening a menu hides
-the central controls to avoid overlap. During playback, controls fade
-after inactivity; mouse movement reveals them. Tapping the video toggles controls
+the central controls to avoid overlap. Play hides controls immediately; mouse
+movement reveals them, and inactivity fades them out. Seeking with hidden
+controls briefly shows only the timeline and times, for 800 ms after completion. Tapping the video toggles controls
 in playing or paused playback. Clicking outside a menu dismisses it without
-stealing focus; Escape returns focus to its trigger. Keyboard focus reveals controls. Keyboard shortcuts apply only to
-focus inside the component stage: Space/K, arrows, J/L, M, C, brackets, digits,
-Home/End, F and ?. Inputs, buttons, selects, editable content and modified keys
+stealing focus; Escape returns focus to its trigger. Hiding controls preserves
+focus on the stage; keyboard navigation reveals controls. Keyboard shortcuts apply to
+focus inside the component; inputs keep their native keys, and buttons retain
+Space/Enter activation: Space/K, arrows, J/L, M, C, brackets, digits,
+Home/End, F and ?. Inputs, selects, editable content and modified keys
 retain their normal handling. C uses the core's subtitle visibility setting;
 it does not select a different language. Scrubbing previews locally; release
 commits one seek. Settings are an accessible disclosure and restore trigger focus.
 
 Local file/subtitle pickers are available in settings; opening files never uploads
-them. File drop, Close media, and a URL form (File, HLS, DASH, and live input)
-are also built into the component. The component contains no example media, engine selector,
+them. File drop and a URL form (File, HLS, DASH, and live input)
+are also built into the component. File selection, URL submission, and file drop
+focus the stage so Space controls playback; the public close() method closes media. The component contains no example media, engine selector,
 raw filters, memory metrics or diagnostics panel. The playground supplies these
 surrounding developer tools. A live stream with no known seek window shows LIVE
 and disables the finite seek control. Browser fullscreen denial produces a message;

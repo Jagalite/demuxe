@@ -39,13 +39,20 @@ export class WebmpvPlayerElement extends Base {
     readiness;
     overrides = {};
     menuTrigger = 'settings-toggle';
+    seekPreviewTimer;
     hideTimer;
-    revealControls = () => { this.$('shell').classList.remove('idle'); clearTimeout(this.hideTimer); if (this.core?.state.status === 'playing')
-        this.hideTimer = setTimeout(() => { if (this.core?.state.status === 'playing' && this.$('settings').hidden && !this.dragging && !this.shadowRoot?.activeElement?.matches(':focus-visible') && this.isConnected)
-            this.$('shell').classList.add('idle'); }, 2800); };
+    revealControls = () => { this.$('shell').classList.remove('idle', 'seek-preview'); clearTimeout(this.seekPreviewTimer); clearTimeout(this.hideTimer); if (this.core?.state.status === 'playing')
+        this.hideTimer = setTimeout(() => { if (this.core?.state.status === 'playing' && !this.core.state.pendingOperation && this.$('settings').hidden && !this.dragging && !this.shadowRoot?.activeElement?.matches(':focus-visible') && this.isConnected)
+            this.hideControls(); }, 2800); };
+    async playFromControls() { const core = this.core; await this.play(); if (core === this.core && core?.state.playbackIntent === 'play' && this.$('settings').hidden)
+        this.hideControls(true); }
+    hideControls(focusStage = false) { if (focusStage || this.shadowRoot?.activeElement)
+        this.$('stage').focus({ preventScroll: true }); clearTimeout(this.hideTimer); clearTimeout(this.seekPreviewTimer); this.$('shell').classList.remove('seek-preview'); this.$('shell').classList.add('idle'); }
     dismissMenu = (event) => { const path = event.composedPath(); if (!this.$('settings').hidden && !['settings', 'settings-toggle', 'open-menu'].some(id => path.includes(this.$(id))))
         this.settings(false, false); };
     stageWasIdle = false;
+    isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error')); }
+    wasSeeking = false;
     dragging = false;
     dimensions = '';
     trackSignature = '';
@@ -148,6 +155,7 @@ export class WebmpvPlayerElement extends Base {
             if (this.isConnected || token !== this.connection || this.terminal)
                 return;
             clearTimeout(this.hideTimer);
+            clearTimeout(this.seekPreviewTimer);
             this.sourceVersion++;
             this.sourceAbort?.abort();
             this.lastSource = undefined;
@@ -194,6 +202,7 @@ export class WebmpvPlayerElement extends Base {
             this.$('topbar').hidden = !this.controls;
         }
     }
+    openFromControls(source) { this.settings(false, false); this.$('stage').focus({ preventScroll: true }); this.run(this.open(source)); }
     scheduleSource() { if (this.attributeScheduled)
         return; this.attributeScheduled = true; queueMicrotask(() => { this.attributeScheduled = false; if (!this.core || this.terminal)
         return; this.run(this.src ? this.open(this.src) : this.close()); }); }
@@ -241,6 +250,7 @@ export class WebmpvPlayerElement extends Base {
         if (this.terminal)
             return this.cleanup;
         clearTimeout(this.hideTimer);
+        clearTimeout(this.seekPreviewTimer);
         this.terminal = true;
         this.connection++;
         this.sourceVersion++;
@@ -261,9 +271,9 @@ export class WebmpvPlayerElement extends Base {
         this.showError(playerError(error).toJSON()); }); }
     componentError(error) { const detail = playerError(error).toJSON(); this.showError(detail); this.dispatchEvent(new CustomEvent('error', { detail })); }
     showError(error) { if (error.code === 'ABORTED')
-        return; this.lastFailure = error; this.$('error').hidden = false; this.$('error-text').textContent = error.message; this.$('retry').hidden = !error.retryable; this.$('retry').textContent = error.code === 'AUTOPLAY_BLOCKED' ? this.labels.play : this.labels.retry; this.announce(error.message); }
+        return; this.lastFailure = error; this.$('error').hidden = false; this.$('error-text').textContent = error.message; this.$('retry').hidden = !error.retryable; this.$('retry').textContent = error.code === 'AUTOPLAY_BLOCKED' ? this.labels.play : this.labels.retry; this.announce(error.message, false); }
     clearError() { this.lastFailure = undefined; this.$('error').hidden = true; }
-    announce(text) { if (text === this.lastAnnouncement)
+    announce(text, visual = true) { this.$('status').classList.toggle('sr', !visual); if (text === this.lastAnnouncement)
         return; this.lastAnnouncement = text; this.$('status').textContent = text; }
     geometry(state) { const ratio = state.mediaInfo.aspectRatio; if (!ratio) {
         this.$('stage').style.removeProperty('--media-aspect');
@@ -276,10 +286,23 @@ export class WebmpvPlayerElement extends Base {
     update(state) {
         const labels = this.labels, pending = state.pendingOperation !== null;
         this.$('topbar').hidden = !this.controls;
+        const seeking = state.pendingOperation?.kind === 'seeking';
+        if (seeking !== this.wasSeeking) {
+            this.wasSeeking = seeking;
+            clearTimeout(this.seekPreviewTimer);
+            if (this.$('shell').classList.contains('idle')) {
+                this.$('shell').classList.add('seek-preview');
+                if (!seeking)
+                    this.seekPreviewTimer = setTimeout(() => this.$('shell').classList.remove('seek-preview'), 800);
+            }
+            else
+                this.revealControls();
+        }
         const playing = state.status === 'playing';
         if (this.$('shell').classList.contains('playing') !== playing) {
             this.$('shell').classList.toggle('playing', playing);
-            this.revealControls();
+            if (!this.$('shell').classList.contains('idle') || state.playbackIntent === 'pause' || ['ended', 'error', 'idle'].includes(state.status))
+                this.revealControls();
         }
         this.$('controls').hidden = !this.controls || !state.sourceId;
         this.$('transport').hidden = !this.controls || !state.sourceId;
@@ -294,6 +317,7 @@ export class WebmpvPlayerElement extends Base {
         this.reflected = false;
         if (this.shadowRoot.activeElement !== this.$('volume'))
             this.input('volume').value = String(state.volume);
+        this.$('volume').style.setProperty('--volume-progress', `${Number(this.input('volume').value) * 100}%`);
         const window = state.seekable;
         this.input('timeline').disabled = pending || !window?.length;
         for (const id of ['back', 'forward'])
@@ -317,10 +341,10 @@ export class WebmpvPlayerElement extends Base {
         }
         this.$('speed').value = String(state.playbackRate);
         const activity = state.pendingOperation?.kind === 'opening' ? labels.loading : state.pendingOperation?.kind === 'switching' ? labels.switching : state.pendingOperation?.kind === 'seeking' ? labels.seeking : state.status === 'buffering' ? labels.buffering : '';
-        this.$('busy').hidden = !activity;
+        this.$('busy').hidden = !activity || seeking;
         this.$('busy').textContent = activity;
         if (!this.lastFailure)
-            this.announce(activity || (state.streamType === 'live' && !window?.length ? labels.noWindow : ''));
+            this.announce(activity || (state.streamType === 'live' && !window?.length ? labels.noWindow : ''), !activity);
         this.geometry(state);
     }
     timelineProgress() { const input = this.input('timeline'), min = Number(input.min), max = Number(input.max); input.style.setProperty('--progress', `${max > min ? Math.max(0, Math.min(100, (Number(input.value) - min) / (max - min) * 100)) : 0}%`); }
@@ -329,7 +353,7 @@ export class WebmpvPlayerElement extends Base {
     trackOptions(id, list) { const select = this.$(id); select.replaceChildren(new Option(this.labels.automatic, 'auto'), new Option(this.labels.off, '')); for (const t of list)
         select.add(new Option(t.label, t.id)); select.value = list.find(t => t.selected)?.id ?? (list.length ? '' : 'auto'); select.disabled = !list.length; }
     settings(open, restoreFocus = true) { if (open)
-        this.menuTrigger = this.$('controls').hidden ? 'open-menu' : (this.shadowRoot?.activeElement?.id === 'open-menu' ? 'open-menu' : 'settings-toggle'); this.revealControls(); this.$('settings').hidden = !open; this.$('shell').classList.toggle('menu-open', open); if (open) {
+        this.menuTrigger = this.shadowRoot?.activeElement?.id === 'open-menu' ? 'open-menu' : 'settings-toggle'; this.revealControls(); this.$('settings').hidden = !open; this.$('shell').classList.toggle('menu-open', open); if (open) {
         const source = this.menuTrigger === 'open-menu';
         this.$('source-options').hidden = !source;
         this.$('playback-options').hidden = source;
@@ -357,38 +381,38 @@ export class WebmpvPlayerElement extends Base {
         this.$(id + '-label').textContent = this.labels[id]; this.$('settings-title').textContent = this.labels.settings; this.$('media-file-label').textContent = this.labels.mediaFile; this.$('subtitle-file-label').textContent = this.labels.subtitleFile; for (const id of ['url', 'format', 'live'])
         this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id]; }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar"><span class="player-title">deplexr</span><span class="space"></span><button id="open-menu" aria-expanded="false" aria-controls="settings"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" hidden></div></div><div id="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><div class="row"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"><span class="space"></span><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><input id="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label><details class="more-options"><summary id="more-options-label"></summary><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><p class="help" id="help"></p></details></div><div id="source-options" hidden><label><span id="media-file-label"></span><input id="file" type="file"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
+        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar"><span class="player-title">deplexr</span><span class="space"></span><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div><div id="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><input id="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><div class="row"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div><span class="space"></span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label><details class="more-options"><summary id="more-options-label"></summary><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><p class="help" id="help"></p></details></div><div id="source-options" hidden><label><span id="media-file-label"></span><input id="file" type="file"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
         this.labelControls();
         this.$('controls').hidden = !this.controls;
         this.$('topbar').hidden = !this.controls;
         this.addEventListener('pointermove', event => { if (event.pointerType !== 'touch')
             this.revealControls(); });
-        this.addEventListener('pointerdown', event => { if (event.composedPath().includes(this.$('stage')))
+        this.addEventListener('pointerdown', event => { if (this.isScreenPress(event))
             this.stageWasIdle = this.$('shell').classList.contains('idle');
         else
             this.revealControls(); });
         this.addEventListener('focusin', this.revealControls);
         this.addEventListener('focusout', this.revealControls);
         this.$('open-menu').onclick = () => this.settings(this.$('settings').hidden || this.menuTrigger !== 'open-menu');
-        this.$('stage').onclick = event => { if (event.target.closest('button,input,a') || !this.core?.state.sourceId || !this.controls)
-            return; if (this.stageWasIdle)
+        this.$('shell').onclick = event => { if (!this.isScreenPress(event) || !this.core?.state.sourceId || !this.controls)
+            return; if (this.stageWasIdle) {
+            this.$('stage').focus({ preventScroll: true });
             this.revealControls();
-        else {
-            this.shadowRoot?.activeElement?.blur();
-            clearTimeout(this.hideTimer);
-            this.$('shell').classList.add('idle');
-        } };
-        this.$('remote').onsubmit = event => { event.preventDefault(); const format = this.$('format').value; this.run(this.open({ url: this.input('url').value, format, ...(format !== 'file' ? { streaming: { live: this.input('live').checked } } : {}) })); this.settings(false); };
+        }
+        else
+            this.hideControls(true); };
+        this.$('remote').onsubmit = event => { event.preventDefault(); const format = this.$('format').value; this.openFromControls({ url: this.input('url').value, format, ...(format !== 'file' ? { streaming: { live: this.input('live').checked } } : {}) }); };
         this.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files'))
             event.preventDefault(); });
         this.addEventListener('drop', event => { if (!event.dataTransfer?.files.length)
-            return; event.preventDefault(); this.run(this.open(event.dataTransfer.files[0])); });
+            return; event.preventDefault(); this.openFromControls(event.dataTransfer.files[0]); });
         this.$('back').onclick = () => this.skip(-10);
         this.$('forward').onclick = () => this.skip(10);
         this.$('play').onclick = () => { if (this.core)
-            this.run(this.core.state.playbackIntent === 'play' ? this.pause() : this.play()); };
+            this.run(this.core.state.playbackIntent === 'play' ? this.pause() : this.playFromControls()); };
         this.$('mute').onclick = () => { if (this.core)
             this.run(this.setMuted(!this.core.state.muted)); };
+        this.input('volume').oninput = () => this.$('volume').style.setProperty('--volume-progress', `${Number(this.input('volume').value) * 100}%`);
         this.input('volume').onchange = () => this.run(this.setVolume(Number(this.input('volume').value)));
         this.input('timeline').oninput = () => { this.dragging = true; const text = formatTime(Number(this.input('timeline').value)); this.$('time').textContent = text; this.timelineProgress(); this.input('timeline').setAttribute('aria-valuetext', text); };
         this.input('timeline').onchange = () => { const value = Number(this.input('timeline').value); this.dragging = false; this.run(this.seek(value)); };
@@ -402,10 +426,8 @@ export class WebmpvPlayerElement extends Base {
         this.$('fullscreen').onclick = () => this.fullscreen();
         this.$('stage').ondblclick = () => this.fullscreen();
         this.$('open').onclick = () => this.input('file').click();
-        this.input('file').onchange = () => { const file = this.input('file').files?.[0]; this.input('file').value = ''; if (file) {
-            this.run(this.open(file));
-            this.settings(false);
-        } };
+        this.input('file').onchange = () => { const file = this.input('file').files?.[0]; this.input('file').value = ''; if (file)
+            this.openFromControls(file); };
         this.input('subtitleFile').onchange = () => { const file = this.input('subtitleFile').files?.[0]; this.input('subtitleFile').value = ''; if (file)
             this.run(this.addSubtitle(file)); };
         this.$('retry').onclick = () => { const error = this.lastFailure; this.clearError(); if (error?.code === 'AUTOPLAY_BLOCKED')
@@ -413,6 +435,12 @@ export class WebmpvPlayerElement extends Base {
         else if (this.lastSource)
             this.run(this.open(this.lastSource, this.lastOptions)); };
         this.addEventListener('keydown', event => {
+            if (event.repeat && this.$('settings').hidden && [' ', 'k', 'm', 'f'].includes(shortcut(event) ?? '')) {
+                event.preventDefault();
+                return;
+            }
+            if (!['arrowleft', 'arrowright', 'j', 'l', 'home', 'end', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(shortcut(event) ?? '') || !this.$('shell').classList.contains('idle'))
+                this.revealControls();
             if (event.key === 'Escape' && !this.$('settings').hidden) {
                 event.preventDefault();
                 this.settings(false);
@@ -422,8 +450,6 @@ export class WebmpvPlayerElement extends Base {
                 return;
             const key = shortcut(event), p = this.core;
             if (!key || !p)
-                return;
-            if (event.repeat && [' ', 'k', 'm', 'f'].includes(key))
                 return;
             let action;
             const state = p.state;
@@ -457,7 +483,7 @@ export class WebmpvPlayerElement extends Base {
                         action = p.seek(start + (end - start) * Number(key) / 10);
                 }
                 if (key === ' ' || key === 'k')
-                    action = state.playbackIntent === 'play' ? p.pause() : p.play();
+                    action = state.playbackIntent === 'play' ? p.pause() : this.playFromControls();
                 const delta = key === 'arrowleft' ? -5 : key === 'arrowright' ? 5 : key === 'j' ? -10 : key === 'l' ? 10 : 0;
                 const window = state.seekable;
                 if (delta && window?.length)
