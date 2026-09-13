@@ -23,7 +23,7 @@ paths += sorted((root/'web/engine-software-full').glob('*'))
 artifacts = {str(p.relative_to(root)): {'bytes':p.stat().st_size,'gzipBytes':len(gzip.compress(p.read_bytes(),mtime=0)),'sha256':digest(p)} for p in (root/'web/engine-software-full').glob('*') if p.is_file()}
 report = {'schema':1,'scope':'Software playback with dav1d and zimg, FFmpeg 7.1.1. Registrations are not per-format runtime qualification.',
  'rotation':'RGB VO clears ROTATE90; mpv autorotates before software rendering.',
- 'decoderSimd':os.environ.get('WEBMPV_DECODER_SIMD','1')=='1',
+ 'decoderSimd':os.environ.get('DEPLEXR_DECODER_SIMD',os.environ.get('WEBMPV_DECODER_SIMD','1'))=='1',
  'selection':'Upstream defaults with GPL filters and already bundled zlib/libxml2/libass; dav1d AV1 decoding and zimg color conversion. Encoding, muxing, devices, hardware acceleration and native network protocols disabled.',
  'baseline':base,'enabled':full,'added':{k:sorted(set(full[k])-set(base[k])) for k in full},
  'counts':{k:{'baseline':len(base[k]),'expanded':len(full[k]),'added':len(set(full[k])-set(base[k]))} for k in full},

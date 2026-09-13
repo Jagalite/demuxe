@@ -45,3 +45,10 @@ playground screenshots/tests describe its predecessor and are preserved as
 history. The public Pages deployment remains unchanged until publication is
 separately authorized. This work has not published a new npm package or closed
 the independent clean-engine-build release gate.
+
+## First public Deplexr beta
+
+Use `<deplexr-player>`, `DeplexrPlayerElement`, `--deplexr-*` CSS variables,
+`deplexr copy-assets`, and `/assets/deplexr/`. No legacy element alias is registered.
+The three public mode values remain `native`, `hybrid`, and `software`.
+See [the branding audit](BRANDING-MIGRATION.md) for retained historical identifiers.

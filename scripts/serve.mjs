@@ -4,6 +4,7 @@ import {createReadStream} from 'node:fs';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..');
+const runtime=process.env.DEPLEXR_RUNTIME_ROOT?path.resolve(process.env.DEPLEXR_RUNTIME_ROOT):root;
 const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.wasm':'application/wasm','.json':'application/json','.css':'text/css','.ttf':'font/ttf','.otf':'font/otf','.mkv':'video/x-matroska','.mp4':'video/mp4','.webm':'video/webm','.mp3':'audio/mpeg','.wav':'audio/wav','.flac':'audio/flac','.m3u8':'application/vnd.apple.mpegurl','.mpd':'application/dash+xml','.vtt':'text/vtt'};
 const hashes=new Map();
 async function etag(file,info){
@@ -23,10 +24,14 @@ const server=http.createServer(async(req,res)=>{
   try {
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'}).end();return;}
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+    if(['/index.js','/player.js'].includes(pathname)&&runtime===root){res.setHeader('Content-Type','text/javascript');res.end(`export * from './web/generated/${pathname==='/player.js'?'player/':''}index.js';`);return;}
     if(pathname==='/favicon.ico'){res.writeHead(204).end();return;}
-    if(!pathname.startsWith('/web/')&&!pathname.startsWith('/fixtures/')&&!pathname.startsWith('/examples/')&&pathname!=='/') {res.writeHead(404).end();return;}
-    const file=path.resolve(root,'.'+(pathname==='/'?'/web/player.html':pathname));
-    const mount=path.join(root,pathname==='/'?'web':pathname.split('/')[1]);
+    if(!pathname.startsWith('/web/')&&!pathname.startsWith('/fixtures/')&&!pathname.startsWith('/examples/')&&pathname!=='/'&&!['/index.js','/player.js'].includes(pathname)) {res.writeHead(404).end();return;}
+    const facade=['/index.js','/player.js'].includes(pathname);
+    const packaged=facade||pathname.startsWith('/web/')&&!['/web/player.html','/web/player-demo.js','/web/player.css','/web/player-geometry.js'].includes(pathname)||['/fixtures/DejaVuSans.ttf','/fixtures/FONT-LICENSE.txt'].includes(pathname);
+    const base=packaged?runtime:root;
+    const file=path.resolve(base,'.'+(pathname==='/'?'/web/player.html':pathname));
+    const mount=facade?base:path.join(base,pathname==='/'?'web':pathname.split('/')[1]);
     if(!file.startsWith(mount+path.sep)) {res.writeHead(403).end();return;}
     const info=await stat(file);
     if(!info.isFile()) {res.writeHead(404).end();return;}
@@ -53,4 +58,4 @@ const server=http.createServer(async(req,res)=>{
     stream.pipe(res);
   } catch {if(!res.headersSent)res.writeHead(404).end('Not found');else res.destroy();}
 });
-server.listen(Number(process.env.PORT||4179),'127.0.0.1',()=>console.log(`webmpv: http://127.0.0.1:${server.address().port}`));
+server.listen(Number(process.env.PORT||4179),'127.0.0.1',()=>console.log(`deplexr: http://127.0.0.1:${server.address().port}`));

@@ -42,4 +42,4 @@ class PCMOutput extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('webmpv-pcm', PCMOutput);
+registerProcessor('deplexr-pcm', PCMOutput);

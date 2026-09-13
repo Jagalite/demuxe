@@ -4,7 +4,7 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
 VARIANT=${1:-baseline}
 case "$VARIANT" in reference|maintained|baseline|chroma|biweight|simd|qpel|simd-qpel|simd-qpel-deblock|simd-qpel-deblock-h|simd-qpel-deblock-packed|lto|lto-chroma|lto-simd) ;; *) exit 2;; esac
-SDK=${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}
+SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
 export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"

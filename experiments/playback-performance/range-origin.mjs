@@ -41,5 +41,5 @@ const server=http.createServer((request,response)=>{
  stream.on('data',chunk=>stats.bytes+=chunk.length);stream.once('end',()=>ended=true);stream.once('error',error=>response.destroy(error));
  response.once('close',()=>{if(!ended)stats.aborted++;stream.destroy();active.delete(stream);stats.active=active.size;});stream.pipe(response);
 });
-server.listen(0,'127.0.0.1',()=>console.log(`webmpv movie: http://127.0.0.1:${server.address().port}`));
+server.listen(0,'127.0.0.1',()=>console.log(`deplexr movie: http://127.0.0.1:${server.address().port}`));
 process.on('SIGTERM',()=>{for(const stream of active)stream.destroy();server.closeAllConnections();server.close(()=>void file.close().finally(()=>process.exit(0)));});

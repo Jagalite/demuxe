@@ -3,15 +3,17 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-SDK=${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}
+SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 mkdir -p build
 # Standard candidate profile; experimental overrides are outside this recipe.
-unset WEBMPV_REMUX_FFMPEG_DIR WEBMPV_ENGINE_DIR WEBMPV_LINK_OPT
+unset DEPLEXR_REMUX_FFMPEG_DIR WEBMPV_REMUX_FFMPEG_DIR WEBMPV_ENGINE_DIR WEBMPV_LINK_OPT
 export WEBMPV_BROWSER_DECODER=0
 export WEBMPV_DECODER_SIMD=1
+export DEPLEXR_DECODER_SIMD=1
 python3 scripts/beta-build-record.py start "$@"
 python3 scripts/prepare-beta-toolchain.py --sdk "$SDK"
 export WEBMPV_SDK="$SDK"
+export DEPLEXR_SDK="$SDK"
 export WEBMPV_EM_CONFIG="$ROOT/build/beta.emscripten"
 export EM_CONFIG="$WEBMPV_EM_CONFIG"
 export WEBMPV_CACHE="$ROOT/build/cache"

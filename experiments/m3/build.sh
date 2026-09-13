@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 ROOT=$PWD
-SDK=${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}
+SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 mkdir -p build/m3/ffmpeg web/m3/engine
 # Private configuration avoids historical machine-local SDK paths.
 python3 - "$SDK" "$ROOT/build/m3/emscripten-config" <<'PY'
@@ -47,7 +47,7 @@ if [ ! -f build/m3/ffmpeg/Makefile ]; then
   --disable-avfilter --disable-swresample --extra-cflags='-O2 -pthread -msimd128' \
   --extra-ldflags=-pthread)
 fi
-(cd build/m3/ffmpeg; emmake make -j "${WEBMPV_JOBS:-4}")
+(cd build/m3/ffmpeg; emmake make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-4}}")
 emcc -O2 -pthread -msimd128 -Ibuild/m3/source/ffmpeg -Ibuild/m3/ffmpeg \
  experiments/m3/decoder.c build/m3/ffmpeg/libavcodec/libavcodec.a \
  build/m3/ffmpeg/libswscale/libswscale.a build/m3/ffmpeg/libavutil/libavutil.a \

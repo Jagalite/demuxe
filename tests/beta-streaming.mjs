@@ -6,7 +6,7 @@ import {mkdtemp,readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import {createReadStream} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-const family=process.env.BROWSER||'chrome',archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/deplexr-0.3.0-beta.2.tgz');
+const family=process.env.BROWSER||'chrome',archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/deplexr-0.3.0-beta.3.tgz');
 await mkdir('build/streaming-consumers',{recursive:true});
 const root=await mkdtemp(path.resolve('build/streaming-consumers/run-'));
 execFileSync('tar',['-xzf',archive,'-C',root]);

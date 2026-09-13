@@ -4,7 +4,7 @@
 # Keep a harmless argument when disabled: macOS Bash 3.2 treats an empty array
 # expanded under nounset as an unbound variable.
 DECODER_SIMD_SOURCES=(-Inative)
-case "${WEBMPV_DECODER_SIMD:-1}" in
+case "${DEPLEXR_DECODER_SIMD:-${WEBMPV_DECODER_SIMD:-1}}" in
   1)
     DECODER_SIMD_SOURCES=(-Ibuild/sources/ffmpeg
       native/simd/h264-chroma.c -Wl,--wrap=ff_h264chroma_init
@@ -13,5 +13,5 @@ case "${WEBMPV_DECODER_SIMD:-1}" in
       native/simd/h264-qpel.c -Wl,--wrap=ff_h264qpel_init)
     ;;
   0) ;;
-  *) printf '%s\n' 'WEBMPV_DECODER_SIMD must be 0 or 1' >&2; return 2 ;;
+  *) printf '%s\n' 'DEPLEXR_DECODER_SIMD must be 0 or 1' >&2; return 2 ;;
 esac

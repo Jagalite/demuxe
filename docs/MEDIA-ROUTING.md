@@ -151,7 +151,7 @@ npm run build
 npm run build:hybrid
 npm run build:remux
 # The integration run reused already qualified FFmpeg archives, read-only:
-WEBMPV_REMUX_FFMPEG_DIR="$PWD/build/pipeline-qualification/ffmpeg-remux" npm run build:remux
+DEPLEXR_REMUX_FFMPEG_DIR="$PWD/build/pipeline-qualification/ffmpeg-remux" npm run build:remux
 npm run test:media-routing
 npm run test:api
 BROWSER=firefox CASES=native-direct,h264,hevc-ac3,vp8-vorbis,vp9-opus,av1,hevc-10bit,native-mkv-forced node tests/media-routing.mjs

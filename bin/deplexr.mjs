@@ -19,12 +19,12 @@ async function main(){
  }
  for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
  const target=path.resolve(destination);await safeDirectory(target);
- let previous;try{const info=await lstat(path.join(target,'webmpv-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'webmpv-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
+ let previous;try{const info=await lstat(path.join(target,'deplexr-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'deplexr-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
  // Refuse unrelated file collisions and all symlink destinations. No directory is removed.
  for(const [name,bytes]of files){const file=path.join(target,name);await safeDirectory(path.dirname(file));try{const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe destination asset: '+name);const existing=await readFile(file),digest=hash(existing);if(digest!==hash(bytes)&&digest!==previous?.files?.[name]?.sha256)throw Error('Refusing to overwrite unrelated destination file: '+name);}catch(e){if(e.code!=='ENOENT')throw e;}}
- const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.webmpv-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
+ const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.deplexr-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
  const record={schema:1,version:pkg.version,packageManifestSHA256:hash(await readFile(path.join(root,'release-manifest.json'))),files:entries};
- await writeFile(path.join(target,'webmpv-runtime.json'),JSON.stringify(record,null,2)+'\n');
+ await writeFile(path.join(target,'deplexr-runtime.json'),JSON.stringify(record,null,2)+'\n');
  console.log(`Copied ${files.size} verified ${pkg.name} ${pkg.version} assets to ${target}. Unrelated files were retained.`);
 }
 main().catch(error=>{console.error('deplexr: '+error.message);process.exitCode=1;});

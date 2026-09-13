@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build an offline-installable beta candidate, without asserting release qualification."""
-import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile
+import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 root=pathlib.Path(__file__).resolve().parent.parent
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');args=p.parse_args()
 project=json.loads((root/'package.json').read_text())
@@ -34,8 +34,21 @@ def add(name):
  f=root/name
  if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
  files[name]=f.read_bytes()
-for f in sorted((root/'web/generated').rglob('*')):
- if f.is_file():add(str(f.relative_to(root)))
+# Only the dependency closure of the public entrypoints, including declarations.
+pending=['web/generated/index.js','web/generated/player/index.js'];seen=set()
+while pending:
+ name=pending.pop()
+ if name in seen:continue
+ seen.add(name);add(name)
+ if name.endswith('.js'):
+  declaration=name[:-3]+'.d.ts'
+  if (root/declaration).is_file():pending.append(declaration)
+ for relative in re.findall(r"[\"'](\.[^\"']+\.js)[\"']",files[name].decode()):
+  target=(root/name).parent.joinpath(relative).resolve()
+  if target.is_relative_to(root/'web/generated'):
+   if target.is_file():pending.append(str(target.relative_to(root)))
+   declaration=target.with_suffix('.d.ts')
+   if declaration.is_file():pending.append(str(declaration.relative_to(root)))
 for name in ['audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','vod-manifest.js','streaming-manifest.js','segmented-subtitles.js','native-remux-player.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','cheap-mp4-probe.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-full','player')}
@@ -44,18 +57,24 @@ for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/RELEASE.md']:add(name)
 if (root/'LICENSE').is_file():add('LICENSE')
-if build:files['engine-build.json']=(json.dumps(build,indent=2)+'\n').encode()
+if build:
+ # Absolute host paths belong in the source companion, not the installed runtime.
+ public_build={k:v for k,v in build.items() if k not in ['sdk','sharedTools']}
+ public_build['sharedTools']={name:{k:v for k,v in tool.items() if k!='path'} for name,tool in build['sharedTools'].items()}
+ files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/webmpv.mjs','docs/PUBLIC-API.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/deplexr.mjs','docs/PUBLIC-API.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
 files['player.js']=b"export * from './web/generated/player/index.js';\n"
 files['player.d.ts']=b"export * from './web/generated/player/index.js';\n"
 files['index.js']=b"export * from './web/generated/index.js';\n"
 files['index.d.ts']=b"export * from './web/generated/index.js';\n"
-files['README.md']=files['docs/BETA.md']
+files['README.md']=(root/'README.md').read_bytes()
 for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
-package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'webmpvOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/webmpv.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'deplexrOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/deplexr.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
+package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
@@ -64,7 +83,7 @@ with out.open('wb')as f:
  with gzip.GzipFile(filename='',mode='wb',fileobj=f,mtime=0)as gz:
   with tarfile.open(fileobj=gz,mode='w',format=tarfile.PAX_FORMAT)as tar:
    for name,data in sorted(files.items()):
-    info=tarfile.TarInfo('package/'+name);info.size=len(data);info.mode=0o755 if name=='bin/webmpv.mjs' else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))
+    info=tarfile.TarInfo('package/'+name);info.size=len(data);info.mode=0o755 if name=='bin/deplexr.mjs' else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))
 (args.output/'release-manifest.json').write_bytes(files['release-manifest.json'])
 digest=hashlib.sha256(out.read_bytes()).hexdigest()
 lines=[f'{digest}  {out.name}']

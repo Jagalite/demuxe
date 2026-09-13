@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-SDK=${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}
+SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$ROOT/build/venv/bin:$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$SDK/.emscripten}"
@@ -58,7 +58,7 @@ meson_lib() {
     meson setup $mode "build/obj-$name" "build/sources/$name" --cross-file build/cross.ini \
       --prefix "$PREFIX" --libdir lib --default-library static --buildtype release \
       --wrap-mode nofallback -Dauto_features=disabled "$@"
-  ninja -C "build/obj-$name" -j "${WEBMPV_JOBS:-6}"
+  ninja -C "build/obj-$name" -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
   meson install -C "build/obj-$name"
 }
 if [ ! -f "$PREFIX/lib/libz.a" ]; then
@@ -85,7 +85,7 @@ if [ ! -f "$PREFIX/lib/libxml2.a" ]; then
     -DLIBXML2_WITH_TESTS=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ICONV=OFF \
     -DLIBXML2_WITH_ZLIB=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_HTTP=OFF \
     -DLIBXML2_WITH_FTP=OFF -DLIBXML2_WITH_MODULES=OFF
-  cmake --build build/obj-libxml2 -j "${WEBMPV_JOBS:-6}"
+  cmake --build build/obj-libxml2 -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
   cmake --install build/obj-libxml2
 fi
 if [ ! -f "$PREFIX/lib/libavcodec.a" ] || ! grep -q '#define CONFIG_DASH_DEMUXER 1' build/obj-ffmpeg/config_components.h; then
@@ -102,7 +102,7 @@ if [ ! -f "$PREFIX/lib/libavcodec.a" ] || ! grep -q '#define CONFIG_DASH_DEMUXER
     )
 fi
 (cd build/obj-ffmpeg
-  emmake make -j "${WEBMPV_JOBS:-6}"
+  emmake make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
   emmake make install)
 meson_lib mpv -Dlibmpv=true -Dcplayer=false -Dgl=disabled -Dlua=disabled -Dbuild-date=false -Dzlib=enabled
 bash scripts/link.sh

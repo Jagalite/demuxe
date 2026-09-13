@@ -14,4 +14,4 @@ $('tone-map').onchange=()=>run(player.setToneMapping($('tone-map').checked?'hdr-
 $('filters').onsubmit=e=>{e.preventDefault();run((async()=>{await player.setVideoFilters($('vf').value);await player.setAudioFilters($('af').value);diagnostics();})());};
 $('font-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)run(player.addFont(file));};$('subtitle-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)run(player.addSubtitle(file));};
 $('refresh-diagnostics').onclick=diagnostics;
-$('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({state:player.state,diagnostics:player.diagnostics},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='webmpv-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({state:player.state,diagnostics:player.diagnostics},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='deplexr-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};

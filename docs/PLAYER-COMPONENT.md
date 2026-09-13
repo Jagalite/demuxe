@@ -5,7 +5,7 @@ This is the target contract; qualification is recorded separately. Import
 same implementation are harmless). Core import does not import UI or register a
 tag. SSR imports are safe; registration and construction require a browser.
 
-`<webmpv-player controls asset-base="/assets/webmpv/" poster="/preview.jpg">`
+`<deplexr-player controls asset-base="/assets/deplexr/" poster="/preview.jpg">`
 creates one Player on connection. ready resolves with that core; player exposes it
 read-only after initialization. open, close, destroy and playback conveniences
 delegate to it. The component contains no route selector or playback scheduler.
@@ -42,7 +42,7 @@ lifecycle failures use error with a structured operation-scoped detail.
 ```js
 import {definePlayerElement} from 'deplexr/player';
 definePlayerElement();
-const element = document.querySelector('webmpv-player');
+const element = document.querySelector('deplexr-player');
 element.labels = {play: 'Lire', pause: 'Pause', settings: 'Réglages'};
 const core = await element.ready;
 const unsubscribe = core.subscribe(state => console.log(state.status));
@@ -58,14 +58,14 @@ new asset-base; the old one must finish cleanup first. An asset-base attribute
 change after initialization is reverted and reports INVALID_ARGUMENT.
 
 ```css
-webmpv-player {
-  --webmpv-background: #121318;
-  --webmpv-foreground: #f2f1f7;
-  --webmpv-accent: #b7a0ff;
-  --webmpv-border: #393941;
-  --webmpv-radius: 16px;
+deplexr-player {
+  --deplexr-background: #121318;
+  --deplexr-foreground: #f2f1f7;
+  --deplexr-accent: #b7a0ff;
+  --deplexr-border: #393941;
+  --deplexr-radius: 16px;
 }
-webmpv-player::part(controls) { padding-inline: 20px; }
+deplexr-player::part(controls) { padding-inline: 20px; }
 ```
 
 Stable parts: container, stage, controls, settings, error, status. Limited slots:

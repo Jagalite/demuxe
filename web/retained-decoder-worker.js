@@ -35,7 +35,7 @@ async function checkConfiguration(valid){
   const depth=stats.input.depth>0?`${stats.input.depth}-bit`:'not reported by the source';
   const profile=stats.input.profile>=0?stats.input.profile:'unknown';
   const level=stats.input.level>=0?stats.input.level:'unknown';
-  throw Error(`Unsupported browser configuration (${family}).\nCodec string: ${requested.codec}\nResolution: ${requested.codedWidth} × ${requested.codedHeight}\nSource bit depth: ${depth}\nSource profile / level IDs: ${profile} / ${level}\nDecoder initialization data: ${requested.descriptionBytes} bytes\nHardware acceleration policy: ${requested.hardwareAcceleration}\nWebCodecs reported supported=false without a specific rejection reason. These details do not establish whether browser support or webmpv's configuration mapping caused the rejection.`);
+  throw Error(`Unsupported browser configuration (${family}).\nCodec string: ${requested.codec}\nResolution: ${requested.codedWidth} × ${requested.codedHeight}\nSource bit depth: ${depth}\nSource profile / level IDs: ${profile} / ${level}\nDecoder initialization data: ${requested.descriptionBytes} bytes\nHardware acceleration policy: ${requested.hardwareAcceleration}\nWebCodecs reported supported=false without a specific rejection reason. These details do not establish whether browser support or deplexr's configuration mapping caused the rejection.`);
  }
  return true;
 }

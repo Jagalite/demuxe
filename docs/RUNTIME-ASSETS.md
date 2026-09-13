@@ -7,20 +7,20 @@ The project is not yet published to npm. Install the locally assembled archive:
 npm run build
 python3 scripts/package-beta.py --output build/my-candidate
 # In a clean application:
-npm install /absolute/path/to/deplexr-0.3.0-beta.2.tgz
-npx deplexr copy-assets public/assets/webmpv
+npm install /absolute/path/to/deplexr-0.3.0-beta.3.tgz
+npx deplexr copy-assets public/assets/deplexr
 ```
 
 ```js
 import {Player} from 'deplexr';
-const player = new Player(container, {assetBase:'/assets/webmpv/'});
+const player = new Player(container, {assetBase:'/assets/deplexr/'});
 // Optional, separate UI entry:
 import {definePlayerElement} from 'deplexr/player';
 definePlayerElement();
 ```
 
 ```html
-<webmpv-player controls asset-base="/assets/webmpv/"></webmpv-player>
+<deplexr-player controls asset-base="/assets/deplexr/"></deplexr-player>
 ```
 
 assetBase is the package runtime root containing web/, fixtures/, third_party/
@@ -34,7 +34,7 @@ perform no engine downloads. Import during SSR is safe; construction is browser-
 The UI entry does not register anything until definePlayerElement is called.
 
 copy-assets validates every package manifest hash before copying runtime assets,
-font and notices. It writes webmpv-runtime.json with version and hashes. It never
+font and notices. It writes deplexr-runtime.json with version and hashes. It never
 deletes destination files; unrelated collisions and symlink paths reject. Updates
 may replace only previous manifest-owned unmodified assets. Retain the generated
 manifest with the installation. Use core and runtime from the same archive; mixing

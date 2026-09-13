@@ -101,7 +101,7 @@ export class BrowserPlayer extends EventTarget {
                 await this.audioContext.audioWorklet.addModule(new URL('../audio-worklet.js', import.meta.url));
                 if (this.destroyed)
                     throw new Error('Player destroyed during initialization');
-                this.audioNode = new AudioWorkletNode(this.audioContext, 'webmpv-pcm', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { buffer: audio, capacity: 8192, measureOutput } });
+                this.audioNode = new AudioWorkletNode(this.audioContext, 'deplexr-pcm', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { buffer: audio, capacity: 8192, measureOutput } });
                 this.audioNode.port.onmessage = ({ data }) => { const stamp = this.audioContext.getOutputTimestamp(); const wallTime = stamp.performanceTime !== undefined && stamp.contextTime !== undefined ? performance.timeOrigin + stamp.performanceTime + (data.audioFrame / data.sampleRate - stamp.contextTime) * 1000 : null; this.dispatchEvent(new CustomEvent('output', { detail: { ...data, wallTime, stamp } })); };
                 this.analyser = this.audioContext.createAnalyser();
                 this.audioNode.connect(this.analyser);

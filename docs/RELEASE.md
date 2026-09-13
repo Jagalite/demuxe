@@ -35,7 +35,7 @@ Emscripten cache. Do not run `fetch-sources.py` in that checkout before `--clean
 use the prerequisite installation checkout to provision the SDK first.
 
 ```sh
-WEBMPV_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
+DEPLEXR_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
   bash scripts/build-beta-engines.sh --clean > build/clean-build.log 2>&1
 ```
 
@@ -104,3 +104,50 @@ python3 scripts/verify-beta-release.py \
 A changed runtime hash, source companion, tagged test harness, failed test, filtered
 suite, or missing browser result prevents verification. Archive assembly does not
 publish anything; distribute the verified files without running the packager again.
+
+## Current component and npm consumer qualification
+
+After the four archive suites above, run the full additional qualification against
+that same archive. This installs into an empty project, invokes the npm executable,
+checks package metadata and imports without a DOM, records npm's pack inventory,
+and runs CLI collision/hash checks, TypeScript/static/bundled consumers, public API,
+component, and menu regressions. The UI/API test server serves runtime code strictly
+from the installed archive; only test pages and media come from the tagged source.
+
+```sh
+BETA_ARCHIVE="$PWD/build/release/deplexr-0.3.0-beta.3.tgz" node tests/release-extra.mjs
+```
+
+Pass `--extra <release-extra-result.json>` to `verify-beta-release.py`, in addition
+to its archive/source/consumer/streaming arguments. It requires all extra cases and
+checks their harness hashes against the source companion. Provision esbuild 0.28.2
+in `build/public-api-tooling` for the bundled consumer checks. Component fixtures
+use `fixtures/example.mp4`; the menu suite also runs in automated WebKit without
+claiming Safari or physical mobile qualification.
+
+## First npm publication
+
+The root `package.json` deliberately remains `private: true`. Never publish from
+the source root. Publish only the runtime archive identified by `verification.json`;
+do not rebuild or repack it after qualification. Keep the source companion,
+`SHA256SUMS`, clean build record and verification record with the public release.
+Before npm publication, make the matching source companion downloadable from the
+GitHub release for the recorded tag; the npm package alone is not that source offer.
+
+1. Confirm `npm whoami`, account publishing access/2FA, and `deplexr` name
+   availability or ownership (`npm view deplexr name version maintainers`).
+2. Check archive metadata and `SHA256SUMS` against `verification.json`.
+3. Run `npm publish ./build/release/deplexr-0.3.0-beta.3.tgz --tag beta --access public --dry-run`.
+4. Only after all verification gates pass, explicitly publish:
+
+```sh
+npm publish ./build/release/deplexr-0.3.0-beta.3.tgz --tag beta --access public
+```
+
+Do not use `latest` for this beta. After publication, install `deplexr@beta` into
+a brand-new temporary project, run `npx deplexr copy-assets public/assets/deplexr`,
+import both `deplexr` and `deplexr/player`, and smoke-test one Native direct source
+and one Hybrid/Software or Native-remux source using the installed runtime assets.
+Check `npm view deplexr@beta version dist` and download the registry tarball to
+compare its bytes/hash to the qualified archive. Once this first version exists,
+configure npm trusted publishing for the exact GitHub workflow used for later releases.

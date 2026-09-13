@@ -45,7 +45,7 @@ export declare const defaultLabels: Readonly<{
     subtitleFile: "Subtitle file";
 }>;
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
-export declare class WebmpvPlayerElement extends Base {
+export declare class DeplexrPlayerElement extends Base {
     static observedAttributes: string[];
     private core?;
     private terminal;
@@ -139,5 +139,5 @@ export declare class WebmpvPlayerElement extends Base {
     private labelControls;
     private renderShell;
 }
-export declare function definePlayerElement(name?: string): typeof WebmpvPlayerElement;
+export declare function definePlayerElement(name?: string): typeof DeplexrPlayerElement;
 export {};

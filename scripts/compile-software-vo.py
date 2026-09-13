@@ -20,7 +20,7 @@ source = source.replace('.caps = VO_CAP_ROTATE90,', '.caps = 0, // RGB output re
 (outdir / 'vo_libmpv.c').write_text(source)
 entry = next(e for e in json.loads((root / 'build/obj-mpv/compile_commands.json').read_text()) if e['file'].endswith('/vo_libmpv.c'))
 args = shlex.split(entry['command'])
-command = [str(Path(os.environ.get('WEBMPV_SDK', root / 'build/emsdk-4.0.14')) / 'upstream/emscripten/emcc')]
+command = [str(Path(os.environ.get('DEPLEXR_SDK',os.environ.get('WEBMPV_SDK', root / 'build/emsdk-4.0.14'))) / 'upstream/emscripten/emcc')]
 i = 1
 while i < len(args):
     arg = args[i]

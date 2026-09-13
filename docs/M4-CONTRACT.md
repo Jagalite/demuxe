@@ -3,7 +3,7 @@
 Authorized by the user's instruction to proceed with all remaining milestones.
 This proceeds despite M3 failing the predeclared CPU benefit gate; that measured
 result is preserved. Software remains the default and separately buildable.
-The webmpv maintainers own the optional patch, rebases and qualification costs.
+The deplexr maintainers own the optional patch, rebases and qualification costs.
 No claim of performance benefit follows from authorization or implementation.
 
 Use mpv's decoder selection/filter seam. Admit only H.264 SDR avcC initially,

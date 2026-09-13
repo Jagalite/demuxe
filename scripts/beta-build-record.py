@@ -23,7 +23,7 @@ if args.phase=='start':
  if args.clean:
   stale=[str(p.relative_to(root))for pattern in ['build/obj-*','build/prefix*','build/cache','build/sources','build/native-remux','web/engine','web/engine-*']for p in root.glob(pattern)if p.is_dir()]
   if stale:raise SystemExit('Clean build requires absent output/source/cache directories: '+', '.join(stale))
- record.write_text(json.dumps({'started':datetime.datetime.now(datetime.timezone.utc).isoformat(),'clean':args.clean,'inputs':inputs(),'sdkSources':sdk_sources(pathlib.Path(os.environ.get('WEBMPV_SDK',root/'build/emsdk-4.0.14')).resolve())},indent=2)+'\n')
+ record.write_text(json.dumps({'started':datetime.datetime.now(datetime.timezone.utc).isoformat(),'clean':args.clean,'inputs':inputs(),'sdkSources':sdk_sources(pathlib.Path(os.environ.get('DEPLEXR_SDK',os.environ.get('WEBMPV_SDK',root/'build/emsdk-4.0.14'))).resolve())},indent=2)+'\n')
 else:
  start=json.loads(record.read_text())
  if start['inputs']!=inputs():raise SystemExit('Build inputs changed while building')

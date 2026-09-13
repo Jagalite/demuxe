@@ -13,7 +13,7 @@ manifest={
  'browserBindings':hashed([root/'src/player.ts',root/'web/engine-worker.js',root/'web/audio-worklet.js',root/'web/io-worker.js',root/'web/range-reader.js',root/'web/resource-loader.js',root/'web/vod-manifest.js',root/'web/browser-decoder-worker.js',root/'web/generated/player.js']),
  'fixtures':hashed(sorted((root/'fixtures').glob('*'))),
  'tools':{},
- 'browserDecoding':os.environ.get('WEBMPV_BROWSER_DECODER')=='1','decoderSimd':os.environ.get('WEBMPV_DECODER_SIMD','1')=='1','renderer':'libmpv software render API / Canvas 2D',
+ 'browserDecoding':os.environ.get('WEBMPV_BROWSER_DECODER')=='1','decoderSimd':os.environ.get('DEPLEXR_DECODER_SIMD',os.environ.get('WEBMPV_DECODER_SIMD','1'))=='1','renderer':'libmpv software render API / Canvas 2D',
  'audio':'original browser AO / fixed stereo Float32 AudioWorklet ring',
  'baselineProfile':{'video':'H.264 SDR yuv420p','audio':'AAC stereo','containers':['MP4','MKV'],'subtitles':'ASS','network':'bounded HTTP ranges','initialHeapBytes':134217728,'maximumHeapBytes':536870912,'pthreadPoolSize':8,'softwareScaler':'bilinear, sws-fast=yes'},
  'reproducibility':'Hash comparison recorded separately; source pins alone are not proof.',
@@ -26,5 +26,5 @@ for name,cmd in [('emscripten',['emcc','--version']),('meson',['meson','--versio
 # Dependency inventory; exact license texts are supplied in third_party/notices.
 sbom={'bomFormat':'CycloneDX','specVersion':'1.6','version':1,'components':[]}
 for item in manifest['sources']['sources']:
-    sbom['components'].append({'type':'application' if item['name']=='emsdk' else 'library','name':item['name'],'version':item['revision'],'hashes':[{'alg':'SHA-256','content':item['sha256']}],'externalReferences':[{'type':'vcs','url':item['upstream']},{'type':'distribution','url':item['url']}],'properties':[{'name':'webmpv:license-notices','value':'third_party/notices/'+item['name']}]})
+    sbom['components'].append({'type':'application' if item['name']=='emsdk' else 'library','name':item['name'],'version':item['revision'],'hashes':[{'alg':'SHA-256','content':item['sha256']}],'externalReferences':[{'type':'vcs','url':item['upstream']},{'type':'distribution','url':item['url']}],'properties':[{'name':'deplexr:license-notices','value':'third_party/notices/'+item['name']}]})
 (root/os.environ.get('WEBMPV_MANIFEST_DIR','results')/'sbom.cdx.json').write_text(json.dumps(sbom,indent=2)+'\n')

@@ -18,7 +18,7 @@ root = pathlib.Path(__file__).resolve().parent.parent
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H-%M-%SZ')
 output = root / 'results/development' / ('local-builds-' + stamp)
 output.mkdir(parents=True, exist_ok=False)
-sdk = pathlib.Path(os.environ.get('WEBMPV_SDK', root / 'build/emsdk-4.0.14')).resolve()
+sdk = pathlib.Path(os.environ.get('DEPLEXR_SDK',os.environ.get('WEBMPV_SDK', root / 'build/emsdk-4.0.14'))).resolve()
 config = pathlib.Path(os.environ['WEBMPV_EM_CONFIG']).resolve()
 archives = root / 'build/downloads'
 for item in json.loads((root / 'sources.lock.json').read_text())['sources']:
@@ -36,7 +36,7 @@ host = {'mode': 'local', 'platform': platform.platform(), 'sdk': str(sdk),
 (output / 'host.json').write_text(json.dumps(host, indent=2) + '\n')
 # Reuse the same owned path so path-bearing FFmpeg configurations are comparable.
 # Only children of this freshly created temporary directory are removed.
-with tempfile.TemporaryDirectory(prefix='webmpv-local-', dir=root / 'build') as temporary:
+with tempfile.TemporaryDirectory(prefix='deplexr-local-', dir=root / 'build') as temporary:
     work = pathlib.Path(temporary) / 'work'
     snapshot = pathlib.Path(temporary) / 'input'
     snapshot.mkdir()

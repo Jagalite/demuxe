@@ -25,7 +25,7 @@ const icons = {
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
 export const defaultLabels = Object.freeze({ diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', mediaFile: 'Media file', subtitleFile: 'Subtitle file' });
-export class WebmpvPlayerElement extends Base {
+export class DeplexrPlayerElement extends Base {
     static observedAttributes = ['src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base'];
     core;
     terminal = false;
@@ -546,13 +546,13 @@ export class WebmpvPlayerElement extends Base {
         });
     }
 }
-export function definePlayerElement(name = 'webmpv-player') {
+export function definePlayerElement(name = 'deplexr-player') {
     if (typeof customElements === 'undefined')
         throw new PlayerError('INVALID_ARGUMENT', 'Custom element registration requires a browser');
     const existing = customElements.get(name);
-    if (existing && existing !== WebmpvPlayerElement)
+    if (existing && existing !== DeplexrPlayerElement)
         throw new PlayerError('INVALID_ARGUMENT', `Custom element ${name} is already registered with another implementation`);
     if (!existing)
-        customElements.define(name, WebmpvPlayerElement);
-    return WebmpvPlayerElement;
+        customElements.define(name, DeplexrPlayerElement);
+    return DeplexrPlayerElement;
 }

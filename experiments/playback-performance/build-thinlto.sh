@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
-SDK=${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}
+SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
@@ -34,4 +34,4 @@ if ! cmp -s "$OBJ/configure-request.next" "$OBJ/configure-request"; then
 fi
 # A cached Makefile may not notice that Git discovery was corrected.
 (cd "$OBJ"; sh "$ROOT/build/sources/ffmpeg/ffbuild/version.sh" "$ROOT/build/sources/ffmpeg" libavutil/ffversion.h)
-(cd "$OBJ"; emmake make -j "${WEBMPV_JOBS:-2}")
+(cd "$OBJ"; emmake make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-2}}")

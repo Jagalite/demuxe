@@ -150,7 +150,7 @@ Replace `BrowserPlayer(canvas, {decoder: ...})` with `Player(container, {mode: .
 from `index.js`. Replace raw mpv `command('set', 'vf', ...)` calls with
 `setVideoFilters()` in software mode. There is no arbitrary public `command()`;
 use typed controls so state survives a reopen. The package export map exposes
-the core and optional `webmpv/player` entry points.
+the core and optional `deplexr/player` entry points.
 
 The old `src/player.ts`, generated clients, `/web/index.html`,
 `/web/legacy-example.html`, filter router and

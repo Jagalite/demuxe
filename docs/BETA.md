@@ -1,35 +1,31 @@
 # Three-mode beta candidate
 
-webmpv is a browser media compatibility runtime. Automatic selection chooses Native
+deplexr is a browser media compatibility runtime. Automatic selection chooses Native
 direct → Native packet-copy adaptation/remux → Hybrid retained WebCodecs → Software
 FFmpeg, subject to source permissions, selected tracks and requested features. There
 are exactly three public modes. This candidate is not production-qualified.
 
 ## Assemble and install
 
-From a checkout with the three current engine builds available:
+Install the published beta (or install the exact verified local archive before publication):
 
 ```sh
-npm ci
-npm run build
-python3 scripts/package-beta.py
-npm install --offline /absolute/path/build/beta/deplexr-0.3.0-beta.2.tgz
+npm install deplexr@beta
+npx deplexr copy-assets public/assets/deplexr
 ```
-
-Copy the entire installed `node_modules/deplexr` directory to your application's
-static `/vendor/webmpv/` directory. Preserve the relative layout. Do not bundle just
-`index.js`: dynamic imports, module workers, pthread workers, fonts and AudioWorklet
-modules resolve relative to their own module URLs.
 
 ```js
-import {Player, PLAYBACK_MODES} from '/vendor/webmpv/index.js';
-const player = new Player(document.querySelector('#player'));
+import { Player } from 'deplexr';
+const player = new Player(document.querySelector('#player'), {
+  assetBase: '/assets/deplexr/'
+});
 await player.open(fileInput.files[0]);
-await player.play(); // invoke from a user gesture where autoplay policy requires it
-// await player.setMode('hybrid'); // explicit pin
-// await player.setAutomaticSelection();
-// await player.destroy();
+await player.play();
 ```
+
+The source repository is non-publishable. Release maintainers use the clean tagged
+build and archive procedure in [RELEASE.md](RELEASE.md), not `npm publish` in the
+repository root. All qualification applies to exact archive hashes.
 
 Use HTTPS (localhost is suitable for testing). Serve the application and assets
 with `Cross-Origin-Opener-Policy: same-origin` and

@@ -17,7 +17,7 @@ for name in ['baseline','accepted-artifacts']:
 original=report['snapshots']['accepted-artifacts']
 for path in ['web/engine/player.mjs','web/engine/player.wasm','web/engine-m4/player.mjs','web/engine-m4/player.wasm']:
     actual=digest(root/path);assert actual==original[path],path;report['historicalArtifacts'][path]=actual
-archive='build/releases/webmpv-software-0.2.0.tar.gz'
+archive='build/releases/deplexr-software-0.2.0.tar.gz'
 expected='b512d5bfffda77ec80a00a26893df0ce8dc9c840ed90d45f03ed6872bef4c58b'
 actual=digest(root/archive);assert actual==expected,archive;report['historicalArtifacts'][archive]=actual
 for engine in ['engine-software-full','engine-retained-subs']:

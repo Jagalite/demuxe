@@ -98,7 +98,7 @@ queries and fragments; raw mpv properties remain an advanced inspection surface.
 ## Using normalized state
 
 ```ts
-const player = new Player(host, {assetBase: '/assets/webmpv/'});
+const player = new Player(host, {assetBase: '/assets/deplexr/'});
 const unsubscribe = player.subscribe(state => {
   render({
     status: state.status,

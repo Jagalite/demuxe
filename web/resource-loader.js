@@ -143,7 +143,7 @@ export class ResourceLoader {
                     parts.push({...segment,text:new TextDecoder('utf-8',{fatal:true}).decode(body)});nested.closeHandle(info.id);
                   }
                 }finally{controller.signal.removeEventListener('abort',cancelled);nested.close();this.stats.requests+=nested.stats.requests;this.stats.fetchedBytes+=nested.stats.fetchedBytes;}
-                const subtitle=mergeWebVTT(parts),virtualURL=new URL(url);virtualURL.searchParams.set('__webmpv_subtitles','1');
+                const subtitle=mergeWebVTT(parts),virtualURL=new URL(url);virtualURL.searchParams.set('__deplexr_subtitles','1');
                 const uri=virtualURL.href;this.storeVirtual([[uri,new TextEncoder().encode(subtitle)]]);
                 bytes=new TextEncoder().encode(`#EXTM3U\n#EXT-X-TARGETDURATION:${Math.ceil(parsed.duration)}\n#EXTINF:${parsed.duration},\n${uri}\n#EXT-X-ENDLIST\n`);count=bytes.byteLength;
               }
