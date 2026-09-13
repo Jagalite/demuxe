@@ -2,6 +2,9 @@ import { Player } from '../unified-player.js';
 import type { MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
+    moreOptions: "More options";
+    back: "Seek backward 10 seconds";
+    forward: "Seek forward 10 seconds";
     play: "Play";
     pause: "Pause";
     mute: "Mute";
@@ -60,6 +63,8 @@ export declare class WebmpvPlayerElement extends Base {
     private menuTrigger;
     private hideTimer?;
     private revealControls;
+    private dismissMenu;
+    private stageWasIdle;
     private dragging;
     private dimensions;
     private trackSignature;
@@ -114,6 +119,8 @@ export declare class WebmpvPlayerElement extends Base {
     private announce;
     private geometry;
     private update;
+    private timelineProgress;
+    private skip;
     private trackOptions;
     private settings;
     private fullscreen;

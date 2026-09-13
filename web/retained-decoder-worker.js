@@ -4,7 +4,7 @@ let packetPrefix,needsKey=true;
 const noCopy=true;
 // Dedicated service: native decoder pthread waits never block this event loop.
 let memory,pointer,header,view,decoder,configuration,queue=[],generation=0,busy=false;
-let draining=false,flushed=false,failure=null,submitted=0,consumed=0,lastProgress=0;
+let draining=false,flushed=false,failure=null,submitted=0,consumed=0,outputWaitSince=null;
 let faultAfter=0,disabled=false,copiesInFlight=0;
 const copying=new Set(),closed=new WeakSet();
 const packetOffset=80,frameOffset=80+8*1024*1024;
@@ -13,7 +13,7 @@ const AGAIN=-6,EOF=-541478725,IO=-29;
 const stats={submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 function closeFrame(frame){if(closed.has(frame))return;closed.add(frame);frame.close();stats.closedFrames++;}
-function clear(){generation++;if(decoder&&decoder.state!=='closed')decoder.close();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;failure=null;}
+function clear(){generation++;if(decoder&&decoder.state!=='closed')decoder.close();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;}
 async function checkConfiguration(valid){
  // Keep only descriptive fields: initialization bytes can be large and are not
  // useful in a UI error. Retain the exact codec string passed to WebCodecs.
@@ -48,10 +48,10 @@ function configure(){
   // Decode completion may release a reorder burst after decodeQueueSize falls.
   // Stop submitting at eight queued frames; retain bounded burst headroom.
   if(queue.length>=32){closeFrame(frame);failure='Frame queue limit';stats.errors++;return;}
-  queue.push(frame);postMessage({wakeup:true});stats.peakFrames=Math.max(stats.peakFrames,queue.length);lastProgress=performance.now();
+  queue.push(frame);postMessage({wakeup:true});stats.peakFrames=Math.max(stats.peakFrames,queue.length);outputWaitSince=null;
  }});
  decoder.addEventListener('dequeue',()=>{if(current===generation)postMessage({wakeup:true});});
- needsKey=true;decoder.configure(configuration);lastProgress=performance.now();
+ needsKey=true;decoder.configure(configuration);outputWaitSince=null;
 }
 self.onmessage=({data})=>{
  if(data.type==='cancel'){
@@ -163,11 +163,19 @@ async function pump(){
       view.setFloat64(64,frame.timestamp,true);view.setFloat64(72,frame.duration??0,true);
       postMessage({retainedFrame:frame,pts:frame.timestamp,generation},[frame]);
       stats.transferredFrames=(stats.transferredFrames??0)+1;
-      consumed++;stats.frames++;lastProgress=performance.now();result=1;
+      consumed++;stats.frames++;outputWaitSince=null;result=1;
      }finally{closeFrame(frame);}
     }else if(draining)result=flushed?EOF:0;
     else result=decoder.decodeQueueSize+queue.length>=8?0:AGAIN;
-    if(!queue.length&&(draining||decoder.decodeQueueSize>=8)&&submitted>consumed&&performance.now()-lastProgress>3000)throw Error('Decoder output watchdog');
+    // Measure an actual blocked receive, not wall time since the last frame:
+    // paused/idle periods and packet reordering do not spend the output budget.
+    const waiting=!queue.length&&!flushed&&(draining||decoder.decodeQueueSize>=8)&&submitted>consumed;
+    if(!waiting)outputWaitSince=null;
+    else if(outputWaitSince===null)outputWaitSince=performance.now();
+    else if(performance.now()-outputWaitSince>3000){
+     stats.watchdog={waitingMs:Math.round(performance.now()-outputWaitSince),decodeQueueSize:decoder.decodeQueueSize,queuedFrames:queue.length,submitted,consumed,draining,flushed,codec:configuration?.codec};
+     throw Error(`Decoder output watchdog: ${JSON.stringify(stats.watchdog)}`);
+    }
    }else throw Error('Unknown decoder operation');
   }
  }catch(error){failure=String(error);stats.errors++;result=IO;postMessage({error:failure});}

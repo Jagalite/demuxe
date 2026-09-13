@@ -69,10 +69,20 @@ webmpv-player::part(controls) { padding-inline: 20px; }
 
 Stable parts: container, stage, controls, settings, error, status. Limited slots:
 before-controls and after-controls. Shadow IDs/classes are implementation details.
-Controls overlay the video: open/close actions at the top, transport at the bottom,
-and a scrollable settings menu inside the player. During playback, controls fade
-after inactivity; pointer interaction reveals them. Paused playback, keyboard
-focus, and an open menu keep controls visible. Keyboard shortcuts apply only to
+Air controls overlay the video: an open-media action at the top, a large unboxed
+play/pause icon between backward/forward ten-second seek buttons at the center,
+and a thin full-width timeline with elapsed and total times at opposite ends.
+Seek buttons clamp to available seek ranges and disable while an operation is
+pending or no seek window exists. Volume, settings, and fullscreen sit above the
+timeline. The gear opens compact playback settings; the folder opens file/URL
+inputs separately. Subtitle import and shortcut help live under More options.
+Control sizes and compact layouts follow the player container width, including
+small embeds in wide browser windows. Pointer controls retain 36px targets and
+coarse-pointer devices use 44px targets. On narrow players, opening a menu hides
+the central controls to avoid overlap. During playback, controls fade
+after inactivity; mouse movement reveals them. Tapping the video toggles controls
+in playing or paused playback. Clicking outside a menu dismisses it without
+stealing focus; Escape returns focus to its trigger. Keyboard focus reveals controls. Keyboard shortcuts apply only to
 focus inside the component stage: Space/K, arrows, J/L, M, C, brackets, digits,
 Home/End, F and ?. Inputs, buttons, selects, editable content and modified keys
 retain their normal handling. C uses the core's subtitle visibility setting;

@@ -50,3 +50,30 @@ test('Invisible packets do not exhaust a fictitious one-packet/one-frame credit'
  h[4]=1;h[7]=1;for(let i=0;i<9;i++)assert.equal(await request(2),0);
  assert.equal(await request(4),1);assert.equal(packets,9);assert.equal(closed,1);assert.equal(messages.filter(m=>m.retainedFrame).length,1);
 });
+
+async function watchdogHarness(){
+ let now=0,instance,finishFlush;
+ class Decoder{
+  static async isConfigSupported(){return {supported:true};}
+  constructor(callbacks){instance=this;this.callbacks=callbacks;this.decodeQueueSize=0;this.state='unconfigured';}
+  configure(){this.state='configured';}addEventListener(){}close(){this.state='closed';}
+  decode(){this.decodeQueueSize++;}flush(){return new Promise(resolve=>finishFlush=resolve);}
+ }
+ const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16),messages=[];
+ const context=vm.createContext({self:{},videoCodecConfig,VideoDecoder:Decoder,EncodedVideoChunk:class{constructor(data){Object.assign(this,data);}},Uint8Array,Int32Array,DataView,Atomics,performance:{now:()=>now},postMessage:m=>messages.push(m),shared:memory});
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
+ let serial=0;const request=async op=>{h[0]=++serial*4+1;h[2]=op;await context.pump();assert.equal(h[0],serial*4+2);return h[3];};
+ h[4]=0;h[5]=640;h[6]=360;h[13]=4;h[14]=0;h[15]=10;h[8]=8;assert.equal(await request(1),0);h[4]=1;h[7]=1;
+ return {request,messages,advance:ms=>now+=ms,decoder:()=>instance,flush:async()=>{finishFlush();await Promise.resolve();}};
+}
+test('output watchdog excludes idle time before a new decode burst',async()=>{
+ const s=await watchdogHarness();s.advance(10000);for(let i=0;i<8;i++)assert.equal(await s.request(2),0);
+ assert.equal(await s.request(4),0,'new input has not had time to produce output');
+ s.advance(2999);assert.equal(await s.request(4),0);
+ s.advance(2);assert.equal(await s.request(4),-29,'a genuinely stalled output wait still fails');
+});
+test('drain after idle gets an output wait window and successful flush returns EOF',async()=>{
+ const s=await watchdogHarness();await s.request(2);s.decoder().decodeQueueSize=0;s.advance(10000);
+ assert.equal(await s.request(3),0);assert.equal(await s.request(4),0);
+ await s.flush();s.advance(4000);assert.equal(await s.request(4),-541478725,'flush completion is not a watchdog failure when packets produce no visible frame');
+});
