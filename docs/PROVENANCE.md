@@ -24,9 +24,12 @@ These are recorded build settings; the upstream copyright inventories contain
 individual-file terms. The bundled DejaVu Sans 2.37 font has its own notice at
 `fixtures/FONT-LICENSE.txt` and byte hash at `fixtures/assets.lock.json`.
 
-The test film and subtitle script are original generated fixtures. The generation
+The base test film and subtitle script are original generated fixtures. The generation
 command, media probe and checked-in bytes are supplied. Fixture generation is
 separate from engine compilation; engine builds consume the frozen fixture.
+Broader movie/performance tests also use licensed Big Buck Bunny excerpts and
+screenshots. See [media notices](MEDIA-NOTICES.md) for their separate attribution
+and license; the original-code license does not replace these media terms.
 
 The browser bindings, audio output driver, worker/worklet, build scripts, build/registration patches and browser attachment-budget guard
 were written for this repository. The excluded

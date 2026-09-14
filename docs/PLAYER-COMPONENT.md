@@ -37,6 +37,41 @@ Forwarded core events are dispatched once with unchanged detail, bubbles:false;
 listen directly on the element. No event-name aliases are generated. Component
 lifecycle failures use error with a structured operation-scoped detail.
 
+## Multiple files and queue
+
+The component's media picker accepts multiple files. Selecting or dropping files
+adds them in the supplied order, preserving duplicate filenames. If nothing is
+queued, the first item opens; otherwise files append without interrupting playback.
+The initial item follows `autoplay` (paused by default).
+
+The folder menu shows the queue, with the current item highlighted. Select a file
+to switch, remove individual items, or use **Clear queue** to stop and release all
+queued sources. Removing the current item opens the next available item, or the
+previous one if it was last. If that replacement fails, the removed media is
+closed and the remaining queue stays available for retry or selection. Removing
+other items leaves playback untouched.
+
+Previous/next buttons and an item count appear beside the timeline controls when
+there is more than one item. Manual changes preserve play/pause intent; an explicit
+play or pause during loading overrides the intent captured when switching. Reaching
+the end advances and plays the next file; the final item stops without looping.
+An opening failure stops on that item and uses the existing error/retry UI;
+it does not silently skip through the queue.
+
+`element.open(source)`, `src` changes, and URL submissions replace the queue with
+one source. `close()`, destruction and actual disconnection clear the queue and
+release its file references. Synchronous DOM moves keep it. No queued item is
+preloaded, and all opens delegate to the same core `Player`.
+
+`showSourceControls = false` hides and disables queue management along with file
+input. Previous/next playback controls still work. `allowFileDrop` independently
+controls file drops. Files in a batch are treated as media; use the separate
+subtitle picker to attach subtitles.
+
+The queue is built-in UI state, not a second core playback API. Applications
+needing their own playlist policies can use the core `Player` and manage sources
+themselves.
+
 ## Customization
 
 ```html

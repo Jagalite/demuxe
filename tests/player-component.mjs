@@ -51,10 +51,13 @@ await check('source picker describes accepted media independently of the native 
  assert.equal(await v.locator('#file').inputValue(),'');
  assert.ok(await v.locator('#file').evaluate(el=>el.hidden));
  const chooser=page.waitForEvent('filechooser');await v.locator('#choose-file').click();await(await chooser).setFiles('fixtures/example.mp4');
- await page.waitForFunction(()=>a.shadowRoot.getElementById('current-source').textContent==='example.mp4');
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('queue-count').textContent==='1 / 2');
+ assert.equal(await v.locator('#current-source').textContent(),'Loaded movie.mp4');
  await v.locator('#open-menu').click();
  const again=page.waitForEvent('filechooser');await v.locator('#choose-file').click();await(await again).setFiles('fixtures/example.mp4');
- await page.waitForFunction(()=>a.player.state.pendingOperation===null);
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('queue-count').textContent==='1 / 3');
+ await v.locator('#open-menu').click();await v.locator('.queue-item').last().click();
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('current-source').textContent==='example.mp4'&&!a.queueOperation);
  await page.evaluate(async()=>{await a.close();a.title='';a.titleMode='auto';});
  assert.equal(await v.locator('#current-source').textContent(),'No media loaded');
 });
@@ -87,11 +90,11 @@ await check('disabled diagnostics close the overlay and restore focus without di
 });
 await check('file drop opt-out preserves browser defaults and is independent of source controls',async()=>{
  const data=await page.evaluate(async()=>{
-   const dt=new DataTransfer();dt.items.add(new File(['data'],'drop.mp4'));let calls=0;const open=a.open;
-   a.open=async()=>{calls++;};a.allowFileDrop=false;
+   const dt=new DataTransfer();dt.items.add(new File(['data'],'drop.mp4'));let calls=0;const add=a.addFiles;
+   a.addFiles=()=>{calls++;};a.allowFileDrop=false;
    const send=type=>{const event=new DragEvent(type,{dataTransfer:dt,bubbles:true,cancelable:true});a.dispatchEvent(event);return event.defaultPrevented;};
    try {const disabled=[send('dragover'),send('drop'),calls];a.allowFileDrop=true;a.showSourceControls=false;const enabled=[send('dragover'),send('drop'),calls];return {disabled,enabled};}
-   finally {a.open=open;a.showSourceControls=true;a.allowFileDrop=true;}
+   finally {a.addFiles=add;a.showSourceControls=true;a.allowFileDrop=true;}
  });assert.deepEqual(data,{disabled:[false,false,0],enabled:[true,true,1]});
 });
 await check('custom seek step changes actual seeking, labels and numerals',async()=>{
@@ -272,5 +275,149 @@ await check('file and URL selection leave Space focused on playback',async()=>{
  for(const source of ['file','url']){await page.goto(origin+'/');await page.waitForFunction(()=>window.player);const v=page.locator('deplexr-player');if(source==='file'){const chooser=page.waitForEvent('filechooser');await v.locator('#open').click();await(await chooser).setFiles('fixtures/example.mp4');}else{await v.locator('#open-menu').click();await v.locator('#url').fill(origin+'/fixtures/example.mp4');await v.locator('#url-submit').click();}await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');}
 });
 await check('migrated playground uses the shipped component and core',async()=>{await page.goto(origin+'/');await page.waitForFunction(()=>window.player);assert.ok(await page.evaluate(()=>document.querySelector('deplexr-player').player===window.player));await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId!==null&&player.state.pendingOperation===null);assert.equal(await page.getByRole('button',{name:'Developer settings',exact:true}).count(),0);assert.equal(await page.evaluate(()=>player.state.automaticSelection),true);await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.status==='playing');await page.locator('deplexr-player').evaluate(el=>el.close());await page.waitForFunction(()=>player.state.status==='idle');});
+await check('multiple selected files form one ordered queue and reuse the same core',async()=>{
+ await page.goto(origin+'/examples/player-element.html');
+ await page.evaluate(async()=>{
+   window.q=document.querySelector('deplexr-player');await q.ready;
+   window.queueCore=q.player;window.queueBytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer();
+   window.addQueueFiles=(names,drop=false)=>{
+     const transfer=new DataTransfer();for(const name of names)transfer.items.add(new File([queueBytes],name,{type:'video/mp4'}));
+     if(drop)q.dispatchEvent(new DragEvent('drop',{dataTransfer:transfer,cancelable:true}));
+     else {const input=q.shadowRoot.getElementById('file');input.files=transfer.files;input.dispatchEvent(new Event('change'));}
+   };
+   addQueueFiles(['First.mp4','Second.mp4','Third.mp4']);
+ });
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='First.mp4'&&!q.player.state.pendingOperation&&!q.queueOperation);
+ const v=page.locator('deplexr-player').first();
+ assert.ok(await v.locator('#file').evaluate(el=>el.multiple));
+ assert.deepEqual(await v.locator('.queue-item').allTextContents(),['First.mp4','Second.mp4','Third.mp4']);
+ assert.equal(await v.locator('#queue-count').textContent(),'1 / 3');
+ assert.ok(await page.evaluate(()=>q.player===queueCore));assert.equal(await page.evaluate(()=>q.player.state.status),'paused');
+ assert.ok(await v.locator('#previous-file').isDisabled());assert.equal(await v.locator('#next-file').isDisabled(),false);
+});
+await check('dropping more files appends without interrupting the active source',async()=>{
+ const before=await page.evaluate(async()=>{await q.seek(2);return q.player.state.sourceId;});
+ await page.evaluate(()=>addQueueFiles(['Fourth.mp4','Fourth.mp4'],true));
+ assert.equal(await page.evaluate(()=>q.player.state.sourceId),before);
+ assert.ok(await page.evaluate(()=>q.player.state.currentTime>=1.9));
+ assert.equal(await page.locator('deplexr-player').first().locator('#queue-count').textContent(),'1 / 5');
+});
+await check('queue previous, next and item selection preserve paused playback and menu focus',async()=>{
+ const v=page.locator('deplexr-player').first();
+ await v.locator('#next-file').click();await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Second.mp4'&&!q.queueOperation);
+ assert.equal(await page.evaluate(()=>q.player.state.status),'paused');
+ await v.locator('#previous-file').click();await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='First.mp4'&&!q.queueOperation);
+ await v.locator('#open-menu').click();await v.locator('.queue-item').nth(2).click();
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Third.mp4'&&!q.queueOperation);
+ assert.ok(await v.locator('#settings').evaluate(el=>el.hidden));assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');
+ assert.equal(await v.locator('.queue-item[aria-current=true]').textContent(),'Third.mp4');
+ await v.locator('#open-menu').click();const source=await page.evaluate(()=>q.player.state.sourceId);
+ await v.locator('.queue-remove').first().click();
+ assert.equal(await page.evaluate(()=>q.player.state.sourceId),source);
+ assert.equal(await v.locator('#queue-count').textContent(),'2 / 4');
+ await page.keyboard.press('Escape');
+});
+await check('queue advances once on real playback end and stops at the final item',async()=>{
+ await page.evaluate(async()=>{await q.close();addQueueFiles(['Ending.mp4','Last.mp4']);});
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Ending.mp4'&&!q.queueOperation);
+ await page.evaluate(async()=>{await q.seek(q.player.state.duration-.25);await q.play();});
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Last.mp4'&&q.player.state.status==='playing'&&!q.queueOperation);
+ assert.equal(await page.locator('deplexr-player').first().locator('#queue-count').textContent(),'2 / 2');
+ const source=await page.evaluate(()=>q.player.state.sourceId);
+ await page.evaluate(()=>q.seek(q.player.state.duration-.25));
+ await page.waitForFunction(()=>q.player.state.status==='ended');
+ await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>q.player.state.sourceId),source);
+ assert.ok(await page.locator('deplexr-player').first().locator('#next-file').isDisabled());
+});
+await check('a failed queued open stops without skipping and a later selection can recover',async()=>{
+ await page.evaluate(async()=>{
+   await q.close();addQueueFiles(['Before.mp4','Broken.mp4','After.mp4']);
+ });
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Before.mp4'&&!q.queueOperation);
+ await page.evaluate(async()=>{
+   window.originalQueueOpen=q.player.open;
+   q.player.open=function(source,options){if(source instanceof File&&source.name==='Broken.mp4')return Promise.reject(new Error('Injected queue opening failure'));return originalQueueOpen.call(this,source,options);};
+   await q.seek(q.player.state.duration-.2);await q.play();
+ });
+ await page.waitForFunction(()=>!q.shadowRoot.getElementById('error').hidden&&!q.queueOperation);
+ assert.equal(await page.locator('deplexr-player').first().locator('#queue-count').textContent(),'2 / 3');
+ await page.waitForTimeout(150);
+ assert.equal(await page.evaluate(()=>q.shadowRoot.getElementById('current-source').textContent),'Before.mp4');
+ await page.evaluate(()=>{q.player.open=originalQueueOpen;q.shadowRoot.getElementById('next-file').click();});
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='After.mp4'&&!q.queueOperation);
+ assert.ok(await page.locator('deplexr-player').first().locator('#error').evaluate(el=>el.hidden));
+ // Restore the two-item setup used by removal checks.
+ await page.evaluate(async()=>{await q.close();addQueueFiles(['Ending.mp4','Last.mp4']);});
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Ending.mp4'&&!q.queueOperation);
+ await page.evaluate(()=>q.shadowRoot.getElementById('next-file').click());
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Last.mp4'&&!q.queueOperation);
+});
+await check('removing the current item opens its neighbor; clearing the queue releases files',async()=>{
+ const v=page.locator('deplexr-player').first();
+ await page.evaluate(()=>q.pause());await v.dispatchEvent('pointermove',{pointerType:'mouse'});
+ await v.locator('#open-menu').click();await v.locator('.queue-remove').last().click();
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Ending.mp4'&&!q.queueOperation);
+ assert.equal(await v.locator('#queue-count').textContent(),'1 / 1');
+ await v.locator('#open-menu').click();await v.locator('#clear-queue').click();await page.waitForFunction(()=>!q.player.state.sourceId);
+ assert.equal(await v.locator('.queue-item').count(),0);
+ assert.ok(await v.locator('#queue-navigation').evaluate(el=>el.hidden));
+ assert.ok(await page.evaluate(()=>q.queueItems.length===0&&q.lastSource===undefined));
+});
+await check('pause during a delayed queue switch overrides its original playing intent',async()=>{
+ await page.evaluate(async()=>{await q.close();addQueueFiles(['Pause before.mp4','Pause after.mp4']);});
+ await page.waitForFunction(()=>q.player.state.sourceId&&!q.queueOperation);
+ await page.evaluate(async()=>{
+   await q.play();window.originalQueueOpen=q.player.open;
+   q.player.open=async function(...args){await new Promise(resolve=>window.releaseQueueOpen=resolve);return originalQueueOpen.apply(this,args);};
+   q.shadowRoot.getElementById('next-file').click();
+   await q.pause();
+ });
+ assert.equal(await page.evaluate(()=>q.player.state.playbackIntent),'pause');
+ await page.evaluate(()=>releaseQueueOpen());
+ try {
+   await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Pause after.mp4'&&!q.queueOperation);
+   assert.equal(await page.evaluate(()=>q.player.state.playbackIntent),'pause');
+   assert.equal(await page.evaluate(()=>q.player.state.status),'paused');
+ }finally{await page.evaluate(async()=>{q.player.open=originalQueueOpen;await q.close();});}
+});
+await check('failed replacement after current-item removal closes removed media and retains retryable queue',async()=>{
+ await page.evaluate(()=>addQueueFiles(['Removed.mp4','Replacement.mp4','Later.mp4']));
+ await page.waitForFunction(()=>q.player.state.sourceId&&!q.queueOperation);
+ await page.evaluate(async()=>{
+   await q.play();window.originalQueueOpen=q.player.open;
+   q.player.open=()=>Promise.reject(new Error('Injected removal replacement failure'));
+   q.shadowRoot.querySelector('.queue-remove').click();
+ });
+ try {
+   await page.waitForFunction(()=>!q.queueOperation&&!q.shadowRoot.getElementById('error').hidden);
+   assert.deepEqual(await page.evaluate(()=>({source:q.player.state.sourceId,intent:q.player.state.playbackIntent,names:q.queueItems.map(x=>x.name),index:q.queueIndex,title:q.shadowRoot.getElementById('title').textContent})),{source:null,intent:'pause',names:['Replacement.mp4','Later.mp4'],index:0,title:''});
+   await page.evaluate(()=>{q.player.open=originalQueueOpen;q.shadowRoot.getElementById('retry').click();});
+   await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Replacement.mp4'&&!q.queueOperation);
+   assert.equal(await page.evaluate(()=>q.queueItems.length),2);
+   assert.ok(await page.evaluate(()=>q.shadowRoot.getElementById('error').hidden));
+ }finally{await page.evaluate(async()=>{q.player.open=originalQueueOpen;await q.close();});}
+});
+await check('programmatic replacement and disconnect cancel the queue rather than advancing stale sources',async()=>{
+ await page.evaluate(()=>addQueueFiles(['Old.mp4','Queued.mp4']));
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Old.mp4'&&!q.queueOperation);
+ await page.evaluate(async()=>{q.shadowRoot.getElementById('next-file').click();await q.open(location.origin+'/fixtures/example.mp4?token=hidden#private');});
+ assert.deepEqual(await page.locator('deplexr-player').first().locator('.queue-item').allTextContents(),['example.mp4']);
+ assert.equal(await page.evaluate(()=>q.queueItems.length),1);
+ await page.evaluate(async()=>{q.remove();await new Promise(resolve=>setTimeout(resolve,30));});
+ assert.ok(await page.evaluate(()=>q.queueItems.length===0&&q.lastSource===undefined));
+ await page.evaluate(async()=>{document.body.append(q);await q.ready;});
+ assert.equal(await page.evaluate(()=>q.player.state.status),'idle');
+});
+await check('queue navigation remains inside a small player and source ownership controls are respected',async()=>{
+ await page.evaluate(()=>{q.style.width='320px';addQueueFiles(['Small.mp4','Next.mp4']);});
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Small.mp4'&&!q.queueOperation);
+ const bounds=await page.evaluate(()=>{const root=q.shadowRoot,stage=root.getElementById('stage').getBoundingClientRect();return [...root.querySelectorAll('#previous-file,#next-file,#duration')].every(el=>{const r=el.getBoundingClientRect();return r.left>=stage.left&&r.right<=stage.right;});});assert.ok(bounds);
+ await page.evaluate(()=>{q.showSourceControls=false;q.shadowRoot.querySelectorAll('.queue-item')[1].dispatchEvent(new MouseEvent('click'));});
+ assert.equal(await page.evaluate(()=>q.shadowRoot.getElementById('current-source').textContent),'Small.mp4');
+ await page.evaluate(()=>q.shadowRoot.getElementById('next-file').click());
+ await page.waitForFunction(()=>q.shadowRoot.getElementById('current-source').textContent==='Next.mp4'&&!q.queueOperation);
+ await page.evaluate(async()=>{q.showSourceControls=true;await q.destroy();});
+ assert.equal(await page.evaluate(()=>q.queueItems.length),0);
+});
 await page.emulateMedia({forcedColors:'none'});await page.waitForTimeout(150);await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:out+'/desktop.png',fullPage:true});
 }finally{await page.evaluate(()=>Promise.all([...document.querySelectorAll('deplexr-player')].map(p=>p.destroy()))).catch(()=>{});await browser.close();server.kill();result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
