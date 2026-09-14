@@ -12,7 +12,8 @@ try{
    await v.locator('#open-menu').click();assert.ok(await v.locator('#source-options').isVisible());assert.ok(await v.locator('#subtitleFile').isVisible());
    await v.locator('#settings-toggle').click();assert.ok(await v.locator('#playback-options').isVisible());assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');
    await v.locator('#open-menu').click();assert.ok(await v.locator('#source-options').isVisible());await page.keyboard.press('Escape');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'open-menu');
-   await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+   await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+   await page.setViewportSize({width:390,height:390});
    await v.locator('#diagnostics-toggle').click();const stats=v.locator('#diagnostics-overlay');await stats.waitFor({state:'visible'});await page.waitForTimeout(300);assert.equal(await stats.getAttribute('role'),'region');
    const sizes=await stats.evaluate(el=>({height:el.clientHeight,scroll:el.scrollHeight}));assert.ok(sizes.scroll>sizes.height);
    await stats.hover();await page.mouse.wheel(0,500);await page.waitForFunction(()=>document.querySelector('deplexr-player').shadowRoot.getElementById('diagnostics-overlay').scrollTop>0);

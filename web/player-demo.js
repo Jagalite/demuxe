@@ -3,15 +3,26 @@ definePlayerElement();
 const $=id=>document.getElementById(id),viewer=$('viewer'),player=window.player=await viewer.ready;
 window.playerErrors=[];
 const run=work=>work.catch(error=>{if(error.code!=='ABORTED')$('status').textContent=error.message;});
-function diagnostics(){const data=player.diagnostics;$('diagnostics').textContent=JSON.stringify({state:player.state,diagnostics:data},null,2);$('engine-attempts').replaceChildren();for(const attempt of data.selection?.attempts||[]){const li=document.createElement('li');li.textContent=`${attempt.mode}: ${attempt.outcome} — ${attempt.reason}`;$('engine-attempts').append(li);}$('engine-reason').textContent=player.state.pendingOperation?'Evaluating playback requirements…':data.selection?.attempts.findLast(a=>a.outcome==='selected')?.reason||(!player.automaticSelection?'Engine pinned by developer.':'Open media to see the selection reason.');}
-player.subscribe(state=>{$('mode').value=player.mode;$('automatic').checked=state.automaticSelection;});
+function playbackSummary(state){
+  const opening=state.pendingOperation?.kind==='opening';
+  const engine={native:'Native',hybrid:'Hybrid',software:'Software'}[state.activeMode];
+  const description={native:'Browser playback, with remuxing when needed.',hybrid:'WebCodecs-assisted decoding with Wasm support.',software:'FFmpeg/mpv software decoding in WebAssembly.'}[state.activeMode]||'';
+  const media=state.mediaInfo,details=[];
+  if(state.sourceId!==null){
+    details.push(media.video||media.displayWidth?'Video':media.audio?'Audio':'Media');
+    if(media.displayWidth&&media.displayHeight)details.push(`${Math.round(media.displayWidth)} × ${Math.round(media.displayHeight)}`);
+    const codecs=[media.video?.codec,media.audio?.codec].filter(Boolean);
+    if(codecs.length)details.push(codecs.join(' / '));
+    if(state.streamType==='live')details.push('Live');
+    else if(Number.isFinite(state.duration)&&state.duration>=0){
+      const seconds=Math.floor(state.duration),hours=Math.floor(seconds/3600);
+      details.push(hours?`${hours}:${String(Math.floor(seconds/60)%60).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`);
+    }
+  }
+  const values={'summary-engine-description':description,'summary-engine':engine||(opening?'Selecting…':'Not active'),'summary-media':details.join(' · ')||(opening?'Opening media…':'No media loaded')};
+  for(const [id,text]of Object.entries(values))if($(id).textContent!==text)$(id).textContent=text;
+  $('summary-engine').dataset.active=String(!!engine);
+}
+player.subscribe(playbackSummary);
 viewer.addEventListener('error',e=>{if(e.detail.code==='ABORTED')return;window.playerErrors.push(e.detail);if(window.playerErrors.length>50)window.playerErrors.shift();$('status').textContent=e.detail.message;});
-viewer.addEventListener('modechange',()=>{if($('settings').open)diagnostics();});
 $('demo').onclick=()=>run((async()=>{const response=await fetch(new URL('../fixtures/example.mp4',import.meta.url));if(!response.ok)throw Error('The example is unavailable. Open a local file instead.');await viewer.open(new File([await response.blob()],'example.mp4',{type:'video/mp4'}));})());
-$('settings-toggle').onclick=()=>{diagnostics();$('settings').showModal();};$('settings-close').onclick=()=>$('settings').close();$('settings').addEventListener('close',()=>$('settings-toggle').focus());
-$('automatic').onchange=()=>run(player.setAutomaticSelection($('automatic').checked));$('mode').onchange=()=>run(player.setMode($('mode').value));
-$('tone-map').onchange=()=>run(player.setToneMapping($('tone-map').checked?'hdr-to-sdr':'off'));
-$('filters').onsubmit=e=>{e.preventDefault();run((async()=>{await player.setVideoFilters($('vf').value);await player.setAudioFilters($('af').value);diagnostics();})());};
-$('font-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)run(player.addFont(file));};$('subtitle-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)run(player.addSubtitle(file));};
-$('refresh-diagnostics').onclick=diagnostics;
-$('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({state:player.state,diagnostics:player.diagnostics},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='deplexr-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};

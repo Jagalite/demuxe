@@ -43,11 +43,26 @@ await check('unnamed and opaque sources do not expose a generated or stale title
    finally{await a.close();URL.revokeObjectURL(url);}
  });assert.deepEqual(data,{buffer:'',blob:''});
 });
+await check('source picker describes accepted media independently of the native file input',async()=>{
+ const v=page.locator('deplexr-player').first();
+ await page.evaluate(async()=>{await a.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'Loaded movie.mp4'));a.title='Custom title';a.titleMode='none';});
+ await v.locator('#open-menu').click();
+ assert.equal(await v.locator('#current-source').textContent(),'Loaded movie.mp4');
+ assert.equal(await v.locator('#file').inputValue(),'');
+ assert.ok(await v.locator('#file').evaluate(el=>el.hidden));
+ const chooser=page.waitForEvent('filechooser');await v.locator('#choose-file').click();await(await chooser).setFiles('fixtures/example.mp4');
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('current-source').textContent==='example.mp4');
+ await v.locator('#open-menu').click();
+ const again=page.waitForEvent('filechooser');await v.locator('#choose-file').click();await(await again).setFiles('fixtures/example.mp4');
+ await page.waitForFunction(()=>a.player.state.pendingOperation===null);
+ await page.evaluate(async()=>{await a.close();a.title='';a.titleMode='auto';});
+ assert.equal(await v.locator('#current-source').textContent(),'No media loaded');
+});
 await check('disabled source controls close their menu, block handlers and allow programmatic open',async()=>{
  const data=await page.evaluate(async()=>{
    const $=id=>a.shadowRoot.getElementById(id);
    $('open-menu').click();$('url').focus();a.showSourceControls=false;
-   const disabled=['open-menu','open','file','subtitleFile','url','format','live','url-submit'].every(id=>$(id).disabled);
+   const disabled=['open-menu','open','choose-file','file','subtitleFile','url','format','live','url-submit'].every(id=>$(id).disabled);
    const closed=$('settings').hidden,focus=a.shadowRoot.activeElement.id;
    let calls=0;const open=a.open,subtitle=a.addSubtitle;
    a.open=async()=>{calls++;};a.addSubtitle=async()=>{calls++;};
@@ -153,6 +168,26 @@ await check('hidden controls retain shortcuts and button focus allows playback k
  await page.evaluate(()=>a.pause());await v.locator('#stage').click({position:{x:30,y:100}});await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing');await page.waitForTimeout(3100);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),JSON.stringify(await v.evaluate(el=>({status:el.player.state.status,focus:el.shadowRoot.activeElement?.id,visible:el.shadowRoot.activeElement?.matches(':focus-visible')}))));assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('Space');await page.waitForFunction(()=>a.player.state.status==='paused');
  await v.locator('#open-menu').click();await v.locator('#url').fill('https://example.com/');await page.keyboard.type('km');assert.equal(await v.locator('#url').inputValue(),'https://example.com/km');assert.equal(await page.evaluate(()=>a.player.state.status),'paused');await page.keyboard.press('Escape');
 });
+await check('mouse exit hides controls only while playing without stealing outside focus',async()=>{
+ const v=page.locator('deplexr-player').first(),idle=()=>v.locator('#shell').evaluate(el=>el.classList.contains('idle'));
+ await page.evaluate(()=>a.pause());
+ for(const playing of [false,true]){
+   if(playing)await page.evaluate(()=>a.play());
+   await v.dispatchEvent('pointermove',{pointerType:'mouse'});
+   await v.evaluate(el=>el.shadowRoot.activeElement?.blur());
+   await v.dispatchEvent('pointerleave',{pointerType:'mouse'});
+   assert.equal(await idle(),playing);
+   await page.locator('body').evaluate(el=>{el.tabIndex=-1;el.focus();});
+   assert.equal(await idle(),playing);
+   await v.dispatchEvent('pointermove',{pointerType:'mouse'});assert.equal(await idle(),false);
+ }
+ await page.evaluate(()=>a.pause());
+ await v.locator('#open-menu').click();await v.dispatchEvent('pointerleave',{pointerType:'mouse'});assert.equal(await idle(),false);
+ await page.keyboard.press('Escape');await v.locator('#stage').focus();await page.keyboard.press('Tab');
+ await v.dispatchEvent('pointerleave',{pointerType:'mouse'});assert.equal(await idle(),false);
+ await v.evaluate(el=>el.shadowRoot.activeElement?.blur());
+ await v.dispatchEvent('pointerleave',{pointerType:'touch'});assert.equal(await idle(),false);
+});
 await check('paused screen and gaps between transport buttons toggle the UI',async()=>{
  const v=page.locator('deplexr-player').first();await page.evaluate(()=>a.pause());await v.dispatchEvent('pointermove',{pointerType:'mouse'});
  const transport=await v.locator('#transport').boundingBox(),back=await v.locator('#back').boundingBox(),play=await v.locator('#play').boundingBox();await page.mouse.click((back.x+back.width+play.x)/2,transport.y+transport.height/2);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.waitForTimeout(350);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');assert.equal(await page.evaluate(()=>a.player.state.status),'paused');
@@ -199,11 +234,11 @@ await check('overlay controls, URL opening, idle reveal and close stay in the co
  await page.screenshot({path:out+'/overlay-desktop.png',fullPage:true});
  await viewer.locator('#play').click();await page.evaluate(()=>{document.querySelector('deplexr-player').shadowRoot.activeElement?.blur();});await page.waitForFunction(()=>document.querySelector('deplexr-player').shadowRoot.getElementById('shell').classList.contains('idle'));
  await viewer.dispatchEvent('pointermove');assert.equal(await viewer.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);await page.evaluate(()=>player.pause());
- await page.setViewportSize({width:390,height:844});await viewer.locator('#settings-toggle').click();const menu=await viewer.locator('#settings').boundingBox(),stage=await viewer.locator('#stage').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.x+menu.width<=stage.x+stage.width+1&&menu.y+menu.height<=stage.y+stage.height+1);await page.screenshot({path:out+'/overlay-mobile-menu.png',fullPage:true});await page.keyboard.press('Escape');
+ await page.setViewportSize({width:390,height:844});await viewer.locator('#stage').hover({position:{x:15,y:90}});await viewer.locator('#settings-toggle').click();const menu=await viewer.locator('#settings').boundingBox(),stage=await viewer.locator('#stage').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.x+menu.width<=stage.x+stage.width+1&&menu.y+menu.height<=stage.y+stage.height+1);await page.screenshot({path:out+'/overlay-mobile-menu.png',fullPage:true});await page.keyboard.press('Escape');
  assert.equal(await viewer.locator('#close-media').count(),0);await viewer.evaluate(el=>el.close());await page.waitForFunction(()=>!player.state.sourceId);assert.ok(await viewer.locator('#empty').isVisible());assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 await check('outside clicks dismiss menus and screen taps toggle controls',async()=>{
- await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+ await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
  const v=page.locator('deplexr-player'),stage=v.locator('#stage'),menu=v.locator('#settings'),shell=v.locator('#shell');
  await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});
  await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
@@ -211,7 +246,7 @@ await check('outside clicks dismiss menus and screen taps toggle controls',async
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));await stage.focus();await page.keyboard.press('Tab');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
 });
 await check('Center transport and bounded ten-second seeks',async()=>{
- await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+ await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
  const v=page.locator('deplexr-player');const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox();assert.ok(Math.abs(play.x+play.width/2-stage.x-stage.width/2)<2&&Math.abs(play.y+play.height/2-stage.y-stage.height/2)<2);assert.ok(play.width>=80);
  await page.evaluate(()=>player.seek(3));await v.getByRole('button',{name:'Seek forward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime>10);assert.ok(await page.evaluate(()=>player.state.currentTime<=player.state.duration));
  await v.getByRole('button',{name:'Seek backward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime<3);await v.getByRole('button',{name:'Seek backward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime<.2);
@@ -219,23 +254,23 @@ await check('Center transport and bounded ten-second seeks',async()=>{
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/halo-mobile.png',fullPage:true});await v.locator('#play').click();await page.waitForFunction(()=>document.querySelector('deplexr-player').shadowRoot.getElementById('shell').classList.contains('idle'));await v.dispatchEvent('pointermove');await page.evaluate(()=>player.pause());
 });
 await check('overlay scales to its embed width independently of the viewport',async()=>{
- await page.setViewportSize({width:1400,height:1000});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);const v=page.locator('deplexr-player');const sizes=[];
+ await page.setViewportSize({width:1400,height:1000});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);const v=page.locator('deplexr-player');const sizes=[];
  for(const width of [1200,720,360]){await v.evaluate((el,w)=>el.style.width=w+'px',width);const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox(),transport=await v.locator('#transport').boundingBox(),timeline=await v.locator('#timeline').boundingBox();sizes.push(play.width);assert.ok(transport.width<stage.width*.6);assert.ok(transport.y+transport.height<timeline.y);await v.locator('#settings-toggle').click();const menu=await v.locator('#settings').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.y+menu.height<=stage.y+stage.height);await page.keyboard.press('Escape');}
  assert.ok(sizes[0]>sizes[1]&&sizes[1]>sizes[2]);await page.screenshot({path:out+'/compact-embed-wide-viewport.png',fullPage:true});await v.evaluate(el=>el.style.removeProperty('width'));
 });
 await check('height-limited video fills and centers within the player width',async()=>{
- await page.setViewportSize({width:1400,height:600});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&!player.state.pendingOperation);
+ await page.setViewportSize({width:1400,height:600});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&!player.state.pendingOperation);
  const v=page.locator('deplexr-player');for(const mode of ['native','software','hybrid']){await page.evaluate(m=>player.setMode(m),mode);const rects=await v.evaluate(el=>{const s=el.shadowRoot;return ['#shell','#stage','#surface','.deplexr-player','video,canvas'].map(selector=>{const r=s.querySelector(selector).getBoundingClientRect();return {x:r.x,width:r.width};});});for(const r of rects.slice(1)){assert.ok(Math.abs(r.width-(rects[0].width-2))<2,mode+' fills available width');assert.ok(Math.abs(r.x+r.width/2-rects[0].x-rects[0].width/2)<1,mode+' centered');}}
  await page.screenshot({path:out+'/height-limited-centered.png',fullPage:true});
 });
 await check('Space on top-right icons controls playback without activating icons',async()=>{
- await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);const v=page.locator('deplexr-player');await v.locator('#fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('deplexr-player'));
+ await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);const v=page.locator('deplexr-player');await v.locator('#fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('deplexr-player'));
  for(const id of ['fullscreen','settings-toggle','open-menu']){await v.locator('#'+id).focus();await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');assert.ok(await page.evaluate(()=>!!document.fullscreenElement));await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');assert.ok(await page.evaluate(()=>!!document.fullscreenElement));}
  await page.evaluate(()=>document.exitFullscreen());await v.locator('#settings-toggle').focus();await page.keyboard.press('Enter');assert.ok(await v.locator('#settings').isVisible());await page.keyboard.press('Escape');
 });
 await check('file and URL selection leave Space focused on playback',async()=>{
  for(const source of ['file','url']){await page.goto(origin+'/');await page.waitForFunction(()=>window.player);const v=page.locator('deplexr-player');if(source==='file'){const chooser=page.waitForEvent('filechooser');await v.locator('#open').click();await(await chooser).setFiles('fixtures/example.mp4');}else{await v.locator('#open-menu').click();await v.locator('#url').fill(origin+'/fixtures/example.mp4');await v.locator('#url-submit').click();}await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');}
 });
-await check('migrated playground uses the shipped component and core',async()=>{await page.goto(origin+'/');await page.waitForFunction(()=>window.player);assert.ok(await page.evaluate(()=>document.querySelector('deplexr-player').player===window.player));await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId!==null&&player.state.pendingOperation===null);await page.getByRole('button',{name:'Developer settings',exact:true}).click();assert.ok(await page.locator('#engine-reason').textContent());await page.getByRole('button',{name:'Close developer settings',exact:true}).click();await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.status==='playing');await page.locator('deplexr-player').evaluate(el=>el.close());await page.waitForFunction(()=>player.state.status==='idle');});
+await check('migrated playground uses the shipped component and core',async()=>{await page.goto(origin+'/');await page.waitForFunction(()=>window.player);assert.ok(await page.evaluate(()=>document.querySelector('deplexr-player').player===window.player));await page.locator('deplexr-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId!==null&&player.state.pendingOperation===null);assert.equal(await page.getByRole('button',{name:'Developer settings',exact:true}).count(),0);assert.equal(await page.evaluate(()=>player.state.automaticSelection),true);await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.status==='playing');await page.locator('deplexr-player').evaluate(el=>el.close());await page.waitForFunction(()=>player.state.status==='idle');});
 await page.emulateMedia({forcedColors:'none'});await page.waitForTimeout(150);await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:out+'/desktop.png',fullPage:true});
 }finally{await page.evaluate(()=>Promise.all([...document.querySelectorAll('deplexr-player')].map(p=>p.destroy()))).catch(()=>{});await browser.close();server.kill();result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

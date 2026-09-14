@@ -24,7 +24,7 @@ const icons = {
 };
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', mediaFile: 'Media file', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -95,6 +95,12 @@ export class DeplexrPlayerElement extends Base {
             this.titleMode === 'source' ? this.sourceName : this.title || this.sourceName;
         this.$('title').textContent = text;
         this.$('title').hidden = !text;
+        this.updateSourceLabel();
+    }
+    updateSourceLabel() {
+        const text = this.sourceName || (!this.terminal && this.isConnected && this.core?.state.sourceId ? this.labels.loadedMedia : this.labels.noMedia);
+        if (this.$('current-source').textContent !== text)
+            this.$('current-source').textContent = text;
     }
     updateUtilities() {
         if (this.terminal)
@@ -106,8 +112,9 @@ export class DeplexrPlayerElement extends Base {
             this.settings(false, false);
         this.$('open-menu').hidden = !this.showSourceControls;
         this.$('empty').hidden = !this.showSourceControls || !!this.core?.state.sourceId;
-        for (const id of ['open-menu', 'open', 'file', 'subtitleFile', 'url', 'format', 'live', 'url-submit'])
+        for (const id of ['open-menu', 'open', 'choose-file', 'file', 'subtitleFile', 'url', 'format', 'live', 'url-submit'])
             this.$(id).disabled = !this.showSourceControls;
+        this.$('source-options').inert = !this.showSourceControls;
         if (!this.showSourceControls)
             this.$('source-options').hidden = true;
         this.$('diagnostics-toggle').hidden = !this.showDiagnostics;
@@ -398,6 +405,7 @@ export class DeplexrPlayerElement extends Base {
         this.core?.resize(width, height);
     } }
     update(state) {
+        this.updateSourceLabel();
         if (this.sourceNameId !== state.sourceId) {
             this.sourceName = '';
             this.sourceNameId = null;
@@ -519,7 +527,7 @@ export class DeplexrPlayerElement extends Base {
         button.dataset.icon = icon;
     } if (icon === 'back' || icon === 'forward')
         button.querySelector('text').textContent = String(this.seekStep); button.classList.add('icon-button'); button.setAttribute('aria-label', label); button.setAttribute('title', label); }
-    labelControls() { this.$('diagnostics-overlay').setAttribute('aria-label', this.labels.diagnostics); for (const [id, key] of Object.entries({ mute: 'mute', 'settings-toggle': 'settings', 'settings-close': 'closeSettings', fullscreen: 'fullscreen', 'open': 'open', 'open-menu': 'open', 'url-submit': 'openURL', 'retry': 'retry' }))
+    labelControls() { this.$('choose-file').textContent = this.labels.open; this.updateSourceLabel(); this.$('diagnostics-overlay').setAttribute('aria-label', this.labels.diagnostics); for (const [id, key] of Object.entries({ mute: 'mute', 'settings-toggle': 'settings', 'settings-close': 'closeSettings', fullscreen: 'fullscreen', 'open': 'open', 'open-menu': 'open', 'url-submit': 'openURL', 'retry': 'retry' }))
         this.$(id).textContent = this.labels[key]; for (const [id, icon, key] of [['back', 'back', 'back'], ['forward', 'forward', 'forward'], ['play', 'play', 'play'], ['mute', 'volume', 'mute'], ['settings-toggle', 'settings', 'settings'], ['settings-close', 'close', 'closeSettings'], ['open-menu', 'folder', 'open'], ['diagnostics-toggle', 'eye', 'diagnostics']]) {
         delete this.$(id).dataset.icon;
         this.iconButton(id, id === 'diagnostics-toggle' && this.$(id).getAttribute('aria-pressed') === 'true' ? 'eyeOff' : id === 'open-menu' && this.$(id).getAttribute('aria-expanded') === 'true' ? 'folderOpen' : icon, this.labels[key]);
@@ -528,7 +536,7 @@ export class DeplexrPlayerElement extends Base {
         this.$(id + '-label').textContent = this.labels[id]; this.$('settings-title').textContent = this.menuTrigger === 'open-menu' ? this.labels.open : this.labels.settings; this.$('media-file-label').textContent = this.labels.mediaFile; this.$('subtitle-file-label').textContent = this.labels.subtitleFile; for (const id of ['url', 'format', 'live'])
         this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id]; }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div><div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div><div id="transport" part="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><input id="timeline" part="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><div class="row" part="volume"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div><span class="space"></span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label></div><div id="source-options" hidden><label><span id="media-file-label"></span><input id="file" type="file"></label><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><pre id="diagnostics-overlay" class="diagnostics-overlay" tabindex="0" role="region" hidden></pre><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
+        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div><div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div><div id="transport" part="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><input id="timeline" part="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><div class="row" part="volume"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div><span class="space"></span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label></div><div id="source-options" hidden><slot id="source-actions" name="source-actions"></slot><div class="media-picker" role="group" aria-labelledby="media-file-label"><span id="media-file-label"></span><span id="current-source"></span><button id="choose-file" type="button" aria-describedby="current-source"></button><input id="file" type="file" hidden></div><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><pre id="diagnostics-overlay" class="diagnostics-overlay" tabindex="0" role="region" hidden></pre><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
         this.labelControls();
         this.updateTitle();
         this.updateUtilities();
@@ -541,7 +549,14 @@ export class DeplexrPlayerElement extends Base {
         else
             this.revealControls(); });
         this.addEventListener('focusin', this.revealControls);
-        this.addEventListener('focusout', this.revealControls);
+        this.addEventListener('focusout', () => { if (!this.$('shell').classList.contains('idle'))
+            this.revealControls(); });
+        this.addEventListener('pointerleave', event => { if (event.pointerType !== 'mouse' || this.terminal || !this.controls || this.core?.state.status !== 'playing' || !this.core.state.sourceId || this.core.state.pendingOperation || this.dragging || !this.$('settings').hidden || this.shadowRoot?.activeElement?.matches(':focus-visible'))
+            return; this.hideControls(); });
+        this.$('source-actions').addEventListener('click', event => { if (this.showSourceControls && event.composedPath().some(node => node instanceof HTMLButtonElement)) {
+            this.settings(false, false);
+            this.$('stage').focus({ preventScroll: true });
+        } });
         this.$('open-menu').onclick = () => this.settings(this.$('settings').hidden || this.menuTrigger !== 'open-menu', true, 'open-menu');
         this.$('shell').onclick = event => { if (!this.isScreenPress(event) || !this.core?.state.sourceId || !this.controls)
             return; if (this.stageWasIdle) {
@@ -576,6 +591,8 @@ export class DeplexrPlayerElement extends Base {
         this.$('diagnostics-toggle').onclick = () => this.setDiagnostics(this.$('diagnostics-overlay').hidden);
         this.$('fullscreen').onclick = () => this.fullscreen();
         this.$('stage').ondblclick = () => this.fullscreen();
+        this.$('choose-file').onclick = () => { if (this.showSourceControls)
+            this.input('file').click(); };
         this.$('open').onclick = () => { if (this.showSourceControls)
             this.input('file').click(); };
         this.input('file').onchange = () => { const file = this.input('file').files?.[0]; this.input('file').value = ''; if (file && this.showSourceControls)

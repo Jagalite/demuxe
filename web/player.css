@@ -34,3 +34,27 @@ main{max-width:1320px;padding-top:32px}.source-row{background:none;border:0;padd
 .secondary{background:#1b1c20;border:1px solid #ffffff12;color:#c7c8ce;border-radius:7px;box-shadow:0 1px 2px #0002;min-height:36px;padding:8px 13px}.secondary:hover:not(:disabled){background:#25262b;border-color:#ffffff22;color:#f3f3f5}#settings{background:#151619;border:1px solid #ffffff14;border-radius:10px;box-shadow:0 20px 60px #0007}#settings::backdrop{background:#0009;backdrop-filter:none}.settings-body input:not([type=checkbox],[type=file]),.settings-body select{background:#0e0f11;border:1px solid #ffffff12;border-radius:6px}.settings-body input::file-selector-button{font:inherit;color:#d5d5da;background:#25262b;border:1px solid #ffffff14;border-radius:6px;padding:8px 10px;margin-right:8px;cursor:pointer}
 
 .header-actions{display:flex;align-items:center;gap:8px}.masthead{gap:24px}@media(max-width:760px){.masthead .local{display:none}}@media(max-width:540px){.masthead{padding:0 12px;gap:12px}.header-actions{margin-left:auto;gap:6px}.header-actions .secondary{font-size:10px;padding:7px 8px}.masthead .brand{font-size:18px;gap:6px}.masthead .beta{display:none}}@media(max-width:350px){.masthead{gap:6px}.masthead .brand-mark{display:none}.header-actions .secondary{padding-inline:6px}}
+
+/* A compact, read-only summary belongs to the playground, outside the player. */
+.playback-summary{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:baseline;gap:24px;margin:-10px 0 24px;padding:0 4px 18px;border-bottom:1px solid var(--line);font-size:12px}
+.playback-summary>div{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:baseline;gap:10px;min-width:0;text-align:left}
+.playback-summary dt{color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase;flex:0 0 48px}
+.playback-summary dd{margin:0;color:#c7c8ce;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.summary-engine{flex:none}.summary-engine [data-active=true]{color:var(--accent)}
+.summary-media{flex:none;justify-self:end;max-width:100%}.engine-description{color:var(--muted);margin-left:10px}
+@media(max-width:540px){.playback-summary{grid-template-columns:minmax(0,1fr);gap:9px;padding-inline:2px}.playback-summary dt{width:48px}.playback-summary>div{flex-basis:auto}.summary-media{justify-self:start}}
+
+/* Fit the playground to the viewport; menus retain their own scrolling. */
+html,body{height:100%;overflow:hidden}
+body{height:100dvh;display:flex;flex-direction:column}
+.masthead{height:48px;min-height:48px;padding:0 24px;flex:none}
+.masthead .brand{font-size:19px}.masthead .brand-mark{width:25px;height:25px}
+main{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:12px 24px 8px;margin:0 auto}
+#viewer{flex:1;min-height:0;margin:0}
+#viewer::part(container){height:100%}
+#viewer::part(stage){height:100%;min-height:0;max-height:none;aspect-ratio:auto}
+.playback-summary{flex:none;margin:0;padding:0 4px 8px;gap:12px 24px}
+.footer{flex:none;margin:0;padding:0;font-size:9px}
+#status{flex:none;margin:0;max-height:48px;overflow:auto}
+@media(max-width:540px){.masthead{height:42px;min-height:42px;padding:0 12px}main{padding:8px 12px;gap:8px}.playback-summary{gap:5px}.footer{display:none}}
+@media(max-height:450px){.masthead{height:36px;min-height:36px}main{gap:6px;padding-top:6px}.footer,.engine-description{display:none}.playback-summary{font-size:10px}}

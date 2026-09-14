@@ -145,7 +145,9 @@ All public theme names use `--deplexr-*`; there are no legacy branding aliases.
 
 Stable parts: container, stage, controls, settings, error, status, title, topbar,
 transport, timeline, volume. The volume part wraps the mute button and slider. Limited slots:
-before-controls and after-controls. Shadow IDs/classes are implementation details.
+before-controls, after-controls and source-actions. The source-actions slot adds
+host-owned buttons to the source menu; activating a button closes the menu and
+focuses the stage. The playground uses it for its example media. Shadow IDs/classes are implementation details.
 Air controls overlay the video: an open-media action at the top, a large unboxed
 play/pause icon between backward/forward seek buttons (ten seconds by default) at the center,
 and a thin full-width timeline with elapsed and total times at opposite ends.
@@ -163,7 +165,10 @@ Control sizes and compact layouts follow the player container width, including
 small embeds in wide browser windows. Pointer controls retain 36px targets and
 coarse-pointer devices use 44px targets. On narrow players, opening a menu hides
 the central controls to avoid overlap. Play hides controls immediately; mouse
-movement reveals them, and inactivity fades them out. Seeking with hidden
+movement reveals them, and inactivity fades them out. Leaving the player with
+the mouse also hides controls while playing (not while paused), unless a menu,
+pending operation, timeline drag, or keyboard-visible focus needs them. Losing
+focus alone does not hide controls; touch input keeps its existing tap behavior. Seeking with hidden
 controls briefly shows only the timeline and times, for 800 ms after completion. Tapping the video toggles controls
 in playing or paused playback. Clicking outside a menu dismisses it without
 stealing focus; Escape returns focus to its trigger. Hiding controls preserves
@@ -180,7 +185,7 @@ Local file/subtitle pickers are available in settings; opening files never uploa
 them. File drop and a URL form (File, HLS, DASH, and live input)
 are also built into the component. File selection, URL submission, and file drop
 focus the stage so Space controls playback; the public close() method closes media. The component contains no example media, engine selector,
-raw filters or memory metrics. The playground supplies these
-surrounding developer tools. A live stream with no known seek window shows LIVE
+raw filters or memory metrics. The playground keeps automatic engine selection
+enabled and shows a compact engine/media summary below the player. A live stream with no known seek window shows LIVE
 and disables the finite seek control. Browser fullscreen denial produces a message;
 no fake fullscreen, PiP or casting fallback is applied.

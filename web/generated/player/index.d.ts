@@ -42,6 +42,8 @@ export declare const defaultLabels: Readonly<{
     format: "Source format";
     streamLive: "Live stream";
     mediaFile: "Media file";
+    noMedia: "No media loaded";
+    loadedMedia: "Media loaded";
     subtitleFile: "Subtitle file";
 }>;
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
@@ -69,6 +71,7 @@ export declare class DeplexrPlayerElement extends Base {
     get controlsAutoHideDelay(): number;
     set controlsAutoHideDelay(value: number);
     private updateTitle;
+    private updateSourceLabel;
     private updateUtilities;
     private terminal;
     private cleanup;
