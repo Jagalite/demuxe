@@ -224,3 +224,12 @@ raw filters or memory metrics. The playground keeps automatic engine selection
 enabled and shows a compact engine/media summary below the player. A live stream with no known seek window shows LIVE
 and disables the finite seek control. Browser fullscreen denial produces a message;
 no fake fullscreen, PiP or casting fallback is applied.
+
+Experimental playback optimizations use the existing Player owner and do not add
+public modes or automatic component controls. See [the integration stage](OPTIMIZATION-INTEGRATION.md)
+for constructor flags, scalar gain, and current qualification limits.
+
+The programmatic Player option `experimentalAudioAdaptation: 'flac'` is an explicit
+Native trial gate. No new component attribute or automatic route is introduced.
+See [the FLAC qualification report](OPTIMIZATION-FLAC.md) for required optional assets,
+track/fidelity limits and unsupported subtitle combinations.

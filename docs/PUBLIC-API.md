@@ -145,3 +145,27 @@ Live mpv seek windows use the demuxer's reported cached seekable timestamps; a
 byte cache alone never creates a buffered-time claim. High-level time/state
 notifications reuse backend events; only existing seek/presentation settlement
 and engine health mechanisms retain their preexisting polling.
+
+## Experimental playback optimizations
+
+`experimentalBufferedNativeSeeks` and `experimentalHybridAudioFilters` are opt-in
+constructor options, both false by default. Hybrid currently admits only scalar
+`volume=N` / `lavfi=[volume=N]` attenuation for N in [0, 1]. Other filters retain
+Software routing or explicit-mode rejection.
+
+`audioGain` (default 1) and `setAudioGain(value)` request experimental scalar
+attenuation in [0, 1]. Native uses Web Audio lazily; mpv routes apply an audio
+filter. The setter currently reopens transactionally and preserves user controls.
+Diagnostics expose `plan` and `audioGain`; feature capabilities include `audioGain`.
+See [qualification, limitations and integration evidence](OPTIMIZATION-INTEGRATION.md).
+
+### Experimental selected-audio FLAC preparation
+
+`experimentalAudioAdaptation: 'flac'` enables explicit Native trials after ordinary
+Native/direct or packet-copy audio is unsuitable. It does not enable automatic
+adaptation. The optional separately built preparation assets must be packaged.
+The tested subset is integer PCM16/24 mono/stereo at 44.1/48 kHz; unsupported
+precision/layouts reject instead of quantizing, downmixing or resampling. Video
+packets are copied. No Opus permission is implied. It supports the separately
+requested `audioGain` operation, but Native ASS remains unavailable.
+See [qualification and reproduction](OPTIMIZATION-FLAC.md).

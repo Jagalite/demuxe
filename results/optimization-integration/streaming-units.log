@@ -1,0 +1,91 @@
+✔ relay preserves 2-channel PCM and native consumption feedback (3.236833ms)
+✔ relay preserves 6-channel PCM and native consumption feedback (0.738167ms)
+✔ relay preserves 8-channel PCM and native consumption feedback (0.634125ms)
+✔ native reset handshake prevents old counters and PCM from being accepted (0.606125ms)
+✔ seek gate silences output while mpv has not yet completed the seek (0.584333ms)
+✔ shared Wasm growth preserves the fixed native ring prefix (1.187042ms)
+✔ invalid native counts fail instead of reading outside the ring (0.869208ms)
+✔ consumer seek gate wins over a relay run publication racing the seek (0.509291ms)
+✔ consumer starts before completion and a bounded small response measures without further demand (19.728166ms)
+✔ measured response error retires and does not produce success (1.427666ms)
+✔ measured response extra retires and does not produce success (0.92425ms)
+✔ measured response cancel retires and does not produce success (0.860584ms)
+✔ large segments stay progressive and demand driven (0.813625ms)
+✔ closing after read-ahead accounts for every fetched but unconsumed byte (0.921375ms)
+✔ network time includes request latency and no URL reaches the output sample (0.712042ms)
+✔ cache hits or missing cross-origin timing cannot become bandwidth estimates (0.144666ms)
+✔ application backpressure invalidates the sample instead of being subtracted (0.856542ms)
+✔ incomplete, canceled and small resources do not create completed samples (0.081666ms)
+✔ late timing entries may arrive after EOF, but missing entries expire explicitly (0.219708ms)
+✔ duplicate URLs consume distinct timing entries and check body size (0.171583ms)
+✔ retry and sub-50ms resource samples are conservative exclusions (0.136958ms)
+✔ all histories are bounded and source retirement rejects later completion (0.378ms)
+✔ network completion during consumer idle is independent of later consumption (0.357583ms)
+✔ earlier application waits and overflow remain excluded even if final idle spans completion (0.334417ms)
+file:///Volumes/seed2/Projects/demuxe-optimization-integration/experiments/streaming-modernization/integration/resource-loader.test.mjs:6
+if(!root)throw Error('Set INTEGRATION_ROOT to a prepared integrated snapshot');
+               ^
+
+Error: Set INTEGRATION_ROOT to a prepared integrated snapshot
+    at file:///Volumes/seed2/Projects/demuxe-optimization-integration/experiments/streaming-modernization/integration/resource-loader.test.mjs:6:16
+    at ModuleJob.run (node:internal/modules/esm/module_job:272:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:552:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:98:5)
+
+Node.js v23.5.0
+✖ experiments/streaming-modernization/integration/resource-loader.test.mjs (121.58075ms)
+  'test failed'
+
+file:///Volumes/seed2/Projects/demuxe-optimization-integration/experiments/streaming-modernization/integration/retained-transition.test.mjs:10
+if(!file)throw Error('Set RETAINED_WORKER to the exact worker source under test');
+               ^
+
+Error: Set RETAINED_WORKER to the exact worker source under test
+    at file:///Volumes/seed2/Projects/demuxe-optimization-integration/experiments/streaming-modernization/integration/retained-transition.test.mjs:10:16
+
+Node.js v23.5.0
+✖ experiments/streaming-modernization/integration/retained-transition.test.mjs (150.967166ms)
+  'test failed'
+
+✔ native source ownership rejects stale commands before policy changes (0.811042ms)
+✔ seekable duration or byte counts cannot stand in for forward buffer (0.481792ms)
+✔ verified samples and mpv forward buffer produce one source-bound request (0.459958ms)
+✔ manual intent turns auto off, without recreating a native source (0.229958ms)
+✔ new source clears health, estimates and request history (0.195375ms)
+✔ old network samples never justify a late upswitch after inactivity (0.202625ms)
+✔ invalid ceilings leave the accepted policy unchanged (0.098125ms)
+✔ native rejection leaves the previously accepted automatic policy intact (0.079417ms)
+✔ observed frame dropping can downswitch even with good throughput (0.331958ms)
+✔ seek retirement drops do not masquerade as sustained decoder failure (0.395959ms)
+✔ new decoder errors temporarily inhibit upswitching and reset with the source (0.179959ms)
+✔ terminal demux errors are polled only for the accepted source (1.242875ms)
+✔ manual policy never adapts, including during starvation (0.626042ms)
+✔ unknown forward buffer and cache/backpressure samples cannot justify an upswitch (0.155833ms)
+✔ upgrades require sustained headroom; deterioration and starvation downswitch promptly (0.661458ms)
+✔ recovery from 2 to 8 Mbit/s remains slower than a downswitch (0.248917ms)
+✔ manual selection is authoritative after auto; paused playback does not adapt (0.13525ms)
+✔ ceilings and eligibility constrain decisions without inventing another track identity (0.391125ms)
+✔ a pending upswitch is retired when conditions collapse, even if current quality is already low (0.135042ms)
+✔ duplicate samples are ignored and a new source starts with no previous estimate (0.072209ms)
+✔ known-length last chunk verifies EOF without losing remaining consumer bytes (11.779584ms)
+✔ declared bytes followed by error never become a completed sample (2.634875ms)
+✔ declared bytes followed by extra never become a completed sample (0.96625ms)
+✔ declared bytes followed by cancel never become a completed sample (0.851958ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 48
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 220.071958
+
+✖ failing tests:
+
+test at experiments/streaming-modernization/integration/resource-loader.test.mjs:1:1
+✖ experiments/streaming-modernization/integration/resource-loader.test.mjs (121.58075ms)
+  'test failed'
+
+test at experiments/streaming-modernization/integration/retained-transition.test.mjs:1:1
+✖ experiments/streaming-modernization/integration/retained-transition.test.mjs (150.967166ms)
+  'test failed'

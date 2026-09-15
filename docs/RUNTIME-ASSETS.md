@@ -53,3 +53,14 @@ No consumer service worker is installed. The Pages isolation worker is demo-only
 Arbitrary CDN worker roots, Safari/mobile, PiP/casting and physical output fidelity
 remain separate qualification gates. See LICENSING.md and RELEASE.md for source
 and clean-engine-build obligations; this integration does not close them.
+
+## Optional experimental FLAC preparation
+
+Local candidates built with `scripts/package-beta.py --adaptation-build <versioned-engine-dir>`
+include `web/engine-adaptation/remux.mjs`, its matching `remux.wasm`, and a hash/inputs
+manifest. The standard asset-copy CLI validates and copies them with the rest of
+the runtime. Default packages omit these assets; ordinary Native playback does not
+load them. A separately hashed `demuxe-audio-adaptation-source.tar.gz` accompanies
+that candidate. This profile follows the saved FFmpeg modernization pins and does
+not reuse the historical scratch LibAV binary. Release admission is disabled;
+see [qualification and source limitations](OPTIMIZATION-FLAC.md).

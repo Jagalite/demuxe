@@ -65,13 +65,21 @@ export type PlayerOptions = {
     /** Defaults to true when mode is omitted. Explicit modes remain pinned. */
     automaticSelection?: boolean;
     /** Internal Native packaging plan; "never" disables the packet-copy fallback. */
+    /** Opt-in retained-session seeks; broad automatic admission remains gated. */
+    experimentalBufferedNativeSeeks?: boolean;
+    /** Explicit Native trials only; copy original audio first, then qualified integer FLAC. */
+    experimentalAudioAdaptation?: 'flac';
     nativeRemux?: 'auto' | 'never' | 'always';
     /** Optional Software presenter; RGB remains the default. */
     softwarePresenter?: 'rgb' | 'experimental-yuv';
     width?: number;
     height?: number;
     videoFilters?: string;
+    /** Experimental scalar attenuation, 0..1; 1 avoids Native Web Audio allocation. */
+    audioGain?: number;
     audioFilters?: string;
+    /** Opt-in scalar audio filtering on Hybrid; other filters retain Software routing. */
+    experimentalHybridAudioFilters?: boolean;
 };
 export type Capabilities = {
     videoFilters: boolean;
@@ -89,10 +97,18 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    plan?: {
+        id: string;
+        mode: PlaybackMode;
+        video: string;
+        audio: string;
+        qualification: string;
+    };
     mode: PlaybackMode;
     switching: boolean;
     videoFilters: string;
     audioFilters: string;
+    audioGain?: number;
     toneMapping?: ToneMapping;
     resourceLimits?: ResourceLimits;
     selection?: {
@@ -140,7 +156,7 @@ export type FeatureAvailability = Readonly<{
     availability: 'unknown';
     reason: string;
 }>;
-export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters';
+export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain';
 export type PlayerCapabilities = Readonly<Capabilities & {
     deployment: Readonly<{
         isolated: boolean;

@@ -1,6 +1,7 @@
+import {featureRejection, executionPlan, qualifiedAudioFilter} from './internal/playback-plans.js';
 import {runtimeBase} from './internal/assets.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
-import {freeze, ranges, tracks, trackKey, mediaInfo} from './internal/state.js';
+import {freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './internal/state.js';
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, FeatureAvailability, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
@@ -10,7 +11,7 @@ import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions
 import type {Backend, Session} from './internal/backend.js';
 
 type Source = {kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}};
-type Settings = {pause: boolean; volume: number; speed: number; aid: string; sid: string; subtitles: boolean; vf: string; af: string};
+type Settings = {pause: boolean; volume: number; speed: number; aid: string; sid: string; subtitles: boolean; vf: string; af: string; gain:number};
 const filterChain = (value: string) => {
   if (typeof value !== 'string' || value.length > 4096 || value.includes('\0')) throw new PlayerError('INVALID_ARGUMENT','Invalid filter chain');
   return value.trim();
@@ -49,6 +50,9 @@ export class Player extends EventTarget {
   private recovering = false;
   private lifetime = new AbortController();
   private recoveredSessions = new WeakSet<Session>();
+  private audioAdaptation?:'flac';
+  private bufferedNativeSeeks:boolean;
+  private hybridAudioFilters: boolean;
   private nativeRemux: 'auto' | 'never' | 'always';
   private softwarePresenter: 'rgb' | 'experimental-yuv';
   private settings: Settings;
@@ -87,13 +91,20 @@ export class Player extends EventTarget {
     if(!['off','hdr-to-sdr'].includes(this.toneMapping))throw new PlayerError('INVALID_ARGUMENT','Invalid tone mapping policy');
     this.resourceLimits={maxDecodePixels:options.resourceLimits?.maxDecodePixels??8294400,maxAllocationBytes:options.resourceLimits?.maxAllocationBytes??134217728};
     if(!Number.isInteger(this.resourceLimits.maxDecodePixels)||this.resourceLimits.maxDecodePixels!<1||this.resourceLimits.maxDecodePixels!>8294400||!Number.isInteger(this.resourceLimits.maxAllocationBytes)||this.resourceLimits.maxAllocationBytes!<33554432||this.resourceLimits.maxAllocationBytes!>268435456)throw new PlayerError('INVALID_ARGUMENT','Invalid decode resource limits');
+    this.audioAdaptation=options.experimentalAudioAdaptation;
+    if(this.audioAdaptation!==undefined&&this.audioAdaptation!=='flac')throw new PlayerError('INVALID_ARGUMENT','Unsupported audio adaptation policy');
+    this.bufferedNativeSeeks=options.experimentalBufferedNativeSeeks??false;
+    if(typeof this.bufferedNativeSeeks!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid buffered seek policy');
+    this.hybridAudioFilters=options.experimentalHybridAudioFilters??false;
+    if(typeof this.hybridAudioFilters!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid Hybrid audio filter policy');
     this.nativeRemux=options.nativeRemux ?? 'auto';
     this.softwarePresenter=options.softwarePresenter??'rgb';
     if(!['rgb','experimental-yuv'].includes(this.softwarePresenter))throw new PlayerError('INVALID_ARGUMENT','Invalid software presenter');
     if(!['auto','never','always'].includes(this.nativeRemux))throw new PlayerError('INVALID_ARGUMENT','Invalid native remux policy');
     this.width = options.width ?? 640;this.height = options.height ?? 360;dimensions(this.width, this.height);
-    this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? '')};
-    if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode='software';
+    this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain:options.audioGain??1};
+    if(!Number.isFinite(this.settings.gain)||this.settings.gain<0||this.settings.gain>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
+    if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
     this.validateFilters(this.currentMode, this.settings);
     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
     this.publish();
@@ -154,7 +165,8 @@ export class Player extends EventTarget {
       seek:seekable===null?{availability:'unknown',reason:'Seek window has not been established'}:seekable.length?available:unavailable('The source currently has no seekable time range'),
       audioTracks:!this.current?unknown:audio?available:unavailable('Audio track selection is not exposed by this source/browser'),
       subtitleTracks:!this.current?unknown:sub?available:unavailable('No subtitle tracks are available'),
-      externalSubtitles:route('hybrid'),customFonts:route('hybrid'),videoFilters:route('software'),audioFilters:route('software') }};
+      audioGain:this.mode==='native'?(typeof AudioContext==='undefined'?unavailable('Web Audio is unavailable'):available):route('hybrid'),
+      externalSubtitles:route('hybrid'),customFonts:route('hybrid'),videoFilters:route('software'),audioFilters:route(this.hybridAudioFilters?'hybrid':'software') }};
   }
   get mode() {return this.currentMode;}
   get automaticSelection() {return this.automatic;}
@@ -162,10 +174,10 @@ export class Player extends EventTarget {
   get properties(): ReadonlyMap<string, unknown> {return this.current?.backend.properties ?? this.empty;}
   get capabilities(): PlayerCapabilities {return this.snapshot?.capabilities??this.featureCapabilities(null,0,0);}
   private get legacyCapabilities(): Capabilities {
-    return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software', mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined')};
+    return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined')};
   }
   get diagnostics(): Diagnostics {
-    return redact({mode: this.mode, selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
+    return redact({mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain):undefined, selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
   }
   audioDiagnostics() {return this.current?.backend.audioDiagnostics();}
   private emit(type: string, detail: unknown) {
@@ -174,7 +186,8 @@ export class Player extends EventTarget {
   }
   private assertOperation() {if(this.destroyed||this.activeOperation?.controller.signal.aborted)throw new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted');}
   private validateFilters(mode: PlaybackMode, settings: Settings) {
-    if (mode !== 'software' && (settings.vf || settings.af || this.toneMapping!=='off')) throw new PlayerError('UNSUPPORTED_FEATURE','Filters require software mode. Clear filters before leaving software mode.');
+    const reason=featureRejection(mode,{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters});
+    if(reason)throw new PlayerError('UNSUPPORTED_FEATURE',reason);
   }
   private enqueue(operation: () => Promise<void>, kind:OperationKind|null=null, signal?:AbortSignal): Promise<void> {
     const id=++this.operationSerial,epoch=this.operationEpoch;
@@ -209,7 +222,7 @@ export class Player extends EventTarget {
     if (!session) return;
     try {await session.backend.destroy();} finally {session.surface.remove();}
   }
-  private async create(mode: PlaybackMode): Promise<Session> {
+  private async create(mode: PlaybackMode, aid='auto'): Promise<Session> {
     let backend: Backend;
     const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
     surface.width = this.width;surface.height = this.height;
@@ -219,7 +232,7 @@ export class Player extends EventTarget {
     this.assertOperation();
     this.root.append(surface);
     try {
-      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, this.nativeRemux,this.assetBase) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
+      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,this.audioAdaptation,['auto','no'].includes(aid)?undefined:Number(aid)-1) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
     } catch (error) {surface.remove();throw error;}
     const session: Session = {backend, surface};
     for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
@@ -273,6 +286,10 @@ export class Player extends EventTarget {
     const desired = {...settings, pause: preserve ? !!wasPaused : true};
     const target = requestedTarget ?? (preserve ? Math.max(0, Number(old?.backend.properties.get('time-pos')) || 0) : 0);
     if ((!preserve && old) || (preserve && (mode === 'native') !== (this.mode === 'native'))) {desired.aid = preserve&&settings.aid==='no'?'no':'auto';desired.sid = preserve&&settings.sid==='no'?'no':'auto';}
+    // Public stream identities are known before Native preparation starts.
+    // Select that stream at open rather than adapting the default track first.
+    const publicAudio=preserve&&mode==='native'?/^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio')??''):null;
+    if(publicAudio)desired.aid=String(Number(publicAudio[1])+1);
     const crossing=preserve&&this.automatic&&(mode==='native')!==(this.mode==='native');
     const trackIndexes=new Map<TrackType,number>();
     if(crossing){
@@ -281,7 +298,7 @@ export class Player extends EventTarget {
         if(['auto','no'].includes(id))continue;
         const list=old?.backend.properties.get('track-list') as Array<{id:string|number;type:string;'ff-index'?:number}>|undefined;
         const track=list?.find(t=>t.type===type&&String(t.id)===id);
-        const index=this.mode==='native'&&(old?.backend.diagnostics as {plan?:string})?.plan==='remux'?Number(id)-1:track?.['ff-index'];
+        const index=this.mode==='native'&&usesRemuxTracks((old?.backend.diagnostics as {plan?:string})?.plan)?Number(id)-1:track?.['ff-index'];
         if(index===undefined)throw Error('Cannot preserve selected track across playback modes');
         trackIndexes.set(type,index);
       }
@@ -291,12 +308,13 @@ export class Player extends EventTarget {
     let candidate: Session | undefined;
     try {
       if (old && !old.error) await old.backend.pause();
-      candidate = this.candidate = await this.create(mode);this.assertOperation();const p = candidate.backend;await p.ready;
+      candidate = this.candidate = await this.create(mode,desired.aid);this.assertOperation();const p = candidate.backend;await p.ready;
       this.assertOperation();
       const tone=this.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
       const vf=[tone?`lavfi=[${tone}]`:'',desired.vf].filter(Boolean).join(',');
       if(vf)await p.command!('set','vf',vf);
-      if (desired.af) await p.command!('set', 'af', desired.af);
+      if(mode==='native')await p.gain!(desired.gain);
+      else {const af=[desired.af,desired.gain!==1?`lavfi=[volume=${desired.gain}]`:''].filter(Boolean).join(',');if(af)await p.command!('set','af',af);}
       await p.volume(this.muted?0:desired.volume);await p.rate(desired.speed);
       // Native numeric track IDs only exist after metadata/text-track loading.
       if (mode !== 'native') {await p.selectTrack('audio', desired.aid);await p.selectTrack('sub', desired.sid);await p.subtitleVisible(desired.subtitles);}
@@ -310,7 +328,7 @@ export class Player extends EventTarget {
       }
       for(const [type,index] of trackIndexes){
         const list=p.properties.get('track-list') as Array<{id:string|number;type:string;'ff-index'?:number}>|undefined;
-        const track=list?.find(t=>t.type===type&&(mode==='native'?(p.diagnostics as {plan?:string})?.plan==='remux'&&Number(t.id)-1===index:t['ff-index']===index));
+        const track=list?.find(t=>t.type===type&&(mode==='native'?usesRemuxTracks((p.diagnostics as {plan?:string})?.plan)&&Number(t.id)-1===index:t['ff-index']===index));
         if(!track)throw Error('Cannot preserve selected track across playback modes');
         const id=String(track.id);await p.selectTrack(type,id);desired[type==='audio'?'aid':'sid']=id;
       }
@@ -394,7 +412,7 @@ export class Player extends EventTarget {
           // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
           let aid=preserve&&(this.mode==='native'||settings.aid==='no')?settings.aid:'auto';
           const sid=tracks.length?'no':preserve&&(this.mode==='native'||settings.sid==='no')?settings.sid:'auto';
-          if(preserve&&this.mode==='native'&&(this.current?.backend.diagnostics as {plan?:string})?.plan==='remux'&&!['auto','no'].includes(aid))aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(aid)-1)?.id??aid;
+          if(preserve&&this.mode==='native'&&usesRemuxTracks((this.current?.backend.diagnostics as {plan?:string})?.plan)&&!['auto','no'].includes(aid))aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(aid)-1)?.id??aid;
           nativeReason=nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
         }catch(error){
           if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;
@@ -406,7 +424,7 @@ export class Player extends EventTarget {
     const errors:string[]=[];
     for(const mode of PLAYBACK_MODES.slice(start)){
       this.assertOperation();
-      const reason=(settings.vf||settings.af||this.toneMapping!=='off')&&mode!=='software'?'CPU filters or tone mapping require Software':mode==='native'?(preserve&&this.subtitleAssets.length?'External mpv subtitles require mpv':this.audioOutput!=='stereo'?'Explicit PCM layout requires mpv':nativeReason):tracks.length?'External browser text tracks cannot be silently discarded':undefined;
+      const reason=featureRejection(mode,{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters})??(mode==='native'?(preserve&&this.subtitleAssets.length?'External mpv subtitles require mpv':this.audioOutput!=='stereo'?'Explicit PCM layout requires mpv':nativeReason):tracks.length?'External browser text tracks cannot be silently discarded':undefined);
       if(reason){this.record({mode,outcome:'skipped',reason});continue;}
       try{await this.replace(source,mode,settings,preserve,tracks,target);this.record({mode,outcome:'selected',reason:'Playback requirements and actual presentation accepted'});if(this.current?.error&&!this.recovering)this.recover(this.current);return;}
       catch(error){if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;errors.push(`${mode}: ${String(error)}`);this.record({mode,outcome:'failed',reason:String(error)});}
@@ -468,14 +486,22 @@ export class Player extends EventTarget {
   private filters(key: 'vf' | 'af', value: string) {
     const chain = filterChain(value);
     return this.enqueue(async () => {
-      if (!this.automatic&&this.mode !== 'software') throw new Error('Filters require software mode. Call setMode("software") first.');
+      if (!this.automatic) this.validateFilters(this.mode,{...this.settings,[key]:chain});
       if (chain === this.settings[key]) return;
       const settings = {...this.settings, [key]: chain};
-      if (this.source) await this.select(this.source, settings, true, this.nativeTracks);else {this.settings=settings;if(this.automatic&&(settings.vf||settings.af))this.currentMode='software';}
+      if (this.source) await this.select(this.source, settings, true, this.nativeTracks);else {this.settings=settings;if(this.automatic&&(settings.vf||settings.af))this.currentMode=featureRejection('hybrid',{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters})?'software':'hybrid';}
     },'switching');
   }
   setVideoFilters(value: string) {return this.filters('vf', value);}
   setAudioFilters(value: string) {return this.filters('af', value);}
+  setAudioGain(value:number) {
+    if(!Number.isFinite(value)||value<0||value>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
+    return this.enqueue(async()=>{
+      if(value===this.settings.gain)return;
+      const desired={...this.settings,gain:value};
+      if(this.source)await this.select(this.source,desired,true,this.nativeTracks);else this.settings=desired;
+    },'switching');
+  }
   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
   }

@@ -2,7 +2,9 @@
 // bounded source reads use separate workers, so synchronous Wasm AVIO cannot
 // block the event loop responsible for completing its reads.
 export class RemuxPlayer {
- constructor(video){
+ constructor(video,{bufferedSeeks=false,audioAdaptation}={}){
+  this.audioAdaptation=audioAdaptation;
+  this.bufferedSeeks=bufferedSeeks&&typeof video.requestVideoFrameCallback==='function';
   this.video=video;this.timelineBias=1;this.generation=0;this.stopped=false;this.stats={fragments:[],generatedBytes:0,discardedBytes:0,peakQueueDepth:0,bufferedBytesUpperBound:0,peakBufferedBytesUpperBound:0,peakBufferedSeconds:0,seeks:[],sessions:[],errors:[],workers:0,recoveries:[],gapSkips:[]};
   this.segments=[];this.sourceStats={};this.remuxStats={};this.timer=setInterval(()=>this.pump(),50);
  }
@@ -33,20 +35,27 @@ export class RemuxPlayer {
   this.failedGeneration=undefined;this.stats.errors=[];this.stats.seeks.push({target,started:begun});if(this.stats.seeks.length>64)this.stats.seeks.shift();this.target=target;this.targetReady=false;this.lastEviction=-Infinity;this.raps=[];this.busy=true;this.eof=false;this.pending=null;this.receipt=null;this.segments=[];this.sourceStats={};this.remuxStats={};
   this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);
   this.media=new MediaSource();this.objectURL=URL.createObjectURL(this.media);this.video.src=this.objectURL;
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('MSE sourceopen timeout')),10000);this.cancelWait=e=>{clearTimeout(timer);reject(e);};this.media.addEventListener('sourceopen',()=>{clearTimeout(timer);resolve();},{once:true});});
+  await new Promise((resolve,reject)=>{
+   const media=this.media;
+   const finish=error=>{clearTimeout(timer);media.removeEventListener('sourceopen',opened);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve();};
+   const opened=()=>finish(),cancel=error=>finish(error);
+   const timer=setTimeout(()=>finish(Error('MSE sourceopen timeout')),10000);
+   this.cancelWait=cancel;media.addEventListener('sourceopen',opened,{once:true});
+  });
   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
   this.mailbox=new SharedArrayBuffer(64+262144);this.sourceWorker=new Worker(new URL('./native-remux-source-worker.js',import.meta.url),{type:'module'});this.stats.workers++;
   const ready=await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>finish(Error('Remux source initialization timed out')),10000);
-   const finish=(error,data)=>{clearTimeout(timer);this.cancelWait=null;error?reject(error):resolve(data);};
-   this.cancelWait=error=>finish(error);this.watchWorker(this.sourceWorker,generation,'source');this.sourceWorker.onmessage=({data})=>{if(generation!==this.generation)return;if(data.type==='refresh'){Promise.resolve().then(()=>{if(!this.source.refreshAuthorization)throw Error('Authorization refresh unavailable');return this.source.refreshAuthorization(data.resource);}).then(update=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',update});},error=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message);}};
+   let settled=false;
+   const finish=(error,data)=>{if(settled)return;settled=true;clearTimeout(timer);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve(data);};
+   const cancel=error=>finish(error);this.cancelWait=cancel;this.watchWorker(this.sourceWorker,generation,'source');this.sourceWorker.onmessage=({data})=>{if(generation!==this.generation||this.stopped||this.failedGeneration===generation)return;if(data.type==='refresh'){Promise.resolve().then(()=>{if(!this.source.refreshAuthorization)throw Error('Authorization refresh unavailable');return this.source.refreshAuthorization(data.resource);}).then(update=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',update});},error=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message);}};
    const {refreshAuthorization,...source}=this.source;this.sourceWorker.postMessage({type:'init',mailbox:this.mailbox,...source,identity:this.identity});
   });
   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
   this.identity??=ready.identity;this.total=ready.size;this.worker=new Worker(new URL('./native-remux-worker.js',import.meta.url),{type:'module'});this.stats.workers++;this.watchWorker(this.worker,generation,'mux');
   this.cancelWait=null;const session={generation,target,sourceSize:ready.size,firstPlayableMs:null,firstPlayableSourceBytes:null};this.stats.sessions.push(session);if(this.stats.sessions.length>64)this.stats.sessions.shift();
   this.worker.onmessage=({data})=>{
-   if(generation!==this.generation){this.stats.discardedBytes+=data.buffer?.byteLength||0;return;}
+   if(generation!==this.generation||this.stopped||this.failedGeneration===generation){this.stats.discardedBytes+=data.buffer?.byteLength||0;return;}
    if(data.type==='error'){this.fail(data.message);return;}
    if(data.type==='log'){(this.logs??=[]).push(data.message);if(this.logs.length>32)this.logs.shift();return;}
    if(data.stats)this.remuxStats=data.stats;if(data.buffer)this.stats.generatedBytes+=data.buffer.byteLength;
@@ -76,14 +85,14 @@ export class RemuxPlayer {
     this.pending=data.buffer;this.eof=!data.more;this.busy=false;this.stats.peakQueueDepth=Math.max(this.stats.peakQueueDepth,1);this.pump();
    }
   };
-  this.worker.postMessage({type:'init',mailbox:this.mailbox,size:ready.size,target,videoTrack:this.source.videoTrack,audioTrack:this.source.audioTrack});
+  this.worker.postMessage({type:'init',mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.audioTrack});
   await new Promise((resolve,reject)=>{
    const deadline=performance.now()+20000;const check=()=>{
     if(generation!==this.generation){reject(new DOMException('Superseded','AbortError'));return;}
     if(this.stats.errors.length){reject(Error(this.stats.errors.at(-1)));return;}
     // Initial decoder preroll can leave a short leading gap in the playable range.
     if(this.ranges().some(([a,b])=>a<=target+0.5&&b>target+0.02)){
-     this.targetReady=true;this.video.currentTime=target+this.timelineBias;
+     this.acceptedSource=this.source;this.acceptedGeneration=generation;this.targetReady=true;this.video.currentTime=target+this.timelineBias;
      session.firstPlayableMs=performance.now()-begun;session.firstPlayableSourceBytes=this.sourceStats.fetchedBytes;
      session.generatedBytes=this.remuxStats.generatedBytes;session.fetchedBytesAtLeastSourceSize=(this.sourceStats.fetchedBytes>=ready.size);
      resolve();return;
@@ -123,8 +132,12 @@ export class RemuxPlayer {
    }
    const ahead=ranges.find(([a,b])=>a<=now+0.5&&now<=b)?.[1]-now||0;
    if(ahead<5&&ranges.at(-1)?.[1]>now+12){this.fail('Remux timeline gap exceeds forward buffer budget');return;}
-   if(this.eof&&!this.pending){this.media.endOfStream();return;}
-   if(!this.eof&&ahead<5&&bufferedBytes<12*1024*1024){this.busy=true;this.worker.postMessage({type:'next'});}
+   if(this.eof&&!this.pending){if(this.audioAdaptation&&this.remuxStats.adaptation?.sourceEnd>0){this.duration=this.remuxStats.adaptation.sourceEnd;this.media.duration=this.duration+this.timelineBias;}this.media.endOfStream();return;}
+   const preparedAhead=this.audioAdaptation?Math.max(0,(this.remuxStats.adaptation?.sourceEnd??now)-now):0;
+   // MSE exposes the intersection of selected tracks. Never encode an entire
+   // longer track merely to make a shorter track's buffered range advance.
+   if(!this.eof&&preparedAhead>=5&&ahead<.25&&!this.video.paused){this.fail('Adapted track timelines cannot progress within the preparation budget; use Hybrid');return;}
+   if(!this.eof&&ahead<5&&preparedAhead<5&&bufferedBytes<12*1024*1024){this.busy=true;this.worker.postMessage({type:'next'});}
   }catch(e){this.fail(String(e));}
  }
  watchWorker(worker,generation,label){
@@ -148,15 +161,36 @@ export class RemuxPlayer {
  }
 
  stopWorkers(){
-  if(this.worker){(this.stats.cancellations??=[]).push({generatedBytes:this.remuxStats.generatedBytes||0,pendingBytes:this.pending?.byteLength||0,retainedCompressedBytesUpperBound:this.segments.reduce((n,s)=>n+s.bytes,0),sourceFetchedBytes:this.sourceStats.fetchedBytes||0,inFlightOutputUpperBound:8*1024*1024});if(this.stats.cancellations.length>64)this.stats.cancellations.shift();}
+  if(this.worker){(this.stats.cancellations??=[]).push({adaptation:this.remuxStats.adaptation?{...this.remuxStats.adaptation}:undefined,generatedBytes:this.remuxStats.generatedBytes||0,pendingBytes:this.pending?.byteLength||0,retainedCompressedBytesUpperBound:this.segments.reduce((n,s)=>n+s.bytes,0),sourceFetchedBytes:this.sourceStats.fetchedBytes||0,inFlightOutputUpperBound:8*1024*1024});if(this.stats.cancellations.length>64)this.stats.cancellations.shift();}
   this.cancelWait?.(new DOMException('Superseded','AbortError'));this.cancelWait=null;
   if(this.pending)this.stats.discardedBytes+=this.pending.byteLength;
   if(this.mailbox){const h=new Int32Array(this.mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}
   this.sourceWorker?.postMessage({type:'close'});this.sourceWorker?.terminate();this.worker?.terminate();this.sourceWorker=this.worker=null;this.stats.workers=0;this.sb=null;
  }
- async seek(t){return this.restart(t);}
+ canSeekBuffered(t){
+  if(!this.bufferedSeeks||!Number.isFinite(t)||t<0||this.stopped||this.starting||!this.targetReady||this.failedGeneration===this.generation||this.acceptedGeneration!==this.generation||this.acceptedSource!==this.source||!this.sb||this.sb.updating||!['open','ended'].includes(this.media?.readyState))return false;
+  // Appended history is not playable coverage. Check both the media element's
+  // intersection and the current SourceBuffer after browser eviction/removal.
+  const media=this.video.buffered;
+  const range=this.ranges().find(([a,b])=>t>=a&&t+.25<b);
+  if(!range)return false;
+  const rap=this.raps.filter(r=>r<=t&&r>=range[0]-.001).at(-1);
+  if(rap===undefined)return false;
+  for(let i=0;i<media.length;i++)if(rap+this.timelineBias>=media.start(i)-.001&&t+this.timelineBias+.25<media.end(i))return true;
+  return false;
+ }
+ async seek(t){
+  if(this.canSeekBuffered(t)){
+   // Keep the producer's forward position. Only consumption moves backwards;
+   // using the previous target here would evict media at the new playhead.
+   this.target=t;this.video.currentTime=t+this.timelineBias;
+   this.stats.bufferedSeeks=(this.stats.bufferedSeeks??0)+1;
+   return {kind:'buffered',generation:this.generation,target:t};
+  }
+  return this.restart(t);
+ }
  async play(){this.recoveryPlaying=true;if(this.starting)return;return this.video.play();}
  pause(){this.recoveryPlaying=false;this.video.pause();}
  snapshot(){return {stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
- async destroy(){this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);}
+ async destroy(){if(this.stopped)return;this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);this.objectURL=null;}
 }

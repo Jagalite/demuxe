@@ -8,12 +8,13 @@ export function ranges(value: unknown): readonly TimeRange[] | null {
   return out.every(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.start>=0&&r.end>=r.start)?out:null;
 }
 export type RawTrack = Record<string, any>;
+export function usesRemuxTracks(plan?: string): boolean {return plan==='remux'||plan==='adapted-flac';}
 export function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string {
   const type = track.type;
   // ff-index belongs to each demuxer: separate subtitle files commonly all use 0.
   // Attachments are replayed in the same order on replacement, retaining mpv IDs.
   if(track.external)return `${type}:external:${track.id}`;
-  const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode==='native'&&plan==='remux'&&type==='audio'?Number(track.id)-1:undefined;
+  const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode==='native'&&usesRemuxTracks(plan)&&type==='audio'?Number(track.id)-1:undefined;
   return index!==undefined?`${type}:stream:${index}`:`${type}:${mode==='native'?'native':'mpv'}:${track.id}`;
 }
 export function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, plan?: string): MediaTrack[] {

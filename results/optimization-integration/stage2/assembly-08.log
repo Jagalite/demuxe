@@ -1,0 +1,44 @@
+/Volumes/seed2/Projects/demuxe-optimization-integration/build/optimization-streaming-08/streaming
+Checking patch native/remux/remux.c...
+Hunk #2 succeeded at 87 (offset 7 lines).
+Hunk #3 succeeded at 115 (offset 7 lines).
+Hunk #4 succeeded at 186 (offset 7 lines).
+Hunk #5 succeeded at 297 (offset 7 lines).
+Hunk #6 succeeded at 318 (offset 7 lines).
+Hunk #7 succeeded at 340 (offset 7 lines).
+Hunk #8 succeeded at 379 (offset 7 lines).
+Checking patch src/internal/backend.ts...
+Hunk #1 succeeded at 13 (offset 3 lines).
+Checking patch src/internal/native-player.ts...
+Checking patch src/types.ts...
+Hunk #1 succeeded at 35 (offset 2 lines).
+Hunk #2 succeeded at 62 (offset 2 lines).
+error: while searching for:
+export type SessionError = Readonly<{code: PlayerErrorCode; message: string; operationId: number | null; operation: OperationKind | null; scope: 'operation' | 'session'; retryable: boolean}>;
+export type TimeRange = Readonly<{start: number; end: number}>;
+export type FeatureAvailability = Readonly<{availability: 'available'} | {availability: 'switch'; mode: PlaybackMode; reason: string} | {availability: 'unavailable'; reason: string} | {availability: 'unknown'; reason: string}>;
+export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters';
+export type PlayerCapabilities = Readonly<Capabilities & {
+  deployment: Readonly<{isolated: boolean; webCodecs: boolean; mediaSource: boolean}>;
+  features: Readonly<Record<FeatureName, FeatureAvailability>>;
+
+error: patch failed: src/types.ts:70
+error: src/types.ts: patch does not apply
+Checking patch src/unified-player.ts...
+error: while searching for:
+import {runtimeBase} from './internal/assets.js';
+import {PlayerError, playerError, redact} from './internal/errors.js';
+import {freeze, ranges, tracks, trackKey, mediaInfo} from './internal/state.js';
+
+error: patch failed: src/unified-player.ts:1
+error: src/unified-player.ts: patch does not apply
+Checking patch web/native-remux-player.js...
+Checking patch web/native-remux-worker.js...
+Traceback (most recent call last):
+  File "/Volumes/seed2/Projects/demuxe-optimization-integration/experiments/optimization-integration/prepare.py", line 24, in <module>
+    subprocess.run(['git','apply','--verbose',str(out/'optimization.patch')],cwd=prepared,env={**os.environ,'GIT_CEILING_DIRECTORIES':str(out)},check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['git', 'apply', '--verbose', '/Volumes/seed2/Projects/demuxe-optimization-integration/build/optimization-streaming-08/optimization.patch']' returned non-zero exit status 1.

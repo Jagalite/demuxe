@@ -25,6 +25,9 @@ export declare class Player extends EventTarget {
     private recovering;
     private lifetime;
     private recoveredSessions;
+    private audioAdaptation?;
+    private bufferedNativeSeeks;
+    private hybridAudioFilters;
     private nativeRemux;
     private softwarePresenter;
     private settings;
@@ -94,6 +97,7 @@ export declare class Player extends EventTarget {
     private filters;
     setVideoFilters(value: string): Promise<void>;
     setAudioFilters(value: string): Promise<void>;
+    setAudioGain(value: number): Promise<void>;
     private setting;
     play(): Promise<void>;
     pause(): Promise<void>;

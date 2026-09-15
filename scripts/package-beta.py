@@ -2,12 +2,13 @@
 """Build an offline-installable beta candidate, without asserting release qualification."""
 import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);args=p.parse_args()
 project=json.loads((root/'package.json').read_text())
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root))
 build=None;source_archive=None
 if args.release_tag:
+ if args.adaptation_build:raise SystemExit('Audio adaptation remains experimental; release admission is not qualified')
  if dirty:raise SystemExit('Release packaging requires a clean source checkout')
  if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
  if project.get('license') not in ['MIT','GPL-2.0-or-later'] or not (root/'LICENSE').is_file():raise SystemExit('Select and include the original-code license before release')
@@ -53,6 +54,30 @@ for name in ['audio-worklet.js','filter-retained-engine-worker.js','retained-dec
  add('web/'+name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-full','player')}
 if args.yuv:engines['experimental-yuv']=('engine-software-yuv','player');add('web/yuv-presenter.js')
+if args.adaptation_build:
+ adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
+ for filename in ['remux.mjs','remux.wasm']:
+  expected=record['files'][str(adaptation/filename)]['sha256'];data=(adaptation/filename).read_bytes()
+  if hashlib.sha256(data).hexdigest()!=expected:raise SystemExit('Adaptation artifact hash mismatch: '+filename)
+  files['web/engine-adaptation/'+filename]=data
+ # Keep full preferred FFmpeg source, applied patches and build materials beside
+ # the local binary package. This is not release/source qualification.
+ args.output.mkdir(parents=True,exist_ok=True)
+ source_out=args.output/'demuxe-audio-adaptation-source.tar.gz'
+ source_root=next((adaptation.parent/'source').iterdir())
+ with tarfile.open(source_out,'w:gz') as archive:
+  archive.add(source_root,arcname='ffmpeg')
+  archive.add(adaptation/'sources',arcname='demuxe')
+  source_checkout=pathlib.Path(next(k for k in record['files'] if k.endswith('/native/remux/remux.c'))).parents[2]
+  for name in ['patches/ffmpeg','sources.lock.json','toolchain.lock.json']:
+   archive.add(source_checkout/name,arcname='demuxe/'+name)
+  archive.add(adaptation/'manifest.json',arcname='build-manifest.json')
+  archive.add(adaptation.parent/'inputs.json',arcname='locked-inputs.json')
+  archive.add(adaptation.parent/'ffmpeg/config.h',arcname='build/config.h')
+  archive.add(adaptation.parent/'ffmpeg/ffbuild/config.mak',arcname='build/config.mak')
+ files['web/engine-adaptation/manifest.json']=(json.dumps({'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'experimental; explicit Native FLAC trials only'},indent=2)+'\n').encode()
+ for name in ['COPYING.LGPLv2.1','LICENSE.md']:
+  files['third_party/notices/ffmpeg-adaptation/'+name]=(source_root/name).read_bytes()
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/RELEASE.md']:add(name)
@@ -64,7 +89,10 @@ if build:
  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+# The review report keeps local evidence locations in the repository only.
+report='docs/OPTIMIZATION-INTEGRATION.md'
+files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
 files['player.js']=b"export * from './web/generated/player/index.js';\n"
 files['player.d.ts']=b"export * from './web/generated/player/index.js';\n"
 files['index.js']=b"export * from './web/generated/index.js';\n"
@@ -91,6 +119,7 @@ with out.open('wb')as f:
 (args.output/'release-manifest.json').write_bytes(files['release-manifest.json'])
 digest=hashlib.sha256(out.read_bytes()).hexdigest()
 lines=[f'{digest}  {out.name}']
+if args.adaptation_build:lines.append(f'{hashlib.sha256(source_out.read_bytes()).hexdigest()}  {source_out.name}')
 if source_archive:lines.append(f"{source_archive['sha256']}  {source_archive['filename']}")
 (args.output/'SHA256SUMS').write_text('\n'.join(lines)+'\n')
 print(out);print(digest)

@@ -1,0 +1,317 @@
+{
+  "browser": "152.0.7977.83",
+  "cases": [
+    {
+      "kind": "bounded-local-gain",
+      "before": {
+        "status": "paused",
+        "playbackIntent": "pause",
+        "pendingOperation": null,
+        "sourceId": 1,
+        "currentTime": 0,
+        "duration": 3.0999999999999996,
+        "streamType": "vod",
+        "subtitlesVisible": true,
+        "volume": 1,
+        "muted": false,
+        "playbackRate": 1,
+        "activeMode": "native",
+        "automaticSelection": false,
+        "buffered": [
+          {
+            "start": 0,
+            "end": 3.0999999999999996
+          }
+        ],
+        "seekable": [
+          {
+            "start": 0,
+            "end": 3.0999999999999996
+          }
+        ],
+        "audioTracks": [
+          {
+            "id": "1:audio:native:2",
+            "type": "audio",
+            "label": "Audio 2",
+            "language": null,
+            "codec": "pcm_s24le",
+            "selected": true,
+            "external": false
+          },
+          {
+            "id": "1:audio:native:3",
+            "type": "audio",
+            "label": "Audio 3",
+            "language": null,
+            "codec": "pcm_s16le",
+            "selected": false,
+            "external": false
+          }
+        ],
+        "subtitleTracks": [],
+        "mediaInfo": {
+          "displayWidth": 160,
+          "displayHeight": 90,
+          "aspectRatio": 1.7777777777777777,
+          "rotation": null,
+          "video": {
+            "id": "1:video:native:1",
+            "type": "video",
+            "label": "Video 1",
+            "language": null,
+            "codec": null,
+            "selected": true,
+            "external": false
+          },
+          "audio": {
+            "id": "1:audio:native:2",
+            "type": "audio",
+            "label": "Audio 2",
+            "language": null,
+            "codec": "pcm_s24le",
+            "selected": true,
+            "external": false
+          },
+          "subtitle": null
+        },
+        "capabilities": {
+          "videoFilters": false,
+          "audioFilters": false,
+          "mpvSubtitles": false,
+          "externalTextTracks": true,
+          "externalSubtitles": false,
+          "customFonts": false,
+          "customRequestHeaders": true,
+          "deployment": {
+            "isolated": true,
+            "webCodecs": true,
+            "mediaSource": true
+          },
+          "features": {
+            "seek": {
+              "availability": "available"
+            },
+            "audioTracks": {
+              "availability": "available"
+            },
+            "subtitleTracks": {
+              "availability": "unavailable",
+              "reason": "No subtitle tracks are available"
+            },
+            "audioGain": {
+              "availability": "available"
+            },
+            "externalSubtitles": {
+              "availability": "unavailable",
+              "reason": "Select hybrid mode first"
+            },
+            "customFonts": {
+              "availability": "unavailable",
+              "reason": "Select hybrid mode first"
+            },
+            "videoFilters": {
+              "availability": "unavailable",
+              "reason": "Select software mode first"
+            },
+            "audioFilters": {
+              "availability": "unavailable",
+              "reason": "Select software mode first"
+            }
+          }
+        },
+        "error": null
+      },
+      "error": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'filter')\n    at eval (eval at evaluate (:290:30), <anonymous>:1:43)\n    at UtilityScript.evaluate (<anonymous>:292:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /Volumes/seed2/Projects/demuxe-optimization-integration/build/optimization-review/public-track.mjs:38:16",
+      "state": {
+        "mode": "native",
+        "plan": {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "flac-lossless+web-audio-gain",
+          "qualification": "experimental",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "adapted-flac",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 53209,
+                  "at": 573.0049999952316,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52872,
+                  "at": 577.734999999404,
+                  "generation": 2
+                },
+                {
+                  "bytes": 49811,
+                  "at": 581.6949999928474,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53095,
+                  "at": 584.9399999976158,
+                  "generation": 2
+                },
+                {
+                  "bytes": 51452,
+                  "at": 587.6449999958277,
+                  "generation": 2
+                },
+                {
+                  "bytes": 10322,
+                  "at": 588.1649999916553,
+                  "generation": 2
+                },
+                {
+                  "bytes": 2242,
+                  "at": 588.5899999886751,
+                  "generation": 2
+                }
+              ],
+              "generatedBytes": 274238,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 273003,
+              "peakBufferedBytesUpperBound": 273003,
+              "peakBufferedSeconds": 2.417,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 370.45499999821186
+                },
+                {
+                  "target": 0,
+                  "started": 495.19999998807907
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 1027830,
+                  "firstPlayableMs": null,
+                  "firstPlayableSourceBytes": null
+                },
+                {
+                  "generation": 2,
+                  "target": 0,
+                  "sourceSize": 1027830,
+                  "firstPlayableMs": 91.16500000655651,
+                  "firstPlayableSourceBytes": 917504,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 210222,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "cancellations": [
+                {
+                  "generatedBytes": 0,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 0,
+                  "sourceFetchedBytes": 393216,
+                  "inFlightOutputUpperBound": 8388608
+                }
+              ]
+            },
+            "source": {
+              "fetchedBytes": 1027830,
+              "requests": 16,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 65536,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 131072
+            },
+            "remux": {
+              "calls": 7,
+              "remuxMs": 76.29999999701977,
+              "generatedBytes": 274238,
+              "peakBatchBytes": 53209,
+              "heapBytes": 67108864,
+              "adaptation": {
+                "codec": "flac",
+                "videoPacketsCopied": 93,
+                "audioFramesDecoded": 114,
+                "audioSamplesDecoded": 116016,
+                "audioSamplesEncoded": 116016,
+                "audioPacketsEncoded": 27,
+                "sourceEnd": 3.0999999999999996,
+                "videoFramesDecoded": 0,
+                "videoFramesEncoded": 0,
+                "sampleRate": 48000,
+                "channels": 2,
+                "bits": 24
+              }
+            },
+            "ranges": [
+              [
+                0,
+                3.0999999999999996
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[pcm_s24le @ 0x43b9e0] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s16le @ 0x43df50] Codec (pcm_s16le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43b9e0] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[pcm_s16le @ 0x43df50] Codec (pcm_s16le) not on whitelist 'demuxe_metadata_no_decode'"
+            ]
+          },
+          "position": 0,
+          "rendered": 4,
+          "dropped": 0,
+          "readyState": 4
+        }
+      }
+    }
+  ]
+}

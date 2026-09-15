@@ -1,0 +1,1568 @@
+diff --git a/docs/PLAYER-COMPONENT.md b/docs/PLAYER-COMPONENT.md
+index a556350..1207de8 100644
+--- a/docs/PLAYER-COMPONENT.md
++++ b/docs/PLAYER-COMPONENT.md
+@@ -224,3 +224,7 @@ raw filters or memory metrics. The playground keeps automatic engine selection
+ enabled and shows a compact engine/media summary below the player. A live stream with no known seek window shows LIVE
+ and disables the finite seek control. Browser fullscreen denial produces a message;
+ no fake fullscreen, PiP or casting fallback is applied.
++
++Experimental playback optimizations use the existing Player owner and do not add
++public modes or automatic component controls. See [the integration stage](OPTIMIZATION-INTEGRATION.md)
++for constructor flags, scalar gain, and current qualification limits.
+diff --git a/docs/PUBLIC-API.md b/docs/PUBLIC-API.md
+index da12014..b7cc76a 100644
+--- a/docs/PUBLIC-API.md
++++ b/docs/PUBLIC-API.md
+@@ -145,3 +145,16 @@ Live mpv seek windows use the demuxer's reported cached seekable timestamps; a
+ byte cache alone never creates a buffered-time claim. High-level time/state
+ notifications reuse backend events; only existing seek/presentation settlement
+ and engine health mechanisms retain their preexisting polling.
++
++## Experimental playback optimizations
++
++`experimentalBufferedNativeSeeks` and `experimentalHybridAudioFilters` are opt-in
++constructor options, both false by default. Hybrid currently admits only scalar
++`volume=N` / `lavfi=[volume=N]` attenuation for N in [0, 1]. Other filters retain
++Software routing or explicit-mode rejection.
++
++`audioGain` (default 1) and `setAudioGain(value)` request experimental scalar
++attenuation in [0, 1]. Native uses Web Audio lazily; mpv routes apply an audio
++filter. The setter currently reopens transactionally and preserves user controls.
++Diagnostics expose `plan` and `audioGain`; feature capabilities include `audioGain`.
++See [qualification, limitations and integration evidence](OPTIMIZATION-INTEGRATION.md).
+diff --git a/src/internal/backend.ts b/src/internal/backend.ts
+index 2bc0343..51fbddd 100644
+--- a/src/internal/backend.ts
++++ b/src/internal/backend.ts
+@@ -10,6 +10,7 @@ export interface Backend extends EventTarget {
+   seek(seconds: number): Promise<void>;
+   rate(value: number): Promise<void>;
+   volume(value: number): Promise<void>;
++  gain?(value:number): Promise<void>;
+   selectTrack(type: TrackType, id: string): Promise<void>;
+   subtitleVisible(visible: boolean): Promise<void>;
+   resize(width: number, height: number): void;
+diff --git a/src/internal/native-player.ts b/src/internal/native-player.ts
+index 86d586d..a206f2b 100644
+--- a/src/internal/native-player.ts
++++ b/src/internal/native-player.ts
+@@ -6,6 +6,7 @@ type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
+ type RemuxController = {
+   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
+   open(source: RemuxSource, target?: number): Promise<unknown>;
++  canSeekBuffered?(target:number): boolean;
+   seek(target: number): Promise<unknown>; play(): Promise<void>; pause(): void;
+   destroy(): Promise<void>; snapshot(): Record<string, unknown>;
+ };
+@@ -17,6 +18,24 @@ export class NativePlayer extends EventTarget implements Backend {
+   readonly ready = Promise.resolve();
+   readonly properties = new Map<string, unknown>();
+   private stopped = false;
++  private gainContext?: AudioContext;
++  private gainSource?: MediaElementAudioSourceNode;
++  private gainNode?: GainNode;
++  private gainValue=1;
++  async gain(value:number) {
++    this.assertActive();
++    if(!Number.isFinite(value)||value<0||value>1)throw new Error('Gain must be between 0 and 1');
++    if(!this.gainContext&&value!==1){
++      const context=new AudioContext();
++      try {
++        const source=context.createMediaElementSource(this.video),gain=context.createGain();
++        source.connect(gain);gain.connect(context.destination);
++        this.gainContext=context;this.gainSource=source;this.gainNode=gain;
++      }catch(error){await context.close();throw error;}
++    }
++    if(this.gainNode)this.gainNode.gain.setValueAtTime(value,this.gainContext!.currentTime);
++    this.gainValue=value;
++  }
+   private destruction?:Promise<void>;
+   private opening = false;
+   private remux?: RemuxController;
+@@ -31,7 +50,7 @@ export class NativePlayer extends EventTarget implements Backend {
+   private cancelers = new Set<(error: Error) => void>();
+   private listeners: Array<() => void> = [];
+ 
+-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url)) {
++  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false) {
+     super();
+     video.playsInline = true;
+     video.preload = 'auto';
+@@ -82,7 +101,7 @@ export class NativePlayer extends EventTarget implements Backend {
+       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
+     }
+   }
+-  get diagnostics() {const q = this.video.getVideoPlaybackQuality();return {path: 'native', plan:this.remux?'remux':'direct', directFailure:this.directFailure, remux:this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
++  get diagnostics() {const q = this.video.getVideoPlaybackQuality();return {path: 'native', plan:this.remux?'remux':'direct', audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux:this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+   private async load(url: string) {
+     await this.wait('loadeddata', () => {this.video.src = url;this.video.load();});
+     this.refresh();this.emit('mpv', {event: 'file-loaded'});
+@@ -94,7 +113,7 @@ export class NativePlayer extends EventTarget implements Backend {
+     const moduleURL=new URL('web/native-remux-player.js',this.assetBase).href;
+     const {RemuxPlayer}=await import(moduleURL);
+     this.assertActive();
+-    this.remux??=new RemuxPlayer(this.video) as RemuxController;
++    this.remux??=new RemuxPlayer(this.video,{bufferedSeeks:this.bufferedSeeks}) as RemuxController;
+     this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',message);};
+     const {refreshAuthorization,...options}=source.options??{};
+     const transport={...source,...(source.options?{options:options as RemoteSource}:{}),refreshAuthorization};
+@@ -135,14 +154,36 @@ export class NativePlayer extends EventTarget implements Backend {
+       await this.load(url.href);
+     },requiresRemux);
+   }
+-  async play() {this.assertActive();if(this.remux)await this.remux.play();else await this.video.play();this.refresh();}
++  async play() {this.assertActive();if(this.gainContext?.state==='suspended')await this.gainContext.resume();this.assertActive();if(this.remux)await this.remux.play();else await this.video.play();this.refresh();}
+   async pause() {this.assertActive();if(this.remux)this.remux.pause();else this.video.pause();this.refresh();}
+   async seek(seconds: number) {
+     this.assertActive();
+-    if(this.remux){const paused=this.video.paused;await this.remux.seek(seconds);if(this.video.seeking)await this.wait('seeked',()=>{});if(!paused)await this.video.play();this.refresh();return;}
++    if(this.remux){
++      const paused=this.video.paused;
++      if(this.remux.canSeekBuffered?.(seconds)&&this.video.videoWidth&&Math.abs(this.sourceTime()-seconds)>.001){
++        await this.seekPresented(seconds,()=>this.remux!.seek(seconds));
++      }else await this.remux.seek(seconds);
++      this.assertActive();if(this.video.seeking)await this.wait('seeked',()=>{});
++      if(!paused)await this.video.play();this.refresh();return;
++    }
+     if (Math.abs(this.video.currentTime - seconds) < .001 && !this.video.seeking) return;
+     await this.wait('seeked', () => {this.video.currentTime = seconds;});this.refresh();
+   }
++  private seekPresented(target:number, action:()=>Promise<unknown>):Promise<void> {
++    return new Promise((resolve,reject)=>{
++      let frame=0,accepted=false,completed=false,finished=false;
++      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);this.video.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
++      const cancel=(error:Error)=>finish(error);
++      const timer=setTimeout(()=>finish(new Error('Native seek did not present the target')),10000);
++      const next=(_:number,metadata:VideoFrameCallbackMetadata)=>{
++        if(this.stopped){finish(new Error('Player is destroyed'));return;}
++        if(Math.abs(metadata.mediaTime-(this.remux?.timelineBias??0)-target)<.15){accepted=true;if(completed)finish();}
++        else frame=this.video.requestVideoFrameCallback(next);
++      };
++      this.cancelers.add(cancel);frame=this.video.requestVideoFrameCallback(next);
++      action().then(()=>{completed=true;if(accepted)finish();},error=>finish(error));
++    });
++  }
+   async rate(value: number) {this.assertActive();this.video.defaultPlaybackRate = value;this.video.playbackRate = value;this.refresh();}
+   async volume(value: number) {this.assertActive();this.video.volume = value / 100;this.refresh();}
+   async selectTrack(type: TrackType, id: string) {
+@@ -202,6 +243,7 @@ export class NativePlayer extends EventTarget implements Backend {
+   private async dispose() {
+     this.stopped = true;for (const cancel of this.cancelers) cancel(new Error('Player is destroyed'));
+     await this.remux?.destroy();
++    this.gainSource?.disconnect();this.gainNode?.disconnect();if(this.gainContext)await this.gainContext.close();
+     this.listeners.forEach(remove => remove());this.listeners = [];
+     this.video.pause();this.video.removeAttribute('src');this.video.replaceChildren();this.video.load();
+     if (this.objectURL) URL.revokeObjectURL(this.objectURL);this.objectURL = undefined;
+diff --git a/src/types.ts b/src/types.ts
+index 2d58493..5477e01 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -33,13 +33,19 @@ export type PlayerOptions = {
+   /** Defaults to true when mode is omitted. Explicit modes remain pinned. */
+   automaticSelection?: boolean;
+   /** Internal Native packaging plan; "never" disables the packet-copy fallback. */
++  /** Opt-in retained-session seeks; broad automatic admission remains gated. */
++  experimentalBufferedNativeSeeks?: boolean;
+   nativeRemux?: 'auto' | 'never' | 'always';
+   /** Optional Software presenter; RGB remains the default. */
+   softwarePresenter?: 'rgb' | 'experimental-yuv';
+   width?: number;
+   height?: number;
+   videoFilters?: string;
++  /** Experimental scalar attenuation, 0..1; 1 avoids Native Web Audio allocation. */
++  audioGain?: number;
+   audioFilters?: string;
++  /** Opt-in scalar audio filtering on Hybrid; other filters retain Software routing. */
++  experimentalHybridAudioFilters?: boolean;
+ };
+ export type Capabilities = {
+   videoFilters: boolean;
+@@ -52,10 +58,12 @@ export type Capabilities = {
+ };
+ export type PlaybackEvent = {event: string; name?: string; data?: unknown; [key: string]: unknown};
+ export type Diagnostics = {
++  plan?: {id:string; mode:PlaybackMode; video:string; audio:string; qualification:string};
+   mode: PlaybackMode;
+   switching: boolean;
+   videoFilters: string;
+   audioFilters: string;
++  audioGain?: number;
+   toneMapping?: ToneMapping;
+   resourceLimits?: ResourceLimits;
+   selection?: {automatic: boolean; attempts: Array<{mode: PlaybackMode | 'probe'; outcome: 'skipped' | 'failed' | 'selected'; reason: string}>};
+@@ -70,7 +78,7 @@ export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED
+ export type SessionError = Readonly<{code: PlayerErrorCode; message: string; operationId: number | null; operation: OperationKind | null; scope: 'operation' | 'session'; retryable: boolean}>;
+ export type TimeRange = Readonly<{start: number; end: number}>;
+ export type FeatureAvailability = Readonly<{availability: 'available'} | {availability: 'switch'; mode: PlaybackMode; reason: string} | {availability: 'unavailable'; reason: string} | {availability: 'unknown'; reason: string}>;
+-export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters';
++export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain';
+ export type PlayerCapabilities = Readonly<Capabilities & {
+   deployment: Readonly<{isolated: boolean; webCodecs: boolean; mediaSource: boolean}>;
+   features: Readonly<Record<FeatureName, FeatureAvailability>>;
+diff --git a/src/unified-player.ts b/src/unified-player.ts
+index def4782..db00843 100644
+--- a/src/unified-player.ts
++++ b/src/unified-player.ts
+@@ -1,3 +1,4 @@
++import {featureRejection, executionPlan, qualifiedAudioFilter} from './internal/playback-plans.js';
+ import {runtimeBase} from './internal/assets.js';
+ import {PlayerError, playerError, redact} from './internal/errors.js';
+ import {freeze, ranges, tracks, trackKey, mediaInfo} from './internal/state.js';
+@@ -10,7 +11,7 @@ import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions
+ import type {Backend, Session} from './internal/backend.js';
+ 
+ type Source = {kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}};
+-type Settings = {pause: boolean; volume: number; speed: number; aid: string; sid: string; subtitles: boolean; vf: string; af: string};
++type Settings = {pause: boolean; volume: number; speed: number; aid: string; sid: string; subtitles: boolean; vf: string; af: string; gain:number};
+ const filterChain = (value: string) => {
+   if (typeof value !== 'string' || value.length > 4096 || value.includes('\0')) throw new PlayerError('INVALID_ARGUMENT','Invalid filter chain');
+   return value.trim();
+@@ -49,6 +50,8 @@ export class Player extends EventTarget {
+   private recovering = false;
+   private lifetime = new AbortController();
+   private recoveredSessions = new WeakSet<Session>();
++  private bufferedNativeSeeks:boolean;
++  private hybridAudioFilters: boolean;
+   private nativeRemux: 'auto' | 'never' | 'always';
+   private softwarePresenter: 'rgb' | 'experimental-yuv';
+   private settings: Settings;
+@@ -87,13 +90,18 @@ export class Player extends EventTarget {
+     if(!['off','hdr-to-sdr'].includes(this.toneMapping))throw new PlayerError('INVALID_ARGUMENT','Invalid tone mapping policy');
+     this.resourceLimits={maxDecodePixels:options.resourceLimits?.maxDecodePixels??8294400,maxAllocationBytes:options.resourceLimits?.maxAllocationBytes??134217728};
+     if(!Number.isInteger(this.resourceLimits.maxDecodePixels)||this.resourceLimits.maxDecodePixels!<1||this.resourceLimits.maxDecodePixels!>8294400||!Number.isInteger(this.resourceLimits.maxAllocationBytes)||this.resourceLimits.maxAllocationBytes!<33554432||this.resourceLimits.maxAllocationBytes!>268435456)throw new PlayerError('INVALID_ARGUMENT','Invalid decode resource limits');
++    this.bufferedNativeSeeks=options.experimentalBufferedNativeSeeks??false;
++    if(typeof this.bufferedNativeSeeks!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid buffered seek policy');
++    this.hybridAudioFilters=options.experimentalHybridAudioFilters??false;
++    if(typeof this.hybridAudioFilters!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid Hybrid audio filter policy');
+     this.nativeRemux=options.nativeRemux ?? 'auto';
+     this.softwarePresenter=options.softwarePresenter??'rgb';
+     if(!['rgb','experimental-yuv'].includes(this.softwarePresenter))throw new PlayerError('INVALID_ARGUMENT','Invalid software presenter');
+     if(!['auto','never','always'].includes(this.nativeRemux))throw new PlayerError('INVALID_ARGUMENT','Invalid native remux policy');
+     this.width = options.width ?? 640;this.height = options.height ?? 360;dimensions(this.width, this.height);
+-    this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? '')};
+-    if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode='software';
++    this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain:options.audioGain??1};
++    if(!Number.isFinite(this.settings.gain)||this.settings.gain<0||this.settings.gain>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
++    if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
+     this.validateFilters(this.currentMode, this.settings);
+     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
+     this.publish();
+@@ -154,7 +162,8 @@ export class Player extends EventTarget {
+       seek:seekable===null?{availability:'unknown',reason:'Seek window has not been established'}:seekable.length?available:unavailable('The source currently has no seekable time range'),
+       audioTracks:!this.current?unknown:audio?available:unavailable('Audio track selection is not exposed by this source/browser'),
+       subtitleTracks:!this.current?unknown:sub?available:unavailable('No subtitle tracks are available'),
+-      externalSubtitles:route('hybrid'),customFonts:route('hybrid'),videoFilters:route('software'),audioFilters:route('software') }};
++      audioGain:this.mode==='native'?(typeof AudioContext==='undefined'?unavailable('Web Audio is unavailable'):available):route('hybrid'),
++      externalSubtitles:route('hybrid'),customFonts:route('hybrid'),videoFilters:route('software'),audioFilters:route(this.hybridAudioFilters?'hybrid':'software') }};
+   }
+   get mode() {return this.currentMode;}
+   get automaticSelection() {return this.automatic;}
+@@ -162,10 +171,10 @@ export class Player extends EventTarget {
+   get properties(): ReadonlyMap<string, unknown> {return this.current?.backend.properties ?? this.empty;}
+   get capabilities(): PlayerCapabilities {return this.snapshot?.capabilities??this.featureCapabilities(null,0,0);}
+   private get legacyCapabilities(): Capabilities {
+-    return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software', mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined')};
++    return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined')};
+   }
+   get diagnostics(): Diagnostics {
+-    return redact({mode: this.mode, selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
++    return redact({mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain):undefined, selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
+   }
+   audioDiagnostics() {return this.current?.backend.audioDiagnostics();}
+   private emit(type: string, detail: unknown) {
+@@ -174,7 +183,8 @@ export class Player extends EventTarget {
+   }
+   private assertOperation() {if(this.destroyed||this.activeOperation?.controller.signal.aborted)throw new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted');}
+   private validateFilters(mode: PlaybackMode, settings: Settings) {
+-    if (mode !== 'software' && (settings.vf || settings.af || this.toneMapping!=='off')) throw new PlayerError('UNSUPPORTED_FEATURE','Filters require software mode. Clear filters before leaving software mode.');
++    const reason=featureRejection(mode,{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters});
++    if(reason)throw new PlayerError('UNSUPPORTED_FEATURE',reason);
+   }
+   private enqueue(operation: () => Promise<void>, kind:OperationKind|null=null, signal?:AbortSignal): Promise<void> {
+     const id=++this.operationSerial,epoch=this.operationEpoch;
+@@ -219,7 +229,7 @@ export class Player extends EventTarget {
+     this.assertOperation();
+     this.root.append(surface);
+     try {
+-      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, this.nativeRemux,this.assetBase) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
++      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, this.nativeRemux,this.assetBase,this.bufferedNativeSeeks) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
+     } catch (error) {surface.remove();throw error;}
+     const session: Session = {backend, surface};
+     for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
+@@ -296,7 +306,8 @@ export class Player extends EventTarget {
+       const tone=this.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
+       const vf=[tone?`lavfi=[${tone}]`:'',desired.vf].filter(Boolean).join(',');
+       if(vf)await p.command!('set','vf',vf);
+-      if (desired.af) await p.command!('set', 'af', desired.af);
++      if(mode==='native')await p.gain!(desired.gain);
++      else {const af=[desired.af,desired.gain!==1?`lavfi=[volume=${desired.gain}]`:''].filter(Boolean).join(',');if(af)await p.command!('set','af',af);}
+       await p.volume(this.muted?0:desired.volume);await p.rate(desired.speed);
+       // Native numeric track IDs only exist after metadata/text-track loading.
+       if (mode !== 'native') {await p.selectTrack('audio', desired.aid);await p.selectTrack('sub', desired.sid);await p.subtitleVisible(desired.subtitles);}
+@@ -406,7 +417,7 @@ export class Player extends EventTarget {
+     const errors:string[]=[];
+     for(const mode of PLAYBACK_MODES.slice(start)){
+       this.assertOperation();
+-      const reason=(settings.vf||settings.af||this.toneMapping!=='off')&&mode!=='software'?'CPU filters or tone mapping require Software':mode==='native'?(preserve&&this.subtitleAssets.length?'External mpv subtitles require mpv':this.audioOutput!=='stereo'?'Explicit PCM layout requires mpv':nativeReason):tracks.length?'External browser text tracks cannot be silently discarded':undefined;
++      const reason=featureRejection(mode,{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters})??(mode==='native'?(preserve&&this.subtitleAssets.length?'External mpv subtitles require mpv':this.audioOutput!=='stereo'?'Explicit PCM layout requires mpv':nativeReason):tracks.length?'External browser text tracks cannot be silently discarded':undefined);
+       if(reason){this.record({mode,outcome:'skipped',reason});continue;}
+       try{await this.replace(source,mode,settings,preserve,tracks,target);this.record({mode,outcome:'selected',reason:'Playback requirements and actual presentation accepted'});if(this.current?.error&&!this.recovering)this.recover(this.current);return;}
+       catch(error){if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;errors.push(`${mode}: ${String(error)}`);this.record({mode,outcome:'failed',reason:String(error)});}
+@@ -468,14 +479,22 @@ export class Player extends EventTarget {
+   private filters(key: 'vf' | 'af', value: string) {
+     const chain = filterChain(value);
+     return this.enqueue(async () => {
+-      if (!this.automatic&&this.mode !== 'software') throw new Error('Filters require software mode. Call setMode("software") first.');
++      if (!this.automatic) this.validateFilters(this.mode,{...this.settings,[key]:chain});
+       if (chain === this.settings[key]) return;
+       const settings = {...this.settings, [key]: chain};
+-      if (this.source) await this.select(this.source, settings, true, this.nativeTracks);else {this.settings=settings;if(this.automatic&&(settings.vf||settings.af))this.currentMode='software';}
++      if (this.source) await this.select(this.source, settings, true, this.nativeTracks);else {this.settings=settings;if(this.automatic&&(settings.vf||settings.af))this.currentMode=featureRejection('hybrid',{...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters})?'software':'hybrid';}
+     },'switching');
+   }
+   setVideoFilters(value: string) {return this.filters('vf', value);}
+   setAudioFilters(value: string) {return this.filters('af', value);}
++  setAudioGain(value:number) {
++    if(!Number.isFinite(value)||value<0||value>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
++    return this.enqueue(async()=>{
++      if(value===this.settings.gain)return;
++      const desired={...this.settings,gain:value};
++      if(this.source)await this.select(this.source,desired,true,this.nativeTracks);else this.settings=desired;
++    },'switching');
++  }
+   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
+     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
+   }
+diff --git a/web/generated/internal/backend.d.ts b/web/generated/internal/backend.d.ts
+index 82bf78a..7db7dd3 100644
+--- a/web/generated/internal/backend.d.ts
++++ b/web/generated/internal/backend.d.ts
+@@ -10,6 +10,7 @@ export interface Backend extends EventTarget {
+     seek(seconds: number): Promise<void>;
+     rate(value: number): Promise<void>;
+     volume(value: number): Promise<void>;
++    gain?(value: number): Promise<void>;
+     selectTrack(type: TrackType, id: string): Promise<void>;
+     subtitleVisible(visible: boolean): Promise<void>;
+     resize(width: number, height: number): void;
+diff --git a/web/generated/internal/native-player.d.ts b/web/generated/internal/native-player.d.ts
+index 6d9ce9a..0c01567 100644
+--- a/web/generated/internal/native-player.d.ts
++++ b/web/generated/internal/native-player.d.ts
+@@ -5,9 +5,15 @@ export declare class NativePlayer extends EventTarget implements Backend {
+     private video;
+     private remuxPolicy;
+     private assetBase;
++    private bufferedSeeks;
+     readonly ready: Promise<void>;
+     readonly properties: Map<string, unknown>;
+     private stopped;
++    private gainContext?;
++    private gainSource?;
++    private gainNode?;
++    private gainValue;
++    gain(value: number): Promise<void>;
+     private destruction?;
+     private opening;
+     private remux?;
+@@ -21,7 +27,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
+     private subsVisible;
+     private cancelers;
+     private listeners;
+-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL);
++    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean);
+     private emit;
+     private assertActive;
+     private wait;
+@@ -29,6 +35,12 @@ export declare class NativePlayer extends EventTarget implements Backend {
+     get diagnostics(): {
+         path: string;
+         plan: string;
++        audioProcessing: {
++            component: string;
++            gain: number;
++            contextState: AudioContextState | undefined;
++            baseLatency: number | undefined;
++        };
+         directFailure: string | undefined;
+         remux: Record<string, unknown> | undefined;
+         position: number;
+@@ -44,6 +56,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
+     play(): Promise<void>;
+     pause(): Promise<void>;
+     seek(seconds: number): Promise<void>;
++    private seekPresented;
+     rate(value: number): Promise<void>;
+     volume(value: number): Promise<void>;
+     selectTrack(type: TrackType, id: string): Promise<void>;
+diff --git a/web/generated/internal/native-player.js b/web/generated/internal/native-player.js
+index ba52c4b..3a6b372 100644
+--- a/web/generated/internal/native-player.js
++++ b/web/generated/internal/native-player.js
+@@ -3,9 +3,37 @@ export class NativePlayer extends EventTarget {
+     video;
+     remuxPolicy;
+     assetBase;
++    bufferedSeeks;
+     ready = Promise.resolve();
+     properties = new Map();
+     stopped = false;
++    gainContext;
++    gainSource;
++    gainNode;
++    gainValue = 1;
++    async gain(value) {
++        this.assertActive();
++        if (!Number.isFinite(value) || value < 0 || value > 1)
++            throw new Error('Gain must be between 0 and 1');
++        if (!this.gainContext && value !== 1) {
++            const context = new AudioContext();
++            try {
++                const source = context.createMediaElementSource(this.video), gain = context.createGain();
++                source.connect(gain);
++                gain.connect(context.destination);
++                this.gainContext = context;
++                this.gainSource = source;
++                this.gainNode = gain;
++            }
++            catch (error) {
++                await context.close();
++                throw error;
++            }
++        }
++        if (this.gainNode)
++            this.gainNode.gain.setValueAtTime(value, this.gainContext.currentTime);
++        this.gainValue = value;
++    }
+     destruction;
+     opening = false;
+     remux;
+@@ -19,11 +47,12 @@ export class NativePlayer extends EventTarget {
+     subsVisible = true;
+     cancelers = new Set();
+     listeners = [];
+-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url)) {
++    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false) {
+         super();
+         this.video = video;
+         this.remuxPolicy = remuxPolicy;
+         this.assetBase = assetBase;
++        this.bufferedSeeks = bufferedSeeks;
+         video.playsInline = true;
+         video.preload = 'auto';
+         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
+@@ -90,7 +119,7 @@ export class NativePlayer extends EventTarget {
+             this.emit('mpv', { event: 'property-change', name, data });
+         }
+     }
+-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(); return { path: 'native', plan: this.remux ? 'remux' : 'direct', directFailure: this.directFailure, remux: this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
++    get diagnostics() { const q = this.video.getVideoPlaybackQuality(); return { path: 'native', plan: this.remux ? 'remux' : 'direct', audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux: this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+     async load(url) {
+         await this.wait('loadeddata', () => { this.video.src = url; this.video.load(); });
+         this.refresh();
+@@ -105,7 +134,7 @@ export class NativePlayer extends EventTarget {
+         const moduleURL = new URL('web/native-remux-player.js', this.assetBase).href;
+         const { RemuxPlayer } = await import(moduleURL);
+         this.assertActive();
+-        this.remux ??= new RemuxPlayer(this.video);
++        this.remux ??= new RemuxPlayer(this.video, { bufferedSeeks: this.bufferedSeeks });
+         this.remux.onError = message => { if (!this.opening && !this.stopped)
+             this.emit('error', message); };
+         const { refreshAuthorization, ...options } = source.options ?? {};
+@@ -170,7 +199,8 @@ export class NativePlayer extends EventTarget {
+             await this.load(url.href);
+         }, requiresRemux);
+     }
+-    async play() { this.assertActive(); if (this.remux)
++    async play() { this.assertActive(); if (this.gainContext?.state === 'suspended')
++        await this.gainContext.resume(); this.assertActive(); if (this.remux)
+         await this.remux.play();
+     else
+         await this.video.play(); this.refresh(); }
+@@ -182,7 +212,12 @@ export class NativePlayer extends EventTarget {
+         this.assertActive();
+         if (this.remux) {
+             const paused = this.video.paused;
+-            await this.remux.seek(seconds);
++            if (this.remux.canSeekBuffered?.(seconds) && this.video.videoWidth && Math.abs(this.sourceTime() - seconds) > .001) {
++                await this.seekPresented(seconds, () => this.remux.seek(seconds));
++            }
++            else
++                await this.remux.seek(seconds);
++            this.assertActive();
+             if (this.video.seeking)
+                 await this.wait('seeked', () => { });
+             if (!paused)
+@@ -195,6 +230,32 @@ export class NativePlayer extends EventTarget {
+         await this.wait('seeked', () => { this.video.currentTime = seconds; });
+         this.refresh();
+     }
++    seekPresented(target, action) {
++        return new Promise((resolve, reject) => {
++            let frame = 0, accepted = false, completed = false, finished = false;
++            const finish = (error) => { if (finished)
++                return; finished = true; clearTimeout(timer); this.video.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
++            const cancel = (error) => finish(error);
++            const timer = setTimeout(() => finish(new Error('Native seek did not present the target')), 10000);
++            const next = (_, metadata) => {
++                if (this.stopped) {
++                    finish(new Error('Player is destroyed'));
++                    return;
++                }
++                if (Math.abs(metadata.mediaTime - (this.remux?.timelineBias ?? 0) - target) < .15) {
++                    accepted = true;
++                    if (completed)
++                        finish();
++                }
++                else
++                    frame = this.video.requestVideoFrameCallback(next);
++            };
++            this.cancelers.add(cancel);
++            frame = this.video.requestVideoFrameCallback(next);
++            action().then(() => { completed = true; if (accepted)
++                finish(); }, error => finish(error));
++        });
++    }
+     async rate(value) { this.assertActive(); this.video.defaultPlaybackRate = value; this.video.playbackRate = value; this.refresh(); }
+     async volume(value) { this.assertActive(); this.video.volume = value / 100; this.refresh(); }
+     async selectTrack(type, id) {
+@@ -312,6 +373,10 @@ export class NativePlayer extends EventTarget {
+         for (const cancel of this.cancelers)
+             cancel(new Error('Player is destroyed'));
+         await this.remux?.destroy();
++        this.gainSource?.disconnect();
++        this.gainNode?.disconnect();
++        if (this.gainContext)
++            await this.gainContext.close();
+         this.listeners.forEach(remove => remove());
+         this.listeners = [];
+         this.video.pause();
+diff --git a/web/generated/types.d.ts b/web/generated/types.d.ts
+index ffcefa9..53d2a86 100644
+--- a/web/generated/types.d.ts
++++ b/web/generated/types.d.ts
+@@ -65,13 +65,19 @@ export type PlayerOptions = {
+     /** Defaults to true when mode is omitted. Explicit modes remain pinned. */
+     automaticSelection?: boolean;
+     /** Internal Native packaging plan; "never" disables the packet-copy fallback. */
++    /** Opt-in retained-session seeks; broad automatic admission remains gated. */
++    experimentalBufferedNativeSeeks?: boolean;
+     nativeRemux?: 'auto' | 'never' | 'always';
+     /** Optional Software presenter; RGB remains the default. */
+     softwarePresenter?: 'rgb' | 'experimental-yuv';
+     width?: number;
+     height?: number;
+     videoFilters?: string;
++    /** Experimental scalar attenuation, 0..1; 1 avoids Native Web Audio allocation. */
++    audioGain?: number;
+     audioFilters?: string;
++    /** Opt-in scalar audio filtering on Hybrid; other filters retain Software routing. */
++    experimentalHybridAudioFilters?: boolean;
+ };
+ export type Capabilities = {
+     videoFilters: boolean;
+@@ -89,10 +95,18 @@ export type PlaybackEvent = {
+     [key: string]: unknown;
+ };
+ export type Diagnostics = {
++    plan?: {
++        id: string;
++        mode: PlaybackMode;
++        video: string;
++        audio: string;
++        qualification: string;
++    };
+     mode: PlaybackMode;
+     switching: boolean;
+     videoFilters: string;
+     audioFilters: string;
++    audioGain?: number;
+     toneMapping?: ToneMapping;
+     resourceLimits?: ResourceLimits;
+     selection?: {
+@@ -140,7 +154,7 @@ export type FeatureAvailability = Readonly<{
+     availability: 'unknown';
+     reason: string;
+ }>;
+-export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters';
++export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain';
+ export type PlayerCapabilities = Readonly<Capabilities & {
+     deployment: Readonly<{
+         isolated: boolean;
+diff --git a/web/generated/unified-player.d.ts b/web/generated/unified-player.d.ts
+index 5a8c8cd..f40358f 100644
+--- a/web/generated/unified-player.d.ts
++++ b/web/generated/unified-player.d.ts
+@@ -25,6 +25,8 @@ export declare class Player extends EventTarget {
+     private recovering;
+     private lifetime;
+     private recoveredSessions;
++    private bufferedNativeSeeks;
++    private hybridAudioFilters;
+     private nativeRemux;
+     private softwarePresenter;
+     private settings;
+@@ -94,6 +96,7 @@ export declare class Player extends EventTarget {
+     private filters;
+     setVideoFilters(value: string): Promise<void>;
+     setAudioFilters(value: string): Promise<void>;
++    setAudioGain(value: number): Promise<void>;
+     private setting;
+     play(): Promise<void>;
+     pause(): Promise<void>;
+diff --git a/web/generated/unified-player.js b/web/generated/unified-player.js
+index 95abb54..d78c9a5 100644
+--- a/web/generated/unified-player.js
++++ b/web/generated/unified-player.js
+@@ -1,3 +1,4 @@
++import { featureRejection, executionPlan, qualifiedAudioFilter } from './internal/playback-plans.js';
+ import { runtimeBase } from './internal/assets.js';
+ import { PlayerError, playerError, redact } from './internal/errors.js';
+ import { freeze, ranges, tracks, trackKey, mediaInfo } from './internal/state.js';
+@@ -43,6 +44,8 @@ export class Player extends EventTarget {
+     recovering = false;
+     lifetime = new AbortController();
+     recoveredSessions = new WeakSet();
++    bufferedNativeSeeks;
++    hybridAudioFilters;
+     nativeRemux;
+     softwarePresenter;
+     settings;
+@@ -87,6 +90,12 @@ export class Player extends EventTarget {
+         this.resourceLimits = { maxDecodePixels: options.resourceLimits?.maxDecodePixels ?? 8294400, maxAllocationBytes: options.resourceLimits?.maxAllocationBytes ?? 134217728 };
+         if (!Number.isInteger(this.resourceLimits.maxDecodePixels) || this.resourceLimits.maxDecodePixels < 1 || this.resourceLimits.maxDecodePixels > 8294400 || !Number.isInteger(this.resourceLimits.maxAllocationBytes) || this.resourceLimits.maxAllocationBytes < 33554432 || this.resourceLimits.maxAllocationBytes > 268435456)
+             throw new PlayerError('INVALID_ARGUMENT', 'Invalid decode resource limits');
++        this.bufferedNativeSeeks = options.experimentalBufferedNativeSeeks ?? false;
++        if (typeof this.bufferedNativeSeeks !== 'boolean')
++            throw new PlayerError('INVALID_ARGUMENT', 'Invalid buffered seek policy');
++        this.hybridAudioFilters = options.experimentalHybridAudioFilters ?? false;
++        if (typeof this.hybridAudioFilters !== 'boolean')
++            throw new PlayerError('INVALID_ARGUMENT', 'Invalid Hybrid audio filter policy');
+         this.nativeRemux = options.nativeRemux ?? 'auto';
+         this.softwarePresenter = options.softwarePresenter ?? 'rgb';
+         if (!['rgb', 'experimental-yuv'].includes(this.softwarePresenter))
+@@ -96,9 +105,11 @@ export class Player extends EventTarget {
+         this.width = options.width ?? 640;
+         this.height = options.height ?? 360;
+         dimensions(this.width, this.height);
+-        this.settings = { pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? '') };
++        this.settings = { pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain: options.audioGain ?? 1 };
++        if (!Number.isFinite(this.settings.gain) || this.settings.gain < 0 || this.settings.gain > 1)
++            throw new PlayerError('INVALID_ARGUMENT', 'Gain must be between 0 and 1');
+         if (this.automatic && (this.settings.vf || this.settings.af || this.toneMapping !== 'off'))
+-            this.currentMode = 'software';
++            this.currentMode = this.settings.vf || this.toneMapping !== 'off' || !this.hybridAudioFilters || !qualifiedAudioFilter(this.settings.af) ? 'software' : 'hybrid';
+         this.validateFilters(this.currentMode, this.settings);
+         this.root = document.createElement('div');
+         this.root.className = 'demuxe-player';
+@@ -179,7 +190,8 @@ export class Player extends EventTarget {
+                 seek: seekable === null ? { availability: 'unknown', reason: 'Seek window has not been established' } : seekable.length ? available : unavailable('The source currently has no seekable time range'),
+                 audioTracks: !this.current ? unknown : audio ? available : unavailable('Audio track selection is not exposed by this source/browser'),
+                 subtitleTracks: !this.current ? unknown : sub ? available : unavailable('No subtitle tracks are available'),
+-                externalSubtitles: route('hybrid'), customFonts: route('hybrid'), videoFilters: route('software'), audioFilters: route('software')
++                audioGain: this.mode === 'native' ? (typeof AudioContext === 'undefined' ? unavailable('Web Audio is unavailable') : available) : route('hybrid'),
++                externalSubtitles: route('hybrid'), customFonts: route('hybrid'), videoFilters: route('software'), audioFilters: route(this.hybridAudioFilters ? 'hybrid' : 'software')
+             } };
+     }
+     get mode() { return this.currentMode; }
+@@ -188,10 +200,10 @@ export class Player extends EventTarget {
+     get properties() { return this.current?.backend.properties ?? this.empty; }
+     get capabilities() { return this.snapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
+     get legacyCapabilities() {
+-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software', mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
++        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.automatic || this.mode !== 'native', customFonts: this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
+     }
+     get diagnostics() {
+-        return redact({ mode: this.mode, selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
++        return redact({ mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain) : undefined, selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
+     }
+     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
+     emit(type, detail) {
+@@ -206,8 +218,9 @@ export class Player extends EventTarget {
+     assertOperation() { if (this.destroyed || this.activeOperation?.controller.signal.aborted)
+         throw new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted'); }
+     validateFilters(mode, settings) {
+-        if (mode !== 'software' && (settings.vf || settings.af || this.toneMapping !== 'off'))
+-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Filters require software mode. Clear filters before leaving software mode.');
++        const reason = featureRejection(mode, { ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters });
++        if (reason)
++            throw new PlayerError('UNSUPPORTED_FEATURE', reason);
+     }
+     enqueue(operation, kind = null, signal) {
+         const id = ++this.operationSerial, epoch = this.operationEpoch;
+@@ -290,7 +303,7 @@ export class Player extends EventTarget {
+         this.assertOperation();
+         this.root.append(surface);
+         try {
+-            backend = 'NativePlayer' in module ? new module.NativePlayer(surface, this.nativeRemux, this.assetBase) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
++            backend = 'NativePlayer' in module ? new module.NativePlayer(surface, this.nativeRemux, this.assetBase, this.bufferedNativeSeeks) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
+         }
+         catch (error) {
+             surface.remove();
+@@ -410,8 +423,13 @@ export class Player extends EventTarget {
+             const vf = [tone ? `lavfi=[${tone}]` : '', desired.vf].filter(Boolean).join(',');
+             if (vf)
+                 await p.command('set', 'vf', vf);
+-            if (desired.af)
+-                await p.command('set', 'af', desired.af);
++            if (mode === 'native')
++                await p.gain(desired.gain);
++            else {
++                const af = [desired.af, desired.gain !== 1 ? `lavfi=[volume=${desired.gain}]` : ''].filter(Boolean).join(',');
++                if (af)
++                    await p.command('set', 'af', af);
++            }
+             await p.volume(this.muted ? 0 : desired.volume);
+             await p.rate(desired.speed);
+             // Native numeric track IDs only exist after metadata/text-track loading.
+@@ -600,7 +618,7 @@ export class Player extends EventTarget {
+         const errors = [];
+         for (const mode of PLAYBACK_MODES.slice(start)) {
+             this.assertOperation();
+-            const reason = (settings.vf || settings.af || this.toneMapping !== 'off') && mode !== 'software' ? 'CPU filters or tone mapping require Software' : mode === 'native' ? (preserve && this.subtitleAssets.length ? 'External mpv subtitles require mpv' : this.audioOutput !== 'stereo' ? 'Explicit PCM layout requires mpv' : nativeReason) : tracks.length ? 'External browser text tracks cannot be silently discarded' : undefined;
++            const reason = featureRejection(mode, { ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters }) ?? (mode === 'native' ? (preserve && this.subtitleAssets.length ? 'External mpv subtitles require mpv' : this.audioOutput !== 'stereo' ? 'Explicit PCM layout requires mpv' : nativeReason) : tracks.length ? 'External browser text tracks cannot be silently discarded' : undefined);
+             if (reason) {
+                 this.record({ mode, outcome: 'skipped', reason });
+                 continue;
+@@ -712,8 +730,8 @@ export class Player extends EventTarget {
+     filters(key, value) {
+         const chain = filterChain(value);
+         return this.enqueue(async () => {
+-            if (!this.automatic && this.mode !== 'software')
+-                throw new Error('Filters require software mode. Call setMode("software") first.');
++            if (!this.automatic)
++                this.validateFilters(this.mode, { ...this.settings, [key]: chain });
+             if (chain === this.settings[key])
+                 return;
+             const settings = { ...this.settings, [key]: chain };
+@@ -722,12 +740,25 @@ export class Player extends EventTarget {
+             else {
+                 this.settings = settings;
+                 if (this.automatic && (settings.vf || settings.af))
+-                    this.currentMode = 'software';
++                    this.currentMode = featureRejection('hybrid', { ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters }) ? 'software' : 'hybrid';
+             }
+         }, 'switching');
+     }
+     setVideoFilters(value) { return this.filters('vf', value); }
+     setAudioFilters(value) { return this.filters('af', value); }
++    setAudioGain(value) {
++        if (!Number.isFinite(value) || value < 0 || value > 1)
++            throw new PlayerError('INVALID_ARGUMENT', 'Gain must be between 0 and 1');
++        return this.enqueue(async () => {
++            if (value === this.settings.gain)
++                return;
++            const desired = { ...this.settings, gain: value };
++            if (this.source)
++                await this.select(this.source, desired, true, this.nativeTracks);
++            else
++                this.settings = desired;
++        }, 'switching');
++    }
+     setting(action, update) {
+         return this.enqueue(async () => { if (this.current)
+             await action(this.current.backend); update(); });
+diff --git a/web/native-remux-player.js b/web/native-remux-player.js
+index 7bfb86e..1d4b4da 100644
+--- a/web/native-remux-player.js
++++ b/web/native-remux-player.js
+@@ -2,7 +2,8 @@
+ // bounded source reads use separate workers, so synchronous Wasm AVIO cannot
+ // block the event loop responsible for completing its reads.
+ export class RemuxPlayer {
+- constructor(video){
++ constructor(video,{bufferedSeeks=false}={}){
++  this.bufferedSeeks=bufferedSeeks&&typeof video.requestVideoFrameCallback==='function';
+   this.video=video;this.timelineBias=1;this.generation=0;this.stopped=false;this.stats={fragments:[],generatedBytes:0,discardedBytes:0,peakQueueDepth:0,bufferedBytesUpperBound:0,peakBufferedBytesUpperBound:0,peakBufferedSeconds:0,seeks:[],sessions:[],errors:[],workers:0,recoveries:[],gapSkips:[]};
+   this.segments=[];this.sourceStats={};this.remuxStats={};this.timer=setInterval(()=>this.pump(),50);
+  }
+@@ -33,20 +34,27 @@ export class RemuxPlayer {
+   this.failedGeneration=undefined;this.stats.errors=[];this.stats.seeks.push({target,started:begun});if(this.stats.seeks.length>64)this.stats.seeks.shift();this.target=target;this.targetReady=false;this.lastEviction=-Infinity;this.raps=[];this.busy=true;this.eof=false;this.pending=null;this.receipt=null;this.segments=[];this.sourceStats={};this.remuxStats={};
+   this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);
+   this.media=new MediaSource();this.objectURL=URL.createObjectURL(this.media);this.video.src=this.objectURL;
+-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('MSE sourceopen timeout')),10000);this.cancelWait=e=>{clearTimeout(timer);reject(e);};this.media.addEventListener('sourceopen',()=>{clearTimeout(timer);resolve();},{once:true});});
++  await new Promise((resolve,reject)=>{
++   const media=this.media;
++   const finish=error=>{clearTimeout(timer);media.removeEventListener('sourceopen',opened);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve();};
++   const opened=()=>finish(),cancel=error=>finish(error);
++   const timer=setTimeout(()=>finish(Error('MSE sourceopen timeout')),10000);
++   this.cancelWait=cancel;media.addEventListener('sourceopen',opened,{once:true});
++  });
+   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
+   this.mailbox=new SharedArrayBuffer(64+262144);this.sourceWorker=new Worker(new URL('./native-remux-source-worker.js',import.meta.url),{type:'module'});this.stats.workers++;
+   const ready=await new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>finish(Error('Remux source initialization timed out')),10000);
+-   const finish=(error,data)=>{clearTimeout(timer);this.cancelWait=null;error?reject(error):resolve(data);};
+-   this.cancelWait=error=>finish(error);this.watchWorker(this.sourceWorker,generation,'source');this.sourceWorker.onmessage=({data})=>{if(generation!==this.generation)return;if(data.type==='refresh'){Promise.resolve().then(()=>{if(!this.source.refreshAuthorization)throw Error('Authorization refresh unavailable');return this.source.refreshAuthorization(data.resource);}).then(update=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',update});},error=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message);}};
++   let settled=false;
++   const finish=(error,data)=>{if(settled)return;settled=true;clearTimeout(timer);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve(data);};
++   const cancel=error=>finish(error);this.cancelWait=cancel;this.watchWorker(this.sourceWorker,generation,'source');this.sourceWorker.onmessage=({data})=>{if(generation!==this.generation||this.stopped||this.failedGeneration===generation)return;if(data.type==='refresh'){Promise.resolve().then(()=>{if(!this.source.refreshAuthorization)throw Error('Authorization refresh unavailable');return this.source.refreshAuthorization(data.resource);}).then(update=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',update});},error=>{if(generation===this.generation)this.sourceWorker?.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message);}};
+    const {refreshAuthorization,...source}=this.source;this.sourceWorker.postMessage({type:'init',mailbox:this.mailbox,...source,identity:this.identity});
+   });
+   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
+   this.identity??=ready.identity;this.total=ready.size;this.worker=new Worker(new URL('./native-remux-worker.js',import.meta.url),{type:'module'});this.stats.workers++;this.watchWorker(this.worker,generation,'mux');
+   this.cancelWait=null;const session={generation,target,sourceSize:ready.size,firstPlayableMs:null,firstPlayableSourceBytes:null};this.stats.sessions.push(session);if(this.stats.sessions.length>64)this.stats.sessions.shift();
+   this.worker.onmessage=({data})=>{
+-   if(generation!==this.generation){this.stats.discardedBytes+=data.buffer?.byteLength||0;return;}
++   if(generation!==this.generation||this.stopped||this.failedGeneration===generation){this.stats.discardedBytes+=data.buffer?.byteLength||0;return;}
+    if(data.type==='error'){this.fail(data.message);return;}
+    if(data.type==='log'){(this.logs??=[]).push(data.message);if(this.logs.length>32)this.logs.shift();return;}
+    if(data.stats)this.remuxStats=data.stats;if(data.buffer)this.stats.generatedBytes+=data.buffer.byteLength;
+@@ -83,7 +91,7 @@ export class RemuxPlayer {
+     if(this.stats.errors.length){reject(Error(this.stats.errors.at(-1)));return;}
+     // Initial decoder preroll can leave a short leading gap in the playable range.
+     if(this.ranges().some(([a,b])=>a<=target+0.5&&b>target+0.02)){
+-     this.targetReady=true;this.video.currentTime=target+this.timelineBias;
++     this.acceptedSource=this.source;this.acceptedGeneration=generation;this.targetReady=true;this.video.currentTime=target+this.timelineBias;
+      session.firstPlayableMs=performance.now()-begun;session.firstPlayableSourceBytes=this.sourceStats.fetchedBytes;
+      session.generatedBytes=this.remuxStats.generatedBytes;session.fetchedBytesAtLeastSourceSize=(this.sourceStats.fetchedBytes>=ready.size);
+      resolve();return;
+@@ -154,9 +162,30 @@ export class RemuxPlayer {
+   if(this.mailbox){const h=new Int32Array(this.mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}
+   this.sourceWorker?.postMessage({type:'close'});this.sourceWorker?.terminate();this.worker?.terminate();this.sourceWorker=this.worker=null;this.stats.workers=0;this.sb=null;
+  }
+- async seek(t){return this.restart(t);}
++ canSeekBuffered(t){
++  if(!this.bufferedSeeks||!Number.isFinite(t)||t<0||this.stopped||this.starting||!this.targetReady||this.failedGeneration===this.generation||this.acceptedGeneration!==this.generation||this.acceptedSource!==this.source||!this.sb||this.sb.updating||!['open','ended'].includes(this.media?.readyState))return false;
++  // Appended history is not playable coverage. Check both the media element's
++  // intersection and the current SourceBuffer after browser eviction/removal.
++  const media=this.video.buffered;
++  const range=this.ranges().find(([a,b])=>t>=a&&t+.25<b);
++  if(!range)return false;
++  const rap=this.raps.filter(r=>r<=t&&r>=range[0]-.001).at(-1);
++  if(rap===undefined)return false;
++  for(let i=0;i<media.length;i++)if(rap+this.timelineBias>=media.start(i)-.001&&t+this.timelineBias+.25<media.end(i))return true;
++  return false;
++ }
++ async seek(t){
++  if(this.canSeekBuffered(t)){
++   // Keep the producer's forward position. Only consumption moves backwards;
++   // using the previous target here would evict media at the new playhead.
++   this.target=t;this.video.currentTime=t+this.timelineBias;
++   this.stats.bufferedSeeks=(this.stats.bufferedSeeks??0)+1;
++   return {kind:'buffered',generation:this.generation,target:t};
++  }
++  return this.restart(t);
++ }
+  async play(){this.recoveryPlaying=true;if(this.starting)return;return this.video.play();}
+  pause(){this.recoveryPlaying=false;this.video.pause();}
+  snapshot(){return {stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
+- async destroy(){this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);}
++ async destroy(){if(this.stopped)return;this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);this.objectURL=null;}
+ }
+diff --git a/docs/OPTIMIZATION-INTEGRATION.md b/docs/OPTIMIZATION-INTEGRATION.md
+new file mode 100644
+index 0000000..45b7961
+--- /dev/null
++++ b/docs/OPTIMIZATION-INTEGRATION.md
+@@ -0,0 +1,213 @@
++# Optimization integration: local stage checkpoint
++
++This is **partial implementation, not completion of the optimization program**.
++Do not promote adaptation, Native ASS, or the new experimental options to general
++automatic admission. No new engine build, release qualification, physical A/V
++measurement, endurance result, or performance improvement is claimed.
++
++## Starting point and isolation
++
++Remote refs were fetched on 2026-09-15. `origin/main` remained
++`51f0792fa6c5229a8695d908006a0a573bfc1c10`; the integration branch
++`codex/optimization-integration` starts at saved streaming checkpoint
++`f2491f62c777fa55225aed9b0b7ecf2e340accf7` in a dedicated worktree.
++The original checkout and the adaptation laboratory were not modified.
++An existing `origin/HEAD.lock` prevented the first generic fetch; fetching the two
++explicit refs with remote HEAD following disabled succeeded without deleting it.
++No commit, push, merge, tag, or publication was performed.
++
++The original adaptation/risk-review laboratory was found at
++`/private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-adapt.QUfsHU`.
++Selected original source, patches, failure results and the edge fixture are copied
++under `results/optimization-integration/reference/`, with SHA-256 provenance.
++These are historical test references, excluded from runtime packaging.
++
++## Implemented stage
++
++- Conservative opt-in buffered remux seeks use **current** media and SourceBuffer
++  ranges, a retained random-access point, and accepted source/generation identity.
++  They preserve the worker, MediaSource and SourceBuffer. The consumer target moves
++  backwards without rewinding the producer or incorrectly evicting the new playhead.
++  Native waits for a target video-frame callback, not merely `seeked`, on this path.
++- MSE initialization removes its event listener and clears its deadline on success,
++  failure and cancellation. Source initialization accepts one completion only.
++  Failed-generation worker messages cannot negotiate a new buffer or append output.
++  Repeated remux destruction cannot revoke the same URL again.
++- Native scalar attenuation uses one media-element source and one GainNode output.
++  Gain 1 allocates no AudioContext on a new session. Play resumes a suspended
++  context; retirement disconnects nodes and closes it. Ordinary volume/mute stay
++  on the media element. Remote Native already requires CORS-clean media.
++- Hybrid can retain WebCodecs video with an explicitly admitted scalar mpv audio
++  filter. Constructor, dynamic setter, automatic selection and capabilities share
++  the feature policy. Unsupported chains go to Software in automatic mode or reject
++  in explicit Hybrid mode. They are never silently removed.
++- A finite internal plan registry names the accepted direct/remux/gain/Hybrid/filter/
++  Software plans and records source prerequisites, resources, fidelity and fallback.
++  Diagnostics expose the actual plan. This is an initial registry; it does not yet
++  implement all the requested source/feature/fidelity policy decisions.
++
++### Public API additions
++
++```js
++const player = new Player(container, {
++  experimentalBufferedNativeSeeks: true, // default false
++  experimentalHybridAudioFilters: true, // default false
++  audioFilters: 'lavfi=[volume=0.5]',
++});
++// Separately requested scalar attenuation (0..1, default 1):
++await player.setAudioGain(0.5);
++```
++
++`audioGain` is also a constructor option. It is experimental, not a claim of
++sample-exact final output. Native uses Web Audio; mpv routes use the scalar audio
++filter. `setAudioGain` uses the existing transactional replacement contract,
++preserving position, rate, mute and playback intent. It currently reopens the
++session; it is not an optimized live gain setter. Filters admitted on Hybrid are
++only `volume=N` and `lavfi=[volume=N]`, with finite decimal N from 0 through 1.
++`capabilities.features.audioGain` reports gain support; audio-filter availability
++still requires checking this documented qualified subset. Amplification,
++expressions, other filters and arbitrary chains are not newly admitted.
++
++The three public modes and existing default selection behavior are preserved.
++New buffered seeking and Hybrid filters remain explicitly experimental. No
++background Hybrid-to-Native handoff or per-open engine benchmark was added.
++
++## Timestamp blocker: reproduced, NOT fixed
++
++`experiments/optimization-integration/fixtures.py` generates eight small fixtures:
++B-frames 0/2 × start 0/2 seconds × matched/unequal audio duration. The unequal case
++has an awkward final audio-frame length. Commands and SHA-256 hashes are saved in
++`fixture-manifest.json`; packet/stream probes remain in `build/optimization-fixtures`.
++The original 8.1-second risk fixture is retained verbatim in the reference folder.
++
++`reproduce-timestamps.mjs` runs the **historical scratch worker**, read-only, using
++the original laboratory LibAV binary only as a reproducer. No benchmark binary is
++added to the product. All eight no-B-frame codec/case combinations convert; all
++eight B-frame combinations fail. Both original edge-fixture runs reproduce:
++
++```
++Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33600 >= 32528
++```
++
++The scratch worker reconstructs absent DTS from PTS. That is invalid for reordered
++video. The failure exists independently of the streaming checkpoint. Neither
++clamping DTS, dropping packets, video transcoding nor a blanket B-frame ban was
++implemented. A maintained adaptation pipeline must preserve demux decode order and
++rescale established timestamps, or explicitly reject unavailable timestamp
++information. There is no production adapter in this stage, so FLAC/Opus admission
++remains absent. The original scratch adapter also hard-codes AVC MIME, 90-second
++duration, stereo/48 kHz and restricted PCM assumptions; those are not ported.
++
++## Complete candidate inventory
++
++| Candidate | Stage status and gate |
++|---|---|
++| Buffered Native seeks | Implemented, opt-in; Chrome/Firefox short output/refill checks |
++| Hybrid scalar audio filters | Implemented, opt-in; dynamic reconfiguration and signal checks |
++| Other Hybrid audio filters | Deferred; per-filter latency/continuity qualification required |
++| Native Web Audio scalar gain | Implemented, explicit request; signal/mute/zero/restore checks |
++| Native ASS/libass overlay | Deferred; original loader and paused-resize patch preserved, not integrated |
++| Progressive FLAC adaptation | Blocked by timestamp, maintained codec build, transport and fidelity work |
++| Explicitly permitted Opus adaptation | Blocked; no implicit lossy permission or fallback |
++| Adaptation + ASS | Disabled, constituent plans unqualified |
++| Adaptation + gain | Disabled, adaptation unqualified |
++| Adaptation + ASS + gain | Disabled, constituent plans unqualified |
++| First versus steady fragment sizing | Deferred until a correct maintained adapter exists; historical evidence retained in lab |
++| FLAC encoder settings | Deferred; sample-exact adapter and end-to-end benchmark required |
++| Compiled module/worker reuse | Deferred; no cross-source reuse or credential state introduced |
++| Hybrid compressed-packet copies | Inspected; unchanged pending ownership/copy-cost measurement |
++| Packet/configuration adapters | Preserved; codec/configuration tests pass; no replacement claimed |
++| Software YUV/GPU | Existing experimental presenter preserved, RGB default; no new artifact built |
++| Arbitrary Native/Hybrid GPU effects | Separately gated follow-up |
++| Separate audio/video SourceBuffers | Separately gated follow-up |
++| WebCodecs audio decoding | Separately gated follow-up |
++| Authenticated unchanged-byte transport prototype | Not revived; no demonstrated win |
++| Routine Hybrid-to-Native handoff | Not revived |
++| Client video transcoding | Not introduced |
++| Independently clocked custom audio with Native video | Not introduced |
++
++## Fidelity, source identity and fallback
++
++Original-track direct playback and packet-copy remux retain their preference.
++There is no audio conversion, new downmix, sample-rate change or lossy adaptation
++permission. The scalar effect is a separately requested transformation, not an
++encoding fidelity claim. Existing browser/mpv output resampling remains governed
++by the existing backend behavior. Final speaker output and physical A/V sync were
++not measured.
++
++Existing operation serialization, source-scoped track identities, immutable range
++checks, resource limits, cancellation and fallback loop protection remain active.
++The plan registry does not supersede mpv's streaming scheduler or clock. Existing
++source/integrity errors retain their terminal handling. Broader error classification
++and authorization-refresh policy unification remain outstanding.
++
++## Streaming baseline preservation
++
++The saved modernization remains staged rather than installed into the root runtime.
++Root engines use mpv 0.40.0 / FFmpeg 7.1.1. The final saved overlay uses mpv 0.41.0 /
++FFmpeg 9.0.1, pinned libass and its maintained browser/AVIO patches. Neither lock nor
++patch collection was changed. TypeScript 5.9.3 and Playwright 1.58.2 remain pinned.
++The saved candidate-26 release/live qualification blockers remain open.
++
++`experiments/optimization-integration/prepare.py` first checks out the exact saved
++checkpoint in isolation, runs its unmodified `prepare.py --timeline`, then applies
++this stage's source delta. It does not weaken the saved hash guards or replace the
++manifest owner. A clean existing checkpoint can be supplied via `--checkpoint`.
++The resulting source needs its own matching engine build and browser qualification.
++**Do not use the root old engines with that modernized source.**
++
++Source assembly 01 failed because the archived private repository had no HEAD;
++02 fixes this using a detached checkout of the actual saved commit. Both attempts
++are preserved. Later assemblies reflect subsequent source changes.
++59 integrated transport/policy/retirement unit tests passed against assemblies 03
++and 04, and their TypeScript builds passed. No integrated runtime playback claim follows.
++
++## Validation and evidence
++
++Evidence lives under `results/optimization-integration/` and the existing harness
++result directories referenced by its logs. Initial build passed. The initial unit
++run had 25 passes plus a browser-harness setup failure from missing generated VP8/
++VP9 fixtures; that run was not a playback regression. The first aggregate streaming
++unit invocation omitted its required environment variables; its failures remain
++saved, followed by the correctly configured run.
++
++New contract tests fail on the missing buffered-seek implementation before the
++change, then pass afterward. Cancellation tests establish an outstanding MSE open
++before supersession/destroy and assert no late worker allocation. These are injected
++contracts, not real network-fault coverage.
++
++Short Chrome and Firefox checks cover Native direct/remux/gain, ordinary Hybrid,
++filtered Hybrid and Software. Buffered seeks retain identities, present the target
++frame while paused, and resume through refill. Scalar checks compare signal
++amplitudes, mute, zero gain, unity restoration and closed retired contexts. All
++cases assert worker/surface cleanup. Earlier harness mistakes (reading an absent
++`state.paused`, and fetching a fixture from a server-disallowed path) remain saved.
++No amplitude claim is inferred from the earlier visual-only runs.
++
++Root playback uses six verified existing engine assets. `runtime-reuse.json`
++records SHA-256 and correspondence to the 51f0792 release archive. Browser glue
++matches exactly except the saved diagnostic product rename. No newer Wasm is paired
++with older glue. The assembled streaming source is tested separately without
++borrowing these engines.
++
++Representative commands:
++
++```sh
++npm ci --ignore-scripts --no-audit --no-fund
++npm run build
++node --test tests/optimization-contracts.mjs tests/remux-buffering.mjs tests/native-selection.mjs
++python3 experiments/optimization-integration/fixtures.py
++node tests/optimization-playback.mjs
++BROWSER=firefox node tests/optimization-playback.mjs
++LAB_VENDOR=/path/to/preserved/lab/repo/web/adapt/vendor node experiments/optimization-integration/reproduce-timestamps.mjs
++python3 experiments/optimization-integration/prepare.py --output build/optimization-streaming-new
++INTEGRATION_ROOT=build/optimization-streaming-new/streaming RETAINED_WORKER=build/optimization-streaming-new/streaming/web/filter-retained-engine-worker.js node --test experiments/streaming-modernization/integration/*.test.mjs
++```
++
++There are **no new paired CPU/memory benchmarks**. Correctness checks and existing
++historical percentages are not performance evidence. The requested cold/warm
++open→10-second playback→destroy comparisons, full lifecycle/range-fault matrix,
++multi-audio adaptation, sample-exact output/drain, Native ASS/fullscreen/PiP,
++and final rebuilt streaming/browser suites remain outstanding. Safari and mobile
++are not qualified. This checkpoint delivers the implemented stages and preserves
++the unresolved work; it does not satisfy all requested completion gates.
+diff --git a/experiments/optimization-integration/fixtures.py b/experiments/optimization-integration/fixtures.py
+new file mode 100644
+index 0000000..5b5fb83
+--- /dev/null
++++ b/experiments/optimization-integration/fixtures.py
+@@ -0,0 +1,17 @@
++#!/usr/bin/env python3
++"""Generate controlled timestamp cases; native FFmpeg is fixture preparation only."""
++import itertools, subprocess, pathlib, json, hashlib
++out=pathlib.Path('build/optimization-fixtures');out.mkdir(parents=True,exist_ok=True)
++records=[]
++for bframes,offset,mismatch in itertools.product([0,2],[0,2],[False,True]):
++ name=f'b{bframes}-start{offset}-mismatch{int(mismatch)}';path=out/(name+'.mkv')
++ command=['ffmpeg','-hide_banner','-nostdin','-n','-f','lavfi','-i','testsrc2=size=160x90:rate=30:duration=3.1','-f','lavfi','-i',f'aevalsrc=0.1*sin(2*PI*440*t)|0.07*sin(2*PI*660*t):s=48000:d={2.417 if mismatch else 3.1}:c=stereo','-map','0:v','-map','1:a','-c:v','libx264','-preset','veryfast','-crf','24','-g','30','-bf',str(bframes),'-pix_fmt','yuv420p','-c:a','pcm_s24le','-output_ts_offset',str(offset),'-threads','2',str(path)]
++ if not path.exists():subprocess.run(command,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
++ probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-show_packets','-of','json',str(path)]))
++ (out/(name+'.json')).write_text(json.dumps(probe,indent=2)+'\n')
++ records.append({'name':name,'command':command,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'missingVideoDTS':sum(p['codec_type']=='video' and 'dts' not in p for p in probe['packets'])})
++pathlib.Path('results/optimization-integration/fixture-manifest.json').write_text(json.dumps(records,indent=2)+'\n')
++gain=out/'gain.mp4'
++command=['ffmpeg','-hide_banner','-nostdin','-n','-f','lavfi','-i','testsrc2=size=320x180:rate=30:duration=12','-f','lavfi','-i','sine=frequency=440:sample_rate=48000:duration=12','-c:v','libx264','-preset','ultrafast','-crf','28','-g','30','-bf','0','-pix_fmt','yuv420p','-c:a','aac','-b:a','128k','-threads','2',str(gain)]
++if not gain.exists():subprocess.run(command,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
++pathlib.Path('results/optimization-integration/gain-fixture.json').write_text(json.dumps({'command':command,'sha256':hashlib.sha256(gain.read_bytes()).hexdigest()},indent=2)+'\n')
+diff --git a/experiments/optimization-integration/prepare.py b/experiments/optimization-integration/prepare.py
+new file mode 100644
+index 0000000..b6dcfe5
+--- /dev/null
++++ b/experiments/optimization-integration/prepare.py
+@@ -0,0 +1,27 @@
++#!/usr/bin/env python3
++"""Apply the optimization delta after assembling the protected streaming checkpoint.
++No engines are reused here: this creates source requiring its own build/qualification.
++"""
++import argparse, hashlib, json, pathlib, subprocess, tarfile
++root=pathlib.Path(__file__).resolve().parents[2]
++p=argparse.ArgumentParser();p.add_argument('--output',required=True,type=pathlib.Path);p.add_argument('--checkpoint',type=pathlib.Path);args=p.parse_args()
++out=args.output.resolve()
++if out.exists():raise SystemExit('Output must be new')
++out.mkdir(parents=True)
++checkpoint='f2491f62c777fa55225aed9b0b7ecf2e340accf7'
++base=args.checkpoint.resolve() if args.checkpoint else out/'checkpoint'
++if not args.checkpoint:
++ subprocess.run(['git','clone','--shared','--no-checkout',str(root),str(base)],check=True)
++ subprocess.run(['git','checkout','--detach',checkpoint],cwd=base,check=True)
++assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=base,text=True).strip()==checkpoint
++assert not subprocess.check_output(['git','status','--porcelain'],cwd=base,text=True).strip(), 'Checkpoint must be clean'
++
++prepared=out/'streaming'
++subprocess.run(['python3',str(base/'experiments/streaming-modernization/prepare.py'),'--timeline','--output',str(prepared)],cwd=base,check=True)
++paths=['src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js']
++patch=subprocess.check_output(['git','diff',checkpoint,'--',*paths],cwd=root)
++(out/'optimization.patch').write_bytes(patch)
++subprocess.run(['git','apply','--unsafe-paths','--directory',str(prepared),str(out/'optimization.patch')],cwd=out,check=True)
++for name in ['src/internal/playback-plans.ts']:
++ (prepared/name).write_bytes((root/name).read_bytes())
++(out/'assembly.json').write_text(json.dumps({'checkpoint':checkpoint,'patchSHA256':hashlib.sha256(patch).hexdigest(),'status':'source-only; build and qualification required'},indent=2)+'\n')
+diff --git a/experiments/optimization-integration/reproduce-timestamps.mjs b/experiments/optimization-integration/reproduce-timestamps.mjs
+new file mode 100644
+index 0000000..a818f81
+--- /dev/null
++++ b/experiments/optimization-integration/reproduce-timestamps.mjs
+@@ -0,0 +1,32 @@
++// The historical LibAV binary is used ONLY to reproduce its failure. It is not
++// copied into the runtime, exported, packaged, or evidence for a new engine.
++import {createServer} from 'node:http';
++import {readFile,stat,writeFile} from 'node:fs/promises';
++import {resolve,basename} from 'node:path';
++import {chromium} from 'playwright';
++const vendor=process.env.LAB_VENDOR;
++if(!vendor)throw Error('Set LAB_VENDOR to the preserved laboratory web/adapt/vendor directory');
++const server=createServer(async(req,res)=>{
++ try{
++  if(req.url==='/'){res.end('<!doctype html><title>Timestamp reproducer</title>');return;}
++  const pathname=new URL(req.url,'http://localhost').pathname;
++  const file=pathname.startsWith('/web/adapt/vendor/')?resolve(vendor,basename(pathname)):pathname==='/worker.js'?resolve('results/optimization-integration/reference/web/worker.js'):pathname==='/edge.mkv'?resolve('results/optimization-integration/reference/web/edge.mkv'):pathname.startsWith('/fixtures/')?resolve('build/optimization-fixtures',basename(pathname)):null;
++  if(!file){res.writeHead(404);res.end();return;}
++  const size=(await stat(file)).size;const range=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range||'');
++  let start=0,end=size-1;if(range){start=+range[1];end=Math.min(+range[2],size-1);res.statusCode=206;res.setHeader('Content-Range',`bytes ${start}-${end}/${size}`);}
++  res.setHeader('Content-Length',end-start+1);res.setHeader('Accept-Ranges','bytes');res.setHeader('Content-Type',/\.m?js$/.test(file)?'application/javascript':file.endsWith('.wasm')?'application/wasm':'application/octet-stream');
++  if(req.method==='HEAD'){res.end();return;}res.end((await readFile(file)).subarray(start,end+1));
++ }catch(error){res.writeHead(500);res.end(String(error));}
++});await new Promise(r=>server.listen(0,'127.0.0.1',r));
++const origin=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
++try{
++ const fixtures=JSON.parse(await readFile('results/optimization-integration/fixture-manifest.json','utf8')).map(f=>'/fixtures/'+f.name+'.mkv');fixtures.push('/edge.mkv');
++ for(const fixture of fixtures)for(const codec of ['flac','opus']){
++  const page=await browser.newPage();await page.goto(origin);const logs=[];page.on('console',m=>logs.push(m.text()));
++  const result=await page.evaluate(async({fixture,codec})=>{
++   const worker=new Worker('/worker.js');let id=0;
++   const call=(type,extra={})=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('worker deadline')),15000);worker.onmessage=({data})=>{clearTimeout(timer);resolve(data)};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))};worker.postMessage({type,id:++id,gen:1,...extra})});
++   try{let reply=await call('init',{url:location.origin+fixture,codec,verifyLossless:codec==='flac'});for(let i=0;i<24&&!reply.error&&!reply.stats?.eof;i++)reply=await call('step');return {error:reply.error,stats:reply.stats};}catch(error){return {error:String(error)}}finally{worker.terminate();}
++  },{fixture,codec});results.push({fixture,codec,...result,logs});console.log(fixture,codec,result.error?'FAIL '+result.error.split('\n')[0]:'CONVERTED');await page.close();
++ }
++}finally{await browser.close();await new Promise(r=>server.close(r));await writeFile('results/optimization-integration/timestamp-reproduction.json',JSON.stringify({scope:'Historical scratch-worker reproduction; not production playback',results},null,2)+'\n');}
+diff --git a/src/internal/playback-plans.ts b/src/internal/playback-plans.ts
+new file mode 100644
+index 0000000..1c5356d
+--- /dev/null
++++ b/src/internal/playback-plans.ts
+@@ -0,0 +1,37 @@
++import type {PlaybackMode} from '../types.js';
++
++/** Finite execution plans; qualification is local to a feature, not a browser claim. */
++export const PLAYBACK_PLANS = Object.freeze(([
++  {id:'native-direct', mode:'native', video:'browser', audio:'original', qualification:'existing'},
++  {id:'native-remux', mode:'native', video:'packet-copy', audio:'packet-copy', qualification:'existing'},
++  {id:'native-direct-gain', mode:'native', video:'browser', audio:'web-audio-gain', qualification:'experimental'},
++  {id:'native-remux-gain', mode:'native', video:'packet-copy', audio:'web-audio-gain', qualification:'experimental'},
++  {id:'hybrid', mode:'hybrid', video:'webcodecs', audio:'mpv', qualification:'existing'},
++  {id:'hybrid-audio-filter', mode:'hybrid', video:'webcodecs', audio:'mpv-filter', qualification:'experimental'},
++  {id:'software', mode:'software', video:'ffmpeg', audio:'mpv', qualification:'existing'},
++] as const).map(plan=>Object.freeze({...plan,
++  source:plan.id.startsWith('native-remux')?'qualified random-access file and selected codec packaging':plan.mode==='native'?'browser-supported source and selected tracks':'existing mpv source/track contract',
++  prerequisites:plan.id.startsWith('native-remux')?'MSE, cross-origin isolation, qualified MIME':plan.mode==='native'?'HTMLMediaElement'+(plan.id.endsWith('gain')?', Web Audio and CORS-clean media':''):'cross-origin isolation'+(plan.mode==='hybrid'?', supported complete WebCodecs configuration':''),
++  subtitles:plan.mode==='native'?'browser text tracks':'mpv/libass',
++  fidelity:'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
++  resources:plan.mode==='native'?'existing bounded remux buffers when used; browser decoder allocations are opaque':'existing mpv allocation, PCM ring and retained-frame limits',
++  fallback:plan.mode==='software'?'terminal':'existing diagnosed-path fallback with source and user intent preserved',
++})));
++
++// Only the demonstrated scalar filter is admitted. Expressions, chains, channel
++// remapping, resampling, latency-changing filters and video filters are excluded.
++export function qualifiedAudioFilter(chain: string): boolean {
++  const match = /^(?:volume=([0-9]+(?:\.[0-9]+)?)|lavfi=\[volume=([0-9]+(?:\.[0-9]+)?)\])$/.exec(chain);
++  return !!match && Number(match[1] ?? match[2]) <= 1;
++}
++export function featureRejection(mode: PlaybackMode, features: {vf:string; af:string; toneMapping:string; hybridAudioFilters?:boolean}): string | undefined {
++  if (mode === 'software') return;
++  if (features.vf || features.toneMapping !== 'off') return 'Video filters and tone mapping require Software. Clear filters before leaving software mode.';
++  if (!features.af) return;
++  if (mode === 'native') return 'Audio filters require mpv. Clear filters before selecting Native.';
++  if (!features.hybridAudioFilters) return 'Hybrid audio filters require explicit experimental admission';
++  if (!qualifiedAudioFilter(features.af)) return 'This audio filter has not been qualified for Hybrid';
++}
++export function executionPlan(mode:PlaybackMode, packaging:unknown, audioFilter:string, gain=1) {
++  return PLAYBACK_PLANS.find(plan => plan.id === (mode === 'native' ? packaging === 'remux' ? gain!==1?'native-remux-gain':'native-remux' : gain!==1?'native-direct-gain':'native-direct' : mode === 'hybrid' && (audioFilter||gain!==1) ? 'hybrid-audio-filter' : mode))!;
++}
+diff --git a/tests/optimization-contracts.mjs b/tests/optimization-contracts.mjs
+new file mode 100644
+index 0000000..11d635b
+--- /dev/null
++++ b/tests/optimization-contracts.mjs
+@@ -0,0 +1,48 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {featureRejection, qualifiedAudioFilter, executionPlan} from '../web/generated/internal/playback-plans.js';
++import {RemuxPlayer} from '../web/native-remux-player.js';
++
++test('Hybrid scalar filtering is explicit and never admits unrelated effects',()=>{
++ for(const af of ['volume=0','volume=0.5','lavfi=[volume=0.5]']){
++  assert.equal(qualifiedAudioFilter(af),true);
++  assert.equal(featureRejection('hybrid',{vf:'',af,toneMapping:'off',hybridAudioFilters:true}),undefined);
++  assert.ok(featureRejection('native',{vf:'',af,toneMapping:'off',hybridAudioFilters:true}));
++  assert.ok(featureRejection('hybrid',{vf:'',af,toneMapping:'off'}));
++ }
++ for(const af of ['volume=2','volume=nan','volume=0.5,aresample=44100','lavfi=[volume=0.5];hflip','volume=t'])assert.equal(qualifiedAudioFilter(af),false);
++ assert.ok(featureRejection('hybrid',{vf:'hflip',af:'volume=0.5',toneMapping:'off',hybridAudioFilters:true}));
++ assert.equal(executionPlan('hybrid',null,'volume=0.5').id,'hybrid-audio-filter');
++});
++function player(){
++ const source={file:{}}, video={currentTime:3,buffered:{length:1,start:()=>1,end:()=>11}};
++ return Object.assign(Object.create(RemuxPlayer.prototype),{video,source,bufferedSeeks:true,acceptedSource:source,generation:4,acceptedGeneration:4,targetReady:true,stopped:false,starting:false,failedGeneration:undefined,media:{readyState:'open'},sb:{updating:false},timelineBias:1,raps:[0,2,4,6,8],ranges:()=>[[0,10]],target:8,stats:{bufferedSeeks:0}});
++}
++test('buffered admission requires live media coverage, retained RAP and current authority',()=>{
++ const p=player();assert.equal(p.canSeekBuffered(5),true);
++ p.video.buffered={length:2,start:i=>i?7:1,end:i=>i?11:4};assert.equal(p.canSeekBuffered(5),false);
++ p.video.buffered={length:1,start:()=>6,end:()=>11};assert.equal(p.canSeekBuffered(5.1),false);
++ p.raps=[6,8];assert.equal(p.canSeekBuffered(5.1),false);
++ p.raps=[4,6,8];p.video.buffered={length:1,start:()=>1,end:()=>11};p.acceptedGeneration=3;assert.equal(p.canSeekBuffered(5),false);
++ p.acceptedGeneration=4;p.source={file:{}};assert.equal(p.canSeekBuffered(5),false);
++});
++test('buffered seek keeps producer generation and resets the consumption target',async()=>{
++ const p=player();let restarts=0;p.restart=async()=>restarts++;
++ await p.seek(5);assert.equal(p.video.currentTime,6);assert.equal(p.target,5);assert.equal(p.generation,4);assert.equal(restarts,0);
++});
++
++test('destroy and supersession cancel outstanding MSE open before worker allocation',async t=>{
++ const original={MediaSource:globalThis.MediaSource,Worker:globalThis.Worker,create:URL.createObjectURL,revoke:URL.revokeObjectURL};
++ let allocations=0,revocations=0;
++ class Media extends EventTarget {listeners=0;addEventListener(...args){this.listeners++;super.addEventListener(...args)}removeEventListener(...args){this.listeners--;super.removeEventListener(...args)}}
++ globalThis.MediaSource=Media;globalThis.Worker=class {constructor(){allocations++}};URL.createObjectURL=()=> 'blob:test';URL.revokeObjectURL=()=>revocations++;
++ t.after(()=>{globalThis.MediaSource=original.MediaSource;globalThis.Worker=original.Worker;URL.createObjectURL=original.create;URL.revokeObjectURL=original.revoke});
++ const p=new RemuxPlayer({pause(){},removeAttribute(){},load(){}});
++ const first=p.open({file:{}});const firstRejected=assert.rejects(first,/Superseded/);const old=p.media;
++ assert.equal(old.listeners,1); // Barrier: the first open is awaiting sourceopen.
++ const second=p.open({file:{}});const secondRejected=assert.rejects(second,/Superseded/);const current=p.media;
++ assert.equal(old.listeners,0);assert.equal(current.listeners,1);
++ await p.destroy();await p.destroy();await Promise.all([firstRejected,secondRejected]);
++ old.dispatchEvent(new Event('sourceopen'));current.dispatchEvent(new Event('sourceopen'));
++ assert.equal(allocations,0);assert.equal(current.listeners,0);assert.equal(p.objectURL,null);assert.equal(revocations,2);
++});
+diff --git a/tests/optimization-playback.mjs b/tests/optimization-playback.mjs
+new file mode 100644
+index 0000000..4cfb5f3
+--- /dev/null
++++ b/tests/optimization-playback.mjs
+@@ -0,0 +1,68 @@
++import {chromium,firefox} from 'playwright';
++import {spawn} from 'node:child_process';
++import {mkdir,writeFile,readFile} from 'node:fs/promises';
++import assert from 'node:assert/strict';
++const name=process.env.BROWSER||'chrome';
++const out=`results/optimization-integration/playback-${name}-${Date.now()}`;await mkdir(out,{recursive:true});
++const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
++const origin=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('server timeout')),10000);server.on('error',reject);server.stdout.on('data',d=>{const m=String(d).match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(timer);resolve(m[0])}})});
++const browser=await (name==='firefox'?firefox:chromium).launch(name==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required'],ignoreDefaultArgs:['--mute-audio']});
++const result={browser:browser.version(),scope:'Short output and lifecycle checks, not performance or endurance',cases:[]};
++try{
++ for(const kind of ['native-direct','native-remux','native-gain','hybrid','hybrid-filter','software']){
++  const page=await browser.newPage();page.setDefaultTimeout(20000);const item={kind};result.cases.push(item);
++  try{
++   await page.route('**/optimization-signal.mp4',async route=>route.fulfill({contentType:'video/mp4',body:await readFile('build/optimization-fixtures/gain.mp4')}));
++   await page.goto(origin+'/examples/custom-controls.html');
++   await page.evaluate(async kind=>{
++    await window.player?.destroy();const {Player}=await import('/web/generated/index.js');
++    window.errors=[];window.player=new Player(document.querySelector('#surface'),{mode:kind.startsWith('native')?'native':kind.startsWith('hybrid')?'hybrid':'software',experimentalBufferedNativeSeeks:true,nativeRemux:kind==='native-remux'?'always':'auto',experimentalHybridAudioFilters:kind==='hybrid-filter',audioGain:kind==='native-gain'?0.5:1,audioFilters:kind==='hybrid-filter'?'lavfi=[volume=0.5]':''});
++    player.addEventListener('error',e=>errors.push(e.detail));
++    const b=await(await fetch(kind==='native-gain'||kind==='hybrid-filter'?'/optimization-signal.mp4':'/fixtures/example.mp4')).arrayBuffer();await player.open(new File([b],'example.mp4'));await player.play();
++   },kind);
++   await page.waitForFunction(()=>player.state.currentTime>.6);
++   await page.evaluate(()=>player.pause());
++   item.before=await page.evaluate(()=>player.diagnostics);
++   if(kind==='native-remux'){
++    await page.waitForFunction(()=>player.surface.buffered.length&&player.surface.buffered.end(0)>4);
++    item.seek=await page.evaluate(async()=>{
++     const backend=player.current.backend,r=backend.remux,worker=r.worker,media=r.media,sb=r.sb;
++     const target=2;const frame=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('correct frame timeout')),5000);const next=(_,m)=>{if(Math.abs(m.mediaTime-(target+r.timelineBias))<.15){clearTimeout(timer);resolve(m.mediaTime)}else player.surface.requestVideoFrameCallback(next)};player.surface.requestVideoFrameCallback(next)});
++     await player.seek(target);const presented=await frame;
++     return {presented,sameWorker:worker===r.worker,sameMedia:media===r.media,sameBuffer:sb===r.sb,paused:player.surface.paused,diagnostics:player.diagnostics};
++    });
++    assert.equal(item.seek.sameWorker,true);assert.equal(item.seek.sameMedia,true);assert.equal(item.seek.sameBuffer,true);assert.equal(item.seek.paused,true);
++    await page.evaluate(async()=>{await player.play()});await page.waitForFunction(()=>player.state.currentTime>5);await page.evaluate(()=>player.pause());
++   }
++   if(kind==='hybrid-filter'){
++    assert.equal(item.before.backend.decoder,'webcodecs');assert.equal(item.before.plan.id,'hybrid-audio-filter');
++    await page.evaluate(async()=>{await player.setAudioFilters('volume=0.25');await player.seek(2);await player.rate(1.25);});
++    assert.equal(await page.evaluate(()=>player.mode),'hybrid');
++    assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
++   }
++   if(kind==='native-gain'||kind==='hybrid-filter'){
++    item.signal=await page.evaluate(async kind=>{
++     const contexts=[];
++     const sample=async()=>{
++      await player.play();await new Promise(r=>setTimeout(r,300));
++      const backend=player.current.backend;let analyser;
++      if(kind==='native-gain'){contexts.push(backend.gainContext);analyser=backend.gainContext.createAnalyser();backend.gainNode.connect(analyser);}
++      const values=[];for(let i=0;i<8;i++){if(analyser){const data=new Float32Array(2048);analyser.getFloatTimeDomainData(data);values.push(Math.sqrt(data.reduce((a,b)=>a+b*b,0)/data.length));}else values.push(player.audioDiagnostics().rms);await new Promise(r=>setTimeout(r,25));}
++      if(analyser)backend.gainNode.disconnect(analyser);await player.pause();return values.sort((a,b)=>a-b)[4];
++     };
++     // Restore the same initial gain before comparing two fresh accepted plans.
++     if(kind==='hybrid-filter')await player.setAudioFilters('volume=0.5');
++     const half=await sample();
++     if(kind==='native-gain')await player.setAudioGain(.25);else await player.setAudioFilters('volume=0.25');
++     const quarter=await sample();await player.setMuted(true);const mute=await sample();await player.setMuted(false);
++     if(kind==='native-gain'){await player.setAudioGain(0);const zero=await sample();await player.setAudioGain(1);return {half,quarter,mute,zero,oldContexts:contexts.map(c=>c.state),restored:player.current.backend.gainContext===undefined};}
++     return {half,quarter,mute};
++    },kind);
++    assert.ok(item.signal.half>.005);assert.ok(Math.abs(item.signal.quarter/item.signal.half-.5)<.06);assert.ok(item.signal.mute<.00001);
++    if(kind==='native-gain'){assert.ok(item.signal.zero<.00001);assert.equal(item.signal.restored,true);assert.ok(item.signal.oldContexts.every(s=>s==='closed'));}
++   }
++   item.after=await page.evaluate(()=>({diagnostics:player.diagnostics,audio:player.audioDiagnostics(),errors}));assert.deepEqual(item.after.errors,[]);
++   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('#surface video,#surface canvas,iframe').count(),0);item.passed=true;
++  }catch(error){item.error=String(error.stack);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');console.log(kind,item.passed?'PASS':item.error);}
++ }
++}finally{await browser.close();server.kill();}
+diff --git a/web/generated/internal/playback-plans.d.ts b/web/generated/internal/playback-plans.d.ts
+new file mode 100644
+index 0000000..abdd3cd
+--- /dev/null
++++ b/web/generated/internal/playback-plans.d.ts
+@@ -0,0 +1,179 @@
++import type { PlaybackMode } from '../types.js';
++/** Finite execution plans; qualification is local to a feature, not a browser claim. */
++export declare const PLAYBACK_PLANS: readonly Readonly<{
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-direct";
++    mode: "native";
++    video: "browser";
++    audio: "original";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-remux";
++    mode: "native";
++    video: "packet-copy";
++    audio: "packet-copy";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-direct-gain";
++    mode: "native";
++    video: "browser";
++    audio: "web-audio-gain";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-remux-gain";
++    mode: "native";
++    video: "packet-copy";
++    audio: "web-audio-gain";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "hybrid";
++    mode: "hybrid";
++    video: "webcodecs";
++    audio: "mpv";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "hybrid-audio-filter";
++    mode: "hybrid";
++    video: "webcodecs";
++    audio: "mpv-filter";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "software";
++    mode: "software";
++    video: "ffmpeg";
++    audio: "mpv";
++    qualification: "existing";
++}>[];
++export declare function qualifiedAudioFilter(chain: string): boolean;
++export declare function featureRejection(mode: PlaybackMode, features: {
++    vf: string;
++    af: string;
++    toneMapping: string;
++    hybridAudioFilters?: boolean;
++}): string | undefined;
++export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number): Readonly<{
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-direct";
++    mode: "native";
++    video: "browser";
++    audio: "original";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-remux";
++    mode: "native";
++    video: "packet-copy";
++    audio: "packet-copy";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-direct-gain";
++    mode: "native";
++    video: "browser";
++    audio: "web-audio-gain";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "native-remux-gain";
++    mode: "native";
++    video: "packet-copy";
++    audio: "web-audio-gain";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "hybrid";
++    mode: "hybrid";
++    video: "webcodecs";
++    audio: "mpv";
++    qualification: "existing";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "hybrid-audio-filter";
++    mode: "hybrid";
++    video: "webcodecs";
++    audio: "mpv-filter";
++    qualification: "experimental";
++} | {
++    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
++    prerequisites: string;
++    subtitles: "browser text tracks" | "mpv/libass";
++    fidelity: "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
++    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
++    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
++    id: "software";
++    mode: "software";
++    video: "ffmpeg";
++    audio: "mpv";
++    qualification: "existing";
++}>;
+diff --git a/web/generated/internal/playback-plans.js b/web/generated/internal/playback-plans.js
+new file mode 100644
+index 0000000..22f032e
+--- /dev/null
++++ b/web/generated/internal/playback-plans.js
+@@ -0,0 +1,40 @@
++/** Finite execution plans; qualification is local to a feature, not a browser claim. */
++export const PLAYBACK_PLANS = Object.freeze([
++    { id: 'native-direct', mode: 'native', video: 'browser', audio: 'original', qualification: 'existing' },
++    { id: 'native-remux', mode: 'native', video: 'packet-copy', audio: 'packet-copy', qualification: 'existing' },
++    { id: 'native-direct-gain', mode: 'native', video: 'browser', audio: 'web-audio-gain', qualification: 'experimental' },
++    { id: 'native-remux-gain', mode: 'native', video: 'packet-copy', audio: 'web-audio-gain', qualification: 'experimental' },
++    { id: 'hybrid', mode: 'hybrid', video: 'webcodecs', audio: 'mpv', qualification: 'existing' },
++    { id: 'hybrid-audio-filter', mode: 'hybrid', video: 'webcodecs', audio: 'mpv-filter', qualification: 'experimental' },
++    { id: 'software', mode: 'software', video: 'ffmpeg', audio: 'mpv', qualification: 'existing' },
++].map(plan => Object.freeze({ ...plan,
++    source: plan.id.startsWith('native-remux') ? 'qualified random-access file and selected codec packaging' : plan.mode === 'native' ? 'browser-supported source and selected tracks' : 'existing mpv source/track contract',
++    prerequisites: plan.id.startsWith('native-remux') ? 'MSE, cross-origin isolation, qualified MIME' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
++    subtitles: plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
++    fidelity: 'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
++    resources: plan.mode === 'native' ? 'existing bounded remux buffers when used; browser decoder allocations are opaque' : 'existing mpv allocation, PCM ring and retained-frame limits',
++    fallback: plan.mode === 'software' ? 'terminal' : 'existing diagnosed-path fallback with source and user intent preserved',
++})));
++// Only the demonstrated scalar filter is admitted. Expressions, chains, channel
++// remapping, resampling, latency-changing filters and video filters are excluded.
++export function qualifiedAudioFilter(chain) {
++    const match = /^(?:volume=([0-9]+(?:\.[0-9]+)?)|lavfi=\[volume=([0-9]+(?:\.[0-9]+)?)\])$/.exec(chain);
++    return !!match && Number(match[1] ?? match[2]) <= 1;
++}
++export function featureRejection(mode, features) {
++    if (mode === 'software')
++        return;
++    if (features.vf || features.toneMapping !== 'off')
++        return 'Video filters and tone mapping require Software. Clear filters before leaving software mode.';
++    if (!features.af)
++        return;
++    if (mode === 'native')
++        return 'Audio filters require mpv. Clear filters before selecting Native.';
++    if (!features.hybridAudioFilters)
++        return 'Hybrid audio filters require explicit experimental admission';
++    if (!qualifiedAudioFilter(features.af))
++        return 'This audio filter has not been qualified for Hybrid';
++}
++export function executionPlan(mode, packaging, audioFilter, gain = 1) {
++    return PLAYBACK_PLANS.find(plan => plan.id === (mode === 'native' ? packaging === 'remux' ? gain !== 1 ? 'native-remux-gain' : 'native-remux' : gain !== 1 ? 'native-direct-gain' : 'native-direct' : mode === 'hybrid' && (audioFilter || gain !== 1) ? 'hybrid-audio-filter' : mode));
++}

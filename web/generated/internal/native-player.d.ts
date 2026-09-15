@@ -5,12 +5,21 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private video;
     private remuxPolicy;
     private assetBase;
+    private bufferedSeeks;
+    private audioAdaptation?;
+    private initialAudioTrack?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
+    private gainContext?;
+    private gainSource?;
+    private gainNode?;
+    private gainValue;
+    gain(value: number): Promise<void>;
     private destruction?;
     private opening;
     private remux?;
+    private adapted;
     private remuxSource?;
     private directFailure?;
     private shiftedCues;
@@ -21,7 +30,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | undefined, initialAudioTrack?: number | undefined);
     private emit;
     private assertActive;
     private wait;
@@ -29,6 +38,12 @@ export declare class NativePlayer extends EventTarget implements Backend {
     get diagnostics(): {
         path: string;
         plan: string;
+        audioProcessing: {
+            component: string;
+            gain: number;
+            contextState: AudioContextState | undefined;
+            baseLatency: number | undefined;
+        };
         directFailure: string | undefined;
         remux: Record<string, unknown> | undefined;
         position: number;
@@ -44,6 +59,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;
+    private seekPresented;
     rate(value: number): Promise<void>;
     volume(value: number): Promise<void>;
     selectTrack(type: TrackType, id: string): Promise<void>;

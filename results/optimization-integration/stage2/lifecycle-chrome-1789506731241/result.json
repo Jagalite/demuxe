@@ -1,0 +1,1019 @@
+{
+  "browser": "152.0.7977.83",
+  "cases": [
+    {
+      "kind": "bounded-local-gain",
+      "initial": {
+        "mode": "native",
+        "plan": {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "flac-lossless+web-audio-gain",
+          "qualification": "experimental",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "adapted-flac",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 53209,
+                  "at": 1238.4150000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52872,
+                  "at": 1241.530000001192,
+                  "generation": 2
+                },
+                {
+                  "bytes": 49811,
+                  "at": 1245.5750000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53095,
+                  "at": 1248.8550000041723,
+                  "generation": 2
+                },
+                {
+                  "bytes": 60053,
+                  "at": 1251.9500000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53499,
+                  "at": 1254.9100000113249,
+                  "generation": 2
+                },
+                {
+                  "bytes": 51684,
+                  "at": 1257.5400000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53807,
+                  "at": 1260.1450000107288,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50929,
+                  "at": 1263.0450000017881,
+                  "generation": 2
+                },
+                {
+                  "bytes": 62924,
+                  "at": 1265.8100000023842,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50140,
+                  "at": 1268.4350000023842,
+                  "generation": 2
+                }
+              ],
+              "generatedBytes": 593258,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 592023,
+              "peakBufferedBytesUpperBound": 592023,
+              "peakBufferedSeconds": 5.472,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 983.4250000119209
+                },
+                {
+                  "target": 0,
+                  "started": 1154.890000000596
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": null,
+                  "firstPlayableSourceBytes": null
+                },
+                {
+                  "generation": 2,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": 90.4750000089407,
+                  "firstPlayableSourceBytes": 524288,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 107316,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "cancellations": [
+                {
+                  "generatedBytes": 0,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 0,
+                  "sourceFetchedBytes": 327680,
+                  "inFlightOutputUpperBound": 8388608
+                }
+              ]
+            },
+            "source": {
+              "fetchedBytes": 1703936,
+              "requests": 26,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 65536,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 131072
+            },
+            "remux": {
+              "calls": 11,
+              "remuxMs": 99.63500003516674,
+              "generatedBytes": 593258,
+              "peakBatchBytes": 62924,
+              "heapBytes": 67108864,
+              "adaptation": {
+                "codec": "flac",
+                "videoPacketsCopied": 168,
+                "audioFramesDecoded": 258,
+                "audioSamplesDecoded": 264192,
+                "audioSamplesEncoded": 262656,
+                "audioPacketsEncoded": 57,
+                "sourceEnd": 5.633,
+                "videoFramesDecoded": 0,
+                "videoFramesEncoded": 0,
+                "sampleRate": 48000,
+                "channels": 2,
+                "bits": 24
+              }
+            },
+            "ranges": [
+              [
+                0,
+                5.472
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'"
+            ]
+          },
+          "position": 0,
+          "rendered": 4,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "idle": {
+        "mode": "native",
+        "plan": {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "flac-lossless+web-audio-gain",
+          "qualification": "experimental",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "adapted-flac",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 53209,
+                  "at": 1238.4150000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52872,
+                  "at": 1241.530000001192,
+                  "generation": 2
+                },
+                {
+                  "bytes": 49811,
+                  "at": 1245.5750000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53095,
+                  "at": 1248.8550000041723,
+                  "generation": 2
+                },
+                {
+                  "bytes": 60053,
+                  "at": 1251.9500000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53499,
+                  "at": 1254.9100000113249,
+                  "generation": 2
+                },
+                {
+                  "bytes": 51684,
+                  "at": 1257.5400000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53807,
+                  "at": 1260.1450000107288,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50929,
+                  "at": 1263.0450000017881,
+                  "generation": 2
+                },
+                {
+                  "bytes": 62924,
+                  "at": 1265.8100000023842,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50140,
+                  "at": 1268.4350000023842,
+                  "generation": 2
+                }
+              ],
+              "generatedBytes": 593258,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 592023,
+              "peakBufferedBytesUpperBound": 592023,
+              "peakBufferedSeconds": 5.472,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 983.4250000119209
+                },
+                {
+                  "target": 0,
+                  "started": 1154.890000000596
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": null,
+                  "firstPlayableSourceBytes": null
+                },
+                {
+                  "generation": 2,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": 90.4750000089407,
+                  "firstPlayableSourceBytes": 524288,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 107316,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "cancellations": [
+                {
+                  "generatedBytes": 0,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 0,
+                  "sourceFetchedBytes": 327680,
+                  "inFlightOutputUpperBound": 8388608
+                }
+              ]
+            },
+            "source": {
+              "fetchedBytes": 1703936,
+              "requests": 26,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 65536,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 131072
+            },
+            "remux": {
+              "calls": 11,
+              "remuxMs": 99.63500003516674,
+              "generatedBytes": 593258,
+              "peakBatchBytes": 62924,
+              "heapBytes": 67108864,
+              "adaptation": {
+                "codec": "flac",
+                "videoPacketsCopied": 168,
+                "audioFramesDecoded": 258,
+                "audioSamplesDecoded": 264192,
+                "audioSamplesEncoded": 262656,
+                "audioPacketsEncoded": 57,
+                "sourceEnd": 5.633,
+                "videoFramesDecoded": 0,
+                "videoFramesEncoded": 0,
+                "sampleRate": 48000,
+                "channels": 2,
+                "bits": 24
+              }
+            },
+            "ranges": [
+              [
+                0,
+                5.472
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'"
+            ]
+          },
+          "position": 0,
+          "rendered": 4,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "buffered": {
+        "sameWorker": true,
+        "sameGeneration": true,
+        "paused": true
+      },
+      "distant": {
+        "mode": "native",
+        "plan": {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "flac-lossless+web-audio-gain",
+          "qualification": "experimental",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "adapted-flac",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 53209,
+                  "at": 1238.4150000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52872,
+                  "at": 1241.530000001192,
+                  "generation": 2
+                },
+                {
+                  "bytes": 49811,
+                  "at": 1245.5750000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53095,
+                  "at": 1248.8550000041723,
+                  "generation": 2
+                },
+                {
+                  "bytes": 60053,
+                  "at": 1251.9500000029802,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53499,
+                  "at": 1254.9100000113249,
+                  "generation": 2
+                },
+                {
+                  "bytes": 51684,
+                  "at": 1257.5400000065565,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53807,
+                  "at": 1260.1450000107288,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50929,
+                  "at": 1263.0450000017881,
+                  "generation": 2
+                },
+                {
+                  "bytes": 62924,
+                  "at": 1265.8100000023842,
+                  "generation": 2
+                },
+                {
+                  "bytes": 50140,
+                  "at": 1268.4350000023842,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52666,
+                  "at": 2384.800000011921,
+                  "generation": 3
+                },
+                {
+                  "bytes": 53010,
+                  "at": 2388.7000000029802,
+                  "generation": 3
+                },
+                {
+                  "bytes": 58446,
+                  "at": 2392.795000001788,
+                  "generation": 3
+                },
+                {
+                  "bytes": 53099,
+                  "at": 2395.2300000041723,
+                  "generation": 3
+                },
+                {
+                  "bytes": 50579,
+                  "at": 2397.640000000596,
+                  "generation": 3
+                },
+                {
+                  "bytes": 53616,
+                  "at": 2400.410000011325,
+                  "generation": 3
+                },
+                {
+                  "bytes": 51885,
+                  "at": 2403.4900000095367,
+                  "generation": 3
+                },
+                {
+                  "bytes": 62615,
+                  "at": 2406.560000002384,
+                  "generation": 3
+                }
+              ],
+              "generatedBytes": 1030409,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 435916,
+              "peakBufferedBytesUpperBound": 592023,
+              "peakBufferedSeconds": 5.472,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 983.4250000119209
+                },
+                {
+                  "target": 0,
+                  "started": 1154.890000000596
+                },
+                {
+                  "target": 24,
+                  "started": 2329.8850000053644
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": null,
+                  "firstPlayableSourceBytes": null
+                },
+                {
+                  "generation": 2,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": 90.4750000089407,
+                  "firstPlayableSourceBytes": 524288,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 107316,
+                  "fetchedBytesAtLeastSourceSize": false
+                },
+                {
+                  "generation": 3,
+                  "target": 24,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": 70.5700000077486,
+                  "firstPlayableSourceBytes": 1311329,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 322651,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "cancellations": [
+                {
+                  "generatedBytes": 0,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 0,
+                  "sourceFetchedBytes": 327680,
+                  "inFlightOutputUpperBound": 8388608
+                },
+                {
+                  "adaptation": {
+                    "codec": "flac",
+                    "videoPacketsCopied": 168,
+                    "audioFramesDecoded": 258,
+                    "audioSamplesDecoded": 264192,
+                    "audioSamplesEncoded": 262656,
+                    "audioPacketsEncoded": 57,
+                    "sourceEnd": 5.633,
+                    "videoFramesDecoded": 0,
+                    "videoFramesEncoded": 0,
+                    "sampleRate": 48000,
+                    "channels": 2,
+                    "bits": 24
+                  },
+                  "generatedBytes": 593258,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 592023,
+                  "sourceFetchedBytes": 1703936,
+                  "inFlightOutputUpperBound": 8388608
+                }
+              ],
+              "bufferedSeeks": 1
+            },
+            "source": {
+              "fetchedBytes": 1639009,
+              "requests": 26,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 65536,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 131072
+            },
+            "remux": {
+              "calls": 8,
+              "remuxMs": 61.985000014305115,
+              "generatedBytes": 437151,
+              "peakBatchBytes": 62615,
+              "heapBytes": 67108864,
+              "adaptation": {
+                "codec": "flac",
+                "videoPacketsCopied": 122,
+                "audioFramesDecoded": 189,
+                "audioSamplesDecoded": 193536,
+                "audioSamplesEncoded": 193536,
+                "audioPacketsEncoded": 42,
+                "sourceEnd": 28.133,
+                "videoFramesDecoded": 0,
+                "videoFramesEncoded": 0,
+                "sampleRate": 48000,
+                "channels": 2,
+                "bits": 24
+              }
+            },
+            "ranges": [
+              [
+                24,
+                27.968
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 24,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'"
+            ]
+          },
+          "position": 24,
+          "rendered": 4,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "authenticated-range",
+      "diagnostics": {
+        "mode": "native",
+        "plan": {
+          "id": "native-flac",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "flac-lossless",
+          "qualification": "experimental",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "adapted-flac",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 53209,
+                  "at": 168.60499998927116,
+                  "generation": 2
+                },
+                {
+                  "bytes": 52872,
+                  "at": 171.6799999922514,
+                  "generation": 2
+                },
+                {
+                  "bytes": 49811,
+                  "at": 178.8699999898672,
+                  "generation": 2
+                },
+                {
+                  "bytes": 53095,
+                  "at": 183.47999998927116,
+                  "generation": 2
+                },
+                {
+                  "bytes": 60053,
+                  "at": 189.2800000011921,
+                  "generation": 2
+                }
+              ],
+              "generatedBytes": 270275,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 269040,
+              "peakBufferedBytesUpperBound": 269040,
+              "peakBufferedSeconds": 2.496,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 54.28000000119209
+                },
+                {
+                  "target": 0,
+                  "started": 115.23999999463558
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": null,
+                  "firstPlayableSourceBytes": null
+                },
+                {
+                  "generation": 2,
+                  "target": 0,
+                  "sourceSize": 9020488,
+                  "firstPlayableMs": 70.125,
+                  "firstPlayableSourceBytes": 655360,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64000B,flac\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 210222,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "cancellations": [
+                {
+                  "generatedBytes": 0,
+                  "pendingBytes": 0,
+                  "retainedCompressedBytesUpperBound": 0,
+                  "sourceFetchedBytes": 327680,
+                  "inFlightOutputUpperBound": 8388608
+                }
+              ]
+            },
+            "source": {
+              "fetchedBytes": 851968,
+              "requests": 13,
+              "retries": 0,
+              "aborts": 0,
+              "cacheBytes": 851968,
+              "peakCacheBytes": 851968,
+              "activeBytes": 0,
+              "peakActiveBytes": 65536
+            },
+            "remux": {
+              "calls": 5,
+              "remuxMs": 60.26000000536442,
+              "generatedBytes": 270275,
+              "peakBatchBytes": 60053,
+              "heapBytes": 67108864,
+              "adaptation": {
+                "codec": "flac",
+                "videoPacketsCopied": 78,
+                "audioFramesDecoded": 118,
+                "audioSamplesDecoded": 120832,
+                "audioSamplesEncoded": 119808,
+                "audioPacketsEncoded": 26,
+                "sourceEnd": 2.666,
+                "videoFramesDecoded": 0,
+                "videoFramesEncoded": 0,
+                "sampleRate": 48000,
+                "channels": 2,
+                "bits": 24
+              }
+            },
+            "ranges": [
+              [
+                0,
+                2.496
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'",
+              "[matroska,webm @ 0x44adb0] Failed to open codec in avformat_find_stream_info",
+              "[pcm_s24le @ 0x43cc30] Codec (pcm_s24le) not on whitelist 'demuxe_metadata_no_decode'"
+            ]
+          },
+          "position": 0,
+          "rendered": 4,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "range": "bytes=0-65535",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=65536-131071",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=131072-196607",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=196608-262143",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=262144-327679",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=0-65535",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=65536-131071",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=131072-196607",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=196608-262143",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=262144-327679",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=327680-393215",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=393216-458751",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=458752-524287",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=524288-589823",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=589824-655359",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=655360-720895",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=720896-786431",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=786432-851967",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=851968-917503",
+          "authorized": true
+        },
+        {
+          "method": "GET",
+          "range": "bytes=917504-983039",
+          "authorized": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "kind": "destroy-blocked-read",
+      "destroyMs": 105,
+      "requests": [
+        {
+          "method": "GET",
+          "range": "bytes=0-65535",
+          "authorized": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "kind": "incorrect-range",
+      "error": "Source transport: Error: Incoherent media range or changed length",
+      "requests": [
+        {
+          "method": "GET",
+          "range": "bytes=0-65535",
+          "authorized": true
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

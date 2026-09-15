@@ -1,0 +1,53 @@
+{
+  "status": "Three review findings fixed; wider optimization program still gated",
+  "findings": {
+    "P1_audio_tail": "Per-call decoded-audio budget plus prepared timeline cap; unsupported long unmatched MSE tails reject explicitly and remain playable via Hybrid",
+    "P2_track_identity": "Shared stream identity across remux/adapted-flac/mpv; public selection mapped before Native preparation",
+    "P2_low_frame_rate": "Frame callback registered before issuing seek; validates completed media position and presentation generation without fixed 150 ms PTS tolerance"
+  },
+  "tests": {
+    "reviewRegressions": {
+      "chrome": 3,
+      "firefox": 3
+    },
+    "rootContracts": 18,
+    "combinedStreamingContracts": 59,
+    "combinedTypeScriptBuild": "passed",
+    "fidelityChrome": 11,
+    "fidelityFirefox": 3,
+    "lifecycleChrome": 7,
+    "baselineChrome": 6,
+    "cleanConsumerChrome": 5,
+    "nativeRemuxFinal": {
+      "chrome": "passed",
+      "firefox": "passed"
+    }
+  },
+  "fidelityResults": [
+    "results/optimization-integration/stage2/adaptation-chrome-1789511106902/result.json",
+    "results/optimization-integration/stage2/adaptation-firefox-1789511286208/result.json",
+    "results/optimization-integration/stage2/adaptation-firefox-1789511358345/result.json"
+  ],
+  "lifecycleResult": "results/optimization-integration/stage2/lifecycle-chrome-1789511185701/result.json",
+  "failedHarnessAttempts": [
+    "Original low-fps reproducer reached its unrelated seek beyond fixture duration after the buffered fix passed",
+    "Firefox fixed-delay seek test overlapped buffer refill; final test waits for live admission",
+    "Old global append recorder mixed SourceBuffers during gain replacement; final recorder captures the accepted SourceBuffer only",
+    "Repeated browser test exposed a real missed-compositor-callback race in the first fix; final implementation registers before issuing seek and passes three cycles per browser"
+  ],
+  "runtime": "build/adaptation-modernized-02/engine-1789510964293461000",
+  "package": "build/optimization-package-08/demuxe-0.3.0-beta.3.tgz",
+  "packageSHA256": "2f76b531e539cb7a77fc0cab1f10bd3ebfa9b3bfebc8a38ab4385ab6975aaeee",
+  "report": "docs/OPTIMIZATION-REVIEW-FIXES.md",
+  "limits": [
+    "Native long unmatched tails require explicit alternative; not newly qualified",
+    "Automatic adaptation remains disabled",
+    "No new performance or endurance claim",
+    "Saved full streaming playback qualification remains open"
+  ],
+  "mutations": "No commit, push, merge, tag, publish or laboratory modification",
+  "finalRegressionLogs": [
+    "regressions-chrome-05.log",
+    "regressions-firefox-04.log"
+  ]
+}

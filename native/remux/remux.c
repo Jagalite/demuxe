@@ -1,4 +1,4 @@
-// Experimental FFmpeg packet-only bridge. No decoders or encoders are linked.
+// Packet-copy bridge; optional build profile adds selected-audio-only FLAC preparation.
 #include <emscripten.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/bsf.h>
@@ -80,7 +80,15 @@ static int configure_aac(AVCodecParameters*p,const uint8_t*adts,int n){
  p->sample_rate=rates[freq];p->frame_size=1024;if(p->ch_layout.nb_channels!=(channels==7?8:channels)){av_channel_layout_uninit(&p->ch_layout);av_channel_layout_default(&p->ch_layout,channels==7?8:channels);}snprintf(audio_codec,sizeof(audio_codec),"mp4a.40.%d",object);return 0;
 }
 
+#ifdef DEMUXE_AUDIO_ADAPTATION
+static int adapt_enabled;
+static int adaptation_describe(AVCodecParameters *p);
+EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1)return reject("Invalid adaptation policy");adapt_enabled=enabled;return 0;}
+#endif
 static int configure_audio(AVCodecParameters *p){
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ if(adapt_enabled)return adaptation_describe(p);
+#endif
  if(p->codec_id==AV_CODEC_ID_AAC)return configure_aac(p,NULL,0);
  const char *codec=p->codec_id==AV_CODEC_ID_MP3?"mp3":p->codec_id==AV_CODEC_ID_OPUS?"opus":p->codec_id==AV_CODEC_ID_VORBIS?"vorbis":p->codec_id==AV_CODEC_ID_FLAC?"flac":p->codec_id==AV_CODEC_ID_AC3?"ac-3":p->codec_id==AV_CODEC_ID_EAC3?"ec-3":NULL;
  if(!codec)return reject("Audio codec has no browser MP4 packet contract");
@@ -100,6 +108,9 @@ static void clear_prefetch(void){for(int i=0;i<prefetched;i++)av_packet_free(&pr
 static int video=-1,audio=-1,map[64],eof,is_ts,video_started;
 static int64_t position,total,aac_anchor,aac_count;
 static double fragment_start,origin;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+#include "../adaptation/flac.h"
+#endif
 static int idr(const AVPacket*q){
  if(generic_video)return !!(q->flags&AV_PKT_FLAG_KEY);
  const uint8_t*p=q->data;int n=q->size;
@@ -168,6 +179,9 @@ static int64_t seek_cb(void *opaque,int64_t offset,int whence){
 }
 static int write_cb(void *opaque,const uint8_t *src,int n){emit_bytes((uint8_t*)src,n);return n;}
 static void close_output(void){
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ adaptation_close();
+#endif
  if(out){out->pb=NULL;avformat_free_context(out);out=NULL;}
  if(output_io){av_freep(&output_io->buffer);avio_context_free(&output_io);}
  av_bsf_free(&audio_bsf);
@@ -181,6 +195,11 @@ static int open_input(double size){
  in->probesize=1024*1024;in->max_analyze_duration=1000000;in->max_index_size=4*1024*1024;
  int ret=avformat_open_input(&in,NULL,NULL,NULL);if(ret<0)return ret;
  if(in->nb_streams>64)return AVERROR(EINVAL);
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ // Metadata discovery must not secretly decode unselected audio (or video).
+ // Manual selected-audio decoding uses its own codec context below.
+ if(adapt_enabled){in->codec_whitelist=av_strdup("demuxe_metadata_no_decode");if(!in->codec_whitelist)return AVERROR(ENOMEM);}
+#endif
  ret=avformat_find_stream_info(in,NULL);if(ret<0)return ret;
  return 0;
 }
@@ -276,6 +295,9 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
  if(target>0){if(is_ts){int r=seek_ts(target);if(r<0)return r;}else{clear_prefetch();int r=av_seek_frame(in,seek_stream,(int64_t)((target+origin)/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}}
  else if(position>0&&target<0){int r=av_seek_frame(in,seek_stream,(int64_t)(origin/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}
  int r=audio>=0?configure_audio(in->streams[audio]->codecpar):0;if(r<0)return r;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ if(adapt_enabled){r=adaptation_open();if(r<0)return r;}
+#endif
  r=avformat_alloc_output_context2(&out,NULL,mux_webm?"webm":"mp4",NULL);if(r<0)return r;
  output_io=avio_alloc_context(av_malloc(65536),65536,1,NULL,NULL,write_cb,NULL);if(!output_io)return AVERROR(ENOMEM);
  out->pb=output_io;out->flags|=AVFMT_FLAG_CUSTOM_IO;out->avoid_negative_ts=AVFMT_AVOID_NEG_TS_DISABLED;out->strict_std_compliance=FF_COMPLIANCE_EXPERIMENTAL;
@@ -294,6 +316,9 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
   if((int)i!=video&&(int)i!=audio)continue;
   AVStream *s=avformat_new_stream(out,NULL);map[i]=s->index;
   avcodec_parameters_copy(s->codecpar,in->streams[i]->codecpar);s->codecpar->codec_tag=0;s->time_base=in->streams[i]->time_base;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+  if(adapt_enabled&&(int)i==audio){r=avcodec_parameters_from_context(s->codecpar,adapt_encoder);if(r<0)return r;s->time_base=adapt_encoder->time_base;}
+#endif
   // Codec parameter coded side data (rotation/color) is copied by avcodec_parameters_copy.
   s->sample_aspect_ratio=in->streams[i]->sample_aspect_ratio;
   s->avg_frame_rate=in->streams[i]->avg_frame_rate;s->r_frame_rate=in->streams[i]->r_frame_rate;
@@ -311,9 +336,16 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
 }
 EMSCRIPTEN_KEEPALIVE int rm_step(void){
  if(eof)return 0;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ int64_t step_audio_start=adapt_decoded_samples;
+#endif
  for(int count=0;count<20000;count++){
   int r;if(prefetch_at<prefetched){av_packet_move_ref(packet,prefetch[prefetch_at++]);r=0;}else r=av_read_frame(in,packet);
-  if(r==AVERROR_EOF){int t=av_write_trailer(out);if(t<0)return t;avio_flush(output_io);eof=1;return 0;}
+  if(r==AVERROR_EOF){
+#ifdef DEMUXE_AUDIO_ADAPTATION
+   if(adapt_enabled){int end=adaptation_finish();if(end<0)return end;}
+#endif
+   int t=av_write_trailer(out);if(t<0)return t;avio_flush(output_io);eof=1;return 0;}
   if(r<0)return r;
   int idx=packet->stream_index;
   if(idx>=64||map[idx]<0){av_packet_unref(packet);continue;}
@@ -348,14 +380,38 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
   if(packet->pts!=AV_NOPTS_VALUE)packet->pts-=shift;
   if(packet->dts!=AV_NOPTS_VALUE)packet->dts-=shift;
   if(packet->dts<0)return AVERROR(ERANGE);
-  av_packet_rescale_ts(packet,src->time_base,dst->time_base);packet->stream_index=map[idx];packet->pos=-1;
-  r=av_interleaved_write_frame(out,packet);if(r<0)return r;
-  if(idx==(video>=0?video:audio)&&time-fragment_start>=0.5){
-   if(!mux_webm)av_interleaved_write_frame(out,NULL);
+#ifdef DEMUXE_AUDIO_ADAPTATION
+  if(adapt_enabled){
+   double end=(packet->pts+packet->duration)*av_q2d(src->time_base)-1.0;
+   if(end>adapt_last_end)adapt_last_end=end;
+  }
+  if(adapt_enabled&&idx==audio){r=adaptation_packet(packet);av_packet_unref(packet);}
+  else
+#endif
+  {
+   av_packet_rescale_ts(packet,src->time_base,dst->time_base);packet->stream_index=map[idx];packet->pos=-1;
+   r=av_interleaved_write_frame(out,packet);
+#ifdef DEMUXE_AUDIO_ADAPTATION
+   if(adapt_enabled&&idx==video)adapt_video_packets++;
+#endif
+  }
+  if(r<0)return r;
+  int boundary=idx==(video>=0?video:audio)&&time-fragment_start>=0.5;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+  // A video track may finish long before audio. Bound decoding per call even
+  // without another video packet; normal encoding remains continuous.
+  if(adapt_enabled&&adapt_decoded_samples-step_audio_start>=adapt_encoder->sample_rate/2)boundary=1;
+#endif
+  if(boundary){
+   if(!mux_webm){r=av_interleaved_write_frame(out,NULL);if(r<0)return r;}
    // Do not cut a video WebM cluster immediately after its first keyframe.
    // Let the muxer close clusters before the following boundary/keyframe.
    r=mux_webm&&video>=0?0:av_write_frame(out,NULL);
-   avio_flush(output_io);fragment_start=time;return r<0?r:1;
+   avio_flush(output_io);fragment_start=time;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+   if(adapt_enabled)adaptation_stats();
+#endif
+   return r<0?r:1;
   }
  }
  return AVERROR(EOVERFLOW);

@@ -3,12 +3,43 @@ export class NativePlayer extends EventTarget {
     video;
     remuxPolicy;
     assetBase;
+    bufferedSeeks;
+    audioAdaptation;
+    initialAudioTrack;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
+    gainContext;
+    gainSource;
+    gainNode;
+    gainValue = 1;
+    async gain(value) {
+        this.assertActive();
+        if (!Number.isFinite(value) || value < 0 || value > 1)
+            throw new Error('Gain must be between 0 and 1');
+        if (!this.gainContext && value !== 1) {
+            const context = new AudioContext();
+            try {
+                const source = context.createMediaElementSource(this.video), gain = context.createGain();
+                source.connect(gain);
+                gain.connect(context.destination);
+                this.gainContext = context;
+                this.gainSource = source;
+                this.gainNode = gain;
+            }
+            catch (error) {
+                await context.close();
+                throw error;
+            }
+        }
+        if (this.gainNode)
+            this.gainNode.gain.setValueAtTime(value, this.gainContext.currentTime);
+        this.gainValue = value;
+    }
     destruction;
     opening = false;
     remux;
+    adapted = false;
     remuxSource;
     directFailure;
     shiftedCues = new WeakSet();
@@ -19,11 +50,14 @@ export class NativePlayer extends EventTarget {
     subsVisible = true;
     cancelers = new Set();
     listeners = [];
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url)) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
         this.assetBase = assetBase;
+        this.bufferedSeeks = bufferedSeeks;
+        this.audioAdaptation = audioAdaptation;
+        this.initialAudioTrack = initialAudioTrack;
         video.playsInline = true;
         video.preload = 'auto';
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -90,7 +124,7 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(); return { path: 'native', plan: this.remux ? 'remux' : 'direct', directFailure: this.directFailure, remux: this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(); return { path: 'native', plan: this.remux ? (this.adapted ? 'adapted-flac' : 'remux') : 'direct', audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux: this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
         await this.wait('loadeddata', () => { this.video.src = url; this.video.load(); });
         this.refresh();
@@ -105,17 +139,31 @@ export class NativePlayer extends EventTarget {
         const moduleURL = new URL('web/native-remux-player.js', this.assetBase).href;
         const { RemuxPlayer } = await import(moduleURL);
         this.assertActive();
-        this.remux ??= new RemuxPlayer(this.video);
-        this.remux.onError = message => { if (!this.opening && !this.stopped)
-            this.emit('error', message); };
         const { refreshAuthorization, ...options } = source.options ?? {};
         const transport = { ...source, ...(source.options ? { options: options } : {}), refreshAuthorization };
-        await this.remux.open(transport, target);
+        const attempt = async (adapted) => {
+            this.assertActive();
+            this.adapted = adapted;
+            this.remux ??= new RemuxPlayer(this.video, { bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? 'flac' : undefined });
+            this.remux.audioAdaptation = adapted ? 'flac' : undefined;
+            this.remux.onError = message => { if (!this.opening && !this.stopped)
+                this.emit('error', message); };
+            await this.remux.open(transport, target);
+            this.assertActive();
+        };
+        try {
+            await attempt(false);
+        }
+        catch (error) {
+            if (this.stopped || this.audioAdaptation !== 'flac' || !String(error).includes('Audio codec has no browser MP4 packet contract'))
+                throw error;
+            await attempt(true);
+        }
         this.remuxSource = source;
         if (this.video.seeking)
             await this.wait('seeked', () => { });
         this.refresh();
-        this.emit('source', { plan: 'remux', tracks: this.remux.tracks });
+        this.emit('source', { plan: this.adapted ? 'adapted-flac' : 'remux', tracks: this.remux.tracks });
         this.emit('mpv', { event: 'file-loaded' });
     }
     async loadPlan(source, direct, requiresRemux = false) {
@@ -146,7 +194,7 @@ export class NativePlayer extends EventTarget {
         const local = file instanceof File ? file : new File([file], 'media');
         this.objectURL = URL.createObjectURL(local);
         try {
-            await this.loadPlan({ file: local }, () => this.load(this.objectURL));
+            await this.loadPlan({ file: local, audioTrack: this.initialAudioTrack }, () => this.load(this.objectURL));
         }
         catch (error) {
             URL.revokeObjectURL(this.objectURL);
@@ -161,7 +209,7 @@ export class NativePlayer extends EventTarget {
             throw Error('Remote sources require HTTP or HTTPS');
         const requiresRemux = !!(source.headers || source.refreshAuthorization || source.allowedOrigins || source.immutable !== undefined || source.credentials === 'omit');
         this.video.crossOrigin = source.credentials === 'include' ? 'use-credentials' : 'anonymous';
-        await this.loadPlan({ options: { ...source, url: url.href } }, async () => {
+        await this.loadPlan({ options: { ...source, url: url.href }, audioTrack: this.initialAudioTrack }, async () => {
             if (source.format && source.format !== 'file') {
                 const mime = source.format === 'hls' ? 'application/vnd.apple.mpegurl' : 'application/dash+xml';
                 if (!this.video.canPlayType(mime))
@@ -170,7 +218,8 @@ export class NativePlayer extends EventTarget {
             await this.load(url.href);
         }, requiresRemux);
     }
-    async play() { this.assertActive(); if (this.remux)
+    async play() { this.assertActive(); if (this.gainContext?.state === 'suspended')
+        await this.gainContext.resume(); this.assertActive(); if (this.remux)
         await this.remux.play();
     else
         await this.video.play(); this.refresh(); }
@@ -182,7 +231,12 @@ export class NativePlayer extends EventTarget {
         this.assertActive();
         if (this.remux) {
             const paused = this.video.paused;
-            await this.remux.seek(seconds);
+            if (this.remux.canSeekBuffered?.(seconds) && this.video.videoWidth && Math.abs(this.sourceTime() - seconds) > .001) {
+                await this.seekPresented(seconds, () => this.remux.seek(seconds));
+            }
+            else
+                await this.remux.seek(seconds);
+            this.assertActive();
             if (this.video.seeking)
                 await this.wait('seeked', () => { });
             if (!paused)
@@ -194,6 +248,38 @@ export class NativePlayer extends EventTarget {
             return;
         await this.wait('seeked', () => { this.video.currentTime = seconds; });
         this.refresh();
+    }
+    seekPresented(target, action) {
+        return new Promise((resolve, reject) => {
+            let frame = 0, accepted = false, completed = false, finished = false;
+            const presentation = this.remux, generation = presentation?.generation, mediaTarget = target + (presentation?.timelineBias ?? 0);
+            const finish = (error) => { if (finished)
+                return; finished = true; clearTimeout(timer); this.video.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
+            const cancel = (error) => finish(error);
+            const timer = setTimeout(() => finish(new Error('Native seek did not present the target')), 10000);
+            const next = (_, metadata) => {
+                if (this.stopped || this.remux !== presentation || presentation?.generation !== generation) {
+                    finish(new Error('Native seek presentation was retired'));
+                    return;
+                }
+                // The browser selects the frame covering currentTime. Its PTS may be
+                // far earlier for low-frame-rate/VFR content. Accept only a callback
+                // registered before issuing the seek and delivered after seek completion.
+                if (!this.video.seeking && Math.abs(this.video.currentTime - mediaTarget) < .001 && metadata.mediaTime <= mediaTarget + .001) {
+                    accepted = true;
+                    if (completed)
+                        finish();
+                }
+                else
+                    frame = this.video.requestVideoFrameCallback(next);
+            };
+            // Register before currentTime changes: the compositor callback may precede
+            // the queued DOM seeking/seeked events, especially for buffered media.
+            this.cancelers.add(cancel);
+            frame = this.video.requestVideoFrameCallback(next);
+            action().then(() => { completed = true; if (accepted)
+                finish(); }, error => finish(error));
+        });
     }
     async rate(value) { this.assertActive(); this.video.defaultPlaybackRate = value; this.video.playbackRate = value; this.refresh(); }
     async volume(value) { this.assertActive(); this.video.volume = value / 100; this.refresh(); }
@@ -312,6 +398,10 @@ export class NativePlayer extends EventTarget {
         for (const cancel of this.cancelers)
             cancel(new Error('Player is destroyed'));
         await this.remux?.destroy();
+        this.gainSource?.disconnect();
+        this.gainNode?.disconnect();
+        if (this.gainContext)
+            await this.gainContext.close();
         this.listeners.forEach(remove => remove());
         this.listeners = [];
         this.video.pause();

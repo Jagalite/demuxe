@@ -1,0 +1,1825 @@
+{
+  "browser": "152.0.7977.83",
+  "scope": "Short output and lifecycle checks, not performance or endurance",
+  "cases": [
+    {
+      "kind": "native-direct",
+      "before": {
+        "mode": "native",
+        "plan": {
+          "id": "native-direct",
+          "mode": "native",
+          "video": "browser",
+          "audio": "original",
+          "qualification": "existing",
+          "source": "browser-supported source and selected tracks",
+          "prerequisites": "HTMLMediaElement",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "direct",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "position": 0.736105,
+          "rendered": 28,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "position": 0.736105,
+            "rendered": 28,
+            "dropped": 0,
+            "readyState": 4
+          }
+        },
+        "audio": {
+          "state": "paused",
+          "source": "native",
+          "decodedSampleCountersAvailable": false
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "kind": "native-remux",
+      "before": {
+        "mode": "native",
+        "plan": {
+          "id": "native-remux",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "packet-copy",
+          "qualification": "existing",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "remux",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "remux": {
+            "stats": {
+              "fragments": [
+                {
+                  "bytes": 70845,
+                  "at": 133.48000000417233,
+                  "generation": 1
+                },
+                {
+                  "bytes": 54526,
+                  "at": 134.24000000953674,
+                  "generation": 1
+                },
+                {
+                  "bytes": 53996,
+                  "at": 134.59500001370907,
+                  "generation": 1
+                },
+                {
+                  "bytes": 62766,
+                  "at": 134.95000000298023,
+                  "generation": 1
+                },
+                {
+                  "bytes": 57658,
+                  "at": 135.95500001311302,
+                  "generation": 1
+                },
+                {
+                  "bytes": 56775,
+                  "at": 136.22000001370907,
+                  "generation": 1
+                },
+                {
+                  "bytes": 58318,
+                  "at": 136.5050000101328,
+                  "generation": 1
+                },
+                {
+                  "bytes": 65555,
+                  "at": 136.77500000596046,
+                  "generation": 1
+                },
+                {
+                  "bytes": 53532,
+                  "at": 138.27500000596046,
+                  "generation": 1
+                },
+                {
+                  "bytes": 52401,
+                  "at": 138.58500000834465,
+                  "generation": 1
+                },
+                {
+                  "bytes": 53231,
+                  "at": 172.84000000357628,
+                  "generation": 1
+                },
+                {
+                  "bytes": 63067,
+                  "at": 773.7550000101328,
+                  "generation": 1
+                }
+              ],
+              "generatedBytes": 703932,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 702670,
+              "peakBufferedBytesUpperBound": 702670,
+              "peakBufferedSeconds": 6.016166,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 70.63000001013279
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 1372304,
+                  "firstPlayableMs": 75.84999999403954,
+                  "firstPlayableSourceBytes": 839489,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.64001E,mp4a.40.2\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 587634,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": []
+            },
+            "source": {
+              "fetchedBytes": 839489,
+              "requests": 5,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 252568,
+              "peakChunkBytes": 131072,
+              "peakOwnedBytes": 383640
+            },
+            "remux": {
+              "calls": 12,
+              "remuxMs": 44.90999998152256,
+              "generatedBytes": 703932,
+              "peakBatchBytes": 70845,
+              "heapBytes": 67108864
+            },
+            "ranges": [
+              [
+                0,
+                6.016166
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0.722664,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[mov,mp4,m4a,3gp,3g2,mj2 @ 0x3034a0] Protocol name not provided, cannot determine if input is local or a network protocol, buffers and access patterns cannot be configured optimally without knowing the protocol",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 24528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 32528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 40528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 48528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 56528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 64528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 72528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 80528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 88528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 96528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value",
+              "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 104528 is out of range",
+              "[mp4 @ 0x2fd940] pts has no value"
+            ]
+          },
+          "position": 0.722664,
+          "rendered": 26,
+          "dropped": 1,
+          "readyState": 4
+        }
+      },
+      "seek": {
+        "presented": 3,
+        "sameWorker": true,
+        "sameMedia": true,
+        "sameBuffer": true,
+        "paused": true,
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-remux",
+            "mode": "native",
+            "video": "packet-copy",
+            "audio": "packet-copy",
+            "qualification": "existing",
+            "source": "qualified random-access file and selected codec packaging",
+            "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "remux",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "remux": {
+              "stats": {
+                "fragments": [
+                  {
+                    "bytes": 70845,
+                    "at": 133.48000000417233,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 54526,
+                    "at": 134.24000000953674,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53996,
+                    "at": 134.59500001370907,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 62766,
+                    "at": 134.95000000298023,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 57658,
+                    "at": 135.95500001311302,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 56775,
+                    "at": 136.22000001370907,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 58318,
+                    "at": 136.5050000101328,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 65555,
+                    "at": 136.77500000596046,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53532,
+                    "at": 138.27500000596046,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 52401,
+                    "at": 138.58500000834465,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53231,
+                    "at": 172.84000000357628,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 63067,
+                    "at": 773.7550000101328,
+                    "generation": 1
+                  }
+                ],
+                "generatedBytes": 703932,
+                "discardedBytes": 0,
+                "peakQueueDepth": 1,
+                "bufferedBytesUpperBound": 702670,
+                "peakBufferedBytesUpperBound": 702670,
+                "peakBufferedSeconds": 6.016166,
+                "seeks": [
+                  {
+                    "target": 0,
+                    "started": 70.63000001013279
+                  }
+                ],
+                "sessions": [
+                  {
+                    "generation": 1,
+                    "target": 0,
+                    "sourceSize": 1372304,
+                    "firstPlayableMs": 75.84999999403954,
+                    "firstPlayableSourceBytes": 839489,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64001E,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 587634,
+                    "fetchedBytesAtLeastSourceSize": false
+                  }
+                ],
+                "errors": [],
+                "workers": 2,
+                "recoveries": [],
+                "gapSkips": [],
+                "bufferedSeeks": 1
+              },
+              "source": {
+                "fetchedBytes": 839489,
+                "requests": 5,
+                "aborts": 0,
+                "discardedBytes": 0,
+                "cacheBytes": 0,
+                "peakCacheBytes": 0,
+                "activeBytes": 0,
+                "peakActiveBytes": 252568,
+                "peakChunkBytes": 131072,
+                "peakOwnedBytes": 383640
+              },
+              "remux": {
+                "calls": 12,
+                "remuxMs": 44.90999998152256,
+                "generatedBytes": 703932,
+                "peakBatchBytes": 70845,
+                "heapBytes": 67108864
+              },
+              "ranges": [
+                [
+                  0,
+                  6.016166
+                ]
+              ],
+              "timelineBias": 1,
+              "position": 2,
+              "quality": {},
+              "readyState": 4,
+              "logs": [
+                "[mov,mp4,m4a,3gp,3g2,mj2 @ 0x3034a0] Protocol name not provided, cannot determine if input is local or a network protocol, buffers and access patterns cannot be configured optimally without knowing the protocol",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 24528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 32528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 40528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 48528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 56528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 64528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 72528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 80528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 88528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 96528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 104528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value"
+              ]
+            },
+            "position": 2,
+            "rendered": 31,
+            "dropped": 1,
+            "readyState": 4
+          }
+        }
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-remux",
+            "mode": "native",
+            "video": "packet-copy",
+            "audio": "packet-copy",
+            "qualification": "existing",
+            "source": "qualified random-access file and selected codec packaging",
+            "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "remux",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "remux": {
+              "stats": {
+                "fragments": [
+                  {
+                    "bytes": 70845,
+                    "at": 133.48000000417233,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 54526,
+                    "at": 134.24000000953674,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53996,
+                    "at": 134.59500001370907,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 62766,
+                    "at": 134.95000000298023,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 57658,
+                    "at": 135.95500001311302,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 56775,
+                    "at": 136.22000001370907,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 58318,
+                    "at": 136.5050000101328,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 65555,
+                    "at": 136.77500000596046,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53532,
+                    "at": 138.27500000596046,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 52401,
+                    "at": 138.58500000834465,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 53231,
+                    "at": 172.84000000357628,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 63067,
+                    "at": 773.7550000101328,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 56411,
+                    "at": 973.4600000083447,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 57038,
+                    "at": 974.234999999404,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 57160,
+                    "at": 1073.1600000113249,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 64383,
+                    "at": 1573.2600000053644,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 52824,
+                    "at": 2073.190000012517,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 51208,
+                    "at": 2573.3650000095367,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 54327,
+                    "at": 3071.359999999404,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 61704,
+                    "at": 3573.0100000053644,
+                    "generation": 1
+                  },
+                  {
+                    "bytes": 56564,
+                    "at": 4073.2250000089407,
+                    "generation": 1
+                  }
+                ],
+                "generatedBytes": 1215551,
+                "discardedBytes": 0,
+                "peakQueueDepth": 1,
+                "bufferedBytesUpperBound": 1034922,
+                "peakBufferedBytesUpperBound": 1157725,
+                "peakBufferedSeconds": 10.005499,
+                "seeks": [
+                  {
+                    "target": 0,
+                    "started": 70.63000001013279
+                  }
+                ],
+                "sessions": [
+                  {
+                    "generation": 1,
+                    "target": 0,
+                    "sourceSize": 1372304,
+                    "firstPlayableMs": 75.84999999403954,
+                    "firstPlayableSourceBytes": 839489,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64001E,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 587634,
+                    "fetchedBytesAtLeastSourceSize": false
+                  }
+                ],
+                "errors": [],
+                "workers": 2,
+                "recoveries": [],
+                "gapSkips": [],
+                "bufferedSeeks": 1
+              },
+              "source": {
+                "fetchedBytes": 1344625,
+                "requests": 7,
+                "aborts": 0,
+                "discardedBytes": 0,
+                "cacheBytes": 0,
+                "peakCacheBytes": 0,
+                "activeBytes": 0,
+                "peakActiveBytes": 252568,
+                "peakChunkBytes": 187032,
+                "peakOwnedBytes": 439600
+              },
+              "remux": {
+                "calls": 21,
+                "remuxMs": 47.83000002801418,
+                "generatedBytes": 1215551,
+                "peakBatchBytes": 70845,
+                "heapBytes": 67108864
+              },
+              "ranges": [
+                [
+                  2.0055,
+                  10.517499
+                ]
+              ],
+              "timelineBias": 1,
+              "position": 5.128292,
+              "quality": {},
+              "readyState": 4,
+              "logs": [
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 56528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 64528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 72528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 80528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 88528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 96528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 104528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 112528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 120528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 128528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 136528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 144528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 152528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 160528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 168528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value",
+                "[mp4 @ 0x2fd940] Packet duration: -5 / dts: 176528 is out of range",
+                "[mp4 @ 0x2fd940] pts has no value"
+              ]
+            },
+            "position": 5.128292,
+            "rendered": 124,
+            "dropped": 8,
+            "readyState": 4
+          }
+        },
+        "audio": {
+          "state": "paused",
+          "source": "native",
+          "decodedSampleCountersAvailable": false
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "kind": "native-gain",
+      "before": {
+        "mode": "native",
+        "plan": {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "video": "browser",
+          "audio": "web-audio-gain",
+          "qualification": "experimental",
+          "source": "browser-supported source and selected tracks",
+          "prerequisites": "HTMLMediaElement, Web Audio and CORS-clean media",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "direct",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "position": 0.8,
+          "rendered": 28,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "signal": {
+        "half": 0.04411937923927815,
+        "quarter": 0.022019713334179954,
+        "mute": 0,
+        "zero": 0,
+        "oldContexts": [
+          "closed",
+          "closed",
+          "closed",
+          "closed"
+        ],
+        "restored": true
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "position": 2.832439,
+            "rendered": 32,
+            "dropped": 0,
+            "readyState": 4
+          }
+        },
+        "audio": {
+          "state": "paused",
+          "source": "native",
+          "decodedSampleCountersAvailable": false
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "kind": "hybrid",
+      "before": {
+        "mode": "hybrid",
+        "plan": {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "video": "webcodecs",
+          "audio": "mpv",
+          "qualification": "existing",
+          "source": "existing mpv source/track contract",
+          "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+          "subtitles": "mpv/libass",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "pumpTicks": 67,
+          "subtitles": {
+            "updates": 1,
+            "bytes": 0,
+            "peakBytes": 0,
+            "parts": 0,
+            "renders": 18
+          },
+          "presentation": {
+            "position": 0.5,
+            "received": 18,
+            "closed": 15,
+            "drawn": 16,
+            "redraws": 1,
+            "peakRetained": 4,
+            "peakPending": 1,
+            "missing": 0,
+            "lateMs": [
+              10.129767988079095,
+              22.990790989867207,
+              13.378538000596052,
+              13.308626001192124,
+              15.193457986886983,
+              25.672593993443456,
+              24.9176099982119,
+              7.650148997019755,
+              25.802426005364396,
+              30.17686298807905,
+              25.675831002384143,
+              13.857626001788162,
+              0.43022099105928646,
+              21.331774997615867,
+              28.465276992251347,
+              27.520260998808
+            ],
+            "pts": [
+              0,
+              33000,
+              67000,
+              100000,
+              133000,
+              167000,
+              200000,
+              233000,
+              267000,
+              300000,
+              333000,
+              367000,
+              400000,
+              433000,
+              467000,
+              500000
+            ],
+            "pixelChecks": [],
+            "retained": 3,
+            "pending": 0
+          },
+          "mode": "retained",
+          "skipCanvas": true,
+          "canvasSubmissions": 16,
+          "rendered": 18,
+          "renderMs": 0.5450000017881393,
+          "copyMs": 0,
+          "maxRenderMs": 0.1899999976158142,
+          "heapBytes": 134217728,
+          "epoch": 2,
+          "path": "wasm",
+          "decoder": "webcodecs",
+          "decoderStats": {
+            "submitted": 21,
+            "frames": 15,
+            "receivedFrames": 15,
+            "closedFrames": 15,
+            "peakOutstanding": 8,
+            "peakFrames": 9,
+            "resets": 0,
+            "errors": 0,
+            "copyMs": 0,
+            "input": {
+              "kind": 1,
+              "width": 640,
+              "height": 360,
+              "profile": -99,
+              "level": -99,
+              "depth": 0,
+              "descriptionBytes": 47
+            },
+            "codec": "avc1.64001e",
+            "supportCheck": {
+              "requested": {
+                "codec": "avc1.64001e",
+                "codedWidth": 640,
+                "codedHeight": 360,
+                "descriptionBytes": 47,
+                "hardwareAcceleration": "no-preference",
+                "optimizeForLatency": false
+              },
+              "source": {
+                "kind": 1,
+                "width": 640,
+                "height": 360,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 47
+              },
+              "supported": true,
+              "recognized": {
+                "codec": "avc1.64001e",
+                "codedWidth": 640,
+                "codedHeight": 360,
+                "descriptionBytes": 47,
+                "hardwareAcceleration": "no-preference",
+                "optimizeForLatency": false
+              }
+            },
+            "actualWidth": 640,
+            "actualHeight": 360,
+            "pixelFormat": "NV12",
+            "placeholderFrames": 15,
+            "transferredFrames": 15,
+            "outstanding": 0,
+            "queued": 0,
+            "active": true
+          },
+          "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+          "seekPrerollSeconds": 0,
+          "presentedPosition": 0.5,
+          "ioPending": false,
+          "ioSerial": 3,
+          "interruptions": 0,
+          "io": {
+            "fetchedBytes": 399889,
+            "requests": 3,
+            "aborts": 0,
+            "discardedBytes": 0,
+            "cacheBytes": 0,
+            "peakCacheBytes": 0,
+            "activeBytes": 0,
+            "peakActiveBytes": 252568,
+            "peakChunkBytes": 65536,
+            "peakOwnedBytes": 318104,
+            "size": "1372304",
+            "reads": 3,
+            "seeks": 3,
+            "interruptions": 0
+          },
+          "seeking": false,
+          "position": 0.5,
+          "queuedFrames": 7424
+        }
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "hybrid",
+          "plan": {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "video": "webcodecs",
+            "audio": "mpv",
+            "qualification": "existing",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "pumpTicks": 67,
+            "subtitles": {
+              "updates": 1,
+              "bytes": 0,
+              "peakBytes": 0,
+              "parts": 0,
+              "renders": 18
+            },
+            "presentation": {
+              "position": 0.5,
+              "received": 18,
+              "closed": 15,
+              "drawn": 16,
+              "redraws": 1,
+              "peakRetained": 4,
+              "peakPending": 1,
+              "missing": 0,
+              "lateMs": [
+                10.129767988079095,
+                22.990790989867207,
+                13.378538000596052,
+                13.308626001192124,
+                15.193457986886983,
+                25.672593993443456,
+                24.9176099982119,
+                7.650148997019755,
+                25.802426005364396,
+                30.17686298807905,
+                25.675831002384143,
+                13.857626001788162,
+                0.43022099105928646,
+                21.331774997615867,
+                28.465276992251347,
+                27.520260998808
+              ],
+              "pts": [
+                0,
+                33000,
+                67000,
+                100000,
+                133000,
+                167000,
+                200000,
+                233000,
+                267000,
+                300000,
+                333000,
+                367000,
+                400000,
+                433000,
+                467000,
+                500000
+              ],
+              "pixelChecks": [],
+              "retained": 3,
+              "pending": 0
+            },
+            "mode": "retained",
+            "skipCanvas": true,
+            "canvasSubmissions": 16,
+            "rendered": 18,
+            "renderMs": 0.5450000017881393,
+            "copyMs": 0,
+            "maxRenderMs": 0.1899999976158142,
+            "heapBytes": 134217728,
+            "epoch": 2,
+            "path": "wasm",
+            "decoder": "webcodecs",
+            "decoderStats": {
+              "submitted": 21,
+              "frames": 15,
+              "receivedFrames": 15,
+              "closedFrames": 15,
+              "peakOutstanding": 8,
+              "peakFrames": 9,
+              "resets": 0,
+              "errors": 0,
+              "copyMs": 0,
+              "input": {
+                "kind": 1,
+                "width": 640,
+                "height": 360,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 47
+              },
+              "codec": "avc1.64001e",
+              "supportCheck": {
+                "requested": {
+                  "codec": "avc1.64001e",
+                  "codedWidth": 640,
+                  "codedHeight": 360,
+                  "descriptionBytes": 47,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                },
+                "source": {
+                  "kind": 1,
+                  "width": 640,
+                  "height": 360,
+                  "profile": -99,
+                  "level": -99,
+                  "depth": 0,
+                  "descriptionBytes": 47
+                },
+                "supported": true,
+                "recognized": {
+                  "codec": "avc1.64001e",
+                  "codedWidth": 640,
+                  "codedHeight": 360,
+                  "descriptionBytes": 47,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                }
+              },
+              "actualWidth": 640,
+              "actualHeight": 360,
+              "pixelFormat": "NV12",
+              "placeholderFrames": 15,
+              "transferredFrames": 15,
+              "outstanding": 0,
+              "queued": 0,
+              "active": true
+            },
+            "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+            "seekPrerollSeconds": 0,
+            "presentedPosition": 0.5,
+            "ioPending": false,
+            "ioSerial": 3,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 399889,
+              "requests": 3,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 252568,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 318104,
+              "size": "1372304",
+              "reads": 3,
+              "seeks": 3,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 0.5,
+            "queuedFrames": 7424
+          }
+        },
+        "audio": {
+          "requestedOutput": "stereo",
+          "outputChannels": 2,
+          "deviceChannels": 2,
+          "channelLayout": "stereo",
+          "state": "running",
+          "sampleRate": 48000,
+          "mediaFrames": 34560,
+          "underruns": 0,
+          "rms": 0.05858023928641975,
+          "latencyConfidence": "reported-latency estimate"
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "kind": "hybrid-filter",
+      "before": {
+        "mode": "hybrid",
+        "plan": {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "video": "webcodecs",
+          "audio": "mpv-filter",
+          "qualification": "experimental",
+          "source": "existing mpv source/track contract",
+          "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+          "subtitles": "mpv/libass",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "lavfi=[volume=0.5]",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "pumpTicks": 68,
+          "subtitles": {
+            "updates": 1,
+            "bytes": 0,
+            "peakBytes": 0,
+            "parts": 0,
+            "renders": 18
+          },
+          "presentation": {
+            "position": 0.5,
+            "received": 18,
+            "closed": 15,
+            "drawn": 16,
+            "redraws": 1,
+            "peakRetained": 4,
+            "peakPending": 1,
+            "missing": 0,
+            "lateMs": [
+              10.124256007748585,
+              16.689388989271208,
+              20.429324997019762,
+              23.2694370119209,
+              13.47940500417235,
+              21.62889799046326,
+              10.611207000000036,
+              16.5321429958276,
+              3.429317004768336,
+              24.822906005364416,
+              18.131999010132745,
+              26.02974099523169,
+              16.237945999403905,
+              22.93293000953679,
+              11.846367004172293,
+              14.601103004768333
+            ],
+            "pts": [
+              0,
+              33333,
+              66667,
+              100000,
+              133333,
+              166667,
+              200000,
+              233333,
+              266667,
+              300000,
+              333333,
+              366667,
+              400000,
+              433333,
+              466667,
+              500000
+            ],
+            "pixelChecks": [],
+            "retained": 3,
+            "pending": 0
+          },
+          "mode": "retained",
+          "skipCanvas": true,
+          "canvasSubmissions": 16,
+          "rendered": 18,
+          "renderMs": 0.48499998450279236,
+          "copyMs": 0,
+          "maxRenderMs": 0.1549999862909317,
+          "heapBytes": 134217728,
+          "epoch": 2,
+          "path": "wasm",
+          "decoder": "webcodecs",
+          "decoderStats": {
+            "submitted": 19,
+            "frames": 17,
+            "receivedFrames": 17,
+            "closedFrames": 17,
+            "peakOutstanding": 5,
+            "peakFrames": 5,
+            "resets": 0,
+            "errors": 0,
+            "copyMs": 0,
+            "input": {
+              "kind": 1,
+              "width": 320,
+              "height": 180,
+              "profile": -99,
+              "level": -99,
+              "depth": 0,
+              "descriptionBytes": 38
+            },
+            "codec": "avc1.42c00d",
+            "supportCheck": {
+              "requested": {
+                "codec": "avc1.42c00d",
+                "codedWidth": 320,
+                "codedHeight": 180,
+                "descriptionBytes": 38,
+                "hardwareAcceleration": "no-preference",
+                "optimizeForLatency": false
+              },
+              "source": {
+                "kind": 1,
+                "width": 320,
+                "height": 180,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 38
+              },
+              "supported": true,
+              "recognized": {
+                "codec": "avc1.42c00d",
+                "codedWidth": 320,
+                "codedHeight": 180,
+                "descriptionBytes": 38,
+                "hardwareAcceleration": "no-preference",
+                "optimizeForLatency": false
+              }
+            },
+            "actualWidth": 320,
+            "actualHeight": 180,
+            "pixelFormat": "I420",
+            "placeholderFrames": 17,
+            "transferredFrames": 17,
+            "outstanding": 0,
+            "queued": 0,
+            "active": true
+          },
+          "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+          "seekPrerollSeconds": 0,
+          "presentedPosition": 0.5,
+          "ioPending": false,
+          "ioSerial": 3,
+          "interruptions": 0,
+          "io": {
+            "fetchedBytes": 342840,
+            "requests": 3,
+            "aborts": 0,
+            "discardedBytes": 0,
+            "cacheBytes": 0,
+            "peakCacheBytes": 0,
+            "activeBytes": 0,
+            "peakActiveBytes": 200000,
+            "peakChunkBytes": 134464,
+            "peakOwnedBytes": 334464,
+            "size": "1042809",
+            "reads": 3,
+            "seeks": 3,
+            "interruptions": 0
+          },
+          "seeking": false,
+          "position": 0.5,
+          "queuedFrames": 7424
+        }
+      },
+      "signal": {
+        "half": 0.03131739639965046,
+        "quarter": 0.01562744231705853,
+        "mute": 0
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "hybrid",
+          "plan": {
+            "id": "hybrid-audio-filter",
+            "mode": "hybrid",
+            "video": "webcodecs",
+            "audio": "mpv-filter",
+            "qualification": "experimental",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "volume=0.25",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "pumpTicks": 125,
+            "subtitles": {
+              "updates": 2,
+              "bytes": 0,
+              "peakBytes": 0,
+              "parts": 0,
+              "renders": 40
+            },
+            "presentation": {
+              "position": 3.666667,
+              "received": 55,
+              "closed": 52,
+              "drawn": 35,
+              "redraws": 2,
+              "peakRetained": 6,
+              "peakPending": 1,
+              "missing": 0,
+              "lateMs": [
+                3.455120004768361,
+                0.17000000178813934,
+                34.60754601311305,
+                22.771246006556566,
+                15.92123500119203,
+                13.546312007152551,
+                4.442412011920965,
+                22.023458998211936,
+                5.14139699225143,
+                12.848254997019808,
+                13.75895200715263,
+                31.639284002980276,
+                18.72856598688702,
+                5.8669479868869985,
+                28.04297400596056,
+                30.82415000596052,
+                19.361118991655303,
+                7.751104997019638,
+                21.64008200119224,
+                24.209904010728906,
+                23.199788996423877,
+                25.25406400238421,
+                21.504694995827776,
+                25.548729986290937,
+                22.264551005960357,
+                23.91438899701984,
+                23.484323002980318,
+                19.934890996423746,
+                17.760918998211764,
+                18.339912996423664,
+                20.64910998688697,
+                14.740789008940737,
+                29.116176993443332,
+                25.65886400655654,
+                21.893959996423746
+              ],
+              "pts": [
+                0,
+                2566667,
+                2600000,
+                2633333,
+                2666667,
+                2700000,
+                2733333,
+                2766667,
+                2800000,
+                2833333,
+                2866667,
+                2900000,
+                2933333,
+                2966667,
+                3000000,
+                3033333,
+                3066667,
+                3100000,
+                3133333,
+                3166667,
+                3200000,
+                3233333,
+                3266667,
+                3300000,
+                3333333,
+                3366667,
+                3400000,
+                3433333,
+                3466667,
+                3500000,
+                3533333,
+                3566667,
+                3600000,
+                3633333,
+                3666667
+              ],
+              "pixelChecks": [],
+              "retained": 3,
+              "pending": 0
+            },
+            "mode": "retained",
+            "skipCanvas": true,
+            "canvasSubmissions": 35,
+            "rendered": 38,
+            "renderMs": 0.7050000429153442,
+            "copyMs": 0,
+            "maxRenderMs": 0.03500001132488251,
+            "heapBytes": 134217728,
+            "epoch": 4,
+            "path": "wasm",
+            "decoder": "webcodecs",
+            "decoderStats": {
+              "submitted": 61,
+              "frames": 54,
+              "receivedFrames": 58,
+              "closedFrames": 58,
+              "peakOutstanding": 5,
+              "peakFrames": 4,
+              "resets": 2,
+              "errors": 0,
+              "copyMs": 0,
+              "input": {
+                "kind": 1,
+                "width": 320,
+                "height": 180,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 38
+              },
+              "codec": "avc1.42c00d",
+              "supportCheck": {
+                "requested": {
+                  "codec": "avc1.42c00d",
+                  "codedWidth": 320,
+                  "codedHeight": 180,
+                  "descriptionBytes": 38,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                },
+                "source": {
+                  "kind": 1,
+                  "width": 320,
+                  "height": 180,
+                  "profile": -99,
+                  "level": -99,
+                  "depth": 0,
+                  "descriptionBytes": 38
+                },
+                "supported": true,
+                "recognized": {
+                  "codec": "avc1.42c00d",
+                  "codedWidth": 320,
+                  "codedHeight": 180,
+                  "descriptionBytes": 38,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                }
+              },
+              "actualWidth": 320,
+              "actualHeight": 180,
+              "pixelFormat": "I420",
+              "placeholderFrames": 54,
+              "transferredFrames": 54,
+              "outstanding": 0,
+              "queued": 0,
+              "active": true
+            },
+            "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+            "seekPrerollSeconds": 0,
+            "presentedPosition": 3.6666666666666665,
+            "ioPending": false,
+            "ioSerial": 5,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 742840,
+              "requests": 5,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 200000,
+              "peakChunkBytes": 134464,
+              "peakOwnedBytes": 334464,
+              "size": "1042809",
+              "reads": 5,
+              "seeks": 3,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 3.6666666666666665,
+            "queuedFrames": 6912
+          }
+        },
+        "audio": {
+          "requestedOutput": "stereo",
+          "outputChannels": 2,
+          "deviceChannels": 2,
+          "channelLayout": "stereo",
+          "state": "running",
+          "sampleRate": 48000,
+          "mediaFrames": 50944,
+          "underruns": 0,
+          "rms": 0,
+          "latencyConfidence": "reported-latency estimate"
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "kind": "software",
+      "before": {
+        "mode": "software",
+        "plan": {
+          "id": "software",
+          "mode": "software",
+          "video": "ffmpeg",
+          "audio": "mpv",
+          "qualification": "existing",
+          "source": "existing mpv source/track contract",
+          "prerequisites": "cross-origin isolation",
+          "subtitles": "mpv/libass",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+          "fallback": "terminal"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "softwarePresenter": "rgb",
+          "pumpTicks": 108,
+          "rendered": 18,
+          "renderMs": 7.639999985694885,
+          "copyMs": 7.910000026226044,
+          "maxRenderMs": 2.7100000083446503,
+          "heapBytes": 134217728,
+          "epoch": 2,
+          "path": "wasm",
+          "decoder": "software",
+          "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+          "seekPrerollSeconds": 1,
+          "presentedPosition": 0.5,
+          "ioPending": false,
+          "ioSerial": 3,
+          "interruptions": 0,
+          "io": {
+            "fetchedBytes": 399889,
+            "requests": 3,
+            "aborts": 0,
+            "discardedBytes": 0,
+            "cacheBytes": 0,
+            "peakCacheBytes": 0,
+            "activeBytes": 0,
+            "peakActiveBytes": 252568,
+            "peakChunkBytes": 187032,
+            "peakOwnedBytes": 439600,
+            "size": "1372304",
+            "reads": 3,
+            "seeks": 3,
+            "interruptions": 0
+          },
+          "seeking": false,
+          "position": 0.5,
+          "queuedFrames": 6656
+        }
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "software",
+          "plan": {
+            "id": "software",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "existing",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "terminal"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "softwarePresenter": "rgb",
+            "pumpTicks": 108,
+            "rendered": 18,
+            "renderMs": 7.639999985694885,
+            "copyMs": 7.910000026226044,
+            "maxRenderMs": 2.7100000083446503,
+            "heapBytes": 134217728,
+            "epoch": 2,
+            "path": "wasm",
+            "decoder": "software",
+            "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+            "seekPrerollSeconds": 1,
+            "presentedPosition": 0.5,
+            "ioPending": false,
+            "ioSerial": 3,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 399889,
+              "requests": 3,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 252568,
+              "peakChunkBytes": 187032,
+              "peakOwnedBytes": 439600,
+              "size": "1372304",
+              "reads": 3,
+              "seeks": 3,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 0.5,
+            "queuedFrames": 6656
+          }
+        },
+        "audio": {
+          "requestedOutput": "stereo",
+          "outputChannels": 2,
+          "deviceChannels": 2,
+          "channelLayout": "stereo",
+          "state": "running",
+          "sampleRate": 48000,
+          "mediaFrames": 33792,
+          "underruns": 0,
+          "rms": 0.058483376137373595,
+          "latencyConfidence": "reported-latency estimate"
+        },
+        "errors": []
+      },
+      "passed": true
+    }
+  ]
+}

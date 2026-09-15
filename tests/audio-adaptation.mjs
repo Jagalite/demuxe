@@ -1,0 +1,65 @@
+import {chromium,firefox} from 'playwright';
+import {spawn,execFileSync} from 'node:child_process';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const family=process.env.BROWSER||'chrome',out=`results/optimization-integration/stage2/adaptation-${family}-${Date.now()}`;await mkdir(out,{recursive:true});
+const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
+const origin=await new Promise((r,j)=>{const t=setTimeout(()=>j(Error('server timeout')),10000);server.on('error',j);server.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(t);r(m[0])}})});
+const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
+const manifest=JSON.parse(await readFile('results/optimization-integration/fixture-manifest.json','utf8'));
+const fixtures=manifest.map(f=>({name:f.name,file:'build/optimization-fixtures/'+f.name+'.mkv'}));fixtures.push({name:'original-edge',file:'results/optimization-integration/reference/web/edge.mkv'});
+fixtures.push({name:'audio-offset',file:'build/optimization-fixtures/audio-offset.mkv'});
+fixtures.push({name:'multi-audio',file:'build/optimization-fixtures/multi-audio.mkv',audio:1});
+const result={browser:browser.version(),scope:'Real browser MSE playback and native offline decode-back; not physical A/V or performance qualification',cases:[]};
+const hash=b=>createHash('sha256').update(b).digest('hex');
+const packets=f=>JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_packets','-show_data_hash','sha256','-of','json',f])).packets;
+const frames=f=>execFileSync('ffmpeg',['-v','error','-i',f,'-map','0:v:0','-an','-f','framemd5','-'],{encoding:'utf8',maxBuffer:4*1024*1024}).split('\n').filter(l=>l&&!l.startsWith('#')).map(l=>l.split(',').at(-1).trim());
+const pcm=(f,index=0)=>execFileSync('ffmpeg',['-v','error','-i',f,'-map',`0:a:${index}`,'-c:a','pcm_s32le','-f','s32le','-'],{maxBuffer:32*1024*1024});
+try{
+ for(const fixture of fixtures.filter(f=>!process.env.CASES||process.env.CASES.split(',').includes(f.name))){
+  const page=await browser.newPage();page.setDefaultTimeout(20000);const item={...fixture};result.cases.push(item);
+  try{
+   await page.goto(origin+'/examples/custom-controls.html');
+   await page.evaluate(async()=>{
+    await window.player?.destroy();const {Player}=await import('/web/generated/index.js');
+    window.errors=[];window.captures=new Map();const append=SourceBuffer.prototype.appendBuffer;
+    SourceBuffer.prototype.appendBuffer=function(bytes){let chunks=captures.get(this);if(!chunks)captures.set(this,chunks=[]);chunks.push(new Uint8Array(bytes).slice());return append.call(this,bytes)};
+    window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalBufferedNativeSeeks:true});
+    player.addEventListener('error',e=>errors.push(e.detail));
+    const file=document.createElement('input');file.type='file';file.id='file';document.body.append(file);
+   });
+   await page.locator('#file').setInputFiles(fixture.file);
+   await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0])});
+   if(fixture.audio){
+    await page.evaluate(async()=>{await player.selectTrack('audio','3');await player.setAudioGain(.5)});
+    item.selection=await page.evaluate(()=>player.diagnostics);
+    assert.equal(item.selection.backend.remux.remux.adaptation.sampleRate,44100);
+    assert.equal(item.selection.backend.remux.remux.adaptation.channels,1);
+   }
+   await page.evaluate(()=>player.play());
+   await page.waitForFunction(()=>player.surface.ended,null,{timeout:20000});
+   item.diagnostics=await page.evaluate(()=>({d:player.diagnostics,errors,position:player.state.currentTime}));
+   assert.deepEqual(item.diagnostics.errors,[]);assert.equal(item.diagnostics.d.plan.id,fixture.audio?'native-flac-gain':'native-flac');
+   const data=await page.evaluate(()=>{const appended=captures.get(player.current.backend.remux.sb);let n=appended.reduce((n,b)=>n+b.length,0),b=new Uint8Array(n),at=0;for(const chunk of appended){b.set(chunk,at);at+=chunk.length}return Array.from(b)});
+   const output=out+'/'+fixture.name+'.mp4';await writeFile(output,Buffer.from(data));
+   const inputPackets=packets(fixture.file),outputPackets=packets(output);
+   assert.equal(outputPackets.length,inputPackets.length);assert.deepEqual(outputPackets.map(p=>p.data_hash),inputPackets.map(p=>p.data_hash));
+   const shift=Number(outputPackets[0].pts_time)-Number(inputPackets[0].pts_time);
+   for(let i=0;i<outputPackets.length;i++){
+    assert.ok(Math.abs(Number(outputPackets[i].pts_time)-Number(inputPackets[i].pts_time)-shift)<.0001,'PTS relative offsets changed');
+    if(i)assert.ok(Number(outputPackets[i].dts_time)>Number(outputPackets[i-1].dts_time),'DTS not increasing');
+   }
+   const streams=f=>JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',f])).streams;
+   const inputAudio=streams(fixture.file).filter(s=>s.codec_type==='audio')[fixture.audio||0],outputAudio=streams(output).find(s=>s.codec_type==='audio');
+   assert.ok(Math.abs(Number(outputAudio.start_time)-Number(inputAudio.start_time)-shift)<.0001,'Relative audio/video offset changed');
+   const reference=pcm(fixture.file,fixture.audio||0),decoded=pcm(output);assert.deepEqual(decoded,reference);
+   if(fixture.name==='original-edge')assert.deepEqual(frames(output),frames(fixture.file));
+   item.fidelity={videoPackets:inputPackets.length,ptsShift:shift,pcmBytes:reference.length,pcmSHA256:hash(reference),outputSHA256:hash(Buffer.from(data)),samplesExact:true};
+   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}
+  finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.name,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+ }
+}finally{await browser.close();server.kill();}
+console.log(out);

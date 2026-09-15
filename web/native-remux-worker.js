@@ -1,6 +1,5 @@
 import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
 import {remuxPackaging} from './remux-packaging.js';
-import createRemux from './engine-remux/remux.mjs';
 let engine,chunks=[],bytes=0,emptyBatches=0,negotiation;
 const stats={calls:0,remuxMs:0,generatedBytes:0,peakBatchBytes:0,heapBytes:0};
 const flush=()=>{const output=new Uint8Array(bytes);let at=0;for(const b of chunks){output.set(b,at);at+=b.length;}chunks=[];bytes=0;stats.generatedBytes+=output.length;stats.peakBatchBytes=Math.max(stats.peakBatchBytes,output.length);return output;};
@@ -9,9 +8,11 @@ self.onmessage=async({data})=>{
  try{
   const start=performance.now();
   if(data.type==='init'||data.type==='probe'){
+   const {default:createRemux}=await import(data.audioAdaptation==='flac'?'./engine-adaptation/remux.mjs':'./engine-remux/remux.mjs');
    engine=await createRemux({printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];
    if(data.type==='probe'){check(engine._rm_probe(data.size));postMessage({type:'probed',tracks:engine.tracks,duration:engine._rm_duration()});return;}
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');chunks.push(b);};
+   if(data.audioAdaptation==='flac'){if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(1));}
    check(engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));const duration=engine._rm_duration();
    const video=engine.videoConfig?videoCodecConfig({...engine.videoConfig,maxWidth:8192,maxHeight:8192}).configuration.codec:engine.UTF8ToString(engine._rm_video_codec());
    const audio=engine.UTF8ToString(engine._rm_audio_codec());
@@ -27,7 +28,7 @@ self.onmessage=async({data})=>{
    check(engine._rm_start(target));const buffer=flush().buffer;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
    postMessage({type:'ready',duration,mime:selected.mime,tracks:engine.tracks,buffer,stats:{...stats}},[buffer]);
   }else if(data.type==='next'){
-   const more=check(engine._rm_step()),buffer=flush().buffer;stats.calls++;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
+   const more=check(engine._rm_step()),buffer=flush().buffer;if(engine.adaptation)stats.adaptation={...engine.adaptation};stats.calls++;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
    emptyBatches=buffer.byteLength?0:emptyBatches+1;
    if(more&&emptyBatches>24)throw Error('Remux random-access interval exceeds fragment production budget');
    const raps=engine.raps.splice(0);postMessage({type:'fragment',more,buffer,raps,stats:{...stats}},[buffer]);

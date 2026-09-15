@@ -1,0 +1,618 @@
+diff --git a/docs/OPTIMIZATION-FLAC.md b/docs/OPTIMIZATION-FLAC.md
+index 562b61a..d3b4412 100644
+--- a/docs/OPTIMIZATION-FLAC.md
++++ b/docs/OPTIMIZATION-FLAC.md
+@@ -1,5 +1,8 @@
+ # Stage 2: maintained progressive FLAC preparation
+ 
++For the subsequent correctness fixes and current unequal-tail limitation, see
++[the review-fix report](OPTIMIZATION-REVIEW-FIXES.md).
++
+ This is an uncommitted integration checkpoint, not completion of the requested
+ optimization program. Starting commit remains
+ `f2491f62c777fa55225aed9b0b7ecf2e340accf7` on
+diff --git a/docs/OPTIMIZATION-INTEGRATION.md b/docs/OPTIMIZATION-INTEGRATION.md
+index d273b62..3c25e07 100644
+--- a/docs/OPTIMIZATION-INTEGRATION.md
++++ b/docs/OPTIMIZATION-INTEGRATION.md
+@@ -1,5 +1,8 @@
+ # Optimization integration: local stage checkpoint
+ 
++For the subsequent correctness fixes and current unequal-tail limitation, see
++[the review-fix report](OPTIMIZATION-REVIEW-FIXES.md).
++
+ This is **partial implementation, not completion of the optimization program**.
+ Do not promote adaptation, Native ASS, or the new experimental options to general
+ automatic admission. A separate maintained audio-preparation engine has been built. Release qualification,
+diff --git a/docs/OPTIMIZATION-REVIEW-FIXES.md b/docs/OPTIMIZATION-REVIEW-FIXES.md
+new file mode 100644
+index 0000000..ac15e4d
+--- /dev/null
++++ b/docs/OPTIMIZATION-REVIEW-FIXES.md
+@@ -0,0 +1,76 @@
++# Review fixes: bounded work, track identity and frame-verified seeks
++
++All three findings from `results/optimization-review/REVIEW.md` are addressed.
++Work remains local and uncommitted on the saved integration checkpoint. This does
++not complete the wider optimization program or enable automatic FLAC admission.
++
++## Changes
++
++- **Bounded audio tails:** the preparation profile yields after roughly half a
++  second of decoded audio even if no further video packet arrives. A single
++  decoded frame remains subject to its existing sample cap. The controller limits
++  prepared source time separately from MSE buffered intersection. Pausing cannot
++  force conversion of an arbitrarily longer audio track.
++- **Explicit unequal-tail limitation:** a single combined SourceBuffer may stop
++  exposing playable coverage when its shorter track ends. If playing cannot
++  progress within the five-second preparation cap, the adapter reports
++  `Adapted track timelines cannot progress within the preparation budget; use Hybrid`.
++  Explicit Native does not silently change modes. The regression verifies that
++  the application can then switch the same source to Hybrid. Long unmatched tails
++  are not newly qualified for Native. Existing short duration mismatches remain
++  covered by packet and sample comparisons. No valid packet is dropped or clamped.
++- **Source-scoped audio identity:** both `remux` and `adapted-flac` use the same
++  stream-index identity. Public selections survive Native/Hybrid transitions,
++  gain replacement and automatic-selection activation. On return to Native, the
++  selected stream is passed to preparation before opening; the default track is
++  not temporarily adapted first.
++- **Frame-verified seeks:** frame callbacks are registered before issuing the seek and
++  accepted only once the browser reports seeking complete at the requested media
++  time. Registration cannot wait for the queued DOM `seeking` event, which can
++  arrive after the target compositor callback. The callback's frame timestamp can precede the target for low-frame-rate
++  or variable-frame-rate content. A future frame cannot satisfy the seek, and a
++  retired presentation/generation cannot complete it. The ten-second deadline and
++  cancellation cleanup remain. No broad timestamp tolerance or guessed frame rate.
++
++## Regression coverage
++
++`tests/optimization-review-regressions.mjs` adds three real-browser cases:
++
++1. One-second video plus 30-second PCM24 audio: paused work stays below seven
++   seconds, remains stable, and the unmatched-tail limitation settles explicitly
++   during playback. The source remains usable through Hybrid.
++2. Public second-audio selection across Native → Hybrid → Native, gain replacement,
++   and automatic selection. The same public track ID persists, and Native's
++   preparation/cancellation counters contain only the selected 44.1 kHz stream.
++3. Three cycles of buffered seeks at 2.5, 2.75, 4.5 and 2.25 seconds in a 1 fps video. Paused
++   playback preserves the worker and generation. Browser canvas pixels agree for
++   targets covered by the same frame and differ for a different frame. The test
++   waits for actual buffered eligibility after refill; Firefox's first fixed-delay
++   attempt exercised the safe regeneration path and was retained as harness evidence.
++
++Chrome and Firefox pass all three cases. Eighteen targeted root contracts pass,
++including new stale-generation and low-frame-rate seek contracts. Assembly 15
++contains the actual combined streaming delta, compiles, and passes 59 saved
++streaming contracts. Full rebuilt HLS/DASH browser qualification remains gated.
++Additional fidelity, lifecycle and installed-consumer results are indexed in
++`results/optimization-integration/stage3/summary.json`.
++
++## Reproduction
++
++```sh
++python3 experiments/optimization-integration/fixtures.py
++npm run build
++node --test tests/optimization-contracts.mjs tests/remux-buffering.mjs tests/native-selection.mjs
++node tests/optimization-review-regressions.mjs
++BROWSER=firefox node tests/optimization-review-regressions.mjs
++node tests/audio-adaptation.mjs
++node tests/audio-adaptation-lifecycle.mjs
++```
++
++The maintained FLAC engine was relinked with the same saved FFmpeg 9.0.1 libraries,
++locked patches and Emscripten 4.0.14. It has matching new glue and Wasm in a fresh
++versioned build directory. Original engine artifacts, failed reproducers, stage 2
++results and the laboratory remain preserved. No new dependencies, codec upgrades,
++streaming gates or public playback modes were introduced. Earlier cost screens
++remain evidence for their original artifact hashes; they were not rerun for this
++correctness fix and do not qualify the new artifact's performance.
+diff --git a/experiments/optimization-integration/checkpoint.py b/experiments/optimization-integration/checkpoint.py
+index d674805..f725f61 100644
+--- a/experiments/optimization-integration/checkpoint.py
++++ b/experiments/optimization-integration/checkpoint.py
+@@ -1,22 +1,33 @@
+ #!/usr/bin/env python3
+-"""Save an uncommitted review patch and hashes; never change refs or the index."""
+-import pathlib,subprocess,hashlib,json
++"""Save immutable review patches and hashes without changing refs or the index."""
++import argparse,pathlib,subprocess,hashlib,json
+ root=pathlib.Path(__file__).resolve().parents[2]
+-out=root/'results/optimization-integration/stage2'
++p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);p.add_argument('--evidence',type=pathlib.Path,nargs='+',required=True);p.add_argument('--engine',type=pathlib.Path,required=True);p.add_argument('--package-dir',type=pathlib.Path,required=True);p.add_argument('--baseline',type=pathlib.Path);args=p.parse_args()
++out=args.output.resolve()
++if out.exists():raise SystemExit('Checkpoint output must be new; existing checkpoints are immutable')
++out.mkdir(parents=True)
+ patch=subprocess.check_output(['git','diff','--binary','HEAD'],cwd=root)
+ untracked=subprocess.check_output(['git','ls-files','--others','--exclude-standard','docs','src','web/generated','native/adaptation','scripts','tests','experiments/optimization-integration'],cwd=root,text=True).splitlines()
++untracked=[name for name in untracked if '__pycache__' not in name]
+ for name in untracked:
+- if '__pycache__' in name:continue
+  result=subprocess.run(['git','diff','--no-index','--binary','--','/dev/null',name],cwd=root,stdout=subprocess.PIPE)
+  assert result.returncode in [0,1],name
+  patch+=result.stdout
+ (out/'integration.patch').write_bytes(patch)
+ inputs=set(subprocess.check_output(['git','diff','--name-only','HEAD'],cwd=root,text=True).splitlines())|set(untracked)
+-inputs={name for name in inputs if (root/name).is_file() and '__pycache__' not in name}
+-inputs.update(str(p.relative_to(root)) for p in out.rglob('*') if p.is_file() and p.name not in ['artifact-hashes.json','SHA256SUMS'])
+-inputs.update(str(p.relative_to(root)) for p in (root/'build/optimization-package-06').iterdir() if p.is_file())
+-engine=root/'build/adaptation-modernized-02/engine-1789506294285958000'
+-inputs.update(str(p.relative_to(root)) for p in engine.rglob('*') if p.is_file())
++inputs={name for name in inputs if (root/name).is_file()}
++if args.baseline:
++ delta=b''
++ for name in sorted(inputs):
++  old=args.baseline.resolve()/name
++  result=subprocess.run(['git','diff','--no-index','--binary','--',str(old) if old.exists() else '/dev/null',name],cwd=root,stdout=subprocess.PIPE)
++  assert result.returncode in [0,1],name
++  chunk=result.stdout
++  if old.exists():chunk=chunk.replace(('a/'+str(old).lstrip('/')).encode(),('a/'+name).encode())
++  delta+=chunk
++ (out/'review-fixes.patch').write_bytes(delta)
++for directory in [*args.evidence,args.engine,args.package_dir,out]:
++ inputs.update(str(f.resolve().relative_to(root)) for f in directory.rglob('*') if f.is_file() and f.name not in ['artifact-hashes.json','SHA256SUMS'])
+ record={name:{'bytes':(root/name).stat().st_size,'sha256':hashlib.sha256((root/name).read_bytes()).hexdigest()} for name in sorted(inputs)}
+ (out/'artifact-hashes.json').write_text(json.dumps(record,indent=2)+'\n')
+ (out/'SHA256SUMS').write_text(''.join(f"{v['sha256']}  {k}\n" for k,v in record.items()))
+diff --git a/experiments/optimization-integration/fixtures.py b/experiments/optimization-integration/fixtures.py
+index a8509bf..e0c1a23 100644
+--- a/experiments/optimization-integration/fixtures.py
++++ b/experiments/optimization-integration/fixtures.py
+@@ -31,8 +31,12 @@ for name,codec,channels in [('pcm32','pcm_s32le',2),('float','pcm_f32le',2),('su
+  path=out/(name+'.mkv')
+  command=['ffmpeg','-v','error','-nostdin','-n','-i',str(out/'b2-start0-mismatch1.mkv'),'-map','0:v','-map','0:a','-c:v','copy','-c:a',codec,'-ac',str(channels),str(path)]
+  extra.append((path,command))
++for name,rate,video_duration,audio_duration,gop,bframes in [('audio-tail',30,1,30,30,2),('low-fps-inter',1,15,15,10,0)]:
++ path=out/(name+'.mkv')
++ command=['ffmpeg','-v','error','-nostdin','-n','-f','lavfi','-i',f'testsrc2=size=160x90:rate={rate}:duration={video_duration}','-f','lavfi','-i',f'sine=frequency=440:sample_rate=48000:duration={audio_duration}','-c:v','libx264','-preset','veryfast','-g',str(gop),'-bf',str(bframes),'-c:a','pcm_s24le','-threads','2',str(path)]
++ extra.append((path,command))
+ records=[]
+ for path,command in extra:
+  if not path.exists():subprocess.run(command,check=True)
+  records.append({'name':path.name,'command':command,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+-pathlib.Path('results/optimization-integration/stage2/additional-fixtures.json').write_text(json.dumps(records,indent=2)+'\n')
++pathlib.Path('results/optimization-integration/stage3/additional-fixtures.json').write_text(json.dumps(records,indent=2)+'\n')
+diff --git a/experiments/optimization-integration/prepare.py b/experiments/optimization-integration/prepare.py
+index 7183b60..2e7649c 100644
+--- a/experiments/optimization-integration/prepare.py
++++ b/experiments/optimization-integration/prepare.py
+@@ -18,7 +18,7 @@ assert not subprocess.check_output(['git','status','--porcelain'],cwd=base,text=
+ 
+ prepared=out/'streaming'
+ subprocess.run(['python3',str(base/'experiments/streaming-modernization/prepare.py'),'--timeline','--output',str(prepared)],cwd=base,check=True)
+-paths=['src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
++paths=['src/internal/state.ts','src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
+ patch=subprocess.check_output(['git','diff',checkpoint,'--',*paths],cwd=root)
+ (out/'optimization.patch').write_bytes(patch)
+ # Three-way source merge preserves the saved overlay's quality/lifecycle changes.
+diff --git a/native/remux/remux.c b/native/remux/remux.c
+index 041db21..69fbbf1 100644
+--- a/native/remux/remux.c
++++ b/native/remux/remux.c
+@@ -336,6 +336,9 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
+ }
+ EMSCRIPTEN_KEEPALIVE int rm_step(void){
+  if(eof)return 0;
++#ifdef DEMUXE_AUDIO_ADAPTATION
++ int64_t step_audio_start=adapt_decoded_samples;
++#endif
+  for(int count=0;count<20000;count++){
+   int r;if(prefetch_at<prefetched){av_packet_move_ref(packet,prefetch[prefetch_at++]);r=0;}else r=av_read_frame(in,packet);
+   if(r==AVERROR_EOF){
+@@ -393,8 +396,14 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
+ #endif
+   }
+   if(r<0)return r;
+-  if(idx==(video>=0?video:audio)&&time-fragment_start>=0.5){
+-   if(!mux_webm)av_interleaved_write_frame(out,NULL);
++  int boundary=idx==(video>=0?video:audio)&&time-fragment_start>=0.5;
++#ifdef DEMUXE_AUDIO_ADAPTATION
++  // A video track may finish long before audio. Bound decoding per call even
++  // without another video packet; normal encoding remains continuous.
++  if(adapt_enabled&&adapt_decoded_samples-step_audio_start>=adapt_encoder->sample_rate/2)boundary=1;
++#endif
++  if(boundary){
++   if(!mux_webm){r=av_interleaved_write_frame(out,NULL);if(r<0)return r;}
+    // Do not cut a video WebM cluster immediately after its first keyframe.
+    // Let the muxer close clusters before the following boundary/keyframe.
+    r=mux_webm&&video>=0?0:av_write_frame(out,NULL);
+diff --git a/scripts/package-beta.py b/scripts/package-beta.py
+index 0b5dd22..d3da090 100644
+--- a/scripts/package-beta.py
++++ b/scripts/package-beta.py
+@@ -89,7 +89,7 @@ if build:
+  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
+ for f in sorted((root/'third_party').rglob('*')):
+  if f.is_file():add(str(f.relative_to(root)))
+-for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-FLAC.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
++for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+ # The review report keeps local evidence locations in the repository only.
+ report='docs/OPTIMIZATION-INTEGRATION.md'
+ files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
+diff --git a/src/internal/native-player.ts b/src/internal/native-player.ts
+index cce1959..4752869 100644
+--- a/src/internal/native-player.ts
++++ b/src/internal/native-player.ts
+@@ -4,7 +4,7 @@ import type {Backend} from './backend.js';
+ type RemuxSource = {file?: File; options?: RemoteSource; audioTrack?: number};
+ type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
+ type RemuxController = {
+-  audioAdaptation?:'flac';
++  audioAdaptation?:'flac'; generation?:number;
+   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
+   open(source: RemuxSource, target?: number): Promise<unknown>;
+   canSeekBuffered?(target:number): boolean;
+@@ -183,14 +183,20 @@ export class NativePlayer extends EventTarget implements Backend {
+   private seekPresented(target:number, action:()=>Promise<unknown>):Promise<void> {
+     return new Promise((resolve,reject)=>{
+       let frame=0,accepted=false,completed=false,finished=false;
++      const presentation=this.remux,generation=presentation?.generation,mediaTarget=target+(presentation?.timelineBias??0);
+       const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);this.video.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
+       const cancel=(error:Error)=>finish(error);
+       const timer=setTimeout(()=>finish(new Error('Native seek did not present the target')),10000);
+       const next=(_:number,metadata:VideoFrameCallbackMetadata)=>{
+-        if(this.stopped){finish(new Error('Player is destroyed'));return;}
+-        if(Math.abs(metadata.mediaTime-(this.remux?.timelineBias??0)-target)<.15){accepted=true;if(completed)finish();}
++        if(this.stopped||this.remux!==presentation||presentation?.generation!==generation){finish(new Error('Native seek presentation was retired'));return;}
++        // The browser selects the frame covering currentTime. Its PTS may be
++        // far earlier for low-frame-rate/VFR content. Accept only a callback
++        // registered before issuing the seek and delivered after seek completion.
++        if(!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001&&metadata.mediaTime<=mediaTarget+.001){accepted=true;if(completed)finish();}
+         else frame=this.video.requestVideoFrameCallback(next);
+       };
++      // Register before currentTime changes: the compositor callback may precede
++      // the queued DOM seeking/seeked events, especially for buffered media.
+       this.cancelers.add(cancel);frame=this.video.requestVideoFrameCallback(next);
+       action().then(()=>{completed=true;if(accepted)finish();},error=>finish(error));
+     });
+diff --git a/src/internal/state.ts b/src/internal/state.ts
+index dfccb67..26fbb65 100644
+--- a/src/internal/state.ts
++++ b/src/internal/state.ts
+@@ -8,12 +8,13 @@ export function ranges(value: unknown): readonly TimeRange[] | null {
+   return out.every(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.start>=0&&r.end>=r.start)?out:null;
+ }
+ export type RawTrack = Record<string, any>;
++export function usesRemuxTracks(plan?: string): boolean {return plan==='remux'||plan==='adapted-flac';}
+ export function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string {
+   const type = track.type;
+   // ff-index belongs to each demuxer: separate subtitle files commonly all use 0.
+   // Attachments are replayed in the same order on replacement, retaining mpv IDs.
+   if(track.external)return `${type}:external:${track.id}`;
+-  const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode==='native'&&plan==='remux'&&type==='audio'?Number(track.id)-1:undefined;
++  const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode==='native'&&usesRemuxTracks(plan)&&type==='audio'?Number(track.id)-1:undefined;
+   return index!==undefined?`${type}:stream:${index}`:`${type}:${mode==='native'?'native':'mpv'}:${track.id}`;
+ }
+ export function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, plan?: string): MediaTrack[] {
+diff --git a/src/unified-player.ts b/src/unified-player.ts
+index bc06f0b..45522f2 100644
+--- a/src/unified-player.ts
++++ b/src/unified-player.ts
+@@ -1,7 +1,7 @@
+ import {featureRejection, executionPlan, qualifiedAudioFilter} from './internal/playback-plans.js';
+ import {runtimeBase} from './internal/assets.js';
+ import {PlayerError, playerError, redact} from './internal/errors.js';
+-import {freeze, ranges, tracks, trackKey, mediaInfo} from './internal/state.js';
++import {freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './internal/state.js';
+ import type {RawTrack} from './internal/state.js';
+ import type {PlayerState, PlayerEventMap, PlayerCapabilities, FeatureAvailability, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
+ import {PLAYBACK_MODES} from './types.js';
+@@ -286,6 +286,10 @@ export class Player extends EventTarget {
+     const desired = {...settings, pause: preserve ? !!wasPaused : true};
+     const target = requestedTarget ?? (preserve ? Math.max(0, Number(old?.backend.properties.get('time-pos')) || 0) : 0);
+     if ((!preserve && old) || (preserve && (mode === 'native') !== (this.mode === 'native'))) {desired.aid = preserve&&settings.aid==='no'?'no':'auto';desired.sid = preserve&&settings.sid==='no'?'no':'auto';}
++    // Public stream identities are known before Native preparation starts.
++    // Select that stream at open rather than adapting the default track first.
++    const publicAudio=preserve&&mode==='native'?/^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio')??''):null;
++    if(publicAudio)desired.aid=String(Number(publicAudio[1])+1);
+     const crossing=preserve&&this.automatic&&(mode==='native')!==(this.mode==='native');
+     const trackIndexes=new Map<TrackType,number>();
+     if(crossing){
+@@ -294,7 +298,7 @@ export class Player extends EventTarget {
+         if(['auto','no'].includes(id))continue;
+         const list=old?.backend.properties.get('track-list') as Array<{id:string|number;type:string;'ff-index'?:number}>|undefined;
+         const track=list?.find(t=>t.type===type&&String(t.id)===id);
+-        const index=this.mode==='native'&&(old?.backend.diagnostics as {plan?:string})?.plan==='remux'?Number(id)-1:track?.['ff-index'];
++        const index=this.mode==='native'&&usesRemuxTracks((old?.backend.diagnostics as {plan?:string})?.plan)?Number(id)-1:track?.['ff-index'];
+         if(index===undefined)throw Error('Cannot preserve selected track across playback modes');
+         trackIndexes.set(type,index);
+       }
+@@ -324,7 +328,7 @@ export class Player extends EventTarget {
+       }
+       for(const [type,index] of trackIndexes){
+         const list=p.properties.get('track-list') as Array<{id:string|number;type:string;'ff-index'?:number}>|undefined;
+-        const track=list?.find(t=>t.type===type&&(mode==='native'?(p.diagnostics as {plan?:string})?.plan==='remux'&&Number(t.id)-1===index:t['ff-index']===index));
++        const track=list?.find(t=>t.type===type&&(mode==='native'?usesRemuxTracks((p.diagnostics as {plan?:string})?.plan)&&Number(t.id)-1===index:t['ff-index']===index));
+         if(!track)throw Error('Cannot preserve selected track across playback modes');
+         const id=String(track.id);await p.selectTrack(type,id);desired[type==='audio'?'aid':'sid']=id;
+       }
+@@ -408,7 +412,7 @@ export class Player extends EventTarget {
+           // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
+           let aid=preserve&&(this.mode==='native'||settings.aid==='no')?settings.aid:'auto';
+           const sid=tracks.length?'no':preserve&&(this.mode==='native'||settings.sid==='no')?settings.sid:'auto';
+-          if(preserve&&this.mode==='native'&&['remux','adapted-flac'].includes((this.current?.backend.diagnostics as {plan?:string})?.plan??'')&&!['auto','no'].includes(aid))aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(aid)-1)?.id??aid;
++          if(preserve&&this.mode==='native'&&usesRemuxTracks((this.current?.backend.diagnostics as {plan?:string})?.plan)&&!['auto','no'].includes(aid))aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(aid)-1)?.id??aid;
+           nativeReason=nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
+         }catch(error){
+           if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;
+diff --git a/tests/audio-adaptation.mjs b/tests/audio-adaptation.mjs
+index bda6286..a27a617 100644
+--- a/tests/audio-adaptation.mjs
++++ b/tests/audio-adaptation.mjs
+@@ -24,8 +24,8 @@ try{
+    await page.goto(origin+'/examples/custom-controls.html');
+    await page.evaluate(async()=>{
+     await window.player?.destroy();const {Player}=await import('/web/generated/index.js');
+-    window.errors=[];window.appended=[];const append=SourceBuffer.prototype.appendBuffer;
+-    SourceBuffer.prototype.appendBuffer=function(bytes){appended.push(new Uint8Array(bytes).slice());return append.call(this,bytes)};
++    window.errors=[];window.captures=new Map();const append=SourceBuffer.prototype.appendBuffer;
++    SourceBuffer.prototype.appendBuffer=function(bytes){let chunks=captures.get(this);if(!chunks)captures.set(this,chunks=[]);chunks.push(new Uint8Array(bytes).slice());return append.call(this,bytes)};
+     window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalBufferedNativeSeeks:true});
+     player.addEventListener('error',e=>errors.push(e.detail));
+     const file=document.createElement('input');file.type='file';file.id='file';document.body.append(file);
+@@ -33,7 +33,7 @@ try{
+    await page.locator('#file').setInputFiles(fixture.file);
+    await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0])});
+    if(fixture.audio){
+-    await page.evaluate(async()=>{await player.selectTrack('audio','3');appended=[];await player.setAudioGain(.5)});
++    await page.evaluate(async()=>{await player.selectTrack('audio','3');await player.setAudioGain(.5)});
+     item.selection=await page.evaluate(()=>player.diagnostics);
+     assert.equal(item.selection.backend.remux.remux.adaptation.sampleRate,44100);
+     assert.equal(item.selection.backend.remux.remux.adaptation.channels,1);
+@@ -42,7 +42,7 @@ try{
+    await page.waitForFunction(()=>player.surface.ended,null,{timeout:20000});
+    item.diagnostics=await page.evaluate(()=>({d:player.diagnostics,errors,position:player.state.currentTime}));
+    assert.deepEqual(item.diagnostics.errors,[]);assert.equal(item.diagnostics.d.plan.id,fixture.audio?'native-flac-gain':'native-flac');
+-   const data=await page.evaluate(()=>{let n=appended.reduce((n,b)=>n+b.length,0),b=new Uint8Array(n),at=0;for(const chunk of appended){b.set(chunk,at);at+=chunk.length}return Array.from(b)});
++   const data=await page.evaluate(()=>{const appended=captures.get(player.current.backend.remux.sb);let n=appended.reduce((n,b)=>n+b.length,0),b=new Uint8Array(n),at=0;for(const chunk of appended){b.set(chunk,at);at+=chunk.length}return Array.from(b)});
+    const output=out+'/'+fixture.name+'.mp4';await writeFile(output,Buffer.from(data));
+    const inputPackets=packets(fixture.file),outputPackets=packets(output);
+    assert.equal(outputPackets.length,inputPackets.length);assert.deepEqual(outputPackets.map(p=>p.data_hash),inputPackets.map(p=>p.data_hash));
+diff --git a/tests/optimization-contracts.mjs b/tests/optimization-contracts.mjs
+index 11d635b..b14a073 100644
+--- a/tests/optimization-contracts.mjs
++++ b/tests/optimization-contracts.mjs
+@@ -46,3 +46,34 @@ test('destroy and supersession cancel outstanding MSE open before worker allocat
+  old.dispatchEvent(new Event('sourceopen'));current.dispatchEvent(new Event('sourceopen'));
+  assert.equal(allocations,0);assert.equal(current.listeners,0);assert.equal(p.objectURL,null);assert.equal(revocations,2);
+ });
++
++import {trackKey} from '../web/generated/internal/state.js';
++import {NativePlayer} from '../web/generated/internal/native-player.js';
++test('adapted and packet-copy Native share source stream identities with mpv',()=>{
++ const raw={id:'3',type:'audio'};
++ assert.equal(trackKey(raw,'native','adapted-flac'),'audio:stream:2');
++ assert.equal(trackKey(raw,'native','remux'),trackKey({...raw,'ff-index':2},'hybrid'));
++});
++function seekingPlayer(){
++ const video=new EventTarget();let serial=0;const callbacks=new Map();
++ Object.assign(video,{seeking:false,currentTime:3.5,requestVideoFrameCallback(callback){callbacks.set(++serial,callback);return serial},cancelVideoFrameCallback(id){callbacks.delete(id)}});
++ const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux:{generation:4,timelineBias:1},stopped:false,cancelers:new Set()});
++ return {p,video,frame(mediaTime){const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(0,{mediaTime})},callbacks};
++}
++test('seek presentation accepts a covering low-fps frame only after seeking completes',async()=>{
++ const {p,video,frame,callbacks}=seekingPlayer();let completed=false;
++ const seeking=p.seekPresented(2.5,async()=>{video.seeking=true;video.dispatchEvent(new Event('seeking'))}).then(()=>{completed=true});
++ frame(3);await Promise.resolve();assert.equal(completed,false); // Decoder has not completed the seek.
++ video.seeking=false;frame(4);await Promise.resolve();assert.equal(completed,false); // Future frame cannot cover the target.
++ frame(3);await seeking;assert.equal(completed,true);assert.equal(callbacks.size,0);
++});
++test('a retired remux generation cannot complete a pending frame-verified seek',async()=>{
++ const {p,video,frame,callbacks}=seekingPlayer();
++ const seeking=p.seekPresented(2.5,async()=>{video.dispatchEvent(new Event('seeking'))});
++ const rejected=assert.rejects(seeking,/retired/);p.remux.generation++;frame(3);await rejected;assert.equal(callbacks.size,0);
++});
++test('a buffered frame can complete the seek before queued DOM seeking events',async()=>{
++ const {p,frame,callbacks}=seekingPlayer();
++ const seeking=p.seekPresented(2.5,async()=>{});
++ frame(3);await seeking;assert.equal(callbacks.size,0);
++});
+diff --git a/tests/optimization-playback.mjs b/tests/optimization-playback.mjs
+index 4cfb5f3..7bc7a08 100644
+--- a/tests/optimization-playback.mjs
++++ b/tests/optimization-playback.mjs
+@@ -9,7 +9,7 @@ const origin=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>rej
+ const browser=await (name==='firefox'?firefox:chromium).launch(name==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required'],ignoreDefaultArgs:['--mute-audio']});
+ const result={browser:browser.version(),scope:'Short output and lifecycle checks, not performance or endurance',cases:[]};
+ try{
+- for(const kind of ['native-direct','native-remux','native-gain','hybrid','hybrid-filter','software']){
++ for(const kind of ['native-direct','native-remux','native-gain','hybrid','hybrid-filter','software'].filter(kind=>!process.env.CASES||process.env.CASES.split(',').includes(kind))){
+   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={kind};result.cases.push(item);
+   try{
+    await page.route('**/optimization-signal.mp4',async route=>route.fulfill({contentType:'video/mp4',body:await readFile('build/optimization-fixtures/gain.mp4')}));
+diff --git a/tests/optimization-review-regressions.mjs b/tests/optimization-review-regressions.mjs
+new file mode 100644
+index 0000000..5affd1a
+--- /dev/null
++++ b/tests/optimization-review-regressions.mjs
+@@ -0,0 +1,53 @@
++import {chromium,firefox} from 'playwright';
++import {spawn} from 'node:child_process';
++import {mkdir,writeFile} from 'node:fs/promises';
++import assert from 'node:assert/strict';
++const family=process.env.BROWSER||'chrome',out=`results/optimization-integration/stage3/regressions-${family}-${Date.now()}`;await mkdir(out,{recursive:true});
++const app=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
++const origin=await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('server timeout')),10000);app.on('error',reject);app.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(t);resolve(m[0])}})});
++const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
++const result={browser:browser.version(),cases:[]};
++try{
++ for(const kind of ['audio-tail','public-track','low-fps']){
++  const page=await browser.newPage();page.setDefaultTimeout(15000);const item={kind};result.cases.push(item);
++  try{
++   await page.goto(origin+'/examples/custom-controls.html');
++   await page.evaluate(async()=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalBufferedNativeSeeks:true});player.addEventListener('error',e=>errors.push(e.detail));const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});
++   const fixture=kind==='public-track'?'multi-audio':kind==='low-fps'?'low-fps-inter':'audio-tail';
++   await page.locator('#file').setInputFiles('build/optimization-fixtures/'+fixture+'.mkv');await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
++   if(kind==='audio-tail'){
++    await page.waitForTimeout(700);item.paused=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(500);item.idle=await page.evaluate(()=>player.diagnostics);
++    const stats=d=>d.backend.remux.remux.adaptation;
++    assert.ok(stats(item.idle).audioSamplesDecoded<48000*7);assert.equal(stats(item.paused).audioSamplesDecoded,stats(item.idle).audioSamplesDecoded);
++    await page.evaluate(()=>player.play());await page.waitForFunction(()=>errors.length>0,null,{timeout:6000});
++    item.failure=await page.evaluate(()=>({errors,diagnostics:player.diagnostics}));assert.match(JSON.stringify(item.failure.errors),/preparation budget/);assert.ok(stats(item.failure.diagnostics).audioSamplesDecoded<48000*8);
++    // Explicit Native reports the limitation; the application can choose the
++    // existing eligible Hybrid backend without losing the source.
++    await page.evaluate(()=>player.setMode('hybrid'));assert.equal(await page.evaluate(()=>player.mode),'hybrid');
++    await page.waitForFunction(()=>player.state.currentTime>2,null,{timeout:6000});
++    item.hybridAfterVideoEnd=await page.evaluate(()=>({position:player.state.currentTime,audio:player.audioDiagnostics()}));
++    assert.ok(item.hybridAfterVideoEnd.audio.mediaFrames>48000);
++   }else if(kind==='public-track'){
++    item.selectedId=await page.evaluate(async()=>{const id=player.state.audioTracks[1].id;await player.selectAudioTrack(id);return id});
++    for(const mode of ['hybrid','native']){await page.evaluate(mode=>player.setMode(mode),mode);assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),item.selectedId)}
++    item.native=await page.evaluate(()=>player.diagnostics);
++    assert.equal(item.native.backend.remux.remux.adaptation.sampleRate,44100);
++    assert.ok(item.native.backend.remux.stats.cancellations.every(c=>!c.adaptation||c.adaptation.sampleRate===44100));
++    await page.evaluate(()=>player.setAudioGain(.5));assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),item.selectedId);
++    await page.evaluate(()=>player.setAutomaticSelection(true));assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),item.selectedId);assert.equal(await page.evaluate(()=>player.mode),'hybrid');
++   }else{
++    await page.waitForTimeout(700);item.seeks=[];
++    for(const target of Array.from({length:3},()=>[2.5,2.75,4.5,2.25]).flat()){
++     // Refilling after the previous seek can temporarily make admission unsafe.
++     // Wait for actual idle buffered eligibility, not a fixed sleep.
++     await page.waitForFunction(target=>{const r=player.current.backend.remux;return !r.busy&&r.canSeekBuffered(target)},target);
++     const seek=await page.evaluate(async target=>{const r=player.current.backend.remux,worker=r.worker,generation=r.generation;const start=performance.now();await player.seek(target);const c=document.createElement('canvas');c.width=player.surface.videoWidth;c.height=player.surface.videoHeight;c.getContext('2d').drawImage(player.surface,0,0);return {target,ms:performance.now()-start,sameWorker:r.worker===worker,sameGeneration:r.generation===generation,paused:player.properties.get('pause'),pixels:c.toDataURL()}},target);
++     item.seeks.push(seek);assert.equal(seek.sameWorker,true);assert.equal(seek.sameGeneration,true);assert.equal(seek.paused,true);assert.ok(seek.ms<2000);
++    }
++    assert.equal(item.seeks[0].pixels,item.seeks[1].pixels);assert.equal(item.seeks[0].pixels,item.seeks[3].pixels);assert.notEqual(item.seeks[0].pixels,item.seeks[2].pixels);
++   }
++   await page.evaluate(()=>player.destroy());for(let i=0;i<20&&page.workers().length;i++)await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
++  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);process.exitCode=1}
++  finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n')}
++ }
++}finally{await browser.close();app.kill()}
+diff --git a/web/generated/internal/native-player.js b/web/generated/internal/native-player.js
+index e9d13a8..1fc8924 100644
+--- a/web/generated/internal/native-player.js
++++ b/web/generated/internal/native-player.js
+@@ -252,16 +252,20 @@ export class NativePlayer extends EventTarget {
+     seekPresented(target, action) {
+         return new Promise((resolve, reject) => {
+             let frame = 0, accepted = false, completed = false, finished = false;
++            const presentation = this.remux, generation = presentation?.generation, mediaTarget = target + (presentation?.timelineBias ?? 0);
+             const finish = (error) => { if (finished)
+                 return; finished = true; clearTimeout(timer); this.video.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
+             const cancel = (error) => finish(error);
+             const timer = setTimeout(() => finish(new Error('Native seek did not present the target')), 10000);
+             const next = (_, metadata) => {
+-                if (this.stopped) {
+-                    finish(new Error('Player is destroyed'));
++                if (this.stopped || this.remux !== presentation || presentation?.generation !== generation) {
++                    finish(new Error('Native seek presentation was retired'));
+                     return;
+                 }
+-                if (Math.abs(metadata.mediaTime - (this.remux?.timelineBias ?? 0) - target) < .15) {
++                // The browser selects the frame covering currentTime. Its PTS may be
++                // far earlier for low-frame-rate/VFR content. Accept only a callback
++                // registered before issuing the seek and delivered after seek completion.
++                if (!this.video.seeking && Math.abs(this.video.currentTime - mediaTarget) < .001 && metadata.mediaTime <= mediaTarget + .001) {
+                     accepted = true;
+                     if (completed)
+                         finish();
+@@ -269,6 +273,8 @@ export class NativePlayer extends EventTarget {
+                 else
+                     frame = this.video.requestVideoFrameCallback(next);
+             };
++            // Register before currentTime changes: the compositor callback may precede
++            // the queued DOM seeking/seeked events, especially for buffered media.
+             this.cancelers.add(cancel);
+             frame = this.video.requestVideoFrameCallback(next);
+             action().then(() => { completed = true; if (accepted)
+diff --git a/web/generated/internal/state.d.ts b/web/generated/internal/state.d.ts
+index 18d1a1d..97030ca 100644
+--- a/web/generated/internal/state.d.ts
++++ b/web/generated/internal/state.d.ts
+@@ -2,6 +2,7 @@ import type { MediaInfo, MediaTrack, TimeRange, PlaybackMode } from '../types.js
+ export declare function freeze<T>(value: T): T;
+ export declare function ranges(value: unknown): readonly TimeRange[] | null;
+ export type RawTrack = Record<string, any>;
++export declare function usesRemuxTracks(plan?: string): boolean;
+ export declare function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string;
+ export declare function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, plan?: string): MediaTrack[];
+ export declare function mediaInfo(properties: ReadonlyMap<string, unknown>, mode: PlaybackMode, surface: HTMLCanvasElement | HTMLVideoElement | undefined, list: MediaTrack[]): MediaInfo;
+diff --git a/web/generated/internal/state.js b/web/generated/internal/state.js
+index 1af545d..154b396 100644
+--- a/web/generated/internal/state.js
++++ b/web/generated/internal/state.js
+@@ -11,13 +11,14 @@ export function ranges(value) {
+     const out = value.map(r => ({ start: Number(r.start), end: Number(r.end) }));
+     return out.every(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.start >= 0 && r.end >= r.start) ? out : null;
+ }
++export function usesRemuxTracks(plan) { return plan === 'remux' || plan === 'adapted-flac'; }
+ export function trackKey(track, mode, plan) {
+     const type = track.type;
+     // ff-index belongs to each demuxer: separate subtitle files commonly all use 0.
+     // Attachments are replayed in the same order on replacement, retaining mpv IDs.
+     if (track.external)
+         return `${type}:external:${track.id}`;
+-    const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode === 'native' && plan === 'remux' && type === 'audio' ? Number(track.id) - 1 : undefined;
++    const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode === 'native' && usesRemuxTracks(plan) && type === 'audio' ? Number(track.id) - 1 : undefined;
+     return index !== undefined ? `${type}:stream:${index}` : `${type}:${mode === 'native' ? 'native' : 'mpv'}:${track.id}`;
+ }
+ export function tracks(raw, sourceId, mode, plan) {
+diff --git a/web/generated/unified-player.js b/web/generated/unified-player.js
+index 3306694..63a0386 100644
+--- a/web/generated/unified-player.js
++++ b/web/generated/unified-player.js
+@@ -1,7 +1,7 @@
+ import { featureRejection, executionPlan, qualifiedAudioFilter } from './internal/playback-plans.js';
+ import { runtimeBase } from './internal/assets.js';
+ import { PlayerError, playerError, redact } from './internal/errors.js';
+-import { freeze, ranges, tracks, trackKey, mediaInfo } from './internal/state.js';
++import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
+ import { PLAYBACK_MODES } from './types.js';
+ import { nativeRejection } from './internal/selection.js';
+ const filterChain = (value) => {
+@@ -392,6 +392,11 @@ export class Player extends EventTarget {
+             desired.aid = preserve && settings.aid === 'no' ? 'no' : 'auto';
+             desired.sid = preserve && settings.sid === 'no' ? 'no' : 'auto';
+         }
++        // Public stream identities are known before Native preparation starts.
++        // Select that stream at open rather than adapting the default track first.
++        const publicAudio = preserve && mode === 'native' ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
++        if (publicAudio)
++            desired.aid = String(Number(publicAudio[1]) + 1);
+         const crossing = preserve && this.automatic && (mode === 'native') !== (this.mode === 'native');
+         const trackIndexes = new Map();
+         if (crossing) {
+@@ -401,7 +406,7 @@ export class Player extends EventTarget {
+                     continue;
+                 const list = old?.backend.properties.get('track-list');
+                 const track = list?.find(t => t.type === type && String(t.id) === id);
+-                const index = this.mode === 'native' && old?.backend.diagnostics?.plan === 'remux' ? Number(id) - 1 : track?.['ff-index'];
++                const index = this.mode === 'native' && usesRemuxTracks(old?.backend.diagnostics?.plan) ? Number(id) - 1 : track?.['ff-index'];
+                 if (index === undefined)
+                     throw Error('Cannot preserve selected track across playback modes');
+                 trackIndexes.set(type, index);
+@@ -464,7 +469,7 @@ export class Player extends EventTarget {
+             }
+             for (const [type, index] of trackIndexes) {
+                 const list = p.properties.get('track-list');
+-                const track = list?.find(t => t.type === type && (mode === 'native' ? p.diagnostics?.plan === 'remux' && Number(t.id) - 1 === index : t['ff-index'] === index));
++                const track = list?.find(t => t.type === type && (mode === 'native' ? usesRemuxTracks(p.diagnostics?.plan) && Number(t.id) - 1 === index : t['ff-index'] === index));
+                 if (!track)
+                     throw Error('Cannot preserve selected track across playback modes');
+                 const id = String(track.id);
+@@ -602,7 +607,7 @@ export class Player extends EventTarget {
+                     // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
+                     let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : 'auto';
+                     const sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
+-                    if (preserve && this.mode === 'native' && ['remux', 'adapted-flac'].includes(this.current?.backend.diagnostics?.plan ?? '') && !['auto', 'no'].includes(aid))
++                    if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
+                         aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
+                     nativeReason = nativeRejection(probe, { ...settings, aid, sid }, document.createElement('video'));
+                 }
+diff --git a/web/native-remux-player.js b/web/native-remux-player.js
+index a2b8ca7..373618a 100644
+--- a/web/native-remux-player.js
++++ b/web/native-remux-player.js
+@@ -133,7 +133,11 @@ export class RemuxPlayer {
+    const ahead=ranges.find(([a,b])=>a<=now+0.5&&now<=b)?.[1]-now||0;
+    if(ahead<5&&ranges.at(-1)?.[1]>now+12){this.fail('Remux timeline gap exceeds forward buffer budget');return;}
+    if(this.eof&&!this.pending){if(this.audioAdaptation&&this.remuxStats.adaptation?.sourceEnd>0){this.duration=this.remuxStats.adaptation.sourceEnd;this.media.duration=this.duration+this.timelineBias;}this.media.endOfStream();return;}
+-   if(!this.eof&&ahead<5&&bufferedBytes<12*1024*1024){this.busy=true;this.worker.postMessage({type:'next'});}
++   const preparedAhead=this.audioAdaptation?Math.max(0,(this.remuxStats.adaptation?.sourceEnd??now)-now):0;
++   // MSE exposes the intersection of selected tracks. Never encode an entire
++   // longer track merely to make a shorter track's buffered range advance.
++   if(!this.eof&&preparedAhead>=5&&ahead<.25&&!this.video.paused){this.fail('Adapted track timelines cannot progress within the preparation budget; use Hybrid');return;}
++   if(!this.eof&&ahead<5&&preparedAhead<5&&bufferedBytes<12*1024*1024){this.busy=true;this.worker.postMessage({type:'next'});}
+   }catch(e){this.fail(String(e));}
+  }
+  watchWorker(worker,generation,label){

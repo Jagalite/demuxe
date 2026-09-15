@@ -10,6 +10,7 @@ export interface Backend extends EventTarget {
   seek(seconds: number): Promise<void>;
   rate(value: number): Promise<void>;
   volume(value: number): Promise<void>;
+  gain?(value:number): Promise<void>;
   selectTrack(type: TrackType, id: string): Promise<void>;
   subtitleVisible(visible: boolean): Promise<void>;
   resize(width: number, height: number): void;
