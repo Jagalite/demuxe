@@ -10,4 +10,4 @@ cd build/native-color-reference
  --enable-ffmpeg --enable-demuxer=matroska --enable-decoder=ffv1 \
  --enable-filter=zscale,format,tonemap,scale,null,buffer,buffersink --enable-libzimg \
  --enable-protocol=file --enable-muxer=rawvideo --enable-encoder=rawvideo
-make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-4}}"
+make -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-4}}"

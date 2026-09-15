@@ -16,7 +16,7 @@ support is still determined by the FFmpeg configuration.
 
 The build uses the pinned FFmpeg internal headers and `--wrap` initialization
 hooks. `scripts/decoder-simd.sh` supplies the same source selection to the narrow
-software build and the expanded software build. Set `DEPLEXR_DECODER_SIMD=0` to
+software build and the expanded software build. Set `DEMUXE_DECODER_SIMD=0` to
 omit these additional replacements; the existing base build still uses
 `-msimd128`. No decoder, demuxer or filter registrations are added or removed.
 

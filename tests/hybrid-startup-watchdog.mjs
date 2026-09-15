@@ -28,11 +28,11 @@ try{
   await new Promise(resolve=>proxy.listen(0,'127.0.0.1',resolve));const testOrigin=`http://127.0.0.1:${proxy.address().port}`;
   try{
    await page.goto(testOrigin+'/');await page.waitForFunction(()=>window.player);
-   await page.evaluate(async()=>{window.startupErrors=[];player.addEventListener('error',e=>startupErrors.push(e.detail));await player.setMode('hybrid');const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4',{type:'video/mp4'});await document.querySelector('deplexr-player').open(file);});
+   await page.evaluate(async()=>{window.startupErrors=[];player.addEventListener('error',e=>startupErrors.push(e.detail));await player.setMode('hybrid');const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4',{type:'video/mp4'});await document.querySelector('demuxe-player').open(file);});
    await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.currentTime>.4&&player.state.status==='playing');
    await page.evaluate(()=>player.seek(3));await page.waitForFunction(()=>player.state.currentTime>=3&&!player.state.pendingOperation);
    const result=await page.evaluate(()=>({mode:player.mode,errors:startupErrors,diagnostics:player.diagnostics}));assert.equal(result.mode,'hybrid');assert.deepEqual(result.errors,[]);assert.deepEqual(errors,[]);assert.equal(injected,delay>0);
-   await page.evaluate(()=>document.querySelector('deplexr-player').destroy());await page.waitForFunction(()=>!document.querySelector('deplexr-player').player);assert.equal(page.workers().length,0);
+   await page.evaluate(()=>document.querySelector('demuxe-player').destroy());await page.waitForFunction(()=>!document.querySelector('demuxe-player').player);assert.equal(page.workers().length,0);
    record.checks.push({delayMs:delay,passed:true,...result});console.log('PASS Hybrid startup, seek and cleanup; first packet delay',delay);
   }catch(error){record.checks.push({delayMs:delay,passed:false,error:String(error.stack)});throw error;}finally{await context.close();proxy.closeAllConnections();await new Promise(resolve=>proxy.close(resolve));}
  }

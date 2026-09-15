@@ -20,7 +20,7 @@ try{
   const cases=[];
   for(const mode of ['auth','cookie','cors-denied','forbidden','ignore-range','bad-range','encoded','redirect','retry','truncate']){
    const id=`m2-${mode}-${Date.now()}`;await control(id,{...network,mode});
-   if(mode==='cookie')await page.context().addCookies([{name:'deplexr',value:'ok',url:'http://127.0.0.1:4180',sameSite:'Lax'}]);
+   if(mode==='cookie')await page.context().addCookies([{name:'demuxe',value:'ok',url:'http://127.0.0.1:4180',sameSite:'Lax'}]);
    const evidence=await page.evaluate(async({mode,id})=>{const {RangeReader}=await import('/web/range-reader.js');let refreshes=0;const r=new RangeReader({url:`http://127.0.0.1:4180/media/m0?id=${id}`,credentials:mode==='cookie'?'include':'omit',headers:mode==='auth'?{Authorization:'Bearer expired'}:{}},mode==='auth'?async()=>{refreshes++;return {headers:{Authorization:'Bearer current'}};}:undefined);try{return {ok:true,info:await r.open(),refreshes,stats:r.stats};}catch(e){return {ok:false,error:e.message,stats:r.stats};}finally{r.close();}},{mode,id});
    assert.equal(evidence.ok,['auth','cookie','retry','truncate'].includes(mode),JSON.stringify({mode,evidence}));if(mode==='auth')assert.equal(evidence.refreshes,1);cases.push({mode,...evidence,server:await control(id)});
   }

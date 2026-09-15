@@ -1,6 +1,6 @@
 # Three-mode beta candidate
 
-deplexr is a browser media compatibility runtime. Automatic selection chooses Native
+demuxe is a browser media compatibility runtime. Automatic selection chooses Native
 direct → Native packet-copy adaptation/remux → Hybrid retained WebCodecs → Software
 FFmpeg, subject to source permissions, selected tracks and requested features. There
 are exactly three public modes. This candidate is not production-qualified.
@@ -10,14 +10,14 @@ are exactly three public modes. This candidate is not production-qualified.
 Install the published beta (or install the exact verified local archive before publication):
 
 ```sh
-npm install deplexr@beta
-npx deplexr copy-assets public/assets/deplexr
+npm install demuxe@beta
+npx demuxe copy-assets public/assets/demuxe
 ```
 
 ```js
-import { Player } from 'deplexr';
+import { Player } from 'demuxe';
 const player = new Player(document.querySelector('#player'), {
-  assetBase: '/assets/deplexr/'
+  assetBase: '/assets/demuxe/'
 });
 await player.open(fileInput.files[0]);
 await player.play();

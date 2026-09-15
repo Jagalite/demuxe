@@ -43,11 +43,11 @@ ONLY='Live,External,HLS,Finite DASH,Audio device' node tests/compatibility-expan
 node tests/player-ui-overhead.mjs
 npm install --prefix build/public-api-tooling --no-audit --no-fund esbuild@0.28.2
 python3 scripts/package-beta.py --output build/public-api-release-candidate
-BETA_ARCHIVE=build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz node --test tests/copy-assets.mjs
-BETA_ARCHIVE=build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz node tests/public-api-consumer.mjs
-BETA_ARCHIVE=build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz BROWSER=firefox node tests/public-api-consumer.mjs
-BETA_ARCHIVE=build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz node tests/beta-streaming.mjs
-BETA_ARCHIVE=build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz BROWSER=firefox node tests/beta-streaming.mjs
+BETA_ARCHIVE=build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz node --test tests/copy-assets.mjs
+BETA_ARCHIVE=build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz node tests/public-api-consumer.mjs
+BETA_ARCHIVE=build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz BROWSER=firefox node tests/public-api-consumer.mjs
+BETA_ARCHIVE=build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz node tests/beta-streaming.mjs
+BETA_ARCHIVE=build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz BROWSER=firefox node tests/beta-streaming.mjs
 ```
 
 Results go to timestamped results/public-api/, results/player-component/,
@@ -94,7 +94,7 @@ archive hash. Earlier candidates, failures and their evidence remain preserved.
 
 ## Final local candidate — 2026-09-12
 
-Artifact: `build/public-api-release-candidate/deplexr-0.3.0-beta.3.tgz` (17,845,779 bytes).
+Artifact: `build/public-api-release-candidate/demuxe-0.3.0-beta.3.tgz` (17,845,779 bytes).
 
 SHA-256: `2b7d99731bb05c33d8d24648550fafda90c4ad13968d2dbbdb777ef48421bb4a`.
 
@@ -115,7 +115,7 @@ The final report is external to the archive to avoid a self-referential archive 
 
 Additional checks: 4 asset-copy tests, 5 pure state/error tests, 73 existing unit
 checks, 21 existing API cases and 7 focused compatibility cases passed. The actual
-`npx --offline deplexr copy-assets npx-runtime` command copied 96 verified assets
+`npx --offline demuxe copy-assets npx-runtime` command copied 96 verified assets
 from a clean installation of this archive. Exact paths, result hashes, CLI output,
 source/build-material archive hashes and qualification boundaries are recorded in
 `build/public-api-release-candidate/qualification.json`.
@@ -156,7 +156,7 @@ candidate and its evidence. The review does not change the release gates above.
 Review-fix validation: Chrome 152.0.7977.83 and Firefox 146.0.1 each passed
 20 normalized API cases and 8 clean static/bundled consumer cases. The 6 state
 unit tests and TypeScript build passed. The archive is
-`build/public-api-review-fixes/deplexr-0.3.0-beta.3.tgz`, SHA-256
+`build/public-api-review-fixes/demuxe-0.3.0-beta.3.tgz`, SHA-256
 `806b07a4c7fc7df8c96781cc69b0f0fa77984f062ec0a51bf8ab0caef700bc42`. Its manifest hashes and generated runtime
 match the working build; the Wasm engines are unchanged. Detailed result hashes
 are in the accompanying `qualification.json`. Broader historical suites were

@@ -42,4 +42,4 @@ class PCMOutput extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('deplexr-pcm', PCMOutput);
+registerProcessor('demuxe-pcm', PCMOutput);

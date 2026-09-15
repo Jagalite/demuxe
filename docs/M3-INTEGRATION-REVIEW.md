@@ -1,7 +1,7 @@
 # M3 integration and maintenance review
 
 This is a source-grounded cost estimate, not an implementation authorization.
-The owner remains the deplexr maintainers; a named reviewer and maintenance budget
+The owner remains the demuxe maintainers; a named reviewer and maintenance budget
 must be accepted at G2. No excluded libmpv-wasm port is an implementation input.
 
 ## Existing authority and proposed extension
@@ -89,7 +89,7 @@ claiming integrated qualification. AAC remains on the existing software path.
 Retained frames, new codecs, HDR, live/ABR and S1 are outside that approval.
 
 The 3–6 engineer-week estimate remains a planning range, not a commitment.
-Proposed maintenance ownership stays with the existing deplexr maintainers:
+Proposed maintenance ownership stays with the existing demuxe maintainers:
 review each upstream mpv/FFmpeg rebase, browser behavior change and qualification
 failure, and own the decision to disable or retire the optional backend. No
 named maintainer has accepted this future budget in the session. G2 must approve

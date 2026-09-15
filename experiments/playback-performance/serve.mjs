@@ -37,4 +37,4 @@ const server=http.createServer(async(req,res)=>{
   res.setHeader('Content-Type',types[path.extname(asset)]||'application/octet-stream');res.setHeader('Content-Length',body.length);res.end(req.method==='HEAD'?undefined:body);
  }catch{res.writeHead(404).end('Not found');}
 });
-server.listen(Number(process.env.PORT||0),'127.0.0.1',()=>console.log(`deplexr performance: http://127.0.0.1:${server.address().port}`));
+server.listen(Number(process.env.PORT||0),'127.0.0.1',()=>console.log(`demuxe performance: http://127.0.0.1:${server.address().port}`));

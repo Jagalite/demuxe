@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
@@ -24,7 +24,7 @@ CONFIGURE=("$ROOT/build/sources/ffmpeg/configure"
  --disable-encoders --disable-muxers --disable-devices --disable-avdevice
  --disable-protocols --enable-protocol=file
  --enable-libdav1d --enable-libzimg --enable-gpl --enable-pthreads --enable-libxml2 --enable-zlib --enable-libass
- --extra-cflags="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/deplexr -I$ROOT/build/prefix/include"
+ --extra-cflags="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/demuxe -I$ROOT/build/prefix/include"
  --extra-ldflags="-pthread -L$ROOT/build/prefix/lib")
 printf '%s\n' "${CONFIGURE[@]}" > "$OBJ/configure-request.next"
 if ! cmp -s "$OBJ/configure-request.next" "$OBJ/configure-request"; then
@@ -34,7 +34,7 @@ fi
 python3 scripts/normalize-build-paths.py build/obj-software-full-ffmpeg/config.h
 # A cached Makefile may not notice that Git discovery was corrected.
 (cd "$OBJ"; sh "$ROOT/build/sources/ffmpeg/ffbuild/version.sh" "$ROOT/build/sources/ffmpeg" libavutil/ffversion.h)
-(cd "$OBJ"; emmake make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-4}}")
+(cd "$OBJ"; emmake make -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-4}}")
 # Do not install over the accepted prefix. Replace every FFmpeg archive at link time.
 read -r -a LIBS <<< "$(pkg-config --cflags --libs --static mpv)"
 for i in "${!LIBS[@]}"; do
@@ -45,7 +45,7 @@ for i in "${!LIBS[@]}"; do
 done
 source scripts/decoder-simd.sh
 python3 scripts/compile-software-vo.py
-emcc -O2 "-ffile-prefix-map=$ROOT=/deplexr" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c build/software-vo/vo_libmpv.o "${DECODER_SIMD_SOURCES[@]}" \
+emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c build/software-vo/vo_libmpv.o "${DECODER_SIMD_SOURCES[@]}" \
  "${LIBS[@]}" "$OBJ/libpostproc/libpostproc.a" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine \
  -sENVIRONMENT=worker -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \

@@ -5,7 +5,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
 async function safeDirectory(dir){const absolute=path.resolve(dir);let at=path.parse(absolute).root;for(const part of absolute.slice(at.length).split(path.sep).filter(Boolean)){at=path.join(at,part);try{const s=await lstat(at);if(!s.isDirectory()||s.isSymbolicLink())throw Error('Destination contains a non-directory or symlink: '+at);}catch(e){if(e.code!=='ENOENT')throw e;await mkdir(at);}}}
 async function main(){
- const [command,destination,...extra]=process.argv.slice(2);if(command!=='copy-assets'||!destination||extra.length)throw Error('Usage: deplexr copy-assets <destination-directory>');
+ const [command,destination,...extra]=process.argv.slice(2);if(command!=='copy-assets'||!destination||extra.length)throw Error('Usage: demuxe copy-assets <destination-directory>');
  const pkg=JSON.parse(await readFile(path.join(root,'package.json')));let manifest;
  try{manifest=JSON.parse(await readFile(path.join(root,'release-manifest.json')));}catch{throw Error('Missing release-manifest.json. Use the packaged archive, not an unassembled source checkout.');}
  if(manifest.schema!==1||manifest.version!==pkg.version||JSON.stringify(manifest.publicModes)!=='["native","hybrid","software"]')throw Error('Incompatible package/runtime manifest');
@@ -19,12 +19,12 @@ async function main(){
  }
  for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
  const target=path.resolve(destination);await safeDirectory(target);
- let previous;try{const info=await lstat(path.join(target,'deplexr-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'deplexr-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
+ let previous;try{const info=await lstat(path.join(target,'demuxe-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'demuxe-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
  // Refuse unrelated file collisions and all symlink destinations. No directory is removed.
  for(const [name,bytes]of files){const file=path.join(target,name);await safeDirectory(path.dirname(file));try{const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe destination asset: '+name);const existing=await readFile(file),digest=hash(existing);if(digest!==hash(bytes)&&digest!==previous?.files?.[name]?.sha256)throw Error('Refusing to overwrite unrelated destination file: '+name);}catch(e){if(e.code!=='ENOENT')throw e;}}
- const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.deplexr-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
+ const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.demuxe-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
  const record={schema:1,version:pkg.version,packageManifestSHA256:hash(await readFile(path.join(root,'release-manifest.json'))),files:entries};
- await writeFile(path.join(target,'deplexr-runtime.json'),JSON.stringify(record,null,2)+'\n');
+ await writeFile(path.join(target,'demuxe-runtime.json'),JSON.stringify(record,null,2)+'\n');
  console.log(`Copied ${files.size} verified ${pkg.name} ${pkg.version} assets to ${target}. Unrelated files were retained.`);
 }
-main().catch(error=>{console.error('deplexr: '+error.message);process.exitCode=1;});
+main().catch(error=>{console.error('demuxe: '+error.message);process.exitCode=1;});

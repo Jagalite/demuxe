@@ -117,7 +117,7 @@ export function prepareDASH(text,url,options={}){
   }
   if(present.size!==tracks.size)fail('DASH tracks cannot disappear across periods');expectedStart=start+duration;
  }
- const prefix=new URL('__deplexr_periods__/',url).href;let audio=[],video=[];
+ const prefix=new URL('__demuxe_periods__/',url).href;let audio=[],video=[];
  for(const [key,t] of tracks){
   const uri=prefix+encodeURIComponent(key)+'.m3u8';let body='#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:'+Math.ceil(Math.max(...t.parts.flatMap(p=>p.entries.map(e=>e.duration))))+'\n#EXT-X-PLAYLIST-TYPE:VOD\n';
   for(const [i,p] of t.parts.entries()){

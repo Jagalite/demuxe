@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
 OUT="build/playback-performance/maintained-kernels-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$OUT"

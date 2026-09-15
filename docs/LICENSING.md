@@ -1,8 +1,8 @@
 # Licensing and distribution
 
-## Original deplexr code
+## Original demuxe code
 
-Original deplexr code is licensed under **GPL-2.0-or-later**. The copyright notice
+Original demuxe code is licensed under **GPL-2.0-or-later**. The copyright notice
 is **Copyright (C) 2026 webmpv contributors**. See the root `LICENSE` for the grant,
 warranty disclaimer and complete GPL text. Upstream-derived files and dependencies
 retain their own notices and licenses.
@@ -46,10 +46,10 @@ original-code license does not replace those upstream terms. The dated release r
 
 ## Source and build materials accompanying a distribution
 
-Ship the runtime archive and its matching `deplexr-*-source.tar.gz` together from the
+Ship the runtime archive and its matching `demuxe-*-source.tar.gz` together from the
 same download location. The source companion must contain:
 
-- The exact deplexr source revision, native wrappers, browser bindings, patches,
+- The exact demuxe source revision, native wrappers, browser bindings, patches,
   build scripts, source/toolchain locks, package lock, notices and font asset.
 - Every SHA-256-verified upstream archive in `sources.lock.json`, including the
   SDK installer source, plus the actual installed Emscripten sources and runtime

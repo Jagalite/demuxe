@@ -13,7 +13,7 @@ for name in sys.argv[1:]:
     if not header.is_relative_to(root / 'build') or header.suffix != '.h':
         raise SystemExit('Expected a generated build header: ' + name)
     content = header.read_bytes()
-    normalized = content.replace(str(root).encode(), b'/deplexr')
+    normalized = content.replace(str(root).encode(), b'/demuxe')
     if normalized != content:
         header.write_bytes(normalized)
         print('Normalized embedded build paths: ' + name)

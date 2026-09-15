@@ -51,7 +51,7 @@ function sourceTitle(source) {
         return '';
     }
 }
-export class DeplexrPlayerElement extends Base {
+export class DemuxePlayerElement extends Base {
     static observedAttributes = ['src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base', 'title', 'title-mode'];
     core;
     queueItems = [];
@@ -675,7 +675,7 @@ export class DeplexrPlayerElement extends Base {
     }
     bufferedProgress(state) {
         const ranges = state.seekable, min = ranges?.[0]?.start ?? 0, max = ranges?.at(-1)?.end ?? 0, span = max - min;
-        const layers = span > 0 ? (state.buffered ?? []).filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start && r.end > min && r.start < max).map(r => { const start = Math.max(0, (r.start - min) / span * 100), end = Math.min(100, (r.end - min) / span * 100); return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--deplexr-foreground) 21%,transparent) ${start}% ${end}%,transparent ${end}%)`; }) : [];
+        const layers = span > 0 ? (state.buffered ?? []).filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start && r.end > min && r.start < max).map(r => { const start = Math.max(0, (r.start - min) / span * 100), end = Math.min(100, (r.end - min) / span * 100); return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 21%,transparent) ${start}% ${end}%,transparent ${end}%)`; }) : [];
         this.$('timeline').style.setProperty('--buffered', layers.join(',') || 'linear-gradient(transparent,transparent)');
     }
     timelineProgress() { const input = this.input('timeline'), min = Number(input.min), max = Number(input.max); input.style.setProperty('--progress', `${max > min ? Math.max(0, Math.min(100, (Number(input.value) - min) / (max - min) * 100)) : 0}%`); }
@@ -861,13 +861,13 @@ export class DeplexrPlayerElement extends Base {
         });
     }
 }
-export function definePlayerElement(name = 'deplexr-player') {
+export function definePlayerElement(name = 'demuxe-player') {
     if (typeof customElements === 'undefined')
         throw new PlayerError('INVALID_ARGUMENT', 'Custom element registration requires a browser');
     const existing = customElements.get(name);
-    if (existing && existing !== DeplexrPlayerElement)
+    if (existing && existing !== DemuxePlayerElement)
         throw new PlayerError('INVALID_ARGUMENT', `Custom element ${name} is already registered with another implementation`);
     if (!existing)
-        customElements.define(name, DeplexrPlayerElement);
-    return DeplexrPlayerElement;
+        customElements.define(name, DemuxePlayerElement);
+    return DemuxePlayerElement;
 }

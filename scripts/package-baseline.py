@@ -56,13 +56,13 @@ manifest={'schema':1,'version':version,'status':'M2/G1 accepted software baselin
                    for name,file in sorted(files.items())}}
 encoded=(json.dumps(manifest,indent=2)+'\n').encode()
 args.output.mkdir(parents=True,exist_ok=True)
-archive=args.output/f'deplexr-software-{version}.tar.gz'
+archive=args.output/f'demuxe-software-{version}.tar.gz'
 with archive.open('wb') as raw,gzip.GzipFile(filename='',mode='wb',fileobj=raw,mtime=0) as zipped,tarfile.open(fileobj=zipped,mode='w|') as tar:
     for name,file in sorted(files.items()):
-        data=file.read_bytes();info=tarfile.TarInfo(f'deplexr-{version}/{name}')
+        data=file.read_bytes();info=tarfile.TarInfo(f'demuxe-{version}/{name}')
         info.size=len(data);info.mode=0o755 if name.startswith('scripts/') and file.suffix in ['.sh','.py'] else 0o644
         info.mtime=1740000000;tar.addfile(info,io.BytesIO(data))
-    info=tarfile.TarInfo(f'deplexr-{version}/release-manifest.json');info.size=len(encoded);info.mode=0o644;info.mtime=1740000000
+    info=tarfile.TarInfo(f'demuxe-{version}/release-manifest.json');info.size=len(encoded);info.mode=0o644;info.mtime=1740000000
     tar.addfile(info,io.BytesIO(encoded))
 summary={'archive':str(archive.relative_to(root) if archive.is_relative_to(root) else archive),
          'bytes':archive.stat().st_size,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'version':version}

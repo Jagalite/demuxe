@@ -20,7 +20,7 @@ The final verification record below identifies the exact artifacts checked.
 ## API
 
 ```ts
-import {Player} from '/vendor/deplexr/index.js';
+import {Player} from '/vendor/demuxe/index.js';
 
 const player = new Player(container, {
   // Omit mode to allow automatic feature-aware selection.

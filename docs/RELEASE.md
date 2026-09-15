@@ -35,7 +35,7 @@ Emscripten cache. Do not run `fetch-sources.py` in that checkout before `--clean
 use the prerequisite installation checkout to provision the SDK first.
 
 ```sh
-DEPLEXR_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
+DEMUXE_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
   bash scripts/build-beta-engines.sh --clean > build/clean-build.log 2>&1
 ```
 
@@ -44,7 +44,7 @@ outputs, extracted sources, dependency prefixes, objects or compiler cache. The
 build verifies locked archives, applies the complete patch series, builds all
 static dependencies and all three engines, and records actual configuration and
 input/output hashes in `build/beta-build.json`. Compiler file-prefix maps and
-normalized generated configuration headers use `/deplexr/` as a virtual build root;
+normalized generated configuration headers use `/demuxe/` as a virtual build root;
 the npm packager rejects leaked host paths in any runtime file, including Wasm.
 Full host paths remain only in build evidence and the source companion. Inputs may not change during the
 build. Generated tracked bindings must match the tag; otherwise fix the source,
@@ -59,13 +59,13 @@ matching input/configuration/engine hashes. It also produces the source companio
 
 ```sh
 python3 scripts/package-beta.py --release-tag <tag> --output build/release
-BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
+BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-consumer.mjs
-BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
+BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-consumer.mjs
-BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
+BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-streaming.mjs
-BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/deplexr-<version>.tgz \
+BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-streaming.mjs
 ```
 
@@ -81,7 +81,7 @@ Extract that same archive and run the deterministic timeout regressions against 
 
 ```sh
 mkdir -p build/release/extracted
-tar -xzf build/release/deplexr-<version>.tgz -C build/release/extracted
+tar -xzf build/release/demuxe-<version>.tgz -C build/release/extracted
 RANGE_READER_MODULE="$PWD/build/release/extracted/package/web/range-reader.js" \
   node --test tests/range-reader-deadline.mjs
 ```
@@ -98,8 +98,8 @@ against the archived reader, then write the final verification record:
 
 ```sh
 python3 scripts/verify-beta-release.py \
-  --archive build/release/deplexr-<version>.tgz \
-  --source build/release/deplexr-<version>-source.tar.gz \
+  --archive build/release/demuxe-<version>.tgz \
+  --source build/release/demuxe-<version>-source.tar.gz \
   --consumer <chrome-consumer-result.json> <firefox-consumer-result.json> \
   --streaming <chrome-streaming-result.json> <firefox-streaming-result.json> \
   --extra <release-extra-result.json>
@@ -119,7 +119,7 @@ component, and menu regressions. The UI/API test server serves runtime code stri
 from the installed archive; only test pages and media come from the tagged source.
 
 ```sh
-BETA_ARCHIVE="$PWD/build/release/deplexr-0.3.0-beta.3.tgz" node tests/release-extra.mjs
+BETA_ARCHIVE="$PWD/build/release/demuxe-0.3.0-beta.3.tgz" node tests/release-extra.mjs
 ```
 
 Pass `--extra <release-extra-result.json>` to `verify-beta-release.py`, in addition
@@ -138,20 +138,20 @@ do not rebuild or repack it after qualification. Keep the source companion,
 Before npm publication, make the matching source companion downloadable from the
 GitHub release for the recorded tag; the npm package alone is not that source offer.
 
-1. Confirm `npm whoami`, account publishing access/2FA, and `deplexr` name
-   availability or ownership (`npm view deplexr name version maintainers`).
+1. Confirm `npm whoami`, account publishing access/2FA, and `demuxe` name
+   availability or ownership (`npm view demuxe name version maintainers`).
 2. Check archive metadata and `SHA256SUMS` against `verification.json`.
-3. Run `npm publish ./build/release/deplexr-0.3.0-beta.3.tgz --tag beta --access public --dry-run`.
+3. Run `npm publish ./build/release/demuxe-0.3.0-beta.3.tgz --tag beta --access public --dry-run`.
 4. Only after all verification gates pass, explicitly publish:
 
 ```sh
-npm publish ./build/release/deplexr-0.3.0-beta.3.tgz --tag beta --access public
+npm publish ./build/release/demuxe-0.3.0-beta.3.tgz --tag beta --access public
 ```
 
-Do not use `latest` for this beta. After publication, install `deplexr@beta` into
-a brand-new temporary project, run `npx deplexr copy-assets public/assets/deplexr`,
-import both `deplexr` and `deplexr/player`, and smoke-test one Native direct source
+Do not use `latest` for this beta. After publication, install `demuxe@beta` into
+a brand-new temporary project, run `npx demuxe copy-assets public/assets/demuxe`,
+import both `demuxe` and `demuxe/player`, and smoke-test one Native direct source
 and one Hybrid/Software or Native-remux source using the installed runtime assets.
-Check `npm view deplexr@beta version dist` and download the registry tarball to
+Check `npm view demuxe@beta version dist` and download the registry tarball to
 compare its bytes/hash to the qualified archive. Once this first version exists,
 configure npm trusted publishing for the exact GitHub workflow used for later releases.

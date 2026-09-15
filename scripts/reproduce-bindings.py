@@ -18,7 +18,7 @@ snapshot = {name: (root / name).read_bytes() for name in inputs + sidecars}
 hashes = lambda files: {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
 builds = []
 for attempt in (1, 2):
-    with tempfile.TemporaryDirectory(prefix='deplexr-bindings-', dir=root / 'build') as temporary:
+    with tempfile.TemporaryDirectory(prefix='demuxe-bindings-', dir=root / 'build') as temporary:
         work = pathlib.Path(temporary)
         for name, data in snapshot.items():
             (work / name).parent.mkdir(parents=True, exist_ok=True)

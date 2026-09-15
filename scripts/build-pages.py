@@ -23,7 +23,7 @@ page=(root/'web/player.html').read_text().replace('href="/"','href="./"').replac
 page=page.replace('<main>','<main inert>')
 page=page.replace('<script type="module" src="./web/player-demo.js"></script>','<script type="module" src="./pages-boot.js"></script>')
 page=page.replace('<body>','''<body><div id="pages-startup" role="status" style="position:fixed;inset:0;z-index:100;background:#101114;display:grid;place-content:center;text-align:center;padding:24px"><strong>Preparing your player…</strong><p style="color:#aaa">First visit? Playback setup takes a moment.</p><a href="./" target="_blank" rel="noopener" hidden>Open in a browser tab</a></div><noscript><style>#pages-startup{display:none!important}</style>This player needs JavaScript enabled.</noscript>''')
-page=page.replace('OPEN SOURCE <span class="footer-dot">·</span> BETA PLAYGROUND','<a href="https://github.com/Jagalite/deplexr/tree/demo-source">Source</a> <span class="footer-dot">·</span> <a href="./source/">Licenses &amp; downloads</a>')
+page=page.replace('OPEN SOURCE <span class="footer-dot">·</span> BETA PLAYGROUND','<a href="https://github.com/Jagalite/demuxe/tree/demo-source">Source</a> <span class="footer-dot">·</span> <a href="./source/">Licenses &amp; downloads</a>')
 (out/'index.html').write_text(page);(out/'.nojekyll').touch()
 for path in (root/'hosting').glob('*.js'):shutil.copyfile(path,out/path.name)
 source=out/'source';source.mkdir()
@@ -39,8 +39,8 @@ files={}
 for name in subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root).decode().split('\0'):
  if not name or name.startswith(('results/','build/','.github/')):continue
  path=root/name
- if path.is_file() and not path.is_symlink():files['deplexr/'+name]=path
-bundle('deplexr-source.tar.gz',files)
+ if path.is_file() and not path.is_symlink():files['demuxe/'+name]=path
+bundle('demuxe-source.tar.gz',files)
 # Exact locked upstream source archives are available from the same download location.
 for item in json.loads((root/'sources.lock.json').read_text())['sources']:
  path=root/'build/downloads'/(item['name']+'.tar.gz')
@@ -61,11 +61,11 @@ bundle('build-materials.tar.gz',{name:root/name for name in materials})
 readme='''# Demo source and licenses
 
 This is a development demo, not the clean-build beta release candidate.
-The original deplexr code and combined engines are GPL-2.0-or-later. Third-party
+The original demuxe code and combined engines are GPL-2.0-or-later. Third-party
 components retain their licenses and notices; see ../docs/LICENSING.md and ../third_party/.
 
-Download deplexr-source.tar.gz for the preferred project source, scripts and patches.
-Extract it, then place the individual upstream archives in deplexr/build/downloads/.
+Download demuxe-source.tar.gz for the preferred project source, scripts and patches.
+Extract it, then place the individual upstream archives in demuxe/build/downloads/.
 emscripten-source.tar.gz supplies the SDK 4.0.14 runtime/library source and scripts.
 build-materials.tar.gz records the local configurations used for these engines,
 including Software's RGB rotation override. Absolute paths in these records describe
@@ -81,7 +81,7 @@ source download hashes; ../deployment-manifest.json records the deployed assets.
 manifest={p.name:{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(source.glob('*.gz'))}
 (source/'source-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 links=''.join(f'<li><a href="{html.escape(name)}">{html.escape(name)}</a> — {data["bytes"]/1024/1024:.1f} MiB</li>' for name,data in manifest.items())
-(source/'index.html').write_text(f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>deplexr source &amp; licenses</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 24px;background:#101114;color:#ded9e9}}a{{color:#c3a9ff}}pre{{white-space:pre-wrap;font:14px/1.7 system-ui}}</style><a href="../">← Player</a><h1>Source &amp; licenses</h1><p><a href="../LICENSE">GPL license</a> · <a href="../docs/LICENSING.md">Component licensing</a> · <a href="../third_party/notices.json">Third-party notices</a> · <a href="source-manifest.json">Download hashes</a></p><pre>{html.escape(readme)}</pre><ul>{links}</ul>''')
+(source/'index.html').write_text(f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>demuxe source &amp; licenses</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 24px;background:#101114;color:#ded9e9}}a{{color:#c3a9ff}}pre{{white-space:pre-wrap;font:14px/1.7 system-ui}}</style><a href="../">← Player</a><h1>Source &amp; licenses</h1><p><a href="../LICENSE">GPL license</a> · <a href="../docs/LICENSING.md">Component licensing</a> · <a href="../third_party/notices.json">Third-party notices</a> · <a href="source-manifest.json">Download hashes</a></p><pre>{html.escape(readme)}</pre><ul>{links}</ul>''')
 manifest={'status':'development-demo','baseCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'sourceBranch':'demo-source','sourceCommit':args.source_commit,'independentCleanBuildQualified':False,'files':{str(p.relative_to(out)):{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(out.rglob('*')) if p.is_file()}}
 (out/'deployment-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 for path in out.rglob('*'):

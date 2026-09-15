@@ -101,7 +101,7 @@ export class Player extends EventTarget {
             this.currentMode = 'software';
         this.validateFilters(this.currentMode, this.settings);
         this.root = document.createElement('div');
-        this.root.className = 'deplexr-player';
+        this.root.className = 'demuxe-player';
         container.append(this.root);
         this.publish();
     }

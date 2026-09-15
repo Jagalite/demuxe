@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {once} from 'node:events';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..');
-const files=new Map(Object.entries({m0:path.join(root,'fixtures/m0.mkv'),user:process.env.DEPLEXR_TEST_MEDIA||process.env.WEBMPV_TEST_MEDIA||'/Users/jagatranvo/Downloads/full_subs_test.mkv',front:path.join(root,'build/fixtures/front.mp4'),tail:path.join(root,'build/fixtures/tail.mp4'),tracks:path.join(root,'build/fixtures/tracks.mkv'),vfr:path.join(root,'build/fixtures/vfr.mkv')}));
+const files=new Map(Object.entries({m0:path.join(root,'fixtures/m0.mkv'),user:process.env.DEMUXE_TEST_MEDIA||process.env.WEBMPV_TEST_MEDIA||'/Users/jagatranvo/Downloads/full_subs_test.mkv',front:path.join(root,'build/fixtures/front.mp4'),tail:path.join(root,'build/fixtures/tail.mp4'),tracks:path.join(root,'build/fixtures/tracks.mkv'),vfr:path.join(root,'build/fixtures/vfr.mkv')}));
 const states=new Map(),representations=new Map();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function state(id){if(!states.has(id))states.set(id,{requests:0,bytes:0,ranges:[],aborted:0,mode:'normal',stall:false,rtt:0,mbps:0});return states.get(id);}
@@ -31,10 +31,10 @@ function server(port){return http.createServer(async(req,res)=>{
     s.requests++;
     if(s.mode==='forbidden'){res.writeHead(403).end();return;}
     if(s.mode==='auth'&&req.headers.authorization!=='Bearer current'){res.writeHead(401).end();return;}
-    if(s.mode==='cookie'&&!req.headers.cookie?.includes('deplexr=ok')){res.writeHead(401).end();return;}
+    if(s.mode==='cookie'&&!req.headers.cookie?.includes('demuxe=ok')){res.writeHead(401).end();return;}
     if(s.mode==='redirect'){res.writeHead(302,{Location:`http://127.0.0.1:4181/media/${name}`}).end();return;}
     if(s.mode==='retry'&&s.requests<=2){res.writeHead(503,{'Retry-After':'0'}).end();return;}
-    if(s.setCookie)res.setHeader('Set-Cookie','deplexr=ok; SameSite=Lax; Path=/');
+    if(s.setCookie)res.setHeader('Set-Cookie','demuxe=ok; SameSite=Lax; Path=/');
     const m=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range||'');
     if(!m){res.writeHead(400).end();return;}
     let start=Number(m[1]),end=Math.min(Number(m[2]),meta.size-1);

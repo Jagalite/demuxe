@@ -64,7 +64,7 @@ if build:
  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/deplexr.mjs','docs/PUBLIC-API.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
 files['player.js']=b"export * from './web/generated/player/index.js';\n"
 files['player.d.ts']=b"export * from './web/generated/player/index.js';\n"
 files['index.js']=b"export * from './web/generated/index.js';\n"
@@ -72,7 +72,7 @@ files['index.d.ts']=b"export * from './web/generated/index.js';\n"
 files['README.md']=(root/'README.md').read_bytes()
 for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
-package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'deplexrOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/deplexr.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'demuxeOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
 package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
 package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
@@ -87,7 +87,7 @@ with out.open('wb')as f:
  with gzip.GzipFile(filename='',mode='wb',fileobj=f,mtime=0)as gz:
   with tarfile.open(fileobj=gz,mode='w',format=tarfile.PAX_FORMAT)as tar:
    for name,data in sorted(files.items()):
-    info=tarfile.TarInfo('package/'+name);info.size=len(data);info.mode=0o755 if name=='bin/deplexr.mjs' else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))
+    info=tarfile.TarInfo('package/'+name);info.size=len(data);info.mode=0o755 if name=='bin/demuxe.mjs' else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))
 (args.output/'release-manifest.json').write_bytes(files['release-manifest.json'])
 digest=hashlib.sha256(out.read_bytes()).hexdigest()
 lines=[f'{digest}  {out.name}']

@@ -1,6 +1,6 @@
 # Baseline portability patch inventory
 
-Owner: deplexr maintainers. Inputs are the upstream archives in sources.lock.json.
+Owner: demuxe maintainers. Inputs are the upstream archives in sources.lock.json.
 No incomplete libmpv-wasm port, associated fork, wrapper, SDK or build recipe is
 an implementation input.
 

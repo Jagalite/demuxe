@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createBenchmarkServer} from '../scripts/benchmark-media-server.mjs';
 test('benchmark origin serves native open-ended/suffix ranges and bounded mpv ranges identically',async()=>{
- const folder=await mkdtemp(path.join(tmpdir(),'deplexr-benchmark-')),file=path.join(folder,'fixture.mp4');
+ const folder=await mkdtemp(path.join(tmpdir(),'demuxe-benchmark-')),file=path.join(folder,'fixture.mp4');
  await writeFile(file,Buffer.from('0123456789'));
  const server=await createBenchmarkServer({file,mbps:1000,rtt:0});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url=`http://127.0.0.1:${server.address().port}`;

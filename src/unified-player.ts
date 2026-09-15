@@ -95,7 +95,7 @@ export class Player extends EventTarget {
     this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? '')};
     if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode='software';
     this.validateFilters(this.currentMode, this.settings);
-    this.root = document.createElement('div');this.root.className = 'deplexr-player';container.append(this.root);
+    this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
     this.publish();
   }
   get state(): PlayerState {return this.snapshot;}

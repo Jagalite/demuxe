@@ -15,8 +15,8 @@ if(!origin){
  server=createServer(async(req,res)=>{
   try {
    const url=new URL(req.url,'http://localhost');
-   if(!url.pathname.startsWith('/deplexr/')){res.writeHead(404).end();return;}
-   const name=decodeURIComponent(url.pathname.slice('/deplexr/'.length));
+   if(!url.pathname.startsWith('/demuxe/')){res.writeHead(404).end();return;}
+   const name=decodeURIComponent(url.pathname.slice('/demuxe/'.length));
    let file=path.resolve(root,name||'index.html');
    if(!file.startsWith(root+path.sep))throw Error();
    if((await stat(file)).isDirectory())file=path.join(file,'index.html');
@@ -31,7 +31,7 @@ if(!origin){
    createReadStream(file,{start,end}).pipe(res);
   }catch{res.writeHead(404).end();}
  });
- await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${server.address().port}/deplexr/`;
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${server.address().port}/demuxe/`;
 }
 const browser=kind==='firefox'?await firefox.launch():await chromium.launch({channel:'chrome'});
 const page=await browser.newPage({viewport:{width:1280,height:900}});
@@ -46,18 +46,18 @@ try {
  await page.waitForFunction(()=>crossOriginIsolated && window.player,{},{timeout:60000});
  assert.equal(await page.evaluate(()=>typeof SharedArrayBuffer),'function');
  assert.equal(await page.locator('#pages-startup').count(),0);
- assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller?.scriptURL.endsWith('/deplexr/pages-isolation-sw.js')));
+ assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller?.scriptURL.endsWith('/demuxe/pages-isolation-sw.js')));
  check('Fresh visit becomes cross-origin isolated through the scoped service worker');
  for(const mode of ['native','hybrid','software']){
    await page.evaluate(mode=>player.setMode(mode),mode);
    const previousSource=await page.evaluate(()=>player.state.sourceId);
    await page.getByRole('button',{name:'Try an example'}).click();
    await page.waitForFunction(previous=>player.state.sourceId!==null&&player.state.sourceId!==previous&&player.state.pendingOperation===null,previousSource);
-   const viewer=page.locator('deplexr-player');await viewer.getByRole('button',{name:'Play',exact:true}).click();
+   const viewer=page.locator('demuxe-player');await viewer.getByRole('button',{name:'Play',exact:true}).click();
    await page.waitForFunction(()=>player.state.currentTime>.3);
    assert.equal(await page.evaluate(()=>player.mode),mode);
    await viewer.getByRole('button',{name:'Pause',exact:true}).click();
-   await page.evaluate(()=>document.querySelector('deplexr-player').seek(2));
+   await page.evaluate(()=>document.querySelector('demuxe-player').seek(2));
    await page.waitForFunction(()=>player.state.pendingOperation===null&&Math.abs(player.state.currentTime-2)<.3);
    assert.equal(await page.evaluate(()=>player.state.error),null);
    check(`${mode} plays and seeks with assets beneath the project subpath`);
@@ -71,7 +71,7 @@ try {
  assert.equal(result.requests.some(r=>!r.url.startsWith(origin)),false);
  check('No external asset requests, uploads or uncaught page errors');
  const response=await page.request.get(new URL('source/source-manifest.json',origin).href);assert.ok(response.ok());
- result.source=await response.json();assert.ok(result.source['deplexr-source.tar.gz']);assert.ok(result.source['emscripten-source.tar.gz']);
+ result.source=await response.json();assert.ok(result.source['demuxe-source.tar.gz']);assert.ok(result.source['emscripten-source.tar.gz']);
  check('Source downloads and license materials accompany the demo');
  result.passed=true;
 }catch(error){result.failure=String(error.stack);console.error(error);process.exitCode=1;await page.screenshot({path:`${out}/failure.png`,fullPage:true}).catch(()=>{});result.state=await page.evaluate(()=>({player:window.player?.state,isolated:crossOriginIsolated,status:document.querySelector('#status')?.textContent,startup:document.querySelector('#pages-startup')?.textContent})).catch(()=>null);}

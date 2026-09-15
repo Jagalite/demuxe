@@ -18,7 +18,7 @@ session to cancel a replacement. Catch PlayerError; the error event now carries
 structured error detail instead of an untyped backend string. mpv, modechange and
 selectionchange remain advanced interfaces.
 
-The optional component is a separate `deplexr/player` import. Custom controls use
+The optional component is a separate `demuxe/player` import. Custom controls use
 exactly the same Player API. Runtime static directories continue to work; the
 assetBase and copy-assets interfaces are described in RUNTIME-ASSETS.md. These
 interfaces are undergoing milestone validation; see PUBLIC-API-VALIDATION.md for
@@ -46,9 +46,9 @@ history. The public Pages deployment remains unchanged until publication is
 separately authorized. This work has not published a new npm package or closed
 the independent clean-engine-build release gate.
 
-## First public Deplexr beta
+## First public Demuxe beta
 
-Use `<deplexr-player>`, `DeplexrPlayerElement`, `--deplexr-*` CSS variables,
-`deplexr copy-assets`, and `/assets/deplexr/`. No legacy element alias is registered.
+Use `<demuxe-player>`, `DemuxePlayerElement`, `--demuxe-*` CSS variables,
+`demuxe copy-assets`, and `/assets/demuxe/`. No legacy element alias is registered.
 The three public mode values remain `native`, `hybrid`, and `software`.
 See [the branding audit](BRANDING-MIGRATION.md) for retained historical identifiers.

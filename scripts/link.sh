@@ -2,11 +2,11 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$ROOT/build/venv/bin:$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$SDK/.emscripten}"
-export EM_CACHE="${WEBMPV_CACHE:-${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}/upstream/emscripten/cache}"
+export EM_CACHE="${WEBMPV_CACHE:-${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}/upstream/emscripten/cache}"
 export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 OUTPUT_DIR=${WEBMPV_ENGINE_DIR:-web/engine}
@@ -16,7 +16,7 @@ source scripts/decoder-simd.sh
 if [ "${WEBMPV_BROWSER_DECODER:-0}" = 1 ]; then
   BROWSER_SOURCES=(native/vd_browser.c -Ibuild/sources/mpv -Ibuild/obj-mpv)
 fi
-emcc "${WEBMPV_LINK_OPT:--O2}" "-ffile-prefix-map=$ROOT=/deplexr" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c "${BROWSER_SOURCES[@]}" "${DECODER_SIMD_SOURCES[@]}" \
+emcc "${WEBMPV_LINK_OPT:--O2}" "-ffile-prefix-map=$ROOT=/demuxe" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c "${BROWSER_SOURCES[@]}" "${DECODER_SIMD_SOURCES[@]}" \
   $(pkg-config --cflags --libs --static mpv) -lstdc++ \
   -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine \
   -sENVIRONMENT=worker -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \

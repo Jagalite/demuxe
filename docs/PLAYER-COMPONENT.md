@@ -1,11 +1,11 @@
 # Optional player component
 
 This is the target contract; qualification is recorded separately. Import
-`definePlayerElement` from `deplexr/player` and call it once (repeat calls with the
+`definePlayerElement` from `demuxe/player` and call it once (repeat calls with the
 same implementation are harmless). Core import does not import UI or register a
 tag. SSR imports are safe; registration and construction require a browser.
 
-`<deplexr-player controls asset-base="/assets/deplexr/" poster="/preview.jpg">`
+`<demuxe-player controls asset-base="/assets/demuxe/" poster="/preview.jpg">`
 creates one Player on connection. ready resolves with that core; player exposes it
 read-only after initialization. open, close, destroy and playback conveniences
 delegate to it. The component contains no route selector or playback scheduler.
@@ -25,7 +25,7 @@ before creating the next core. Explicit destroy is terminal, including reinserti
 ready waits for connection; destroy before connection rejects it.
 
 The open shadow root includes stage, controls, settings and status parts, CSS
-public Deplexr theme variables, and before-controls /
+public Demuxe theme variables, and before-controls /
 after-controls slots. Labels can be overridden before or after connection.
 Controls use semantic buttons/ranges/selects, visible focus, scoped keyboard
 shortcuts, local drag preview, and an aria-live status that excludes time updates.
@@ -75,11 +75,11 @@ themselves.
 ## Customization
 
 ```html
-<deplexr-player
+<demuxe-player
   controls
   title="Movie Night"
-  asset-base="/assets/deplexr/">
-</deplexr-player>
+  asset-base="/assets/demuxe/">
+</demuxe-player>
 ```
 
 The standard HTML `title` property/attribute updates the displayed title live.
@@ -101,7 +101,7 @@ or is replaced through the core; applications opening directly through
 visually to fit the player.
 
 ```ts
-const element = document.querySelector("deplexr-player");
+const element = document.querySelector("demuxe-player");
 element.titleMode = "source";
 ```
 
@@ -134,14 +134,14 @@ the timer. Playing with the play button/shortcut still hides controls immediatel
 screen taps still toggle visibility. Invalid numeric property values throw
 `INVALID_ARGUMENT`.
 
-For entirely custom controls, import `Player` from `deplexr` and build your own
+For entirely custom controls, import `Player` from `demuxe` and build your own
 layout. The optional component delegates to that same core and adds no playback
 modes or routing policy.
 
 ```js
-import {definePlayerElement} from 'deplexr/player';
+import {definePlayerElement} from 'demuxe/player';
 definePlayerElement();
-const element = document.querySelector('deplexr-player');
+const element = document.querySelector('demuxe-player');
 element.labels = {play: 'Lire', pause: 'Pause', settings: 'Réglages'};
 const core = await element.ready;
 const unsubscribe = core.subscribe(state => console.log(state.status));
@@ -157,26 +157,26 @@ new asset-base; the old one must finish cleanup first. An asset-base attribute
 change after initialization is reverted and reports INVALID_ARGUMENT.
 
 ```css
-deplexr-player {
-  --deplexr-background: #121318;
-  --deplexr-stage-background: #090a10;
-  --deplexr-foreground: #f2f1f7;
-  --deplexr-muted-foreground: #bbb8ca;
-  --deplexr-panel-background: #20212a;
-  --deplexr-control-background: #30313e;
-  --deplexr-overlay-background: #171824bb;
-  --deplexr-accent: #b7a0ff;
-  --deplexr-border: #393941;
-  --deplexr-radius: 16px;
+demuxe-player {
+  --demuxe-background: #121318;
+  --demuxe-stage-background: #090a10;
+  --demuxe-foreground: #f2f1f7;
+  --demuxe-muted-foreground: #bbb8ca;
+  --demuxe-panel-background: #20212a;
+  --demuxe-control-background: #30313e;
+  --demuxe-overlay-background: #171824bb;
+  --demuxe-accent: #b7a0ff;
+  --demuxe-border: #393941;
+  --demuxe-radius: 16px;
 }
-deplexr-player::part(controls) { padding-inline: 20px; }
-deplexr-player::part(title) { font-weight: 600; }
-deplexr-player::part(timeline) { height: 32px; }
+demuxe-player::part(controls) { padding-inline: 20px; }
+demuxe-player::part(title) { font-weight: 600; }
+demuxe-player::part(timeline) { height: 32px; }
 ```
 
 For a light skin, set the same surface variables to light colors, foregrounds to
 dark colors, and `color-scheme: light` on the element for native form controls.
-All public theme names use `--deplexr-*`; there are no legacy branding aliases.
+All public theme names use `--demuxe-*`; there are no legacy branding aliases.
 
 Stable parts: container, stage, controls, settings, error, status, title, topbar,
 transport, timeline, volume. The volume part wraps the mute button and slider. Limited slots:

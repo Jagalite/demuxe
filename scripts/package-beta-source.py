@@ -7,9 +7,9 @@ build=json.loads((root/'build/beta-build.json').read_text());sdk=pathlib.Path(bu
 files={}
 # Only tracked, reviewed source; omit historical test output and its media metadata.
 for name in subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0'):
- if name and not name.startswith('results/') and (root/name).is_file():files['deplexr/'+name]=root/name
+ if name and not name.startswith('results/') and (root/name).is_file():files['demuxe/'+name]=root/name
 for item in json.loads((root/'sources.lock.json').read_text())['sources']:
- files['deplexr/build/downloads/'+item['name']+'.tar.gz']=root/'build/downloads'/(item['name']+'.tar.gz')
+ files['demuxe/build/downloads/'+item['name']+'.tar.gz']=root/'build/downloads'/(item['name']+'.tar.gz')
 # Include the SDK's preferred source, notably the runtime libraries linked into Wasm.
 for path in sorted((sdk/'upstream/emscripten').rglob('*')):
  rel=path.relative_to(sdk/'upstream/emscripten')

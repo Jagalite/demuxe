@@ -2,11 +2,11 @@
 set -euo pipefail
 ROOT="$PWD"
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$ROOT/build/venv/bin:$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$SDK/.emscripten}"
-export EM_CACHE="${WEBMPV_CACHE:-${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}/upstream/emscripten/cache}"
+export EM_CACHE="${WEBMPV_CACHE:-${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}/upstream/emscripten/cache}"
 export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 OUTPUT_DIR=web/engine-retained-subs

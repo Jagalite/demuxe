@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
 export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
@@ -19,7 +19,7 @@ for i in "${!LIBS[@]}"; do
  esac
 done
 source scripts/decoder-simd.sh
-"$SDK/upstream/emscripten/emcc" -O2 "-ffile-prefix-map=$ROOT=/deplexr" --profiling-funcs -pthread -msimd128 -Inative -Ibuild/sources/mpv -Ibuild/obj-mpv \
+"$SDK/upstream/emscripten/emcc" -O2 "-ffile-prefix-map=$ROOT=/demuxe" --profiling-funcs -pthread -msimd128 -Inative -Ibuild/sources/mpv -Ibuild/obj-mpv \
  "${PLAYER_SOURCES[@]}" \
  native/events.c native/stream_bridge.c "$SOURCE" "${DECODER_SIMD_SOURCES[@]}" "${LIBS[@]}" "$ROOT/build/obj-software-full-ffmpeg/libpostproc/libpostproc.a" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine -sENVIRONMENT=worker \

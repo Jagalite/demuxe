@@ -27,7 +27,7 @@ with tarfile.open(args.source)as tar:
  for name,digest in build['sdkSources'].items():
   if source['files'].get('toolchain/emscripten/'+name)!=digest:raise SystemExit('Missing corresponding SDK source: '+name)
  for name,digest in build['inputs'].items():
-  if source['files'].get('deplexr/'+name)!=digest:raise SystemExit('Missing corresponding engine source: '+name)
+  if source['files'].get('demuxe/'+name)!=digest:raise SystemExit('Missing corresponding engine source: '+name)
 consumer_cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','omitted-yuv','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
 streaming_cases={f'{mode}:{test}'for mode in ['hybrid','software']for test in ['seek-completes-packet','seek-deadline','destroy-progress']}
 evidence=[]
@@ -37,7 +37,7 @@ for paths,script,expected in [(args.consumer,'tests/beta-consumer.mjs',consumer_
   data=json.loads(file.read_text());families.add(data['family'])
   if data['archiveSHA256']!=runtime_hash:raise SystemExit('Test used different archive: '+str(file))
   if not data['passed']or not all(c.get('passed')for c in data['cases'])or {c['name']for c in data['cases']}!=expected:raise SystemExit('Incomplete/failed test suite: '+str(file))
-  if data['testHarnessSHA256']!=source['files'].get('deplexr/'+script):raise SystemExit('Test harness differs from tagged source: '+str(file))
+  if data['testHarnessSHA256']!=source['files'].get('demuxe/'+script):raise SystemExit('Test harness differs from tagged source: '+str(file))
   evidence.append({'file':str(file.resolve()),'sha256':archive_sha(file),'browser':data['family'],'cases':len(data['cases'])})
  if families!={'chrome','firefox'}:raise SystemExit('Both Chrome and Firefox results are required')
 extra=json.loads(args.extra.read_text())
@@ -46,14 +46,14 @@ if extra['archiveSHA256']!=runtime_hash or extra['sourceCommit']!=manifest['sour
 required_harnesses={'tests/release-extra.mjs','tests/beta-consumer.mjs','tests/beta-streaming.mjs','tests/public-api-consumer.mjs','tests/public-api.mjs','tests/player-component.mjs','tests/player-menu-review.mjs','tests/copy-assets.mjs','scripts/serve.mjs'}
 if set(extra['harnesses'])!=required_harnesses:raise SystemExit('Missing extra test harness hashes')
 for name,digest in extra['harnesses'].items():
- if digest!=source['files'].get('deplexr/'+name):raise SystemExit('Extra harness differs from tagged source: '+name)
+ if digest!=source['files'].get('demuxe/'+name):raise SystemExit('Extra harness differs from tagged source: '+name)
 for check in extra['checks']:
  if archive_sha(args.extra.parent/check['log'])!=check['sha256']:raise SystemExit('Extra test log changed')
 evidence.append({'file':str(args.extra.resolve()),'sha256':archive_sha(args.extra),'suite':'public-api-component-cli-exports-typescript','checks':len(extra['checks'])})
 # Run the tagged deterministic deadline tests against this archive's reader bytes.
 with tempfile.TemporaryDirectory(dir=root/'build')as temporary:
  work=pathlib.Path(temporary);module=work/'range-reader.mjs';module.write_bytes(reader)
- with tarfile.open(args.source)as tar:test=tar.extractfile('deplexr/tests/range-reader-deadline.mjs').read()
+ with tarfile.open(args.source)as tar:test=tar.extractfile('demuxe/tests/range-reader-deadline.mjs').read()
  testfile=work/'range-reader-deadline.mjs';testfile.write_bytes(test)
  process=subprocess.run(['node','--test',str(testfile)],env={**os.environ,'RANGE_READER_MODULE':str(module)},text=True,capture_output=True)
  if process.returncode:raise SystemExit(process.stdout+process.stderr)

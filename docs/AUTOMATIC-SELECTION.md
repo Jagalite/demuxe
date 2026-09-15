@@ -117,7 +117,7 @@ not guess a different language or silently drop requested external subtitles.
 
 ```sh
 npm run build
-DEPLEXR_REMUX_FFMPEG_DIR="$PWD/build/pipeline-qualification/ffmpeg-remux" npm run build:remux
+DEMUXE_REMUX_FFMPEG_DIR="$PWD/build/pipeline-qualification/ffmpeg-remux" npm run build:remux
 npm run test:automatic-selection
 npm run test:api
 npm run test:remux-regressions

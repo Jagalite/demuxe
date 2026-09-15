@@ -55,7 +55,7 @@ export declare const defaultLabels: Readonly<{
 }>;
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
-export declare class DeplexrPlayerElement extends Base {
+export declare class DemuxePlayerElement extends Base {
     static observedAttributes: string[];
     private core?;
     private queueItems;
@@ -189,10 +189,10 @@ export declare class DeplexrPlayerElement extends Base {
     private labelControls;
     private renderShell;
 }
-export declare function definePlayerElement(name?: string): typeof DeplexrPlayerElement;
+export declare function definePlayerElement(name?: string): typeof DemuxePlayerElement;
 declare global {
     interface HTMLElementTagNameMap {
-        'deplexr-player': DeplexrPlayerElement;
+        'demuxe-player': DemuxePlayerElement;
     }
 }
 export {};

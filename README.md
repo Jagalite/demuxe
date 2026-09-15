@@ -1,6 +1,6 @@
-# Deplexr
+# Demuxe
 
-Deplexr is a browser media playback runtime that automatically chooses the least
+Demuxe is a browser media playback runtime that automatically chooses the least
 expensive correct playback path: native browser playback, progressive remuxing,
 WebCodecs-assisted hybrid playback, or FFmpeg/mpv software decoding.
 
@@ -11,11 +11,11 @@ Chrome/Firefox evidence, not a promise of universal codec or browser support.
 ## Install
 
 ```sh
-npm install deplexr@beta
-npx deplexr copy-assets public/assets/deplexr
+npm install demuxe@beta
+npx demuxe copy-assets public/assets/demuxe
 ```
 
-Serve the copied directory at `/assets/deplexr/`, preserving its relative tree.
+Serve the copied directory at `/assets/demuxe/`, preserving its relative tree.
 Native remux, Hybrid, and Software require cross-origin isolation headers:
 
 ```text
@@ -29,9 +29,9 @@ appropriate CORS and range support. See [runtime assets](docs/RUNTIME-ASSETS.md)
 ## Core runtime
 
 ```js
-import { Player } from 'deplexr';
+import { Player } from 'demuxe';
 
-const player = new Player(container, { assetBase: '/assets/deplexr/' });
+const player = new Player(container, { assetBase: '/assets/demuxe/' });
 await player.open(source); // File, ArrayBuffer, URL, or supported remote source
 await player.play();
 // When finished: await player.destroy();
@@ -40,12 +40,12 @@ await player.play();
 ## Ready-made player
 
 ```js
-import { definePlayerElement } from 'deplexr/player';
+import { definePlayerElement } from 'demuxe/player';
 definePlayerElement();
 ```
 
 ```html
-<deplexr-player controls asset-base="/assets/deplexr/"></deplexr-player>
+<demuxe-player controls asset-base="/assets/demuxe/"></demuxe-player>
 ```
 
 The component includes local-file and URL opening, subtitles, playback controls,
@@ -72,4 +72,4 @@ and broad device/performance qualification remain follow-up work.
 From the source checkout, run `npm ci`, build the engines using
 [the release recipe](docs/RELEASE.md), then run `npm run build` and `npm run dev`.
 Open http://127.0.0.1:4179/. Maintained source and issues are at
-[Jagalite/deplexr](https://github.com/Jagalite/deplexr).
+[Jagalite/demuxe](https://github.com/Jagalite/demuxe).

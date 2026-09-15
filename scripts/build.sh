@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-SDK=${DEPLEXR_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
+SDK=${DEMUXE_SDK:-${WEBMPV_SDK:-$ROOT/build/emsdk-4.0.14}}
 source "$SDK/emsdk_env.sh" >/dev/null
 export PATH="$ROOT/build/venv/bin:$SDK/upstream/emscripten:$SDK:$PATH"
 export EM_CONFIG="${WEBMPV_EM_CONFIG:-$SDK/.emscripten}"
@@ -14,7 +14,7 @@ PREFIX="$ROOT/build/prefix"
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 export EM_PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
-export CFLAGS="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/deplexr"
+export CFLAGS="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/demuxe"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-pthread"
 mkdir -p "$PREFIX" build/logs web/engine
@@ -48,7 +48,7 @@ cpp_args = ['-O2', '-pthread', '-msimd128']
 c_link_args = ['-pthread']
 cpp_link_args = ['-pthread']
 '''
-text=text.replace("'-msimd128']", f"'-msimd128', '-ffile-prefix-map={r}=/deplexr']")
+text=text.replace("'-msimd128']", f"'-msimd128', '-ffile-prefix-map={r}=/demuxe']")
 (r/'build/cross.ini').write_text(text)
 PY
 meson_lib() {
@@ -60,7 +60,7 @@ meson_lib() {
       --prefix "$PREFIX" --libdir lib --default-library static --buildtype release \
       --wrap-mode nofallback -Dauto_features=disabled "$@"
   if [ "$name" = mpv ]; then python3 scripts/normalize-build-paths.py build/obj-mpv/config.h; fi
-  ninja -C "build/obj-$name" -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
+  ninja -C "build/obj-$name" -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-6}}"
   meson install -C "build/obj-$name"
 }
 if [ ! -f "$PREFIX/lib/libz.a" ]; then
@@ -86,8 +86,8 @@ if [ ! -f "$PREFIX/lib/libxml2.a" ]; then
     -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_PROGRAMS=OFF \
     -DLIBXML2_WITH_TESTS=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ICONV=OFF \
     -DLIBXML2_WITH_ZLIB=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_HTTP=OFF \
-    -DLIBXML2_WITH_FTP=OFF -DLIBXML2_WITH_MODULES=OFF -DCMAKE_INSTALL_SYSCONFDIR=/deplexr/etc
-  cmake --build build/obj-libxml2 -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
+    -DLIBXML2_WITH_FTP=OFF -DLIBXML2_WITH_MODULES=OFF -DCMAKE_INSTALL_SYSCONFDIR=/demuxe/etc
+  cmake --build build/obj-libxml2 -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-6}}"
   cmake --install build/obj-libxml2
 fi
 if [ ! -f "$PREFIX/lib/libavcodec.a" ] || ! grep -q '#define CONFIG_DASH_DEMUXER 1' build/obj-ffmpeg/config_components.h; then
@@ -105,7 +105,7 @@ if [ ! -f "$PREFIX/lib/libavcodec.a" ] || ! grep -q '#define CONFIG_DASH_DEMUXER
 fi
 python3 scripts/normalize-build-paths.py build/obj-ffmpeg/config.h
 (cd build/obj-ffmpeg
-  emmake make -j "${DEPLEXR_JOBS:-${WEBMPV_JOBS:-6}}"
+  emmake make -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-6}}"
   emmake make install)
 meson_lib mpv -Dlibmpv=true -Dcplayer=false -Dgl=disabled -Dlua=disabled -Dbuild-date=false -Dzlib=enabled
 bash scripts/link.sh

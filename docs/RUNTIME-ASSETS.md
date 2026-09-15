@@ -7,20 +7,20 @@ The project is not yet published to npm. Install the locally assembled archive:
 npm run build
 python3 scripts/package-beta.py --output build/my-candidate
 # In a clean application:
-npm install /absolute/path/to/deplexr-0.3.0-beta.3.tgz
-npx deplexr copy-assets public/assets/deplexr
+npm install /absolute/path/to/demuxe-0.3.0-beta.3.tgz
+npx demuxe copy-assets public/assets/demuxe
 ```
 
 ```js
-import {Player} from 'deplexr';
-const player = new Player(container, {assetBase:'/assets/deplexr/'});
+import {Player} from 'demuxe';
+const player = new Player(container, {assetBase:'/assets/demuxe/'});
 // Optional, separate UI entry:
-import {definePlayerElement} from 'deplexr/player';
+import {definePlayerElement} from 'demuxe/player';
 definePlayerElement();
 ```
 
 ```html
-<deplexr-player controls asset-base="/assets/deplexr/"></deplexr-player>
+<demuxe-player controls asset-base="/assets/demuxe/"></demuxe-player>
 ```
 
 assetBase is the package runtime root containing web/, fixtures/, third_party/
@@ -34,7 +34,7 @@ perform no engine downloads. Import during SSR is safe; construction is browser-
 The UI entry does not register anything until definePlayerElement is called.
 
 copy-assets validates every package manifest hash before copying runtime assets,
-font and notices. It writes deplexr-runtime.json with version and hashes. It never
+font and notices. It writes demuxe-runtime.json with version and hashes. It never
 deletes destination files; unrelated collisions and symlink paths reject. Updates
 may replace only previous manifest-owned unmodified assets. Retain the generated
 manifest with the installation. Use core and runtime from the same archive; mixing

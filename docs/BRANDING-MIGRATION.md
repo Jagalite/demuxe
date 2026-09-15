@@ -1,15 +1,35 @@
 # Beta.3 branding and migration audit
 
-Public package/executable: `deplexr`. Component: `<deplexr-player>`; exported class:
-`DeplexrPlayerElement`. CSS variables use `--deplexr-*`. There is no legacy element
-alias: no public Deplexr npm release previously established that name.
+Public package/executable: `demuxe`. Component: `<demuxe-player>`; exported class:
+`DemuxePlayerElement`. CSS variables use `--demuxe-*`. There is no legacy element
+alias: no public Demuxe npm release previously established that name.
 
-The CLI is `bin/deplexr.mjs`; copied assets record `deplexr-runtime.json`. AudioWorklet
+## Deplexr to Demuxe
+
+The attempted first publication as `deplexr` was rejected by npm's name-similarity
+check. It was never published. The replacement identity is `demuxe`; version
+`0.3.0-beta.3` remains the first proposed npm beta for this new package name.
+
+Update imports from `deplexr` and `deplexr/player` to `demuxe` and `demuxe/player`,
+the executable to `demuxe`, `<deplexr-player>` to `<demuxe-player>`,
+`DeplexrPlayerElement` to `DemuxePlayerElement`, and `--deplexr-*` variables to
+`--demuxe-*`. Asset examples now use `/assets/demuxe/`. Recopy assets with the new
+CLI into a fresh directory so the `demuxe-runtime.json` manifest describes them.
+Public `DEPLEXR_*` environment knobs become `DEMUXE_*`; older internal `WEBMPV_*`
+fallbacks remain as documented below. No Deplexr component or CSS aliases remain.
+
+The repository is `Jagalite/demuxe`. Historical Git commits, release tags, archive
+filenames, checksums and result records retain their original identity. They do
+not qualify renamed package bytes; a new clean tagged candidate must be built and
+tested before publishing Demuxe. The active local checkout directory may retain
+its old name until the workspace is reopened at a new location.
+
+The CLI is `bin/demuxe.mjs`; copied assets record `demuxe-runtime.json`. AudioWorklet
 registration and internal browser virtual URLs migrated together. Engine filenames
 remain `player.mjs`, `player.wasm`, `remux.mjs`, `remux.wasm`; their native C symbols
 and upstream names are not a public package identity and are preserved.
 
-Public docs, examples, install paths and package/source archive names use Deplexr.
+Public docs, examples, install paths and package/source archive names use Demuxe.
 The following historical names are intentionally retained:
 
 * `LICENSE` and `docs/LICENSING.md`: the original copyright holder text remains
@@ -23,12 +43,12 @@ The following historical names are intentionally retained:
 
 ## Environment variable classification
 
-Maintained public knobs: `DEPLEXR_SDK`, `DEPLEXR_JOBS`, `DEPLEXR_DECODER_SIMD`,
-`DEPLEXR_REMUX_FFMPEG_DIR`, `DEPLEXR_TEST_MEDIA`. Their old spellings remain fallback
+Maintained public knobs: `DEMUXE_SDK`, `DEMUXE_JOBS`, `DEMUXE_DECODER_SIMD`,
+`DEMUXE_REMUX_FFMPEG_DIR`, `DEMUXE_TEST_MEDIA`. Their old spellings remain fallback
 aliases in existing consumers; the new spelling wins. The standard clean-release
 recipe fixes the decoder/remux profile, regardless of optional overrides.
 
-`DEPLEXR_RUNTIME_ROOT` is an internal qualification server mount used to test the
+`DEMUXE_RUNTIME_ROOT` is an internal qualification server mount used to test the
 installed archive, never a runtime API. Other unprefixed test knobs (`BETA_ARCHIVE`,
 `BROWSER`, `STREAMING_FIXTURE`, etc.) remain unchanged.
 
