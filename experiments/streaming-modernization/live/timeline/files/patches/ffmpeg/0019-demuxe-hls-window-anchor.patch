@@ -1,0 +1,57 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -3390,14 +3390,13 @@
+     struct AVDemuxeRepresentation descriptor;
+     int ret = av_demuxe_hls_component(s, stream, &descriptor);
+     if (ret < 0) return ret;
+-    HLSContext *c = s->priv_data;
+     struct playlist *p = demuxe_hls_playlist(s, stream);
+-    int64_t start = c->first_timestamp == AV_NOPTS_VALUE ? 0 : c->first_timestamp;
+-    if(!p->finished){
+-        ret=demuxe_hls_anchor(s,p,&start);if(ret<0)return ret;
+-        if(sequence>=0 && sequence<p->start_seq_no)return AVERROR(ERANGE);
+-        if(sequence<0 && target_us<start)return AVERROR(ERANGE);
+-    }
++    // ENDLIST changes completeness, not the accepted presentation origin.
++    // Finite and rolling plans must use the same window anchor as seeking.
++    int64_t start;
++    ret=demuxe_hls_anchor(s,p,&start);if(ret<0)return ret;
++    if(sequence>=0 && sequence<p->start_seq_no)return AVERROR(ERANGE);
++    if(sequence<0 && target_us<start)return AVERROR(ERANGE);
+     for (int i = 0; i < p->n_segments; i++) {
+         struct segment *seg = p->segments[i];
+         if (seg->duration <= 0 || start > INT64_MAX - seg->duration) return AVERROR_INVALIDDATA;
+@@ -3478,6 +3477,16 @@
+             }
+             if(!associated)continue;
+         }
++        // Complete associated VOD subtitles may use much longer segments than
++        // video. Both retained playlists start at the presentation beginning;
++        // that shared origin does not require identical segment boundaries.
++        // Never apply this to a rolling or truncated presentation window.
++        if(p->main_streams[0]->codecpar->codec_type==AVMEDIA_TYPE_SUBTITLE&&
++           p->finished&&r->finished&&p->start_seq_no==0&&r->start_seq_no==0&&
++           p->n_segments>0&&r->n_segments>0&&
++           p->segments[0]->demuxe_period==r->segments[0]->demuxe_period){
++            *start=r->demuxe_window_start;p->demuxe_window_start=*start;return 0;
++        }
+         int64_t overlap=FFMAX(p->start_seq_no,r->start_seq_no);
+         int64_t end=FFMIN(p->start_seq_no+p->n_segments,r->start_seq_no+r->n_segments);
+         if(overlap>=end)continue;
+@@ -3527,7 +3536,15 @@
+     *out=(struct AVDemuxeWindow){.abi=AV_DEMUXE_WINDOW_ABI,.live=!p->finished,
+         .complete=p->finished,.first_sequence=p->start_seq_no,
+         .last_sequence=p->start_seq_no+p->n_segments-1,.revision=p->demuxe_window_revision};
+-    if(p->demuxe_window_start==AV_NOPTS_VALUE)return 0;
++    if(p->demuxe_window_start==AV_NOPTS_VALUE){
++        // A pending rendition may not have been reloaded while paused. Window
++        // admission must use the same packet-established, overlap-checked
++        // anchor inheritance as segment planning; it must not reject first.
++        int64_t start;
++        int ret=demuxe_hls_anchor(s,p,&start);
++        if(ret==AVERROR(EAGAIN))return 0;
++        if(ret<0)return ret;
++    }
+     int64_t end=p->demuxe_window_start;
+     for(int i=0;i<p->n_segments;i++){
+         int64_t duration=p->segments[i]->duration;

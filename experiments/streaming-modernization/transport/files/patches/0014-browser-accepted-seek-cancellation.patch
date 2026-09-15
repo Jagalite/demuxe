@@ -1,0 +1,68 @@
+--- a/demux/demux.c
++++ b/demux/demux.c
+@@ -29,6 +29,9 @@
+ 
+ #include "cache.h"
+ #include "config.h"
++#ifdef __EMSCRIPTEN__
++extern void web_io_abandon_read(const char *uri);
++#endif
+ #include "options/m_config.h"
+ #include "options/m_option.h"
+ #include "mpv_talloc.h"
+@@ -1805,6 +1808,13 @@
+ 
+     // Move demuxing position to after the current range.
+     in->seeking = true;
++#ifdef __EMSCRIPTEN__
++    // The packet result is now abandoned (see read_packet's in->seeking guard).
++    // Restrict this first integration to finite, seekable input. Live seek
++    // support needs its own demux timeline/window acceptance contract.
++    if (in->d_thread->seekable && in->d_thread->duration >= 0 && in->d_thread->stream)
++        web_io_abandon_read(in->d_thread->stream->url);
++#endif
+     in->seek_flags = SEEK_HR;
+     in->seek_pts = next->seek_end - 1.0;
+ 
+@@ -3764,6 +3774,13 @@
+         switch_current_range(in, range);
+ 
+         in->seeking = true;
++#ifdef __EMSCRIPTEN__
++    // The packet result is now abandoned (see read_packet's in->seeking guard).
++    // Restrict this first integration to finite, seekable input. Live seek
++    // support needs its own demux timeline/window acceptance contract.
++    if (in->d_thread->seekable && in->d_thread->duration >= 0 && in->d_thread->stream)
++        web_io_abandon_read(in->d_thread->stream->url);
++#endif
+         in->seek_flags = SEEK_HR;
+         in->seek_pts = range->seek_end - 1.0;
+ 
+@@ -3865,6 +3882,13 @@
+         switch_to_fresh_cache_range(in);
+ 
+         in->seeking = true;
++#ifdef __EMSCRIPTEN__
++    // The packet result is now abandoned (see read_packet's in->seeking guard).
++    // Restrict this first integration to finite, seekable input. Live seek
++    // support needs its own demux timeline/window acceptance contract.
++    if (in->d_thread->seekable && in->d_thread->duration >= 0 && in->d_thread->stream)
++        web_io_abandon_read(in->d_thread->stream->url);
++#endif
+         in->seek_flags = flags;
+         in->seek_pts = seek_pts;
+     }
+@@ -3975,6 +3999,13 @@
+ 
+     MP_VERBOSE(in, "refresh seek to %f\n", start_ts);
+     in->seeking = true;
++#ifdef __EMSCRIPTEN__
++    // The packet result is now abandoned (see read_packet's in->seeking guard).
++    // Restrict this first integration to finite, seekable input. Live seek
++    // support needs its own demux timeline/window acceptance contract.
++    if (in->d_thread->seekable && in->d_thread->duration >= 0 && in->d_thread->stream)
++        web_io_abandon_read(in->d_thread->stream->url);
++#endif
+     in->seek_flags = SEEK_HR;
+     in->seek_pts = start_ts;
+ }

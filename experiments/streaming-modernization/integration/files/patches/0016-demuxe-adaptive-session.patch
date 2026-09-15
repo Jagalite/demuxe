@@ -1,0 +1,928 @@
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -58,6 +58,7 @@
+ #include "stream/stream.h"
+ #include "demux.h"
+ #include "stheader.h"
++#include "session-control.h"
+ #include "options/m_config.h"
+ #include "options/m_option.h"
+ #include "options/path.h"
+@@ -235,6 +236,12 @@
+ #ifdef __EMSCRIPTEN__
+     int browser_session;
+ #endif
++    struct demuxe_adaptive_session *adaptive;
++    uint64_t adaptive_source,adaptive_request;
++    int adaptive_logical,adaptive_codecs_count;
++    bool adaptive_hidden[64];
++    size_t adaptive_codec_bytes;
++    struct mp_codec_params *adaptive_codecs[64];
+     bool is_dvd_bd;
+     char *filename;
+     struct format_hack format_hack;
+@@ -267,6 +274,113 @@
+                            const char *url, int flags, AVDictionary **options);
+     int (*default_io_close2)(struct AVFormatContext *s, AVIOContext *pb);
+ } lavf_priv_t;
++
++// Source-bound preparation; called exclusively by the lavf demux owner.
++static int adaptive_description(AVFormatContext *f,int stream,struct AVDemuxeRepresentation *d)
++{
++    if (!strcmp(f->iformat->name,"hls")) return av_demuxe_hls_representation(f,stream,d);
++    if (!strcmp(f->iformat->name,"dash")) return av_demuxe_dash_representation(f,stream,d);
++    return AVERROR(ENOSYS);
++}
++static int adaptive_io_open(void *opaque,AVFormatContext *owner,AVIOContext **pb,const char *url,AVDictionary **options)
++{
++    lavf_priv_t *p=opaque;
++#ifdef __EMSCRIPTEN__
++    return web_resource_avio_open_for_session(p->browser_session,owner,pb,url,AVIO_FLAG_READ,options);
++#else
++    return avio_open2(pb,url,AVIO_FLAG_READ,&owner->interrupt_callback,options);
++#endif
++}
++static void adaptive_io_close(void *opaque,AVFormatContext *owner,AVIOContext **pb)
++{
++#ifdef __EMSCRIPTEN__
++    if(*pb) web_resource_avio_close(owner,*pb);
++    *pb=NULL;
++#else
++    avio_closep(pb);
++#endif
++}
++static int adaptive_init(struct demuxer *demux)
++{
++    lavf_priv_t *p=demux->priv;
++#ifdef __EMSCRIPTEN__
++    p->adaptive_source=p->browser_session;
++#else
++    p->adaptive_source=1;
++#endif
++    p->adaptive_logical=-1;
++    bool permitted=demux->access_references;
++#ifdef __EMSCRIPTEN__
++    // Browser authorization is enforced by the registered root ResourceLoader,
++    // matching nested_io_open. Generic filesystem/network references stay off.
++    permitted=web_resource_url(p->browser_session)!=NULL;
++#endif
++    if(!permitted||!demuxe_control_enabled(p->adaptive_source)) return 0;
++    int streams[64],widths[64],heights[64],bitrates[64],count=0;
++    struct AVDemuxeRepresentation first={0};enum AVCodecID codec=AV_CODEC_ID_NONE;
++    for(unsigned i=0;i<p->avfc->nb_streams;i++){
++        struct AVDemuxeRepresentation d;
++        if(adaptive_description(p->avfc,i,&d)<0)continue;
++        AVCodecParameters *cp=p->avfc->streams[i]->codecpar;
++        if(cp->codec_id!=AV_CODEC_ID_H264)continue;
++        if(!count){first=d;codec=cp->codec_id;}
++        if(strcmp(first.group,d.group)||cp->codec_id!=codec)continue;
++        if(count==64)return AVERROR(ENOBUFS);
++        streams[count]=i;widths[count]=cp->width;heights[count]=cp->height;bitrates[count]=d.bandwidth;count++;
++    }
++    if(count<2)return 0;
++    for(int i=0;i<count;i++)for(int j=i+1;j<count;j++)if(bitrates[j]<bitrates[i]){
++#define SWAP(a) do{int n=a[i];a[i]=a[j];a[j]=n;}while(0)
++        SWAP(streams);SWAP(widths);SWAP(heights);SWAP(bitrates);
++#undef SWAP
++    }
++    p->adaptive_logical=streams[0];
++    p->adaptive=demuxe_adaptive_create(p->avfc,streams[0],streams[0],p->adaptive_source,
++        (struct demuxe_task_io){.opaque=p,.open=adaptive_io_open,.close=adaptive_io_close});
++    if(!p->adaptive)return AVERROR(ENOMEM);
++    for(int i=1;i<count;i++)p->adaptive_hidden[streams[i]]=true;
++    if(!demuxe_control_bind(p->adaptive_source,streams,widths,heights,bitrates,count))return AVERROR_EXIT;
++    struct demuxe_adaptive_stats state;demuxe_adaptive_stats(p->adaptive,&state);demuxe_control_update(&state);
++    return 0;
++}
++static bool adaptive_side_data_equal(const AVCodecParameters *a,const AVCodecParameters *b)
++{
++    if(a->nb_coded_side_data!=b->nb_coded_side_data)return false;
++    for(int i=0;i<a->nb_coded_side_data;i++){
++        const AVPacketSideData *x=&a->coded_side_data[i],*y=&b->coded_side_data[i];
++        if(x->type!=y->type||x->size!=y->size||(x->size&&memcmp(x->data,y->data,x->size)))return false;
++    }
++    return true;
++}
++static struct mp_codec_params *adaptive_codec(lavf_priv_t *p,const struct demuxe_prepared_packet *packet)
++{
++    const AVCodecParameters *cp=demuxe_packet_codec(packet);
++    if(!cp)return NULL;
++    for(int i=0;i<p->adaptive_codecs_count;i++){
++        struct mp_codec_params *codec=p->adaptive_codecs[i];AVCodecParameters *old=codec->lav_codecpar;
++        if(old->codec_id==cp->codec_id&&old->width==cp->width&&old->height==cp->height&&
++           old->format==cp->format&&old->profile==cp->profile&&old->level==cp->level&&
++           old->color_range==cp->color_range&&old->color_primaries==cp->color_primaries&&
++           old->color_trc==cp->color_trc&&old->color_space==cp->color_space&&
++           old->chroma_location==cp->chroma_location&&old->field_order==cp->field_order&&
++           old->sample_aspect_ratio.num==cp->sample_aspect_ratio.num&&old->sample_aspect_ratio.den==cp->sample_aspect_ratio.den&&
++           adaptive_side_data_equal(old,cp)&&
++           old->extradata_size==cp->extradata_size&&(!cp->extradata_size||!memcmp(old->extradata,cp->extradata,cp->extradata_size))&&
++           codec->native_tb_num==packet->timebase.num&&codec->native_tb_den==packet->timebase.den)return codec;
++    }
++    size_t cost=demuxe_codec_bytes(cp);
++    if(p->adaptive_codecs_count==64||cost>4*1024*1024-p->adaptive_codec_bytes)return NULL;
++    struct mp_codec_params *codec=talloc_zero(p,struct mp_codec_params);
++    codec->type=STREAM_VIDEO;codec->codec=mp_codec_from_av_codec_id(cp->codec_id);codec->codec_tag=cp->codec_tag;
++    codec->lav_codecpar=avcodec_parameters_alloc();
++    if(!codec->lav_codecpar||avcodec_parameters_copy(codec->lav_codecpar,cp)<0){avcodec_parameters_free(&codec->lav_codecpar);talloc_free(codec);return NULL;}
++    codec->native_tb_num=packet->timebase.num;codec->native_tb_den=packet->timebase.den;
++    codec->disp_w=cp->width;codec->disp_h=cp->height;codec->par_w=cp->sample_aspect_ratio.num;codec->par_h=cp->sample_aspect_ratio.den;
++    codec->fps=av_q2d(p->avfc->streams[p->adaptive_logical]->avg_frame_rate);
++    codec->format_name=talloc_strdup(codec,av_get_pix_fmt_name(cp->format));
++    p->adaptive_codecs[p->adaptive_codecs_count++]=codec;p->adaptive_codec_bytes+=cost;
++    return codec;
++}
+ 
+ static void update_read_stats(struct demuxer *demuxer)
+ {
+@@ -705,7 +819,7 @@
+     AVCodecParameters *codec = st->codecpar;
+     int lavc_delay = codec->initial_padding;
+ 
+-    switch (codec->codec_type) {
++    switch (i<64&&priv->adaptive_hidden[i]?AVMEDIA_TYPE_UNKNOWN:codec->codec_type) {
+     case AVMEDIA_TYPE_AUDIO: {
+         sh = demux_alloc_sh_stream(STREAM_AUDIO);
+         if (!mp_chmap_from_av_layout(&sh->codec->channels, &codec->ch_layout)) {
+@@ -1115,6 +1229,11 @@
+     }
+ 
+     mp_set_avdict(&dopts, lavfdopts->avopts);
++#ifdef __EMSCRIPTEN__
++    if(demuxe_control_enabled(priv->browser_session)){av_dict_set(&dopts,"continuous_fmp4","1",0);av_dict_set(&dopts,"demuxe_sparse","1",0);}
++#else
++    if(demuxe_control_enabled(1)){av_dict_set(&dopts,"continuous_fmp4","1",0);av_dict_set(&dopts,"demuxe_sparse","1",0);}
++#endif
+ 
+     if (av_dict_copy(&priv->av_opts, dopts, 0) < 0) {
+         MP_ERR(demuxer, "av_dict_copy() failed\n");
+@@ -1170,6 +1289,7 @@
+         mp_tags_move_from_av_dictionary(demuxer->chapters[index].metadata, &c->metadata);
+     }
+ 
++    if(avfc->nb_streams<=64&&adaptive_init(demuxer)<0)goto fail;
+     add_new_streams(demuxer);
+ 
+     mp_tags_move_from_av_dictionary(demuxer->metadata, &avfc->metadata);
+@@ -1260,10 +1380,23 @@
+ 
+     AVPacket *pkt = av_packet_alloc();
+     MP_HANDLE_OOM(pkt);
+-    int r = av_read_frame(priv->avfc, pkt);
++    struct demuxe_prepared_packet prepared={0};
++    int r;
++    if(priv->adaptive){
++        uint64_t request;int target;
++        if(demuxe_control_poll(priv->adaptive_source,priv->adaptive_request,&request,&target)){
++            priv->adaptive_request=request;
++            int result=demuxe_adaptive_request(priv->adaptive,priv->adaptive_source,request,target);
++            if(result<0)MP_WARN(demux,"Quality request rejected: %s\n",av_err2str(result));
++        }
++        r=demuxe_adaptive_read(priv->adaptive,&prepared);
++        struct demuxe_adaptive_stats state;demuxe_adaptive_stats(priv->adaptive,&state);demuxe_control_update(&state);
++        if(!r){av_packet_free(&pkt);demuxe_packet_release(&prepared);return true;}
++        if(r>0){av_packet_move_ref(pkt,prepared.packet);r=0;}
++    }else r = av_read_frame(priv->avfc, pkt);
+     update_read_stats(demux);
+     if (r < 0) {
+-        av_packet_free(&pkt);
++        av_packet_free(&pkt);demuxe_packet_release(&prepared);
+         if (r == AVERROR_EOF)
+             return false;
+         MP_WARN(demux, "error reading packet: %s.\n", av_err2str(r));
+@@ -1284,35 +1417,43 @@
+     struct sh_stream *stream = info->sh;
+     AVStream *st = priv->avfc->streams[pkt->stream_index];
+ 
+-    if (!demux_stream_is_selected(stream)) {
+-        av_packet_free(&pkt);
++    if (!stream || !demux_stream_is_selected(stream)) {
++        av_packet_free(&pkt);demuxe_packet_release(&prepared);
+         return true; // don't signal EOF if skipping a packet
+     }
+ 
+     // Never send additional frames for streams that are a single frame.
+     if (stream->image && priv->format_hack.first_frame_only && pkt->pos != 0) {
+-        av_packet_free(&pkt);
++        av_packet_free(&pkt);demuxe_packet_release(&prepared);
+         return true;
+     }
+ 
+     struct demux_packet *dp = new_demux_packet_from_avpacket(demux->packet_pool, pkt);
+     if (!dp) {
+-        av_packet_free(&pkt);
++        av_packet_free(&pkt);demuxe_packet_release(&prepared);
+         return true;
+     }
+ 
+     if (priv->pcm_seek_hack == st && !priv->pcm_seek_hack_packet_size)
+         priv->pcm_seek_hack_packet_size = pkt->size;
+ 
+-    dp->pts = mp_pts_from_av(pkt->pts, &st->time_base);
+-    dp->dts = mp_pts_from_av(pkt->dts, &st->time_base);
+-    dp->duration = pkt->duration * av_q2d(st->time_base);
+-    dp->pos = pkt->pos;
++    AVRational packet_tb=prepared.codec?prepared.timebase:st->time_base;
++    if(prepared.codec){
++        dp->demuxe_quality=(struct demuxe_quality_tag){prepared.source,prepared.request,prepared.representation};
++        dp->codec=adaptive_codec(priv,&prepared);
++        if(!dp->codec){talloc_free(dp);av_packet_free(&pkt);demuxe_packet_release(&prepared);return false;}
++        dp->segmented=true;dp->start=dp->end=MP_NOPTS_VALUE;
++    }
++    dp->pts = mp_pts_from_av(pkt->pts, &packet_tb);
++    dp->dts = mp_pts_from_av(pkt->dts, &packet_tb);
++    dp->duration = pkt->duration * av_q2d(packet_tb);
++    // Child-container offsets repeat across segments and are not source byte positions.
++    dp->pos = prepared.codec ? -1 : pkt->pos;
+     /* DFPWM packets have no keyframe syntax; keep admission across selection. */
+     dp->keyframe = (pkt->flags & AV_PKT_FLAG_KEY) ||
+                    st->codecpar->codec_id == AV_CODEC_ID_DFPWM;
+     dp->is_wrapped_avframe = st->codecpar->codec_id == AV_CODEC_ID_WRAPPED_AVFRAME;
+-    av_packet_free(&pkt);
++    av_packet_free(&pkt);demuxe_packet_release(&prepared);
+ 
+     if (priv->format_hack.clear_filepos)
+         dp->pos = -1;
+@@ -1432,6 +1573,11 @@
+         }
+     }
+ 
++    if(priv->adaptive){
++        if(avsflags&AVSEEK_FLAG_BYTE)return;
++        int result=demuxe_adaptive_seek(priv->adaptive,seek_pts_av);
++        if(result<0){MP_WARN(demuxer,"Adaptive seek rejected: %s\n",av_err2str(result));return;}
++    }
+     int r = av_seek_frame(priv->avfc, seek_stream, seek_pts_av, avsflags);
+     if (r < 0 && (avsflags & AVSEEK_FLAG_BACKWARD)) {
+         // When seeking before the beginning of the file, and seeking fails,
+@@ -1453,12 +1599,17 @@
+ static void demux_lavf_switched_tracks(struct demuxer *demuxer)
+ {
+     select_tracks(demuxer, 0);
++    lavf_priv_t *priv=demuxer->priv;
++    if(priv->adaptive)demuxe_adaptive_tracks_changed(priv->adaptive);
+ }
+ 
+ static void demux_close_lavf(demuxer_t *demuxer)
+ {
+     lavf_priv_t *priv = demuxer->priv;
+     if (priv) {
++        demuxe_adaptive_destroy(priv->adaptive);priv->adaptive=NULL;
++        demuxe_control_close(priv->adaptive_source);
++        for(int i=0;i<priv->adaptive_codecs_count;i++)avcodec_parameters_free(&priv->adaptive_codecs[i]->lav_codecpar);
+         // This will be a dangling pointer; but see below.
+         AVIOContext *leaking = priv->avfc ? priv->avfc->pb : NULL;
+         avformat_close_input(&priv->avfc);
+--- a/meson.build
++++ b/meson.build
+@@ -98,6 +98,11 @@
+     'demux/demux_disc.c',
+     'demux/demux_edl.c',
+     'demux/demux_lavf.c',
++    'demux/container-task.c',
++    'demux/adaptive-session.c',
++    'demux/session-control.c',
++    'demux/random-access.c',
++    'demux/rewind-reader.c',
+     'demux/demux_mf.c',
+     'demux/demux_mkv.c',
+     'demux/demux_mkv_timeline.c',
+--- /dev/null
++++ b/demux/container-task.c
+@@ -0,0 +1,202 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++// Container execution only: plans come from the one authoritative manifest owner.
++#include "container-task.h"
++#include "rewind-reader.h"
++#include <pthread.h>
++#include <stdatomic.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++#include <time.h>
++#include <libavutil/mem.h>
++#include <libavutil/time.h>
++#define PLAN_CAPACITY 4
++#define PACKET_CAPACITY 128
++struct demuxe_codec {_Atomic unsigned references;AVCodecParameters *parameters;};
++struct demuxe_container_task {
++    pthread_t thread;
++    pthread_mutex_t lock;
++    pthread_cond_t changed;
++    _Atomic int cancelled;
++    uint64_t source,request;
++    struct demuxe_task_io io;
++    struct AVDemuxeSegment plans[PLAN_CAPACITY];
++    unsigned plan_head,plan_count,packet_head,packet_count;
++    struct demuxe_prepared_packet packets[PACKET_CAPACITY];
++    size_t budget,bytes,peak_bytes;
++    int plans_done,error,finished;
++    unsigned containers;
++    _Atomic uint64_t consumed;
++};
++static int interrupted(void *opaque){return atomic_load(&((struct demuxe_container_task*)opaque)->cancelled);}
++static void codec_release(struct demuxe_codec *c){
++    if(c&&atomic_fetch_sub(&c->references,1)==1){avcodec_parameters_free(&c->parameters);free(c);}
++}
++void demuxe_packet_release(struct demuxe_prepared_packet *p){av_packet_free(&p->packet);codec_release(p->codec);memset(p,0,sizeof(*p));}
++const AVCodecParameters *demuxe_packet_codec(const struct demuxe_prepared_packet *p){return p->codec?p->codec->parameters:NULL;}
++size_t demuxe_codec_bytes(const AVCodecParameters *c){
++    if(c->extradata_size<0||c->nb_coded_side_data<0)return SIZE_MAX;
++    size_t n=sizeof(*c)+(size_t)c->extradata_size+AV_INPUT_BUFFER_PADDING_SIZE;
++    for(int i=0;i<c->nb_coded_side_data;i++){
++        size_t bytes=c->coded_side_data[i].size;
++        if(bytes>SIZE_MAX-sizeof(AVPacketSideData)||bytes+sizeof(AVPacketSideData)>SIZE_MAX-n)return SIZE_MAX;
++        n+=bytes+sizeof(AVPacketSideData);
++    }
++    return n;
++}
++static size_t packet_cost(const struct demuxe_prepared_packet *p){
++    // Charge shared codec data per reference conservatively; a single context
++    // and current producer packet remain separate fixed/in-flight allocations.
++    size_t n=demuxe_codec_bytes(p->codec->parameters);
++    if(n>SIZE_MAX-sizeof(*p)-sizeof(AVPacket))return SIZE_MAX;
++    n+=sizeof(*p)+sizeof(AVPacket);
++    size_t payload=p->packet->buf?p->packet->buf->size:p->packet->size;
++    if(payload>SIZE_MAX-n)return SIZE_MAX;n+=payload;
++    for(int i=0;i<p->packet->side_data_elems;i++){
++        if(p->packet->side_data[i].size>SIZE_MAX-n)return SIZE_MAX;
++        n+=p->packet->side_data[i].size;
++    }
++    return n;
++}
++static int push(struct demuxe_container_task *t,struct demuxe_prepared_packet *p){
++    size_t cost=packet_cost(p);if(cost>t->budget)return AVERROR(ENOBUFS);
++    pthread_mutex_lock(&t->lock);
++    while(!interrupted(t)&&(t->packet_count==PACKET_CAPACITY||cost>t->budget-t->bytes))
++        pthread_cond_wait(&t->changed,&t->lock);
++    if(interrupted(t)){pthread_mutex_unlock(&t->lock);return AVERROR_EXIT;}
++    t->packets[(t->packet_head+t->packet_count)%PACKET_CAPACITY]=*p;
++    t->packet_count++;t->bytes+=cost;if(t->bytes>t->peak_bytes)t->peak_bytes=t->bytes;
++    memset(p,0,sizeof(*p));pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);return 0;
++}
++struct reader {
++    struct demuxe_container_task *task;
++    const struct AVDemuxeSegment *plan;
++    AVFormatContext *owner;
++    AVIOContext *input;
++    int phase;
++};
++static void close_resource(struct reader *r){if(r->input)r->task->io.close(r->task->io.opaque,r->owner,&r->input);}
++static int read_bytes(void *opaque,uint8_t *buffer,int capacity){
++    struct reader *r=opaque;
++    for(;;){
++        if(interrupted(r->task))return AVERROR_EXIT;
++        if(r->phase==2)return AVERROR_EOF;
++        if(!r->input){
++            const char *url=r->phase?r->plan->url:r->plan->init_url;
++            int64_t offset=r->phase?r->plan->offset:r->plan->init_offset;
++            int64_t size=r->phase?r->plan->size:r->plan->init_size;
++            AVDictionary *options=NULL;
++            if(size>=0){
++                if(size==0||offset<0||offset>INT64_MAX-size)return AVERROR_INVALIDDATA;
++                av_dict_set_int(&options,"offset",offset,0);av_dict_set_int(&options,"end_offset",offset+size,0);
++            }
++            int result=r->task->io.open(r->task->io.opaque,r->owner,&r->input,url,&options);
++            av_dict_free(&options);if(result<0)return result;
++        }
++        int n=avio_read_partial(r->input,buffer,capacity);
++        if(n>0){atomic_fetch_add(&r->task->consumed,n);return n;}
++        if(r->input->error<0&&r->input->error!=AVERROR_EOF)return r->input->error;
++        if(n<0&&n!=AVERROR_EOF)return n;
++        if(!n&&!avio_feof(r->input))return AVERROR(EAGAIN);
++        close_resource(r);r->phase++;
++    }
++}
++static int nested_forbidden(AVFormatContext *s,AVIOContext **pb,const char *url,int flags,AVDictionary **options){return AVERROR(EACCES);}
++static int consume(struct demuxe_container_task *t,const struct AVDemuxeSegment *plan){
++    int result=0;
++    AVFormatContext *f=avformat_alloc_context();AVIOContext *pb=NULL;
++    struct demuxe_codec *codec=NULL;
++    AVFormatContext resource_owner={.interrupt_callback={interrupted,t}};
++    struct reader reader={.task=t,.plan=plan,.owner=&resource_owner};
++    if(!f)return AVERROR(ENOMEM);
++    f->interrupt_callback=(AVIOInterruptCB){interrupted,t};
++    unsigned char *buffer=av_malloc(32768);
++    if(!buffer){result=AVERROR(ENOMEM);goto end;}
++    struct demuxe_rewind_reader rewind={.opaque=&reader,.read=read_bytes};
++    pb=avio_alloc_context(buffer,32768,0,&rewind,demuxe_rewind_read,NULL,demuxe_rewind_seek);
++    if(!pb){av_free(buffer);result=AVERROR(ENOMEM);goto end;}
++    pb->seekable=0;f->pb=pb;f->flags|=AVFMT_FLAG_CUSTOM_IO;f->io_open=nested_forbidden;
++    result=avformat_open_input(&f,"",av_find_input_format("mov"),NULL);
++    // Transport context lifetime is independent of avformat_open_input failure.
++    if(result<0)goto end;
++    if(f->nb_streams!=1||f->streams[0]->codecpar->codec_type!=AVMEDIA_TYPE_VIDEO){result=AVERROR(ENOSYS);goto end;}
++    if(demuxe_codec_bytes(f->streams[0]->codecpar)>t->budget){result=AVERROR(ENOBUFS);goto end;}
++    codec=calloc(1,sizeof(*codec));if(!codec){result=AVERROR(ENOMEM);goto end;}
++    codec->parameters=avcodec_parameters_alloc();atomic_init(&codec->references,1);
++    if(!codec->parameters){result=AVERROR(ENOMEM);goto end;}
++    result=avcodec_parameters_copy(codec->parameters,f->streams[0]->codecpar);if(result<0)goto end;
++    pthread_mutex_lock(&t->lock);t->containers++;pthread_mutex_unlock(&t->lock);
++    for(;;){
++        struct demuxe_prepared_packet packet={.packet=av_packet_alloc(),.codec=codec,
++            .timebase=f->streams[0]->time_base,.sequence=plan->sequence,.representation=plan->stream_index,.source=t->source,.request=t->request};
++        atomic_fetch_add(&codec->references,1);
++        if(!packet.packet){demuxe_packet_release(&packet);result=AVERROR(ENOMEM);break;}
++        result=av_read_frame(f,packet.packet);
++        if(result>=0&&pb->error<0&&pb->error!=AVERROR_EOF)result=pb->error;
++        if(result<0){demuxe_packet_release(&packet);if(result==AVERROR_EOF&&pb->error<0&&pb->error!=AVERROR_EOF)result=pb->error;break;}
++        if(packet.packet->stream_index!=0){demuxe_packet_release(&packet);result=AVERROR_INVALIDDATA;break;}
++        result=push(t,&packet);demuxe_packet_release(&packet);if(result<0)break;
++    }
++end:
++    // AVIO owns its possibly resized buffer; AVFormat never owns CUSTOM_IO.
++    if(f)f->pb=NULL;
++    close_resource(&reader);avformat_close_input(&f);
++    if(pb){av_freep(&pb->buffer);avio_context_free(&pb);}
++    codec_release(codec);return result==AVERROR_EOF?0:result;
++}
++static void *run(void *opaque){
++    struct demuxe_container_task *t=opaque;
++    for(;;){
++        pthread_mutex_lock(&t->lock);
++        while(!interrupted(t)&&!t->plan_count&&!t->plans_done)pthread_cond_wait(&t->changed,&t->lock);
++        if(interrupted(t)||(!t->plan_count&&t->plans_done)){pthread_mutex_unlock(&t->lock);break;}
++        struct AVDemuxeSegment plan=t->plans[t->plan_head];t->plan_head=(t->plan_head+1)%PLAN_CAPACITY;t->plan_count--;
++        pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);
++        int result=consume(t,&plan);
++        if(result<0){pthread_mutex_lock(&t->lock);t->error=result;pthread_mutex_unlock(&t->lock);break;}
++    }
++    pthread_mutex_lock(&t->lock);t->finished=1;pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);return NULL;
++}
++struct demuxe_container_task *demuxe_task_create(uint64_t source,uint64_t request,size_t budget,struct demuxe_task_io io){
++    if(!source||!budget||!io.open||!io.close)return NULL;
++    struct demuxe_container_task *t=calloc(1,sizeof(*t));if(!t)return NULL;
++    t->source=source;t->request=request;t->budget=budget;t->io=io;
++    if(pthread_mutex_init(&t->lock,NULL)){free(t);return NULL;}
++    if(pthread_cond_init(&t->changed,NULL)){pthread_mutex_destroy(&t->lock);free(t);return NULL;}
++    if(pthread_create(&t->thread,NULL,run,t)){pthread_cond_destroy(&t->changed);pthread_mutex_destroy(&t->lock);free(t);return NULL;}
++    return t;
++}
++int demuxe_task_plan(struct demuxe_container_task *t,const struct AVDemuxeSegment *p){
++    if(!p||p->abi!=AV_DEMUXE_PLAN_ABI||!memchr(p->url,0,sizeof(p->url))||!memchr(p->init_url,0,sizeof(p->init_url))||!p->url[0]||!p->init_url[0])return AVERROR(EINVAL);
++    pthread_mutex_lock(&t->lock);int result=0;
++    if(interrupted(t)||t->finished||t->plans_done)result=AVERROR_EXIT;
++    else if(t->plan_count==PLAN_CAPACITY)result=AVERROR(EAGAIN);
++    else{t->plans[(t->plan_head+t->plan_count)%PLAN_CAPACITY]=*p;t->plan_count++;pthread_cond_broadcast(&t->changed);}
++    pthread_mutex_unlock(&t->lock);return result;
++}
++void demuxe_task_end(struct demuxe_container_task *t){pthread_mutex_lock(&t->lock);t->plans_done=1;pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);}
++int demuxe_task_take(struct demuxe_container_task *t,struct demuxe_prepared_packet *out,unsigned wait_ms){
++    *out=(struct demuxe_prepared_packet){0};pthread_mutex_lock(&t->lock);
++    if(!t->packet_count&&!t->finished&&!interrupted(t)&&wait_ms){
++        struct timespec until;clock_gettime(CLOCK_REALTIME,&until);
++        until.tv_sec+=wait_ms/1000;until.tv_nsec+=(wait_ms%1000)*1000000L;
++        if(until.tv_nsec>=1000000000L){until.tv_sec++;until.tv_nsec-=1000000000L;}
++        while(!t->packet_count&&!t->finished&&!interrupted(t))
++            if(pthread_cond_timedwait(&t->changed,&t->lock,&until)==ETIMEDOUT)break;
++    }
++    int result=0;
++    if(interrupted(t))result=AVERROR_EXIT;
++    else if(t->packet_count){*out=t->packets[t->packet_head];t->packet_head=(t->packet_head+1)%PACKET_CAPACITY;t->packet_count--;t->bytes-=packet_cost(out);result=1;pthread_cond_broadcast(&t->changed);}
++    else if(t->finished)result=t->error?t->error:AVERROR_EOF;
++    pthread_mutex_unlock(&t->lock);return result;
++}
++void demuxe_task_stats(struct demuxe_container_task *t,struct demuxe_task_stats *out){
++    pthread_mutex_lock(&t->lock);*out=(struct demuxe_task_stats){.queued_bytes=t->bytes,.peak_queued_bytes=t->peak_bytes,
++        .queued_packets=t->packet_count,.queued_plans=t->plan_count,.containers=t->containers,.consumed_bytes=atomic_load(&t->consumed),.error=t->error,.finished=t->finished};pthread_mutex_unlock(&t->lock);
++}
++void demuxe_task_cancel(struct demuxe_container_task *t){atomic_store(&t->cancelled,1);pthread_mutex_lock(&t->lock);pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);}
++void demuxe_task_destroy(struct demuxe_container_task *t){
++    if(!t)return;demuxe_task_cancel(t);pthread_join(t->thread,NULL);
++    for(unsigned i=0;i<t->packet_count;i++)demuxe_packet_release(&t->packets[(t->packet_head+i)%PACKET_CAPACITY]);
++    pthread_cond_destroy(&t->changed);pthread_mutex_destroy(&t->lock);free(t);
++}
+--- /dev/null
++++ b/demux/container-task.h
+@@ -0,0 +1,40 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <stddef.h>
++#include <stdint.h>
++#include <libavformat/avformat.h>
++#include <libavformat/demuxe.h>
++struct demuxe_container_task;
++struct demuxe_codec;
++struct demuxe_prepared_packet {
++    AVPacket *packet;
++    struct demuxe_codec *codec;
++    AVRational timebase;
++    int64_t sequence;
++    int representation;
++    uint64_t source, request;
++};
++struct demuxe_task_io {
++    void *opaque;
++    int (*open)(void *, AVFormatContext *, AVIOContext **, const char *, AVDictionary **);
++    void (*close)(void *, AVFormatContext *, AVIOContext **);
++};
++struct demuxe_task_stats {
++    size_t queued_bytes, peak_queued_bytes;
++    unsigned queued_packets, queued_plans, containers;
++    uint64_t consumed_bytes;
++    int error, finished;
++};
++struct demuxe_container_task *demuxe_task_create(uint64_t source,uint64_t request,
++    size_t packet_budget,struct demuxe_task_io io);
++// Single owning demux-thread producer; plans are copied, never retained by pointer.
++int demuxe_task_plan(struct demuxe_container_task *,const struct AVDemuxeSegment *);
++void demuxe_task_end(struct demuxe_container_task *);
++// 1 packet, 0 temporarily empty, or a negative terminal error/EOF. wait_ms=0 polls.
++int demuxe_task_take(struct demuxe_container_task *,struct demuxe_prepared_packet *,unsigned wait_ms);
++void demuxe_packet_release(struct demuxe_prepared_packet *);
++size_t demuxe_codec_bytes(const AVCodecParameters *);
++const AVCodecParameters *demuxe_packet_codec(const struct demuxe_prepared_packet *);
++void demuxe_task_stats(struct demuxe_container_task *,struct demuxe_task_stats *);
++void demuxe_task_cancel(struct demuxe_container_task *);
++void demuxe_task_destroy(struct demuxe_container_task *);
+--- /dev/null
++++ b/demux/adaptive-session.c
+@@ -0,0 +1,178 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "adaptive-session.h"
++#include "random-access.h"
++#include <stdlib.h>
++#include <string.h>
++#include <libavutil/mathematics.h>
++struct producer {struct demuxe_container_task *task;int stream,finished;int64_t next;};
++struct demuxe_adaptive_session {
++    AVFormatContext *parent;
++    struct demuxe_task_io io;
++    struct producer active,candidate;
++    struct demuxe_prepared_packet video,next;
++    AVPacket *other;
++    int have_other,parent_eof,video_eof;
++    char group[256];
++    enum AVCodecID codec_id;
++    struct demuxe_adaptive_stats state;
++};
++static int describe(AVFormatContext *f,int stream,struct AVDemuxeRepresentation *out){
++    if(!strcmp(f->iformat->name,"hls"))return av_demuxe_hls_representation(f,stream,out);
++    if(!strcmp(f->iformat->name,"dash"))return av_demuxe_dash_representation(f,stream,out);
++    return AVERROR(ENOSYS);
++}
++static int plan(struct demuxe_adaptive_session *s,int stream,int64_t sequence,int64_t target,struct AVDemuxeSegment *out){
++    if(!strcmp(s->parent->iformat->name,"hls"))return av_demuxe_hls_segment(s->parent,stream,sequence,target,out);
++    return av_demuxe_dash_segment(s->parent,stream,sequence,target,out);
++}
++static int eligible(struct demuxe_adaptive_session *s,int stream){
++    struct AVDemuxeRepresentation d;
++    return !describe(s->parent,stream,&d)&&!strcmp(d.group,s->group)&&
++        s->codec_id==AV_CODEC_ID_H264&&s->parent->streams[stream]->codecpar->codec_id==s->codec_id;
++}
++static int feed(struct demuxe_adaptive_session *s,struct producer *p){
++    if(!p->task||p->finished)return 0;
++    for(;;){
++        struct AVDemuxeSegment segment;int r=plan(s,p->stream,p->next,0,&segment);
++        if(r==AVERROR_EOF){p->finished=1;demuxe_task_end(p->task);return 0;}
++        if(r<0)return r;
++        r=demuxe_task_plan(p->task,&segment);
++        if(r==AVERROR(EAGAIN))return 0;
++        if(r<0)return r;
++        p->next++;
++    }
++}
++static int start(struct demuxe_adaptive_session *s,struct producer *p,int stream,uint64_t request,int64_t sequence){
++    *p=(struct producer){.stream=stream,.next=sequence};
++    p->task=demuxe_task_create(s->state.source,request,4*1024*1024,s->io);
++    if(!p->task)return AVERROR(ENOMEM);
++    int r=feed(s,p);
++    if(r<0){demuxe_task_destroy(p->task);p->task=NULL;}
++    return r;
++}
++static void retire_candidate(struct demuxe_adaptive_session *s){
++    demuxe_packet_release(&s->next);demuxe_task_destroy(s->candidate.task);
++    s->candidate=(struct producer){0};s->state.preparing_stream=-1;
++}
++struct demuxe_adaptive_session *demuxe_adaptive_create(AVFormatContext *parent,int logical,int initial,uint64_t source,struct demuxe_task_io io){
++    struct AVDemuxeRepresentation d;
++    if(!parent||logical<0||(unsigned)logical>=parent->nb_streams||describe(parent,initial,&d)<0||
++       parent->streams[logical]->codecpar->codec_type!=AVMEDIA_TYPE_VIDEO||
++       parent->streams[initial]->codecpar->codec_id!=AV_CODEC_ID_H264)return NULL;
++    struct demuxe_adaptive_session *s=calloc(1,sizeof(*s));if(!s)return NULL;
++    s->parent=parent;s->io=io;memcpy(s->group,d.group,sizeof(s->group));
++    s->codec_id=parent->streams[initial]->codecpar->codec_id;
++    s->state=(struct demuxe_adaptive_stats){.source=source,.logical_stream=logical,
++        .active_stream=initial,.requested_stream=initial,.preparing_stream=-1,.boundary_us=AV_NOPTS_VALUE};
++    s->other=av_packet_alloc();
++    if(!s->other||start(s,&s->active,initial,0,d.first_sequence)<0){demuxe_adaptive_destroy(s);return NULL;}
++    return s;
++}
++int demuxe_adaptive_request(struct demuxe_adaptive_session *s,uint64_t source,uint64_t request,int stream){
++    if(source!=s->state.source||request<=s->state.request)return AVERROR(EINVAL);
++    if(!eligible(s,stream))return AVERROR(ENOSYS);
++    retire_candidate(s);s->state.request=request;s->state.requested_stream=stream;s->state.switch_error=0;
++    if(stream==s->active.stream)s->state.accepted_request=request;
++    // Preparation starts on the next owning demux read. A paused/cache-full
++    // player retains the request without changing its presented quality.
++    return 0;
++}
++static int prepare_candidate(struct demuxe_adaptive_session *s){
++    if(s->candidate.task||s->state.requested_stream==s->active.stream||!s->video.packet)return 0;
++    if(s->video.packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
++    struct AVDemuxeSegment segment;
++    int64_t target=av_rescale_q(s->video.packet->pts,s->video.timebase,AV_TIME_BASE_Q);
++    int r=plan(s,s->state.requested_stream,-1,target,&segment);
++    if(r<0)return r;
++    r=start(s,&s->candidate,s->state.requested_stream,s->state.request,segment.sequence+1);
++    if(r>=0)s->state.preparing_stream=s->candidate.stream;
++    return r;
++}
++static void reject_candidate(struct demuxe_adaptive_session *s,int error){
++    retire_candidate(s);s->state.switch_error=error;
++    // Keep the requested policy observable, but do not retry it on every packet.
++}
++int demuxe_adaptive_read(struct demuxe_adaptive_session *s,struct demuxe_prepared_packet *out){
++    *out=(struct demuxe_prepared_packet){0};
++    int r=feed(s,&s->active);if(r<0)return r;
++    if(s->candidate.task&&(r=feed(s,&s->candidate))<0)reject_candidate(s,r);
++    // Suppress the parent's private video representations. Its existing selected
++    // audio/subtitle streams, parser updates and timing remain authoritative.
++    for(unsigned i=0;i<s->parent->nb_streams;i++)if(eligible(s,i))s->parent->streams[i]->discard=AVDISCARD_ALL;
++    if(!s->have_other&&!s->parent_eof){
++        do{av_packet_unref(s->other);r=av_read_frame(s->parent,s->other);}
++        while(r>=0&&(eligible(s,s->other->stream_index)||
++            s->parent->streams[s->other->stream_index]->discard==AVDISCARD_ALL));
++        if(r==AVERROR_EOF)s->parent_eof=1;else if(r<0)return r;else s->have_other=1;
++    }
++    if(!s->video.packet&&!s->video_eof){
++        r=demuxe_task_take(s->active.task,&s->video,10);
++        if(r==AVERROR_EOF)s->video_eof=1;else if(r<0)return r;else if(!r)return 0;
++    }
++    if(!s->state.switch_error&&(r=prepare_candidate(s))<0)reject_candidate(s,r);
++    if(s->video.packet&&s->video.packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
++    if(s->candidate.task&&s->video.packet){
++        for(;;){
++            if(!s->next.packet){r=demuxe_task_take(s->candidate.task,&s->next,0);if(!r)break;if(r<0){reject_candidate(s,r);break;}}
++            if(s->next.packet->pts==AV_NOPTS_VALUE){reject_candidate(s,AVERROR_INVALIDDATA);break;}
++            if(!demuxe_h264_random_access(s->next.packet,demuxe_packet_codec(&s->next))||av_compare_ts(s->next.packet->pts,s->next.timebase,s->video.packet->pts,s->video.timebase)<0){demuxe_packet_release(&s->next);continue;}
++            break;
++        }
++        if(s->next.packet&&demuxe_h264_random_access(s->video.packet,demuxe_packet_codec(&s->video))&&
++           !av_compare_ts(s->next.packet->pts,s->next.timebase,s->video.packet->pts,s->video.timebase)){
++            demuxe_packet_release(&s->video);demuxe_task_destroy(s->active.task);s->active=s->candidate;s->candidate=(struct producer){0};
++            s->video=s->next;s->next=(struct demuxe_prepared_packet){0};
++            s->state.active_stream=s->active.stream;s->state.preparing_stream=-1;s->state.accepted_request=s->state.request;s->state.accepted_switches++;
++            s->state.boundary_us=av_rescale_q(s->video.packet->pts,s->video.timebase,AV_TIME_BASE_Q);
++        }
++    }
++    if(!s->video.packet&&!s->have_other)return s->video_eof&&s->parent_eof?AVERROR_EOF:0;
++    int other_first=!s->video.packet;
++    if(s->video.packet&&s->have_other){
++        AVPacket *v=s->video.packet,*a=s->other;
++        int64_t vp=v->dts==AV_NOPTS_VALUE?v->pts:v->dts,ap=a->dts==AV_NOPTS_VALUE?a->pts:a->dts;
++        other_first=ap==AV_NOPTS_VALUE||av_compare_ts(ap,s->parent->streams[a->stream_index]->time_base,vp,s->video.timebase)<0;
++    }
++    if(other_first){
++        AVPacket *packet=av_packet_alloc();if(!packet)return AVERROR(ENOMEM);
++        out->timebase=s->parent->streams[s->other->stream_index]->time_base;
++        av_packet_move_ref(packet,s->other);out->packet=packet;out->source=s->state.source;s->have_other=0;
++    }else{
++        *out=s->video;s->video=(struct demuxe_prepared_packet){0};out->packet->stream_index=s->state.logical_stream;
++    }
++    return 1;
++}
++int demuxe_adaptive_seek(struct demuxe_adaptive_session *s,int64_t target){
++    struct AVDemuxeSegment segment,first;int stream=s->state.requested_stream;
++    struct AVDemuxeRepresentation descriptor;
++    int r=describe(s->parent,stream,&descriptor);
++    if(r<0)return r;
++    r=plan(s,stream,descriptor.first_sequence,0,&first);
++    if(r<0)return r;
++    // mpv refresh seeks intentionally overlap before the presentation start.
++    // The source API validates user windows separately; a demux seek to/before
++    // VOD start must prepare its first segment, just like the parent demuxer.
++    if(target<first.start_us)target=first.start_us;
++    r=plan(s,stream,-1,target,&segment);
++    if(r<0)return r;
++    // Validate first, then retire speculative work before allocating a seek
++    // replacement. At most two packet queues exist, including during seeks.
++    retire_candidate(s);
++    struct producer replacement={0};
++    r=start(s,&replacement,stream,s->state.request,segment.sequence);
++    if(r<0)return r;
++    demuxe_task_destroy(s->active.task);s->active=replacement;
++    demuxe_packet_release(&s->video);av_packet_unref(s->other);s->have_other=s->parent_eof=s->video_eof=0;
++    s->state.active_stream=stream;s->state.accepted_request=s->state.request;s->state.switch_error=0;s->state.boundary_us=segment.start_us;
++    return 0;
++}
++void demuxe_adaptive_tracks_changed(struct demuxe_adaptive_session *s){s->parent_eof=0;}
++void demuxe_adaptive_stats(struct demuxe_adaptive_session *s,struct demuxe_adaptive_stats *out){
++    *out=s->state;struct demuxe_task_stats stats;
++    if(s->active.task){demuxe_task_stats(s->active.task,&stats);out->active_packet_bytes=stats.queued_bytes;}
++    if(s->candidate.task){demuxe_task_stats(s->candidate.task,&stats);out->candidate_packet_bytes=stats.queued_bytes;}
++}
++void demuxe_adaptive_destroy(struct demuxe_adaptive_session *s){
++    if(!s)return;demuxe_packet_release(&s->video);demuxe_packet_release(&s->next);
++    demuxe_task_destroy(s->active.task);demuxe_task_destroy(s->candidate.task);av_packet_free(&s->other);free(s);
++}
+--- /dev/null
++++ b/demux/adaptive-session.h
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include "container-task.h"
++struct demuxe_adaptive_session;
++struct demuxe_adaptive_stats {
++    uint64_t source,request,accepted_request;
++    int logical_stream,active_stream,requested_stream,preparing_stream;
++    int switch_error;
++    int64_t boundary_us;
++    unsigned accepted_switches;
++    size_t active_packet_bytes,candidate_packet_bytes;
++};
++// All calls except the transport's interrupt callback execute on the owning
++// demux thread. Thread-external user intent must first enter an engine queue.
++struct demuxe_adaptive_session *demuxe_adaptive_create(AVFormatContext *,int logical_stream,
++    int initial_stream,uint64_t source,struct demuxe_task_io);
++int demuxe_adaptive_request(struct demuxe_adaptive_session *,uint64_t source,uint64_t request,int stream);
++int demuxe_adaptive_read(struct demuxe_adaptive_session *,struct demuxe_prepared_packet *);
++int demuxe_adaptive_seek(struct demuxe_adaptive_session *,int64_t presentation_us);
++void demuxe_adaptive_tracks_changed(struct demuxe_adaptive_session *);
++void demuxe_adaptive_stats(struct demuxe_adaptive_session *,struct demuxe_adaptive_stats *);
++void demuxe_adaptive_destroy(struct demuxe_adaptive_session *);
+--- /dev/null
++++ b/demux/session-control.c
+@@ -0,0 +1,71 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "session-control.h"
++#include <pthread.h>
++#include <stdio.h>
++#include <string.h>
++#ifdef __EMSCRIPTEN__
++#include <emscripten/emscripten.h>
++#else
++#define EMSCRIPTEN_KEEPALIVE
++#endif
++#define MAX_QUALITIES 64
++static pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
++static struct {
++    int source,enabled,count,request,requested;
++    int streams[MAX_QUALITIES],widths[MAX_QUALITIES],heights[MAX_QUALITIES],bitrates[MAX_QUALITIES];
++    struct demuxe_adaptive_stats state;
++    struct demuxe_quality_tag selected,presented;
++} control;
++EMSCRIPTEN_KEEPALIVE void web_quality_configure(int source,int enabled){
++    pthread_mutex_lock(&lock);memset(&control,0,sizeof(control));control.source=source;
++    control.enabled=source>0&&enabled;control.requested=-1;pthread_mutex_unlock(&lock);
++}
++int demuxe_control_enabled(uint64_t source){pthread_mutex_lock(&lock);int yes=control.enabled&&source==(uint64_t)control.source;pthread_mutex_unlock(&lock);return yes;}
++int demuxe_control_bind(uint64_t source,const int *streams,const int *widths,const int *heights,const int *bitrates,int count){
++    pthread_mutex_lock(&lock);int ok=control.enabled&&source==(uint64_t)control.source&&count>1&&count<=MAX_QUALITIES;
++    if(ok){control.count=count;memcpy(control.streams,streams,count*sizeof(int));memcpy(control.widths,widths,count*sizeof(int));memcpy(control.heights,heights,count*sizeof(int));memcpy(control.bitrates,bitrates,count*sizeof(int));}
++    pthread_mutex_unlock(&lock);return ok;
++}
++EMSCRIPTEN_KEEPALIVE int web_quality_request(int source,int request,int representation){
++    pthread_mutex_lock(&lock);
++    int ok=control.enabled&&source==control.source&&request>control.request&&representation>=0&&representation<control.count;
++    if(ok){control.request=request;control.requested=representation;}
++    pthread_mutex_unlock(&lock);return ok?0:-1;
++}
++int demuxe_control_poll(uint64_t source,uint64_t after,uint64_t *request,int *stream){
++    pthread_mutex_lock(&lock);int yes=source==(uint64_t)control.source&&control.requested>=0&&(uint64_t)control.request>after;
++    if(yes){*request=control.request;*stream=control.streams[control.requested];}
++    pthread_mutex_unlock(&lock);return yes;
++}
++void demuxe_control_update(const struct demuxe_adaptive_stats *s){pthread_mutex_lock(&lock);if(s->source==(uint64_t)control.source)control.state=*s;pthread_mutex_unlock(&lock);}
++void demuxe_control_close(uint64_t source){pthread_mutex_lock(&lock);if(source==(uint64_t)control.source){control.enabled=0;control.count=0;}pthread_mutex_unlock(&lock);}
++void demuxe_control_selected(struct demuxe_quality_tag tag){
++    pthread_mutex_lock(&lock);
++    control.selected=control.enabled&&tag.source==(uint64_t)control.source?tag:(struct demuxe_quality_tag){0};
++    pthread_mutex_unlock(&lock);
++}
++EMSCRIPTEN_KEEPALIVE const char *web_quality_selected(void){
++    static char json[160];pthread_mutex_lock(&lock);
++    snprintf(json,sizeof(json),"{\"source\":%llu,\"request\":%llu,\"representation\":%d}",(unsigned long long)control.selected.source,(unsigned long long)control.selected.request,control.selected.representation);
++    pthread_mutex_unlock(&lock);return json;
++}
++EMSCRIPTEN_KEEPALIVE void web_quality_presented(int source,int request,int representation){
++    pthread_mutex_lock(&lock);
++    if(control.enabled&&source==control.source&&request==-1){control.presented=(struct demuxe_quality_tag){0};}
++    else if(control.enabled&&source==control.source&&request>=0&&request<=control.request){
++        for(int i=0;i<control.count;i++)if(control.streams[i]==representation){
++            control.presented=(struct demuxe_quality_tag){source,request,representation};break;
++        }
++    }
++    pthread_mutex_unlock(&lock);
++}
++EMSCRIPTEN_KEEPALIVE const char *web_quality_status(void){
++    // Only the engine command worker calls this serializer. The demux thread
++    // updates the protected structure and never writes the returned buffer.
++    static char json[8192];pthread_mutex_lock(&lock);
++    int active=-1,preparing=-1,presented=-1;
++    for(int i=0;i<control.count;i++){if(control.presented.source==(uint64_t)control.source&&control.streams[i]==control.presented.representation)presented=i;if(control.streams[i]==control.state.active_stream)active=i;if(control.streams[i]==control.state.preparing_stream)preparing=i;}
++    int at=snprintf(json,sizeof(json),"{\"source\":%d,\"available\":%s,\"request\":%d,\"requested\":%d,\"preparing\":%d,\"demuxed\":%d,\"acceptedRequest\":%llu,\"switches\":%u,\"error\":%d,\"qualities\":[",control.source,control.count>1?"true":"false",control.request,control.requested,preparing,active,(unsigned long long)control.state.accepted_request,control.state.accepted_switches,control.state.switch_error);
++    for(int i=0;i<control.count;i++)at+=snprintf(json+at,sizeof(json)-at,"%s{\"index\":%d,\"width\":%d,\"height\":%d,\"bitrate\":%d}",i?",":"",i,control.widths[i],control.heights[i],control.bitrates[i]);
++    snprintf(json+at,sizeof(json)-at,"],\"presented\":%d,\"presentedRequest\":%llu}",presented,(unsigned long long)control.presented.request);pthread_mutex_unlock(&lock);return json;
++}
+--- /dev/null
++++ b/demux/session-control.h
+@@ -0,0 +1,17 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include "adaptive-session.h"
++#include "common/demuxe-quality.h"
++// One engine instance, one source-bound mailbox. Calls never enter libmpv.
++void web_quality_configure(int source,int enabled);
++int web_quality_request(int source,int request,int representation);
++const char *web_quality_status(void);
++int demuxe_control_enabled(uint64_t source);
++int demuxe_control_bind(uint64_t source,const int *streams,const int *widths,const int *heights,const int *bitrates,int count);
++int demuxe_control_poll(uint64_t source,uint64_t after,uint64_t *request,int *stream);
++void demuxe_control_update(const struct demuxe_adaptive_stats *);
++void demuxe_control_close(uint64_t source);
++
++void demuxe_control_selected(struct demuxe_quality_tag);
++const char *web_quality_selected(void);
++void web_quality_presented(int source,int request,int representation);
+--- /dev/null
++++ b/demux/random-access.c
+@@ -0,0 +1,19 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "random-access.h"
++#include <stdint.h>
++int demuxe_h264_random_access(const AVPacket *packet,const AVCodecParameters *codec){
++    if(!packet||!codec||codec->codec_id!=AV_CODEC_ID_H264||!(packet->flags&AV_PKT_FLAG_KEY)||
++       codec->extradata_size<5||!codec->extradata||codec->extradata[0]!=1||packet->size<=0||!packet->data)return 0;
++    unsigned length=(codec->extradata[4]&3)+1;size_t at=0,size=packet->size;int idr=0;
++    while(at<size){
++        if(size-at<length)return 0;uint32_t n=0;
++        for(unsigned i=0;i<length;i++)n=(n<<8)|packet->data[at++];
++        if(!n||n>size-at)return 0;
++        unsigned type=packet->data[at]&31;
++        if(packet->data[at]&128)return 0;
++        if(type>=1&&type<=4)return 0; // A non-IDR slice invalidates closed-GOP admission.
++        if(type==5)idr=1;
++        at+=n;
++    }
++    return idr;
++}
+--- /dev/null
++++ b/demux/random-access.h
+@@ -0,0 +1,7 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <libavcodec/packet.h>
++#include <libavcodec/codec_par.h>
++// Initial qualification is AVC in fMP4. A container key flag alone does not
++// establish a closed switching point (for example, an open-GOP recovery frame).
++int demuxe_h264_random_access(const AVPacket *,const AVCodecParameters *);
+--- /dev/null
++++ b/demux/rewind-reader.c
+@@ -0,0 +1,39 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "rewind-reader.h"
++#include <string.h>
++#include <errno.h>
++#include <libavformat/avio.h>
++#include <libavutil/error.h>
++int demuxe_rewind_read(void *opaque,uint8_t *out,int capacity){
++    struct demuxe_rewind_reader *r=opaque;
++    if(capacity<=0)return AVERROR(EINVAL);
++    if(r->position<r->produced){
++        int64_t available=r->produced-r->position;
++        int at=r->position%DEMUXE_REWIND_BYTES;
++        int n=capacity;
++        if(n>available)n=available;
++        if(n>DEMUXE_REWIND_BYTES-at)n=DEMUXE_REWIND_BYTES-at;
++        memcpy(out,r->bytes+at,n);r->position+=n;return n;
++    }
++    if(capacity>DEMUXE_REWIND_BYTES)capacity=DEMUXE_REWIND_BYTES;
++    if(r->produced>INT64_MAX-capacity)return AVERROR(EOVERFLOW);
++    int n=r->read(r->opaque,out,capacity);
++    if(n<=0)return n; // Preserve starvation, failure, cancellation and EOF.
++    if(n>capacity)return AVERROR_INVALIDDATA;
++    int at=r->produced%DEMUXE_REWIND_BYTES,first=n;
++    if(first>DEMUXE_REWIND_BYTES-at)first=DEMUXE_REWIND_BYTES-at;
++    memcpy(r->bytes+at,out,first);memcpy(r->bytes,out+first,n-first);
++    r->position=r->produced+=n;return n;
++}
++int64_t demuxe_rewind_seek(void *opaque,int64_t offset,int whence){
++    struct demuxe_rewind_reader *r=opaque;
++    if(whence==AVSEEK_SIZE)return AVERROR(ENOSYS);
++    whence&=~AVSEEK_FORCE;
++    if(whence==SEEK_CUR){
++        if((offset>0&&r->position>INT64_MAX-offset)||(offset<0&&offset< -r->position))return AVERROR(EINVAL);
++        offset+=r->position;
++    }else if(whence!=SEEK_SET)return AVERROR(ESPIPE);
++    int64_t start=r->produced>DEMUXE_REWIND_BYTES?r->produced-DEMUXE_REWIND_BYTES:0;
++    if(offset<start||offset>r->produced)return AVERROR(ESPIPE);
++    return r->position=offset;
++}
+--- /dev/null
++++ b/demux/rewind-reader.h
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <stdint.h>
++// Local parser lookbehind, not arbitrary resource seeking. Memory is fixed per
++// open child container; network consumption never rewinds or duplicates a read.
++#define DEMUXE_REWIND_BYTES 65536
++struct demuxe_rewind_reader {
++    void *opaque;
++    int (*read)(void *,uint8_t *,int);
++    int64_t position,produced;
++    uint8_t bytes[DEMUXE_REWIND_BYTES];
++};
++int demuxe_rewind_read(void *,uint8_t *,int);
++int64_t demuxe_rewind_seek(void *,int64_t,int);

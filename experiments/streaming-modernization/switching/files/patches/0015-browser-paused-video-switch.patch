@@ -1,0 +1,16 @@
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -740,6 +740,13 @@
+ 
+     if (type == STREAM_VIDEO && order == 0) {
+         reinit_video_chain(mpctx);
++#ifdef __EMSCRIPTEN__
++        // A paused rendition switch must show the accepted presentation time,
++        // not advance to the first available frame of the new video stream.
++        // This helper preserves a queued/in-flight user seek's priority.
++        if (track && mpctx->opts->pause)
++            issue_refresh_seek(mpctx, MPSEEK_VERY_EXACT);
++#endif
+     } else if (type == STREAM_AUDIO && order == 0) {
+         reinit_audio_chain(mpctx);
+     } else if (type == STREAM_SUB && order >= 0 && order <= 2) {

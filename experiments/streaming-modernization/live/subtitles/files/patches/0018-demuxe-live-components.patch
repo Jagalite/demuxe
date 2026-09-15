@@ -1,0 +1,989 @@
+--- a/demux/demux.h
++++ b/demux/demux.h
+@@ -147,6 +147,9 @@
+     void (*close)(struct demuxer *demuxer);
+     void (*seek)(struct demuxer *demuxer, double rel_seek_secs, int flags);
+     void (*switched_tracks)(struct demuxer *demuxer);
++    // Optional owning-thread work while packet reading is idle/cache-full.
++    // Called without the cache mutex. Return next delay in ns, or 0 to stop.
++    int64_t (*poll)(struct demuxer *demuxer);
+     // See timeline.c
+     void (*load_timeline)(struct timeline *tl);
+ } demuxer_desc_t;
+@@ -229,6 +232,7 @@
+     bool partially_seekable; // true if _maybe_ seekable; implies seekable=true
+     double start_time;
+     double duration;  // -1 if unknown
++    bool duration_is_live; // do not infer a finite length from buffered packets
+     // File format allows PTS resets (even if the current file is without)
+     bool ts_resets_possible;
+     // The file data was fully read, and there is no need to keep the stream
+--- a/demux/demux.c
++++ b/demux/demux.c
+@@ -265,6 +265,7 @@
+     double speed_query_prev_sample;
+     uint64_t bytes_per_second;
+     int64_t next_cache_update;
++    int64_t next_demux_poll;
+ 
+     // demux user state (user thread, somewhat similar to reader/decoder state)
+     double last_playback_pts;   // last playback_pts from demux_update()
+@@ -2128,7 +2129,7 @@
+         if (ts > in->highest_av_pts) {
+             in->highest_av_pts = ts;
+             double duration = in->highest_av_pts - in->d_thread->start_time;
+-            if (duration > in->d_thread->duration) {
++            if (!in->d_thread->duration_is_live && duration > in->d_thread->duration) {
+                 in->d_thread->duration = duration;
+                 // (Don't wakeup user thread, would be too noisy.)
+                 in->events |= DEMUX_EVENT_DURATION;
+@@ -2553,6 +2554,14 @@
+         execute_seek(in);
+         return true;
+     }
++    if (in->d_thread->desc->poll && mp_time_ns() >= in->next_demux_poll) {
++        mp_mutex_unlock(&in->lock);
++        int64_t delay = in->d_thread->desc->poll(in->d_thread);
++        mp_mutex_lock(&in->lock);
++        int64_t now = mp_time_ns();
++        in->next_demux_poll = delay > 0 && delay < INT64_MAX - now ? now + delay : INT64_MAX;
++        return true;
++    }
+     if (read_packet(in))
+         return true; // read_packet unlocked, so recheck conditions
+     if (mp_time_ns() >= in->next_cache_update) {
+@@ -2574,7 +2583,7 @@
+         if (thread_work(in))
+             continue;
+         mp_cond_signal(&in->wakeup);
+-        mp_cond_timedwait_until(&in->wakeup, &in->lock, in->next_cache_update);
++        mp_cond_timedwait_until(&in->wakeup, &in->lock, in->d_thread->desc->poll ? MPMIN(in->next_cache_update, in->next_demux_poll) : in->next_cache_update);
+     }
+ 
+     if (in->shutdown_async) {
+@@ -3005,6 +3014,7 @@
+     dst->ts_resets_possible = src->ts_resets_possible;
+     dst->fully_read = src->fully_read;
+     dst->start_time = src->start_time;
++    dst->duration_is_live = src->duration_is_live;
+     dst->duration = src->duration;
+     dst->is_network = src->is_network;
+     dst->is_streaming = src->is_streaming;
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -31,6 +31,7 @@
+ #ifdef __EMSCRIPTEN__
+ extern int web_resource_session(const char*);
+ extern const char *web_resource_url(int);
++extern void web_resource_retire_for_session(int,const char*);
+ extern int web_resource_avio_open_for_session(int,AVFormatContext*,AVIOContext**,const char*,int,AVDictionary**);
+ extern int web_resource_avio_open(AVFormatContext*,AVIOContext**,const char*,int,AVDictionary**);
+ extern int web_resource_avio_close(AVFormatContext*,AVIOContext*);
+@@ -300,6 +301,9 @@
+     avio_closep(pb);
+ #endif
+ }
++static void adaptive_io_retire(void *opaque,const char *url){
++    lavf_priv_t *p=opaque;web_resource_retire_for_session(p->browser_session,url);
++}
+ static int adaptive_init(struct demuxer *demux)
+ {
+     lavf_priv_t *p=demux->priv;
+@@ -328,7 +332,7 @@
+         if(count==64)return AVERROR(ENOBUFS);
+         streams[count]=i;widths[count]=cp->width;heights[count]=cp->height;bitrates[count]=d.bandwidth;count++;
+     }
+-    if(count<2)return 0;
++    if(count<1)return 0;
+     for(int i=0;i<count;i++)for(int j=i+1;j<count;j++)if(bitrates[j]<bitrates[i]){
+ #define SWAP(a) do{int n=a[i];a[i]=a[j];a[j]=n;}while(0)
+         SWAP(streams);SWAP(widths);SWAP(heights);SWAP(bitrates);
+@@ -336,7 +340,7 @@
+     }
+     p->adaptive_logical=streams[0];
+     p->adaptive=demuxe_adaptive_create(p->avfc,streams[0],streams[0],p->adaptive_source,
+-        (struct demuxe_task_io){.opaque=p,.open=adaptive_io_open,.close=adaptive_io_close});
++        (struct demuxe_task_io){.opaque=p,.open=adaptive_io_open,.close=adaptive_io_close,.retire=adaptive_io_retire});
+     if(!p->adaptive)return AVERROR(ENOMEM);
+     for(int i=1;i<count;i++)p->adaptive_hidden[streams[i]]=true;
+     if(!demuxe_control_bind(p->adaptive_source,streams,widths,heights,bitrates,count))return AVERROR_EXIT;
+@@ -358,7 +362,7 @@
+     if(!cp)return NULL;
+     for(int i=0;i<p->adaptive_codecs_count;i++){
+         struct mp_codec_params *codec=p->adaptive_codecs[i];AVCodecParameters *old=codec->lav_codecpar;
+-        if(old->codec_id==cp->codec_id&&old->width==cp->width&&old->height==cp->height&&
++        if(old->codec_type==cp->codec_type&&old->sample_rate==cp->sample_rate&&old->frame_size==cp->frame_size&&old->initial_padding==cp->initial_padding&&old->seek_preroll==cp->seek_preroll&&(cp->codec_type!=AVMEDIA_TYPE_AUDIO||!av_channel_layout_compare(&old->ch_layout,&cp->ch_layout))&&old->codec_id==cp->codec_id&&old->width==cp->width&&old->height==cp->height&&
+            old->format==cp->format&&old->profile==cp->profile&&old->level==cp->level&&
+            old->color_range==cp->color_range&&old->color_primaries==cp->color_primaries&&
+            old->color_trc==cp->color_trc&&old->color_space==cp->color_space&&
+@@ -371,11 +375,12 @@
+     size_t cost=demuxe_codec_bytes(cp);
+     if(p->adaptive_codecs_count==64||cost>4*1024*1024-p->adaptive_codec_bytes)return NULL;
+     struct mp_codec_params *codec=talloc_zero(p,struct mp_codec_params);
+-    codec->type=STREAM_VIDEO;codec->codec=mp_codec_from_av_codec_id(cp->codec_id);codec->codec_tag=cp->codec_tag;
++    codec->type=cp->codec_type==AVMEDIA_TYPE_VIDEO?STREAM_VIDEO:cp->codec_type==AVMEDIA_TYPE_AUDIO?STREAM_AUDIO:STREAM_SUB;codec->codec=mp_codec_from_av_codec_id(cp->codec_id);codec->codec_tag=cp->codec_tag;
+     codec->lav_codecpar=avcodec_parameters_alloc();
+     if(!codec->lav_codecpar||avcodec_parameters_copy(codec->lav_codecpar,cp)<0){avcodec_parameters_free(&codec->lav_codecpar);talloc_free(codec);return NULL;}
+     codec->native_tb_num=packet->timebase.num;codec->native_tb_den=packet->timebase.den;
+     codec->disp_w=cp->width;codec->disp_h=cp->height;codec->par_w=cp->sample_aspect_ratio.num;codec->par_h=cp->sample_aspect_ratio.den;
++    codec->samplerate=cp->sample_rate;if(cp->codec_type==AVMEDIA_TYPE_AUDIO)mp_chmap_from_av_layout(&codec->channels,&cp->ch_layout);
+     codec->fps=av_q2d(p->avfc->streams[p->adaptive_logical]->avg_frame_rate);
+     codec->format_name=talloc_strdup(codec,av_get_pix_fmt_name(cp->format));
+     p->adaptive_codecs[p->adaptive_codecs_count++]=codec;p->adaptive_codec_bytes+=cost;
+@@ -1309,6 +1314,11 @@
+ 
+     demuxer->is_network |= priv->format_hack.is_network;
+     demuxer->seekable &= !priv->format_hack.no_seek;
++    // The integrated segment controller validates and performs timeline seeks.
++    // FFmpeg's rolling-HLS flag describes its own read_seek implementation;
++    // it does not describe this controller. AVIO resources remain non-seekable.
++    if (priv->adaptive)
++        demuxer->seekable = true;
+ 
+     // We initially prefer track durations over container durations because they
+     // have a higher degree of precision over the container duration which are
+@@ -1329,6 +1339,11 @@
+     if (duration <= 0 && priv->avfc->duration > 0)
+         duration = (double)priv->avfc->duration / AV_TIME_BASE;
+     demuxer->duration = duration;
++    if(priv->adaptive){
++        struct demuxe_adaptive_stats state;demuxe_adaptive_stats(priv->adaptive,&state);
++        demuxer->duration_is_live=state.live;
++        if(state.live)demuxer->duration=-1;
++    }
+ 
+     if (demuxer->duration < 0 && priv->format_hack.no_seek_on_no_duration)
+         demuxer->seekable = false;
+@@ -1439,10 +1454,14 @@
+ 
+     AVRational packet_tb=prepared.codec?prepared.timebase:st->time_base;
+     if(prepared.codec){
+-        dp->demuxe_quality=(struct demuxe_quality_tag){prepared.source,prepared.request,prepared.representation};
++        if(demuxe_packet_codec(&prepared)->codec_type==AVMEDIA_TYPE_VIDEO)dp->demuxe_quality=(struct demuxe_quality_tag){prepared.source,prepared.request,prepared.representation};
+         dp->codec=adaptive_codec(priv,&prepared);
+         if(!dp->codec){talloc_free(dp);av_packet_free(&pkt);demuxe_packet_release(&prepared);return false;}
+         dp->segmented=true;dp->start=dp->end=MP_NOPTS_VALUE;
++        if(prepared.presentation_start_us||prepared.presentation_end_us){
++            dp->start=prepared.presentation_start_us==AV_NOPTS_VALUE?MP_NOPTS_VALUE:prepared.presentation_start_us/1000000.0;
++            dp->end=prepared.presentation_end_us==AV_NOPTS_VALUE?MP_NOPTS_VALUE:prepared.presentation_end_us/1000000.0;
++        }
+     }
+     dp->pts = mp_pts_from_av(pkt->pts, &packet_tb);
+     dp->dts = mp_pts_from_av(pkt->dts, &packet_tb);
+@@ -1499,6 +1518,7 @@
+ static void demux_drop_buffers_lavf(demuxer_t *demuxer)
+ {
+     lavf_priv_t *priv = demuxer->priv;
++    if(priv->adaptive)return;
+     av_seek_frame(priv->avfc, -1, 0, 1);
+     demux_flush(demuxer);
+     stream_drop_buffers(priv->stream);
+@@ -1577,6 +1597,7 @@
+         if(avsflags&AVSEEK_FLAG_BYTE)return;
+         int result=demuxe_adaptive_seek(priv->adaptive,seek_pts_av);
+         if(result<0){MP_WARN(demuxer,"Adaptive seek rejected: %s\n",av_err2str(result));return;}
++        update_read_stats(demuxer);return;
+     }
+     int r = av_seek_frame(priv->avfc, seek_stream, seek_pts_av, avsflags);
+     if (r < 0 && (avsflags & AVSEEK_FLAG_BACKWARD)) {
+@@ -1647,6 +1668,14 @@
+ }
+ 
+ 
++static int64_t demux_lavf_poll(struct demuxer *demuxer)
++{
++    lavf_priv_t *p=demuxer->priv;
++    if(!p->adaptive)return 0;
++    demuxe_adaptive_poll(p->adaptive);
++    struct demuxe_adaptive_stats state;demuxe_adaptive_stats(p->adaptive,&state);demuxe_control_update(&state);
++    return state.live?1000000000LL:0;
++}
+ const demuxer_desc_t demuxer_desc_lavf = {
+     .name = "lavf",
+     .desc = "libavformat",
+@@ -1656,4 +1685,5 @@
+     .close = demux_close_lavf,
+     .seek = demux_seek_lavf,
+     .switched_tracks = demux_lavf_switched_tracks,
++    .poll = demux_lavf_poll,
+ };
+--- a/common/demuxe-quality.h
++++ b/common/demuxe-quality.h
+@@ -4,7 +4,7 @@
+ #include <math.h>
+ #include <string.h>
+ // Internal identity travels with packets and frames. Zero source means unknown.
+-struct demuxe_quality_tag {uint64_t source,request;int representation;};
++struct demuxe_quality_tag {uint64_t source,request;int representation,decoder_generation;};
+ #define DEMUXE_QUALITY_HISTORY 512
+ struct demuxe_quality_history {
+     unsigned next;
+--- a/meson.build
++++ b/meson.build
+@@ -100,6 +100,8 @@
+     'demux/demux_lavf.c',
+     'demux/container-task.c',
+     'demux/adaptive-session.c',
++    'demux/component-group.c',
++    'demux/webvtt-map.c',
+     'demux/session-control.c',
+     'demux/random-access.c',
+     'demux/rewind-reader.c',
+--- a/demux/adaptive-session.c
++++ b/demux/adaptive-session.c
+@@ -1,21 +1,63 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ #include "adaptive-session.h"
+ #include "random-access.h"
++#include "component-group.h"
++#include "manifest-plan.h"
+ #include <stdlib.h>
+ #include <string.h>
+ #include <libavutil/mathematics.h>
++#include <libavutil/time.h>
++static void observed_call(int64_t *peak,int64_t started){int64_t elapsed=av_gettime_relative()-started;if(elapsed>*peak)*peak=elapsed;}
+ struct producer {struct demuxe_container_task *task;int stream,finished;int64_t next;};
+ struct demuxe_adaptive_session {
+     AVFormatContext *parent;
+     struct demuxe_task_io io;
+     struct producer active,candidate;
+     struct demuxe_prepared_packet video,next;
+-    AVPacket *other;
+-    int have_other,parent_eof,video_eof;
++    struct demuxe_prepared_packet other;
++    struct demuxe_component_group *components;
++    int64_t position_us;
++    int have_other,parent_eof,video_eof,mapping_wait;
+     char group[256];
+     enum AVCodecID codec_id;
+     struct demuxe_adaptive_stats state;
++    struct {uint64_t id;int64_t offset;int valid;} timelines[16];
++    unsigned next_timeline;
+ };
++// Offsets are accepted by the one owning demux thread. Components and candidates
++// cannot establish an independent clock. Re-entering an evicted period after a
++// seek re-establishes it from its copied manifest position and active video DTS.
++static int map_packet(struct demuxe_adaptive_session *s,struct demuxe_prepared_packet *p,int establish){
++    if(!p->packet||!p->timeline_mapping||p->timeline_mapped)return 0;
++    int slot=-1;
++    for(int i=0;i<16;i++)if(s->timelines[i].valid&&s->timelines[i].id==p->timeline_id){slot=i;break;}
++    if(slot<0){
++        if(!establish)return AVERROR(EAGAIN);
++        int64_t dts=p->packet->dts;
++        if(dts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
++        int64_t raw=av_rescale_q(dts,p->timebase,AV_TIME_BASE_Q),start=p->timeline_start_us;
++        if(raw==INT64_MIN||(raw<0&&start>INT64_MAX+raw)||(raw>0&&start<INT64_MIN+raw))return AVERROR_INVALIDDATA;
++        slot=s->next_timeline++%16;
++        s->timelines[slot].id=p->timeline_id;s->timelines[slot].offset=start-raw;s->timelines[slot].valid=1;
++    }
++    if(p->subtitle_map.present){
++        int64_t offset=s->timelines[slot].offset,start=p->timeline_start_us;
++        if((offset>0&&start<INT64_MIN+offset)||(offset<0&&start>INT64_MAX+offset)||p->packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
++        int64_t cue=av_rescale_q(p->packet->pts,p->timebase,AV_TIME_BASE_Q),mapped;
++        int r=demuxe_webvtt_timestamp(&p->subtitle_map,cue,start-offset,&mapped);if(r<0)return r;
++        av_packet_rescale_ts(p->packet,p->timebase,AV_TIME_BASE_Q);p->timebase=AV_TIME_BASE_Q;
++        p->packet->pts=p->packet->dts=mapped;
++    }
++    int64_t shift=av_rescale_q(s->timelines[slot].offset,AV_TIME_BASE_Q,p->timebase);
++    if(shift==INT64_MIN)return AVERROR_INVALIDDATA;
++    int64_t *stamps[]={&p->packet->pts,&p->packet->dts};
++    for(int i=0;i<2;i++)if(*stamps[i]!=AV_NOPTS_VALUE){
++        if((shift>0&&*stamps[i]>INT64_MAX-shift)||(shift<0&&*stamps[i]<INT64_MIN-shift))return AVERROR_INVALIDDATA;
++    }
++    for(int i=0;i<2;i++)if(*stamps[i]!=AV_NOPTS_VALUE)*stamps[i]+=shift;
++    p->timeline_mapped=1;return 0;
++}
++static int map_component(void *opaque,struct demuxe_prepared_packet *p){return map_packet(opaque,p,0);}
+ static int describe(AVFormatContext *f,int stream,struct AVDemuxeRepresentation *out){
+     if(!strcmp(f->iformat->name,"hls"))return av_demuxe_hls_representation(f,stream,out);
+     if(!strcmp(f->iformat->name,"dash"))return av_demuxe_dash_representation(f,stream,out);
+@@ -32,14 +74,16 @@
+ }
+ static int feed(struct demuxe_adaptive_session *s,struct producer *p){
+     if(!p->task||p->finished)return 0;
++    int refreshed=demuxe_manifest_refresh(s->parent,p->stream);if(refreshed<0){av_log(s->parent,AV_LOG_ERROR,"Adaptive manifest refresh failed: %s\n",av_err2str(refreshed));return refreshed;}
+     for(;;){
+         struct AVDemuxeSegment segment;int r=plan(s,p->stream,p->next,0,&segment);
++        if(r==AVERROR(EAGAIN))return 0;
+         if(r==AVERROR_EOF){p->finished=1;demuxe_task_end(p->task);return 0;}
+-        if(r<0)return r;
++        if(r<0){av_log(s->parent,AV_LOG_ERROR,"Adaptive segment plan failed at token %lld: %s\n",(long long)p->next,av_err2str(r));return r;}
+         r=demuxe_task_plan(p->task,&segment);
+         if(r==AVERROR(EAGAIN))return 0;
+         if(r<0)return r;
+-        p->next++;
++        p->next=segment.sequence+1;
+     }
+ }
+ static int start(struct demuxe_adaptive_session *s,struct producer *p,int stream,uint64_t request,int64_t sequence){
+@@ -54,18 +98,33 @@
+     demuxe_packet_release(&s->next);demuxe_task_destroy(s->candidate.task);
+     s->candidate=(struct producer){0};s->state.preparing_stream=-1;
+ }
++static void retire_resource(void *opaque,const char *url){
++    struct demuxe_adaptive_session *s=opaque;
++    if(s->io.retire)s->io.retire(s->io.opaque,url);
++}
+ struct demuxe_adaptive_session *demuxe_adaptive_create(AVFormatContext *parent,int logical,int initial,uint64_t source,struct demuxe_task_io io){
+     struct AVDemuxeRepresentation d;
+-    if(!parent||logical<0||(unsigned)logical>=parent->nb_streams||describe(parent,initial,&d)<0||
++    if(!demuxe_manifest_supported(parent)||logical<0||(unsigned)logical>=parent->nb_streams||describe(parent,initial,&d)<0||
+        parent->streams[logical]->codecpar->codec_type!=AVMEDIA_TYPE_VIDEO||
+        parent->streams[initial]->codecpar->codec_id!=AV_CODEC_ID_H264)return NULL;
+     struct demuxe_adaptive_session *s=calloc(1,sizeof(*s));if(!s)return NULL;
+     s->parent=parent;s->io=io;memcpy(s->group,d.group,sizeof(s->group));
+     s->codec_id=parent->streams[initial]->codecpar->codec_id;
+     s->state=(struct demuxe_adaptive_stats){.source=source,.logical_stream=logical,
+-        .active_stream=initial,.requested_stream=initial,.preparing_stream=-1,.boundary_us=AV_NOPTS_VALUE};
+-    s->other=av_packet_alloc();
+-    if(!s->other||start(s,&s->active,initial,0,d.first_sequence)<0){demuxe_adaptive_destroy(s);return NULL;}
++        .active_stream=initial,.requested_stream=initial,.live=d.live,.preparing_stream=-1,.boundary_us=AV_NOPTS_VALUE};
++    struct AVDemuxeSegment first;
++    if(demuxe_manifest_handoff(parent)<0){demuxe_adaptive_destroy(s);return NULL;}
++    if(d.live){
++        struct AVDemuxeWindow window;
++        if(demuxe_manifest_window(parent,initial,&window)<0||!window.known){demuxe_adaptive_destroy(s);return NULL;}
++        int64_t target=FFMAX(window.start_us,window.end_us-6000000);
++        if(plan(s,initial,-1,target,&first)<0){demuxe_adaptive_destroy(s);return NULL;}
++    }else if(plan(s,initial,d.first_sequence,0,&first)<0){demuxe_adaptive_destroy(s);return NULL;}
++    s->position_us=first.start_us;
++    s->components=demuxe_components_create(parent,source,io);
++    if(s->components)demuxe_components_mapper(s->components,map_component,s);
++    if(!s->components||start(s,&s->active,initial,0,first.sequence)<0){demuxe_adaptive_destroy(s);return NULL;}
++    demuxe_manifest_retirement(parent,retire_resource,s);
+     return s;
+ }
+ int demuxe_adaptive_request(struct demuxe_adaptive_session *s,uint64_t source,uint64_t request,int stream){
+@@ -82,7 +141,9 @@
+     if(s->video.packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
+     struct AVDemuxeSegment segment;
+     int64_t target=av_rescale_q(s->video.packet->pts,s->video.timebase,AV_TIME_BASE_Q);
+-    int r=plan(s,s->state.requested_stream,-1,target,&segment);
++    int r=demuxe_manifest_refresh(s->parent,s->state.requested_stream);if(r<0)return r;
++    r=plan(s,s->state.requested_stream,-1,target,&segment);
++    if(r==AVERROR(EAGAIN))return 0;
+     if(r<0)return r;
+     r=start(s,&s->candidate,s->state.requested_stream,s->state.request,segment.sequence+1);
+     if(r>=0)s->state.preparing_stream=s->candidate.stream;
+@@ -94,50 +155,57 @@
+ }
+ int demuxe_adaptive_read(struct demuxe_adaptive_session *s,struct demuxe_prepared_packet *out){
+     *out=(struct demuxe_prepared_packet){0};
+-    int r=feed(s,&s->active);if(r<0)return r;
++    int64_t observed=av_gettime_relative();
++    int r=feed(s,&s->active);observed_call(&s->state.max_feed_us,observed);if(r<0)return r;
+     if(s->candidate.task&&(r=feed(s,&s->candidate))<0)reject_candidate(s,r);
+-    // Suppress the parent's private video representations. Its existing selected
+-    // audio/subtitle streams, parser updates and timing remain authoritative.
+-    for(unsigned i=0;i<s->parent->nb_streams;i++)if(eligible(s,i))s->parent->streams[i]->discard=AVDISCARD_ALL;
++    // Every selected component now uses copied plans from the same parent.
++    // No parent av_read_frame can wait at a live boundary ahead of ready video.
++    observed=av_gettime_relative();
++    r=demuxe_components_sync(s->components,s->position_us);if(r==AVERROR(EAGAIN))return 0;if(r<0)return r;
+     if(!s->have_other&&!s->parent_eof){
+-        do{av_packet_unref(s->other);r=av_read_frame(s->parent,s->other);}
+-        while(r>=0&&(eligible(s,s->other->stream_index)||
+-            s->parent->streams[s->other->stream_index]->discard==AVDISCARD_ALL));
+-        if(r==AVERROR_EOF)s->parent_eof=1;else if(r<0)return r;else s->have_other=1;
+-    }
++        r=demuxe_components_take(s->components,&s->other);
++        s->mapping_wait=r==AVERROR(EAGAIN);
++        if(r==AVERROR_EOF)s->parent_eof=1;else if(r<0&&r!=AVERROR(EAGAIN))return r;else if(r>0)s->have_other=1;
++    }
++    observed_call(&s->state.max_components_us,observed);
+     if(!s->video.packet&&!s->video_eof){
+         r=demuxe_task_take(s->active.task,&s->video,10);
+         if(r==AVERROR_EOF)s->video_eof=1;else if(r<0)return r;else if(!r)return 0;
+     }
++    r=map_packet(s,&s->video,1);if(r<0)return r;
++    observed=av_gettime_relative();
+     if(!s->state.switch_error&&(r=prepare_candidate(s))<0)reject_candidate(s,r);
++    observed_call(&s->state.max_candidate_us,observed);
+     if(s->video.packet&&s->video.packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
+     if(s->candidate.task&&s->video.packet){
+         for(;;){
+             if(!s->next.packet){r=demuxe_task_take(s->candidate.task,&s->next,0);if(!r)break;if(r<0){reject_candidate(s,r);break;}}
++            r=map_packet(s,&s->next,0);if(r==AVERROR(EAGAIN))break;if(r<0){reject_candidate(s,r);break;}
+             if(s->next.packet->pts==AV_NOPTS_VALUE){reject_candidate(s,AVERROR_INVALIDDATA);break;}
+             if(!demuxe_h264_random_access(s->next.packet,demuxe_packet_codec(&s->next))||av_compare_ts(s->next.packet->pts,s->next.timebase,s->video.packet->pts,s->video.timebase)<0){demuxe_packet_release(&s->next);continue;}
+             break;
+         }
+-        if(s->next.packet&&demuxe_h264_random_access(s->video.packet,demuxe_packet_codec(&s->video))&&
++        if(s->next.packet&&(!s->next.timeline_mapping||s->next.timeline_mapped)&&demuxe_h264_random_access(s->video.packet,demuxe_packet_codec(&s->video))&&
+            !av_compare_ts(s->next.packet->pts,s->next.timebase,s->video.packet->pts,s->video.timebase)){
+-            demuxe_packet_release(&s->video);demuxe_task_destroy(s->active.task);s->active=s->candidate;s->candidate=(struct producer){0};
++            observed=av_gettime_relative();
++            demuxe_packet_release(&s->video);demuxe_task_destroy(s->active.task);observed_call(&s->state.max_retire_us,observed);s->active=s->candidate;s->candidate=(struct producer){0};
+             s->video=s->next;s->next=(struct demuxe_prepared_packet){0};
+             s->state.active_stream=s->active.stream;s->state.preparing_stream=-1;s->state.accepted_request=s->state.request;s->state.accepted_switches++;
+             s->state.boundary_us=av_rescale_q(s->video.packet->pts,s->video.timebase,AV_TIME_BASE_Q);
+         }
+     }
++    if(s->video_eof&&s->mapping_wait)return AVERROR_INVALIDDATA;
+     if(!s->video.packet&&!s->have_other)return s->video_eof&&s->parent_eof?AVERROR_EOF:0;
+     int other_first=!s->video.packet;
+     if(s->video.packet&&s->have_other){
+-        AVPacket *v=s->video.packet,*a=s->other;
++        AVPacket *v=s->video.packet,*a=s->other.packet;
+         int64_t vp=v->dts==AV_NOPTS_VALUE?v->pts:v->dts,ap=a->dts==AV_NOPTS_VALUE?a->pts:a->dts;
+-        other_first=ap==AV_NOPTS_VALUE||av_compare_ts(ap,s->parent->streams[a->stream_index]->time_base,vp,s->video.timebase)<0;
++        other_first=ap==AV_NOPTS_VALUE||av_compare_ts(ap,s->other.timebase,vp,s->video.timebase)<0;
+     }
+     if(other_first){
+-        AVPacket *packet=av_packet_alloc();if(!packet)return AVERROR(ENOMEM);
+-        out->timebase=s->parent->streams[s->other->stream_index]->time_base;
+-        av_packet_move_ref(packet,s->other);out->packet=packet;out->source=s->state.source;s->have_other=0;
++        *out=s->other;s->other=(struct demuxe_prepared_packet){0};s->have_other=0;
+     }else{
++        s->position_us=av_rescale_q(s->video.packet->pts,s->video.timebase,AV_TIME_BASE_Q);
+         *out=s->video;s->video=(struct demuxe_prepared_packet){0};out->packet->stream_index=s->state.logical_stream;
+     }
+     return 1;
+@@ -145,14 +213,21 @@
+ int demuxe_adaptive_seek(struct demuxe_adaptive_session *s,int64_t target){
+     struct AVDemuxeSegment segment,first;int stream=s->state.requested_stream;
+     struct AVDemuxeRepresentation descriptor;
+-    int r=describe(s->parent,stream,&descriptor);
+-    if(r<0)return r;
+-    r=plan(s,stream,descriptor.first_sequence,0,&first);
+-    if(r<0)return r;
+-    // mpv refresh seeks intentionally overlap before the presentation start.
+-    // The source API validates user windows separately; a demux seek to/before
+-    // VOD start must prepare its first segment, just like the parent demuxer.
+-    if(target<first.start_us)target=first.start_us;
++    int r=demuxe_manifest_refresh(s->parent,stream);if(r<0)return r;
++    r=describe(s->parent,stream,&descriptor);
++    if(r<0)return r;
++    if(descriptor.live){
++        // The first advertised segment may already have expired while a rolling
++        // manifest was in flight. Validate the requested position against the
++        // current native window, not an unrelated earliest catalog resource.
++        struct AVDemuxeWindow window;r=demuxe_manifest_window(s->parent,stream,&window);
++        if(r<0)return r;if(!window.known)return AVERROR(EAGAIN);
++        if(target<window.start_us||target>=window.end_us)return AVERROR(ERANGE);
++    }else{
++        r=plan(s,stream,descriptor.first_sequence,0,&first);if(r<0)return r;
++        // mpv refresh seeks may overlap before the VOD presentation start.
++        if(target<first.start_us)target=first.start_us;
++    }
+     r=plan(s,stream,-1,target,&segment);
+     if(r<0)return r;
+     // Validate first, then retire speculative work before allocating a seek
+@@ -162,17 +237,41 @@
+     r=start(s,&replacement,stream,s->state.request,segment.sequence);
+     if(r<0)return r;
+     demuxe_task_destroy(s->active.task);s->active=replacement;
+-    demuxe_packet_release(&s->video);av_packet_unref(s->other);s->have_other=s->parent_eof=s->video_eof=0;
++    demuxe_packet_release(&s->video);demuxe_packet_release(&s->other);
++    demuxe_components_destroy(s->components);s->components=demuxe_components_create(s->parent,s->state.source,s->io);
++    if(!s->components)return AVERROR(ENOMEM);
++    demuxe_components_mapper(s->components,map_component,s);
++    s->position_us=segment.start_us;s->have_other=s->parent_eof=s->video_eof=s->mapping_wait=0;
+     s->state.active_stream=stream;s->state.accepted_request=s->state.request;s->state.switch_error=0;s->state.boundary_us=segment.start_us;
+     return 0;
+ }
+-void demuxe_adaptive_tracks_changed(struct demuxe_adaptive_session *s){s->parent_eof=0;}
++int demuxe_adaptive_poll(struct demuxe_adaptive_session *s){
++    if(!s->state.live)return 0;
++    int r=demuxe_manifest_refresh(s->parent,s->active.stream);
++    if(r<0){s->state.window_error=r;return r;}
++    // Preserve packet-established component anchors across a pause longer than
++    // the DVR window. Audio segment durations need not equal video durations.
++    r=demuxe_components_refresh(s->components);
++    if(r<0){s->state.window_error=r;return r;}
++    struct AVDemuxeWindow window;
++    r=demuxe_manifest_window(s->parent,s->active.stream,&window);
++    if(r<0){s->state.window_error=r;return r;}
++    s->state.window_error=0;s->state.window_known=window.known;
++    s->state.window_revision=window.revision;s->state.live=window.live;
++    if(window.known){s->state.window_start_us=window.start_us;s->state.window_end_us=window.end_us;}
++    return 0;
++}
++void demuxe_adaptive_tracks_changed(struct demuxe_adaptive_session *s){
++    s->parent_eof=0;
++    if(s->other.packet&&s->parent->streams[s->other.packet->stream_index]->discard==AVDISCARD_ALL){demuxe_packet_release(&s->other);s->have_other=0;}
++}
+ void demuxe_adaptive_stats(struct demuxe_adaptive_session *s,struct demuxe_adaptive_stats *out){
+     *out=s->state;struct demuxe_task_stats stats;
++    out->component_packet_bytes=demuxe_components_queued_bytes(s->components);
+     if(s->active.task){demuxe_task_stats(s->active.task,&stats);out->active_packet_bytes=stats.queued_bytes;}
+     if(s->candidate.task){demuxe_task_stats(s->candidate.task,&stats);out->candidate_packet_bytes=stats.queued_bytes;}
+ }
+ void demuxe_adaptive_destroy(struct demuxe_adaptive_session *s){
+-    if(!s)return;demuxe_packet_release(&s->video);demuxe_packet_release(&s->next);
+-    demuxe_task_destroy(s->active.task);demuxe_task_destroy(s->candidate.task);av_packet_free(&s->other);free(s);
+-}
++    if(!s)return;demuxe_manifest_retirement(s->parent,NULL,NULL);demuxe_packet_release(&s->video);demuxe_packet_release(&s->next);
++    demuxe_task_destroy(s->active.task);demuxe_task_destroy(s->candidate.task);demuxe_packet_release(&s->other);demuxe_components_destroy(s->components);free(s);
++}
+--- a/demux/adaptive-session.h
++++ b/demux/adaptive-session.h
+@@ -6,9 +6,13 @@
+     uint64_t source,request,accepted_request;
+     int logical_stream,active_stream,requested_stream,preparing_stream;
+     int switch_error;
++    int live,window_known,window_error,recovery_needed;
++    int64_t window_start_us,window_end_us;
++    uint64_t window_revision;
+     int64_t boundary_us;
++    int64_t max_feed_us,max_components_us,max_candidate_us,max_retire_us;
+     unsigned accepted_switches;
+-    size_t active_packet_bytes,candidate_packet_bytes;
++    size_t active_packet_bytes,candidate_packet_bytes,component_packet_bytes;
+ };
+ // All calls except the transport's interrupt callback execute on the owning
+ // demux thread. Thread-external user intent must first enter an engine queue.
+@@ -17,6 +21,7 @@
+ int demuxe_adaptive_request(struct demuxe_adaptive_session *,uint64_t source,uint64_t request,int stream);
+ int demuxe_adaptive_read(struct demuxe_adaptive_session *,struct demuxe_prepared_packet *);
+ int demuxe_adaptive_seek(struct demuxe_adaptive_session *,int64_t presentation_us);
++int demuxe_adaptive_poll(struct demuxe_adaptive_session *);
+ void demuxe_adaptive_tracks_changed(struct demuxe_adaptive_session *);
+ void demuxe_adaptive_stats(struct demuxe_adaptive_session *,struct demuxe_adaptive_stats *);
+ void demuxe_adaptive_destroy(struct demuxe_adaptive_session *);
+--- a/demux/container-task.c
++++ b/demux/container-task.c
+@@ -10,6 +10,7 @@
+ #include <time.h>
+ #include <libavutil/mem.h>
+ #include <libavutil/time.h>
++#include <libavutil/mathematics.h>
+ #define PLAN_CAPACITY 4
+ #define PACKET_CAPACITY 128
+ struct demuxe_codec {_Atomic unsigned references;AVCodecParameters *parameters;};
+@@ -19,6 +20,8 @@
+     pthread_cond_t changed;
+     _Atomic int cancelled;
+     uint64_t source,request;
++    enum AVMediaType media_type;
++    enum demuxe_container_kind container;
+     struct demuxe_task_io io;
+     struct AVDemuxeSegment plans[PLAN_CAPACITY];
+     unsigned plan_head,plan_count,packet_head,packet_count;
+@@ -74,6 +77,8 @@
+     AVFormatContext *owner;
+     AVIOContext *input;
+     int phase;
++    size_t text_bytes; // WebVTT header parsing otherwise materializes the entire resource
++    char text_header[4096];size_t header_bytes,line_bytes;int header_complete,last_cr;
+ };
+ static void close_resource(struct reader *r){if(r->input)r->task->io.close(r->task->io.opaque,r->owner,&r->input);}
+ static int read_bytes(void *opaque,uint8_t *buffer,int capacity){
+@@ -93,8 +98,31 @@
+             int result=r->task->io.open(r->task->io.opaque,r->owner,&r->input,url,&options);
+             av_dict_free(&options);if(result<0)return result;
+         }
++        if(r->task->container==DEMUXE_CONTAINER_WEBVTT){
++            // Read at most one byte beyond the limit to distinguish exact-size
++            // EOF from oversize input. Never disguise exhaustion as successful EOF.
++            size_t left=65536-r->text_bytes;
++            if((size_t)capacity>left+1)capacity=left+1;
++        }
+         int n=avio_read_partial(r->input,buffer,capacity);
+-        if(n>0){atomic_fetch_add(&r->task->consumed,n);return n;}
++        if(n>0){
++            atomic_fetch_add(&r->task->consumed,n);
++            if(r->task->container==DEMUXE_CONTAINER_WEBVTT){
++                if((size_t)n>65536-r->text_bytes)return AVERROR(ENOBUFS);
++                r->text_bytes+=n;
++                for(int i=0;i<n&&!r->header_complete;i++){
++                    if(r->header_bytes==sizeof(r->text_header))return AVERROR(ENOBUFS);
++                    char ch=buffer[i];r->text_header[r->header_bytes++]=ch;
++                    if(ch=='\n'&&r->last_cr){r->last_cr=0;continue;}
++                    r->last_cr=ch=='\r';
++                    if(ch=='\n'||ch=='\r'){
++                        if(!r->line_bytes)r->header_complete=1;
++                        r->line_bytes=0;
++                    }else r->line_bytes++;
++                }
++            }
++            return n;
++        }
+         if(r->input->error<0&&r->input->error!=AVERROR_EOF)return r->input->error;
+         if(n<0&&n!=AVERROR_EOF)return n;
+         if(!n&&!avio_feof(r->input))return AVERROR(EAGAIN);
+@@ -103,11 +131,11 @@
+ }
+ static int nested_forbidden(AVFormatContext *s,AVIOContext **pb,const char *url,int flags,AVDictionary **options){return AVERROR(EACCES);}
+ static int consume(struct demuxe_container_task *t,const struct AVDemuxeSegment *plan){
+-    int result=0;
++    int result=0;struct demuxe_webvtt_map subtitle_map={0};
+     AVFormatContext *f=avformat_alloc_context();AVIOContext *pb=NULL;
+     struct demuxe_codec *codec=NULL;
+     AVFormatContext resource_owner={.interrupt_callback={interrupted,t}};
+-    struct reader reader={.task=t,.plan=plan,.owner=&resource_owner};
++    struct reader reader={.task=t,.plan=plan,.owner=&resource_owner,.phase=t->container==DEMUXE_CONTAINER_WEBVTT};
+     if(!f)return AVERROR(ENOMEM);
+     f->interrupt_callback=(AVIOInterruptCB){interrupted,t};
+     unsigned char *buffer=av_malloc(32768);
+@@ -116,10 +144,11 @@
+     pb=avio_alloc_context(buffer,32768,0,&rewind,demuxe_rewind_read,NULL,demuxe_rewind_seek);
+     if(!pb){av_free(buffer);result=AVERROR(ENOMEM);goto end;}
+     pb->seekable=0;f->pb=pb;f->flags|=AVFMT_FLAG_CUSTOM_IO;f->io_open=nested_forbidden;
+-    result=avformat_open_input(&f,"",av_find_input_format("mov"),NULL);
++    result=avformat_open_input(&f,"",av_find_input_format(t->container==DEMUXE_CONTAINER_WEBVTT?"webvtt":"mov"),NULL);
+     // Transport context lifetime is independent of avformat_open_input failure.
+     if(result<0)goto end;
+-    if(f->nb_streams!=1||f->streams[0]->codecpar->codec_type!=AVMEDIA_TYPE_VIDEO){result=AVERROR(ENOSYS);goto end;}
++    if(t->container==DEMUXE_CONTAINER_WEBVTT){result=demuxe_webvtt_header(reader.text_header,reader.header_bytes,&subtitle_map);if(result<0)goto end;}
++    if(f->nb_streams!=1||f->streams[0]->codecpar->codec_type!=t->media_type){result=AVERROR(ENOSYS);goto end;}
+     if(demuxe_codec_bytes(f->streams[0]->codecpar)>t->budget){result=AVERROR(ENOBUFS);goto end;}
+     codec=calloc(1,sizeof(*codec));if(!codec){result=AVERROR(ENOMEM);goto end;}
+     codec->parameters=avcodec_parameters_alloc();atomic_init(&codec->references,1);
+@@ -128,13 +157,23 @@
+     pthread_mutex_lock(&t->lock);t->containers++;pthread_mutex_unlock(&t->lock);
+     for(;;){
+         struct demuxe_prepared_packet packet={.packet=av_packet_alloc(),.codec=codec,
+-            .timebase=f->streams[0]->time_base,.sequence=plan->sequence,.representation=plan->stream_index,.source=t->source,.request=t->request};
++            .timebase=f->streams[0]->time_base,.sequence=plan->sequence,.representation=plan->stream_index,.source=t->source,.request=t->request,
++            .presentation_start_us=plan->presentation_start_us,.presentation_end_us=plan->presentation_end_us,
++            .subtitle_map=subtitle_map,.timeline_id=plan->timeline_id,.timeline_mapping=plan->timeline_mapping,.timeline_start_us=plan->timeline_start_us};
+         atomic_fetch_add(&codec->references,1);
+         if(!packet.packet){demuxe_packet_release(&packet);result=AVERROR(ENOMEM);break;}
+         result=av_read_frame(f,packet.packet);
+         if(result>=0&&pb->error<0&&pb->error!=AVERROR_EOF)result=pb->error;
+         if(result<0){demuxe_packet_release(&packet);if(result==AVERROR_EOF&&pb->error<0&&pb->error!=AVERROR_EOF)result=pb->error;break;}
+         if(packet.packet->stream_index!=0){demuxe_packet_release(&packet);result=AVERROR_INVALIDDATA;break;}
++        int64_t shift=av_rescale_q(plan->timestamp_offset_us,AV_TIME_BASE_Q,packet.timebase);
++        int64_t *stamps[]={&packet.packet->pts,&packet.packet->dts};
++        if(shift==INT64_MIN){demuxe_packet_release(&packet);result=AVERROR_INVALIDDATA;break;}
++        for(int n=0;n<2;n++)if(*stamps[n]!=AV_NOPTS_VALUE){
++            if((shift>0&&*stamps[n]>INT64_MAX-shift)||(shift<0&&*stamps[n]<INT64_MIN-shift)){result=AVERROR_INVALIDDATA;break;}
++            *stamps[n]+=shift;
++        }
++        if(result<0){demuxe_packet_release(&packet);break;}
+         result=push(t,&packet);demuxe_packet_release(&packet);if(result<0)break;
+     }
+ end:
+@@ -158,8 +197,14 @@
+     pthread_mutex_lock(&t->lock);t->finished=1;pthread_cond_broadcast(&t->changed);pthread_mutex_unlock(&t->lock);return NULL;
+ }
+ struct demuxe_container_task *demuxe_task_create(uint64_t source,uint64_t request,size_t budget,struct demuxe_task_io io){
++    return demuxe_task_create_media(source,request,budget,io,AVMEDIA_TYPE_VIDEO,DEMUXE_CONTAINER_MOV);
++}
++struct demuxe_container_task *demuxe_task_create_media(uint64_t source,uint64_t request,size_t budget,struct demuxe_task_io io,enum AVMediaType media_type,enum demuxe_container_kind container){
++    if(!((container==DEMUXE_CONTAINER_MOV&&(media_type==AVMEDIA_TYPE_VIDEO||media_type==AVMEDIA_TYPE_AUDIO||media_type==AVMEDIA_TYPE_SUBTITLE))||
++         (container==DEMUXE_CONTAINER_WEBVTT&&media_type==AVMEDIA_TYPE_SUBTITLE)))return NULL;
+     if(!source||!budget||!io.open||!io.close)return NULL;
+     struct demuxe_container_task *t=calloc(1,sizeof(*t));if(!t)return NULL;
++    t->media_type=media_type;t->container=container;
+     t->source=source;t->request=request;t->budget=budget;t->io=io;
+     if(pthread_mutex_init(&t->lock,NULL)){free(t);return NULL;}
+     if(pthread_cond_init(&t->changed,NULL)){pthread_mutex_destroy(&t->lock);free(t);return NULL;}
+@@ -167,7 +212,7 @@
+     return t;
+ }
+ int demuxe_task_plan(struct demuxe_container_task *t,const struct AVDemuxeSegment *p){
+-    if(!p||p->abi!=AV_DEMUXE_PLAN_ABI||!memchr(p->url,0,sizeof(p->url))||!memchr(p->init_url,0,sizeof(p->init_url))||!p->url[0]||!p->init_url[0])return AVERROR(EINVAL);
++    if(!p||p->abi!=AV_DEMUXE_PLAN_ABI||!memchr(p->url,0,sizeof(p->url))||!memchr(p->init_url,0,sizeof(p->init_url))||!p->url[0]||(t->container==DEMUXE_CONTAINER_MOV&&!p->init_url[0])||(t->container==DEMUXE_CONTAINER_WEBVTT&&p->init_url[0]))return AVERROR(EINVAL);
+     pthread_mutex_lock(&t->lock);int result=0;
+     if(interrupted(t)||t->finished||t->plans_done)result=AVERROR_EXIT;
+     else if(t->plan_count==PLAN_CAPACITY)result=AVERROR(EAGAIN);
+--- a/demux/container-task.h
++++ b/demux/container-task.h
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ #pragma once
+ #include <stddef.h>
++#include "webvtt-map.h"
+ #include <stdint.h>
+ #include <libavformat/avformat.h>
+ #include <libavformat/demuxe.h>
+@@ -11,13 +12,19 @@
+     struct demuxe_codec *codec;
+     AVRational timebase;
+     int64_t sequence;
++    int64_t presentation_start_us,presentation_end_us;
+     int representation;
++    uint64_t timeline_id;
++    int timeline_mapping,timeline_mapped;
++    int64_t timeline_start_us;
++    struct demuxe_webvtt_map subtitle_map;
+     uint64_t source, request;
+ };
+ struct demuxe_task_io {
+     void *opaque;
+     int (*open)(void *, AVFormatContext *, AVIOContext **, const char *, AVDictionary **);
+     void (*close)(void *, AVFormatContext *, AVIOContext **);
++    void (*retire)(void *, const char *);
+ };
+ struct demuxe_task_stats {
+     size_t queued_bytes, peak_queued_bytes;
+@@ -25,6 +32,10 @@
+     uint64_t consumed_bytes;
+     int error, finished;
+ };
++enum demuxe_container_kind { DEMUXE_CONTAINER_MOV, DEMUXE_CONTAINER_WEBVTT };
++struct demuxe_container_task *demuxe_task_create_media(uint64_t source,uint64_t request,
++    size_t packet_budget,struct demuxe_task_io io,enum AVMediaType media_type,
++    enum demuxe_container_kind container);
+ struct demuxe_container_task *demuxe_task_create(uint64_t source,uint64_t request,
+     size_t packet_budget,struct demuxe_task_io io);
+ // Single owning demux-thread producer; plans are copied, never retained by pointer.
+--- /dev/null
++++ b/demux/component-group.c
+@@ -0,0 +1,96 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "component-group.h"
++#include "manifest-plan.h"
++#include "cue-budget.h"
++#include <stdlib.h>
++#include <string.h>
++#include <libavutil/mathematics.h>
++#define COMPONENTS 3
++struct component {
++ int stream,finished;
++ int64_t next;
++ struct demuxe_container_task *task;
++ struct demuxe_prepared_packet head;
++ struct demuxe_cue_budget cues;
++};
++struct demuxe_component_group {
++ AVFormatContext *parent;uint64_t source;struct demuxe_task_io io;
++ struct component active[COMPONENTS];
++ int (*map)(void *,struct demuxe_prepared_packet *);void *map_opaque;
++};
++static void retire(struct component *c){demuxe_packet_release(&c->head);demuxe_task_destroy(c->task);*c=(struct component){0};}
++static int selected(AVFormatContext *f,int stream){
++ enum AVMediaType type=f->streams[stream]->codecpar->codec_type;
++ return f->streams[stream]->discard!=AVDISCARD_ALL&&(type==AVMEDIA_TYPE_AUDIO||type==AVMEDIA_TYPE_SUBTITLE);
++}
++static int feed(struct demuxe_component_group *g,struct component *c){
++ if(c->finished)return 0;
++ int r=demuxe_manifest_refresh(g->parent,c->stream);if(r<0)return r;
++ for(;;){
++  struct AVDemuxeSegment plan;r=demuxe_manifest_segment(g->parent,c->stream,c->next,0,&plan);
++  if(r==AVERROR(EAGAIN))return 0;
++  if(r==AVERROR_EOF){c->finished=1;demuxe_task_end(c->task);return 0;}
++  if(r<0)return r;
++  r=demuxe_task_plan(c->task,&plan);if(r==AVERROR(EAGAIN))return 0;if(r<0)return r;c->next=plan.sequence+1;
++ }
++}
++struct demuxe_component_group *demuxe_components_create(AVFormatContext *parent,uint64_t source,struct demuxe_task_io io){
++ if(!demuxe_manifest_supported(parent)||!source)return NULL;
++ struct demuxe_component_group *g=calloc(1,sizeof(*g));if(g){g->parent=parent;g->source=source;g->io=io;}return g;
++}
++void demuxe_components_mapper(struct demuxe_component_group *g,int (*map)(void *,struct demuxe_prepared_packet *),void *opaque){g->map=map;g->map_opaque=opaque;}
++int demuxe_components_refresh(struct demuxe_component_group *g){
++ for(unsigned i=0;i<g->parent->nb_streams;i++)if(selected(g->parent,i)){
++  int r=demuxe_manifest_refresh(g->parent,i);if(r<0)return r;
++ }
++ return 0;
++}
++int demuxe_components_sync(struct demuxe_component_group *g,int64_t target){
++ int selected_count=0;
++ for(unsigned i=0;i<g->parent->nb_streams;i++)selected_count+=selected(g->parent,i);
++ if(selected_count>COMPONENTS)return AVERROR(ENOBUFS);
++ for(int i=0;i<COMPONENTS;i++)if(g->active[i].task&&!selected(g->parent,g->active[i].stream))retire(&g->active[i]);
++ for(unsigned stream=0;stream<g->parent->nb_streams;stream++){
++  if(!selected(g->parent,stream))continue;
++  int exists=0,slot=-1;
++  for(int i=0;i<COMPONENTS;i++){if(g->active[i].task&&g->active[i].stream==stream)exists=1;if(!g->active[i].task&&slot<0)slot=i;}
++  if(exists)continue;if(slot<0)return AVERROR(ENOBUFS);
++  struct AVDemuxeSegment plan;int r=demuxe_manifest_refresh(g->parent,stream);if(r<0)return r;
++  r=demuxe_manifest_segment(g->parent,stream,-1,target,&plan);if(r<0)return r;
++  enum AVMediaType type=g->parent->streams[stream]->codecpar->codec_type;
++  struct component *c=&g->active[slot];*c=(struct component){.stream=stream,.next=plan.sequence};
++  c->task=demuxe_task_create_media(g->source,0,256*1024,g->io,type,type==AVMEDIA_TYPE_SUBTITLE&&!plan.init_url[0]?DEMUXE_CONTAINER_WEBVTT:DEMUXE_CONTAINER_MOV);
++  if(!c->task)return AVERROR(ENOMEM);
++ }
++ return 0;
++}
++int demuxe_components_take(struct demuxe_component_group *g,struct demuxe_prepared_packet *out){
++ *out=(struct demuxe_prepared_packet){0};int best=-1,waiting=0,live=0,mapping_wait=0;
++ for(int i=0;i<COMPONENTS;i++){
++  struct component *c=&g->active[i];if(!c->task)continue;
++  int r=feed(g,c);if(r<0)return r;
++  if(!c->head.packet){r=demuxe_task_take(c->task,&c->head,0);if(r<0&&r!=AVERROR_EOF)return r;if(!r)waiting=1;}
++  if(!c->finished)live=1;
++  if(!c->head.packet)continue;
++  if(g->map){r=g->map(g->map_opaque,&c->head);if(r==AVERROR(EAGAIN)){mapping_wait=1;continue;}if(r<0)return r;}
++  if(c->head.packet->pts==AV_NOPTS_VALUE)return AVERROR_INVALIDDATA;
++  if(best<0||av_compare_ts(c->head.packet->pts,c->head.timebase,g->active[best].head.packet->pts,g->active[best].head.timebase)<0)best=i;
++ }
++ if(best<0)return mapping_wait?AVERROR(EAGAIN):waiting||live?0:AVERROR_EOF;
++ struct component *c=&g->active[best];
++ if(demuxe_packet_codec(&c->head)->codec_type==AVMEDIA_TYPE_SUBTITLE){
++  enum AVCodecID codec=demuxe_packet_codec(&c->head)->codec_id;
++  if(codec!=AV_CODEC_ID_WEBVTT&&codec!=AV_CODEC_ID_MOV_TEXT)return AVERROR(ENOSYS);
++  int64_t pts=av_rescale_q(c->head.packet->pts,c->head.timebase,AV_TIME_BASE_Q);
++  int64_t duration=av_rescale_q(c->head.packet->duration,c->head.timebase,AV_TIME_BASE_Q);
++  int err=demuxe_cue_admit(&c->cues,pts,duration,c->head.packet->size);if(err)return AVERROR(err);
++ }
++ *out=c->head;c->head=(struct demuxe_prepared_packet){0};out->packet->stream_index=c->stream;return 1;
++}
++void demuxe_components_destroy(struct demuxe_component_group *g){if(!g)return;for(int i=0;i<COMPONENTS;i++)retire(&g->active[i]);free(g);}
++
++size_t demuxe_components_queued_bytes(struct demuxe_component_group *g){
++ size_t bytes=0;if(!g)return 0;
++ for(int i=0;i<COMPONENTS;i++)if(g->active[i].task){struct demuxe_task_stats stats;demuxe_task_stats(g->active[i].task,&stats);bytes+=stats.queued_bytes;}
++ return bytes;
++}
+--- /dev/null
++++ b/demux/component-group.h
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include "container-task.h"
++struct demuxe_component_group;
++// Owning-demux-thread selected audio/subtitle packet executors. No clock or
++// manifest copy is retained here; the parent FFmpeg context remains authoritative.
++struct demuxe_component_group *demuxe_components_create(AVFormatContext *,uint64_t,
++    struct demuxe_task_io);
++void demuxe_components_mapper(struct demuxe_component_group *,int (*)(void *,struct demuxe_prepared_packet *),void *);
++int demuxe_components_sync(struct demuxe_component_group *,int64_t target_us);
++int demuxe_components_refresh(struct demuxe_component_group *);
++int demuxe_components_take(struct demuxe_component_group *,struct demuxe_prepared_packet *);
++size_t demuxe_components_queued_bytes(struct demuxe_component_group *);
++void demuxe_components_destroy(struct demuxe_component_group *);
+--- /dev/null
++++ b/demux/manifest-plan.h
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <string.h>
++#include <libavformat/avformat.h>
++#include <libavformat/demuxe.h>
++static inline int demuxe_manifest_supported(AVFormatContext *f){return f&&f->iformat&&(!strcmp(f->iformat->name,"hls")||!strcmp(f->iformat->name,"dash"));}
++static inline int demuxe_manifest_refresh(AVFormatContext *f,int stream){return !strcmp(f->iformat->name,"hls")?av_demuxe_hls_refresh(f,stream):av_demuxe_dash_refresh(f);}
++static inline int demuxe_manifest_handoff(AVFormatContext *f){return !strcmp(f->iformat->name,"hls")?av_demuxe_hls_handoff(f):av_demuxe_dash_handoff(f);}
++static inline int demuxe_manifest_window(AVFormatContext *f,int stream,struct AVDemuxeWindow *out){return !strcmp(f->iformat->name,"hls")?av_demuxe_hls_window(f,stream,out):av_demuxe_dash_window(f,stream,out);}
++static inline int demuxe_manifest_segment(AVFormatContext *f,int stream,int64_t sequence,int64_t target,struct AVDemuxeSegment *out){return !strcmp(f->iformat->name,"hls")?av_demuxe_hls_segment(f,stream,sequence,target,out):av_demuxe_dash_segment(f,stream,sequence,target,out);}
++static inline int demuxe_manifest_retirement(AVFormatContext *f,void (*callback)(void*,const char*),void *opaque){return !strcmp(f->iformat->name,"hls")?av_demuxe_hls_retirement(f,callback,opaque):av_demuxe_dash_retirement(f,callback,opaque);}
+--- /dev/null
++++ b/demux/webvtt-map.c
+@@ -0,0 +1,57 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "webvtt-map.h"
++#include <string.h>
++#include <limits.h>
++#include <libavutil/error.h>
++static int number(const char **text,const char *end,uint64_t limit,uint64_t *value,int *digits){
++    const char *p=*text;uint64_t n=0;int count=0;
++    while(p<end&&*p>='0'&&*p<='9'){
++        if(n>(limit-(*p-'0'))/10)return AVERROR_INVALIDDATA;
++        n=n*10+(*p++-'0');count++;
++    }
++    if(!count)return AVERROR_INVALIDDATA;
++    *text=p;*value=n;if(digits)*digits=count;return 0;
++}
++static int local_time(const char *p,const char *end,int64_t *value){
++    uint64_t hours,minutes,seconds,millis;int digits;
++    if(number(&p,end,INT64_MAX/3600000000LL,&hours,&digits)<0||digits<2||p==end||*p++!=':')return AVERROR_INVALIDDATA;
++    if(number(&p,end,59,&minutes,&digits)<0||digits!=2||p==end||*p++!=':')return AVERROR_INVALIDDATA;
++    if(number(&p,end,59,&seconds,&digits)<0||digits!=2||p==end||*p++!='.')return AVERROR_INVALIDDATA;
++    if(number(&p,end,999,&millis,&digits)<0||digits!=3||p!=end)return AVERROR_INVALIDDATA;
++    __int128 result=(__int128)hours*3600000000LL+minutes*60000000+seconds*1000000+millis*1000;
++    if(result>INT64_MAX)return AVERROR_INVALIDDATA;*value=result;return 0;
++}
++int demuxe_webvtt_header(const char *text,size_t size,struct demuxe_webvtt_map *out){
++    *out=(struct demuxe_webvtt_map){0};const char *p=text,*end=text+size;
++    while(p<end){
++        const char *line=p;while(p<end&&*p!='\r'&&*p!='\n')p++;const char *stop=p;
++        if(p<end&&*p=='\r')p++;if(p<end&&*p=='\n')p++;
++        if(stop==line)break;
++        const char prefix[]="X-TIMESTAMP-MAP=";
++        if((size_t)(stop-line)<sizeof(prefix)-1||memcmp(line,prefix,sizeof(prefix)-1))continue;
++        if(out->present)return AVERROR_INVALIDDATA;
++        line+=sizeof(prefix)-1;int local=0,mpeg=0;
++        while(line<stop){
++            const char *comma=memchr(line,',',stop-line),*last=comma?comma:stop;
++            if(last-line>6&&!memcmp(line,"LOCAL:",6)){
++                if(local++||local_time(line+6,last,&out->local_us)<0)return AVERROR_INVALIDDATA;
++            }else if(last-line>7&&!memcmp(line,"MPEGTS:",7)){
++                const char *number_at=line+7;
++                if(mpeg++||number(&number_at,last,((uint64_t)1<<33)-1,&out->mpegts,NULL)<0||number_at!=last)return AVERROR_INVALIDDATA;
++            }else return AVERROR_INVALIDDATA;
++            if(!comma)break;line=comma+1;if(line==stop)return AVERROR_INVALIDDATA;
++        }
++        if(local!=1||mpeg!=1)return AVERROR_INVALIDDATA;out->present=1;
++    }
++    return 0;
++}
++int demuxe_webvtt_timestamp(const struct demuxe_webvtt_map *map,int64_t cue,int64_t reference,int64_t *out){
++    if(!map->present){*out=cue;return 0;}
++    // Unwrap the 33-bit media clock near this accepted segment's raw video
++    // timeline, preserving its shared discontinuity offset in the owner.
++    __int128 base=(__int128)map->mpegts*1000000+((__int128)cue-map->local_us)*90000;
++    __int128 wrap=((__int128)1<<33)*1000000,delta=(__int128)reference*90000-base;
++    __int128 epoch=delta>=0?(delta+wrap/2)/wrap:-((-delta+wrap/2)/wrap);
++    __int128 value=base+epoch*wrap;value=value>=0?(value+45000)/90000:-((-value+45000)/90000);
++    if(value<INT64_MIN||value>INT64_MAX)return AVERROR_INVALIDDATA;*out=value;return 0;
++}
+--- /dev/null
++++ b/demux/webvtt-map.h
+@@ -0,0 +1,7 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <stddef.h>
++#include <stdint.h>
++struct demuxe_webvtt_map {int present;uint64_t mpegts;int64_t local_us;};
++int demuxe_webvtt_header(const char *,size_t,struct demuxe_webvtt_map *);
++int demuxe_webvtt_timestamp(const struct demuxe_webvtt_map *,int64_t cue_us,int64_t reference_us,int64_t *mapped_us);
+--- /dev/null
++++ b/demux/cue-budget.h
+@@ -0,0 +1,28 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#ifndef DEMUXE_CUE_BUDGET_H
++#define DEMUXE_CUE_BUDGET_H
++#include <stdint.h>
++#include <stddef.h>
++#include <errno.h>
++#include <limits.h>
++#define DEMUXE_CUE_SLOTS 4096
++#define DEMUXE_CUE_BYTES (512u * 1024u)
++#define DEMUXE_CUE_HISTORY_US 60000000LL
++struct demuxe_cue_budget {
++    struct {int64_t end;size_t cost;} entries[DEMUXE_CUE_SLOTS];
++    size_t bytes;
++};
++// Called only after the owning demuxer maps a subtitle onto its accepted timeline.
++// A fresh component group on seek/source replacement resets this admission state.
++static inline int demuxe_cue_admit(struct demuxe_cue_budget *b,int64_t pts,int64_t duration,size_t payload){
++    if(duration<0||pts>INT64_MAX-duration||payload>16384)return EINVAL;
++    int64_t deadline=pts<INT64_MIN+DEMUXE_CUE_HISTORY_US?INT64_MIN:pts-DEMUXE_CUE_HISTORY_US;
++    size_t cost=payload+512;int slot=-1;
++    for(int i=0;i<DEMUXE_CUE_SLOTS;i++){
++        if(b->entries[i].cost&&b->entries[i].end<deadline){b->bytes-=b->entries[i].cost;b->entries[i].cost=0;}
++        if(!b->entries[i].cost)slot=i;
++    }
++    if(slot<0||cost>DEMUXE_CUE_BYTES-b->bytes)return ENOBUFS;
++    b->entries[slot].end=pts+duration;b->entries[slot].cost=cost;b->bytes+=cost;return 0;
++}
++#endif
+--- a/demux/session-control.c
++++ b/demux/session-control.c
+@@ -22,7 +22,7 @@
+ }
+ int demuxe_control_enabled(uint64_t source){pthread_mutex_lock(&lock);int yes=control.enabled&&source==(uint64_t)control.source;pthread_mutex_unlock(&lock);return yes;}
+ int demuxe_control_bind(uint64_t source,const int *streams,const int *widths,const int *heights,const int *bitrates,int count){
+-    pthread_mutex_lock(&lock);int ok=control.enabled&&source==(uint64_t)control.source&&count>1&&count<=MAX_QUALITIES;
++    pthread_mutex_lock(&lock);int ok=control.enabled&&source==(uint64_t)control.source&&count>0&&count<=MAX_QUALITIES;
+     if(ok){control.count=count;memcpy(control.streams,streams,count*sizeof(int));memcpy(control.widths,widths,count*sizeof(int));memcpy(control.heights,heights,count*sizeof(int));memcpy(control.bitrates,bitrates,count*sizeof(int));}
+     pthread_mutex_unlock(&lock);return ok;
+ }
+@@ -41,12 +41,12 @@
+ void demuxe_control_close(uint64_t source){pthread_mutex_lock(&lock);if(source==(uint64_t)control.source){control.enabled=0;control.count=0;}pthread_mutex_unlock(&lock);}
+ void demuxe_control_selected(struct demuxe_quality_tag tag){
+     pthread_mutex_lock(&lock);
+-    control.selected=control.enabled&&tag.source==(uint64_t)control.source?tag:(struct demuxe_quality_tag){0};
++    control.selected=control.enabled&&tag.source==(uint64_t)control.source?tag:(struct demuxe_quality_tag){.decoder_generation=tag.decoder_generation};
+     pthread_mutex_unlock(&lock);
+ }
+ EMSCRIPTEN_KEEPALIVE const char *web_quality_selected(void){
+     static char json[160];pthread_mutex_lock(&lock);
+-    snprintf(json,sizeof(json),"{\"source\":%llu,\"request\":%llu,\"representation\":%d}",(unsigned long long)control.selected.source,(unsigned long long)control.selected.request,control.selected.representation);
++    snprintf(json,sizeof(json),"{\"source\":%llu,\"request\":%llu,\"representation\":%d,\"generation\":%d}",(unsigned long long)control.selected.source,(unsigned long long)control.selected.request,control.selected.representation,control.selected.decoder_generation);
+     pthread_mutex_unlock(&lock);return json;
+ }
+ EMSCRIPTEN_KEEPALIVE void web_quality_presented(int source,int request,int representation){
+@@ -65,7 +65,7 @@
+     static char json[8192];pthread_mutex_lock(&lock);
+     int active=-1,preparing=-1,presented=-1;
+     for(int i=0;i<control.count;i++){if(control.presented.source==(uint64_t)control.source&&control.streams[i]==control.presented.representation)presented=i;if(control.streams[i]==control.state.active_stream)active=i;if(control.streams[i]==control.state.preparing_stream)preparing=i;}
+-    int at=snprintf(json,sizeof(json),"{\"source\":%d,\"available\":%s,\"request\":%d,\"requested\":%d,\"preparing\":%d,\"demuxed\":%d,\"acceptedRequest\":%llu,\"switches\":%u,\"error\":%d,\"qualities\":[",control.source,control.count>1?"true":"false",control.request,control.requested,preparing,active,(unsigned long long)control.state.accepted_request,control.state.accepted_switches,control.state.switch_error);
++    int at=snprintf(json,sizeof(json),"{\"source\":%d,\"available\":%s,\"request\":%d,\"requested\":%d,\"preparing\":%d,\"demuxed\":%d,\"acceptedRequest\":%llu,\"switches\":%u,\"error\":%d,\"qualities\":[",control.source,control.count>0?"true":"false",control.request,control.requested,preparing,active,(unsigned long long)control.state.accepted_request,control.state.accepted_switches,control.state.switch_error);
+     for(int i=0;i<control.count;i++)at+=snprintf(json+at,sizeof(json)-at,"%s{\"index\":%d,\"width\":%d,\"height\":%d,\"bitrate\":%d}",i?",":"",i,control.widths[i],control.heights[i],control.bitrates[i]);
+-    snprintf(json+at,sizeof(json)-at,"],\"presented\":%d,\"presentedRequest\":%llu}",presented,(unsigned long long)control.presented.request);pthread_mutex_unlock(&lock);return json;
++    snprintf(json+at,sizeof(json)-at,"],\"window\":{\"live\":%s,\"known\":%s,\"start\":%.6f,\"end\":%.6f,\"revision\":%llu,\"error\":%d},\"presented\":%d,\"presentedRequest\":%llu}",control.state.live?"true":"false",control.state.window_known?"true":"false",control.state.window_start_us/1000000.0,control.state.window_end_us/1000000.0,(unsigned long long)control.state.window_revision,control.state.window_error,presented,(unsigned long long)control.presented.request);pthread_mutex_unlock(&lock);return json;
+ }

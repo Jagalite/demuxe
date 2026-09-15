@@ -1,0 +1,115 @@
+# Three-mode beta candidate
+
+demuxe is a browser media compatibility runtime. Automatic selection chooses Native
+direct → Native packet-copy adaptation/remux → Hybrid retained WebCodecs → Software
+FFmpeg, subject to source permissions, selected tracks and requested features. There
+are exactly three public modes. This candidate is not production-qualified.
+
+## Assemble and install
+
+Install the published beta (or install the exact verified local archive before publication):
+
+```sh
+npm install demuxe@beta
+npx demuxe copy-assets public/assets/demuxe
+```
+
+```js
+import { Player } from 'demuxe';
+const player = new Player(document.querySelector('#player'), {
+  assetBase: '/assets/demuxe/'
+});
+await player.open(fileInput.files[0]);
+await player.play();
+```
+
+The source repository is non-publishable. Release maintainers use the clean tagged
+build and archive procedure in [RELEASE.md](RELEASE.md), not `npm publish` in the
+repository root. All qualification applies to exact archive hashes.
+
+Use HTTPS (localhost is suitable for testing). Serve the application and assets
+with `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp`, plus appropriate CORS/CORP for media.
+Serve JS/MJS as `text/javascript` and Wasm as `application/wasm`. The consumer test
+also checks explicit Native direct without isolation: that path creates no Wasm
+engine, worker or AudioWorklet. mpv and remux require isolation.
+
+## Asset and engine contracts
+
+`index.js` and `index.d.ts` expose the reusable API. `web/generated/` contains its
+bindings; `web/` contains workers, presentation, source I/O and AudioWorklet modules.
+`web/engine-remux/`, `web/engine-hybrid/` and `web/engine-software-full/` contain
+engine modules and Wasm. `fixtures/DejaVuSans.ttf` is the bundled subtitle font.
+`third_party/` and the font license retain notices. No test media is bundled.
+
+The manifest names three modes, automatic plan order, software default and every
+runtime asset's SHA-256. Build hashes are provenance, not playback qualification.
+`--yuv` adds the optional YUV asset and presenter; it never changes the RGB default.
+Without that asset, requesting the experimental option fails explicitly.
+
+## Engine build recipe and reproducibility boundary
+
+Follow [the clean release recipe](RELEASE.md) to build all three engines from the
+locked inputs, package a clean tagged revision, include matching source/build
+materials, and test the exact archive. One independent clean engine build is a
+required developer-beta gate. Deterministic archive assembly and historical
+baseline builds do not close it.
+
+## Licensing
+
+Read [the licensing contract](LICENSING.md) before embedding or redistributing this
+package. Hybrid and Software ship GPL-enabled mpv/FFmpeg; Remux uses an independent
+LGPL FFmpeg build. The original bindings' license does not override engine terms.
+The release must include its matching source companion, notices and build materials.
+
+## Qualification boundaries
+
+Implemented and functionally tested: automatic routing, explicit pins, stateful mode
+changes, bounded local File input (including sparse >4 GiB offsets and a 259 MB movie),
+Native MP4/WebM remux negotiation and bounded buffering. ArrayBuffer remains capped
+at 32 MiB. Sparse files establish offset/allocation behavior, not endurance.
+
+Chrome and Firefox have recorded functional coverage on the reference macOS host.
+Safari, mobile and wider device support remain unqualified. Browser codec probes are
+admission hints; actual frames and audio must work. No hardware-acceleration,
+zero-copy or physical output-fidelity guarantee is made. Hybrid/Software support
+stereo, 5.1 and 7.1 PCM with device negotiation. Software offers explicit HDR-to-SDR
+tone mapping. The [compatibility expansion](COMPATIBILITY-EXPANSION.md) defines
+input limits, subtitle APIs and streaming support. Mode changes reopen sources and are not gapless.
+
+Software YUV stays experimental. Keep intermittent filtered-seek failures and failed
+movie comparisons visible. A passing retry or short ASS CPU improvement cannot close
+those blockers. Before release, prioritize physical A/V/priming, long-duration
+memory/resource stability, repeated seeks, broader sample-description transitions,
+physical HDR/audio-layout measurements, browser/device qualification and lifecycle cleanup against
+the exact packaged hashes. No additional public mode is needed for this work.
+
+## Seek-read correction
+
+The beta worker lets an in-flight bounded read finish when mpv seeks. Previously the
+seek hook interrupted `stream_cb` in the middle of a packet, allowing FFmpeg to
+receive truncated data; controlled RGB and YUV tests reproduced this. Source
+replacement and destruction still cancel I/O. A seek may now wait for the active
+read, and each uncached range-read operation has an absolute 15-second deadline across
+headers, body progress, retries and credential refresh. The 1.2-second idle watchdog
+is separate and cannot extend that deadline. A deadline fails the read with an
+explicit transport error; it never returns a partial packet or a false EOF. This
+is a per-read bound, not a 15-second bound on an entire seek or open operation. This correction
+does not promote YUV or establish physical A/V/endurance qualification.
+
+
+## Integrated streaming scope
+
+The mpv-backed quality policy adds persistent manual switching, optional ABR and
+standard live-window handling for the admitted H.264/fMP4 HLS/DASH layouts described
+in [the public API](PUBLIC-API.md#streaming-quality-and-live-windows). It shares the
+same mpv timing, cache, audio and subtitles across Hybrid and Software. Existing
+Native direct/remux remains the efficient path without an explicit quality policy.
+Fixed-selection compatibility adapters are retained outside integrated admission;
+they are not described as adaptive or seamless playback.
+
+The pinned baseline is mpv 0.41.0, FFmpeg 9.0.1, libxml2 2.15.4 and libass 0.17.5.
+The source lock and clean build record contain exact revisions, archive hashes,
+configurations and runtime hashes. Requalify changed archives; do not combine
+passing results from different candidates. LL-HLS, low-latency DASH, DRM, broader
+codec/manifest layouts, Safari/mobile and physical output remain separate work.

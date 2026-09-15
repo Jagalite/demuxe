@@ -1,0 +1,67 @@
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -29,7 +29,9 @@
+ #include <libavformat/avformat.h>
+ #include <libavformat/avio.h>
+ #ifdef __EMSCRIPTEN__
+-extern const char *web_resource_url(void);
++extern int web_resource_session(const char*);
++extern const char *web_resource_url(int);
++extern int web_resource_avio_open_for_session(int,AVFormatContext*,AVIOContext**,const char*,int,AVDictionary**);
+ extern int web_resource_avio_open(AVFormatContext*,AVIOContext**,const char*,int,AVDictionary**);
+ extern int web_resource_avio_close(AVFormatContext*,AVIOContext*);
+ #endif
+@@ -230,6 +232,9 @@
+ typedef struct lavf_priv {
+     struct stream *stream;
+     bool own_stream;
++#ifdef __EMSCRIPTEN__
++    int browser_session;
++#endif
+     bool is_dvd_bd;
+     char *filename;
+     struct format_hack format_hack;
+@@ -430,7 +435,9 @@
+ 
+     priv->filename = remove_prefix(s->url, prefixes);
+ #ifdef __EMSCRIPTEN__
+-    if (web_resource_url()) priv->filename = talloc_strdup(priv, web_resource_url());
++    priv->browser_session = web_resource_session(s->url);
++    if (web_resource_url(priv->browser_session))
++        priv->filename = talloc_strdup(priv, web_resource_url(priv->browser_session));
+ #endif
+ 
+     char *avdevice_format = NULL;
+@@ -947,7 +954,13 @@
+         }
+     }
+ 
+-    int r = priv->default_io_open(s, pb, url, flags, options);
++    int r;
++#ifdef __EMSCRIPTEN__
++    if (priv->default_io_open == web_resource_avio_open)
++        r = web_resource_avio_open_for_session(priv->browser_session, s, pb, url, flags, options);
++    else
++#endif
++        r = priv->default_io_open(s, pb, url, flags, options);
+     if (r >= 0) {
+         if (options)
+             mp_avdict_print_unset(demuxer->log, MSGL_TRACE, *options);
+@@ -1029,7 +1042,7 @@
+     }
+ 
+ #ifdef __EMSCRIPTEN__
+-    if (web_resource_url()) priv->format_hack.no_stream = false;
++    if (web_resource_url(priv->browser_session)) priv->format_hack.no_stream = false;
+ #endif
+     if ((priv->avif_flags & AVFMT_NOFILE) || priv->format_hack.no_stream) {
+         mp_setup_av_network_options(&dopts, priv->avif->name,
+@@ -1075,7 +1088,7 @@
+ 
+     avfc->opaque = demuxer;
+ #ifdef __EMSCRIPTEN__
+-    const char *browser_url = web_resource_url();
++    const char *browser_url = web_resource_url(priv->browser_session);
+     if (browser_url) {
+         // The manifest's real URL is also the base for every relative resource.
+         priv->filename = talloc_strdup(priv, browser_url);

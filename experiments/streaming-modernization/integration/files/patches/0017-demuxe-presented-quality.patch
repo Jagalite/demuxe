@@ -1,0 +1,176 @@
+--- /dev/null
++++ b/common/demuxe-quality.h
+@@ -0,0 +1,31 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#pragma once
++#include <stdint.h>
++#include <math.h>
++#include <string.h>
++// Internal identity travels with packets and frames. Zero source means unknown.
++struct demuxe_quality_tag {uint64_t source,request;int representation;};
++#define DEMUXE_QUALITY_HISTORY 512
++struct demuxe_quality_history {
++    unsigned next;
++    struct {double pts;struct demuxe_quality_tag tag;} entries[DEMUXE_QUALITY_HISTORY];
++};
++static inline void demuxe_quality_remember(struct demuxe_quality_history *h,double pts,struct demuxe_quality_tag tag){
++    if(!tag.source||!isfinite(pts))return;
++    // This history labels output; exhaustion degrades to unknown, never infers
++    // the requested representation or invents a playback timeline.
++    unsigned at=h->next++%DEMUXE_QUALITY_HISTORY;
++    h->entries[at].pts=pts;h->entries[at].tag=tag;
++}
++static inline struct demuxe_quality_tag demuxe_quality_take(struct demuxe_quality_history *h,double pts){
++    struct demuxe_quality_tag result={0};int found=-1;
++    if(!isfinite(pts))return result;
++    for(unsigned i=0;i<DEMUXE_QUALITY_HISTORY;i++){
++        if(!h->entries[i].tag.source||fabs(h->entries[i].pts-pts)>0.0000005)continue;
++        if(found>=0){ // Ambiguous timestamps must not mislabel a frame.
++            h->entries[i].tag.source=0;h->entries[found].tag.source=0;result.source=0;
++        }else{found=i;result=h->entries[i].tag;}
++    }
++    if(found>=0)h->entries[found].tag.source=0;
++    return result;
++}
+--- a/demux/packet.h
++++ b/demux/packet.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef MPLAYER_DEMUX_PACKET_H
+ #define MPLAYER_DEMUX_PACKET_H
++#include "common/demuxe-quality.h"
+ 
+ #include <stdbool.h>
+ #include <stddef.h>
+@@ -68,6 +69,7 @@
+     double sub_duration;
+ 
+     // private
++    struct demuxe_quality_tag demuxe_quality;
+     struct demux_packet *next;
+     struct AVPacket *avpacket;   // keep the buffer allocation and sidedata
+     uint64_t cum_pos; // demux.c internal: cumulative size until _start_ of pkt
+--- a/demux/packet.c
++++ b/demux/packet.c
+@@ -173,6 +173,7 @@
+     dst->start = src->start;
+     dst->end = src->end;
+     dst->codec = src->codec;
++    dst->demuxe_quality = src->demuxe_quality;
+     dst->back_restart = src->back_restart;
+     dst->back_preroll = src->back_preroll;
+     dst->keyframe = src->keyframe;
+--- a/video/mp_image.h
++++ b/video/mp_image.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef MPLAYER_MP_IMAGE_H
+ #define MPLAYER_MP_IMAGE_H
++#include "common/demuxe-quality.h"
+ 
+ #include <stdbool.h>
+ #include <stdio.h>
+@@ -82,6 +83,7 @@
+  *   image data. mp_image_make_writeable() will do that copy if required.
+  */
+ typedef struct mp_image {
++    struct demuxe_quality_tag demuxe_quality;
+     int w, h;  // visible dimensions (redundant with params.w/h)
+ 
+     struct mp_image_params params;
+--- a/video/mp_image.c
++++ b/video/mp_image.c
+@@ -536,6 +536,8 @@
+     }
+ }
+ 
++struct demuxe_frame_opaque {struct mp_image_params params;uint32_t magic;struct demuxe_quality_tag quality;};
++
+ void mp_image_copy_attributes(struct mp_image *dst, struct mp_image *src)
+ {
+     mp_assert(dst != src);
+@@ -543,6 +545,7 @@
+     dst->pict_type = src->pict_type;
+     dst->fields = src->fields;
+     dst->pts = src->pts;
++    dst->demuxe_quality = src->demuxe_quality;
+     dst->dts = src->dts;
+     dst->pkt_duration = src->pkt_duration;
+     dst->params.vflip = src->params.vflip;
+@@ -1130,7 +1133,9 @@
+ 
+     dst->params.chroma_location = pl_chroma_from_av(src->chroma_location);
+ 
+-    if (src->opaque_ref) {
++    if (src->opaque_ref && src->opaque_ref->size >= sizeof(struct mp_image_params)) {
++        if(src->opaque_ref->size == sizeof(struct demuxe_frame_opaque) && ((struct demuxe_frame_opaque *)src->opaque_ref->data)->magic == 0x444d5851)
++            dst->demuxe_quality=((struct demuxe_frame_opaque *)src->opaque_ref->data)->quality;
+         struct mp_image_params *p = (void *)src->opaque_ref->data;
+         dst->params.stereo3d = p->stereo3d;
+         // Might be incorrect if colorspace changes.
+@@ -1284,9 +1289,9 @@
+ 
+     dst->chroma_location = pl_chroma_to_av(params.chroma_location);
+ 
+-    dst->opaque_ref = av_buffer_alloc(sizeof(struct mp_image_params));
++    dst->opaque_ref = av_buffer_alloc(sizeof(struct demuxe_frame_opaque));
+     MP_HANDLE_OOM(dst->opaque_ref);
+-    *(struct mp_image_params *)dst->opaque_ref->data = params;
++    *(struct demuxe_frame_opaque *)dst->opaque_ref->data = (struct demuxe_frame_opaque){params,0x444d5851,src->demuxe_quality};
+ 
+     if (src->icc_profile) {
+         AVFrameSideData *sd =
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -206,6 +206,7 @@
+     bstr *attempted_hwdecs;
+     int num_attempted_hwdecs;
+     AVRational codec_timebase;
++    struct demuxe_quality_history demuxe_history;
+     enum AVDiscard skip_frame;
+     bool flushing;
+     struct lavc_state state;
+@@ -877,6 +878,7 @@
+ static void reset_avctx(struct mp_filter *vd)
+ {
+     vd_ffmpeg_ctx *ctx = vd->priv;
++    memset(&ctx->demuxe_history,0,sizeof(ctx->demuxe_history));
+ 
+     if (ctx->avctx && avcodec_is_open(ctx->avctx))
+         avcodec_flush_buffers(ctx->avctx);
+@@ -906,6 +908,7 @@
+ static void uninit_avctx(struct mp_filter *vd)
+ {
+     vd_ffmpeg_ctx *ctx = vd->priv;
++    memset(&ctx->demuxe_history,0,sizeof(ctx->demuxe_history));
+ 
+     flush_all(vd);
+     av_frame_free(&ctx->pic);
+@@ -1188,6 +1191,8 @@
+     int ret = avcodec_send_packet(avctx, pkt ? ctx->avpkt : NULL);
+     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+         return ret;
++    if(ret >= 0 && pkt && ctx->avpkt->pts != AV_NOPTS_VALUE)
++        demuxe_quality_remember(&ctx->demuxe_history,mp_pts_from_av(ctx->avpkt->pts,&ctx->codec_timebase),pkt->demuxe_quality);
+ 
+     if (ctx->hw_probing && ctx->num_sent_packets < 32 &&
+         ctx->hwdec_opts->software_fallback <= 32)
+@@ -1267,6 +1272,7 @@
+     ctx->hwdec_fail_count = 0;
+ 
+     mpi->pts = mp_pts_from_av(ctx->pic->pts, &ctx->codec_timebase);
++    mpi->demuxe_quality=demuxe_quality_take(&ctx->demuxe_history,mpi->pts);
+     mpi->dts = mp_pts_from_av(ctx->pic->pkt_dts, &ctx->codec_timebase);
+     mpi->pkt_duration = mp_pts_from_av(ctx->pic->duration, &ctx->codec_timebase);
+ 
+--- a/video/out/vo_libmpv.c
++++ b/video/out/vo_libmpv.c
+@@ -408,6 +408,8 @@
+ 
+     int err = 0;
+ 
++    extern void demuxe_control_selected(struct demuxe_quality_tag);
++    demuxe_control_selected(frame->current?frame->current->demuxe_quality:(struct demuxe_quality_tag){0});
+     if (do_render)
+         err = ctx->renderer->fns->render(ctx->renderer, params, frame);
+ 
