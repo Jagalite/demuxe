@@ -511,6 +511,8 @@ export type PlanFacts = {
     webCodecs: boolean;
     webAudio: boolean;
     nativeSourceRejection?: string;
+    remuxSourceRejection?: string;
+    hybridSourceRejection?: string;
     automaticLossless?: boolean;
     adaptationSourceQualified?: boolean;
     adaptationSourceRejection?: string;

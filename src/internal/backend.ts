@@ -17,7 +17,8 @@ export interface Backend extends EventTarget {
   command?(...args: string[]): Promise<void>;
   addTextTrack?(track: TextTrackSource): Promise<void>;
   addSubtitle?(subtitle: SubtitleAsset): Promise<void>;
+  startupEvidence?():import('./runtime-capability.js').CapabilityEvidence;
   audioDiagnostics(): object;
   destroy(): Promise<void>;
 }
-export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; error?: Error};
+export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; error?: Error; retired?:boolean};

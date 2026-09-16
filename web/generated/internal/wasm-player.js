@@ -328,6 +328,18 @@ export class WasmPlayer extends EventTarget {
     resize(width, height) { if (this.destroyed)
         throw new Error('Player is destroyed'); if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 1920 || height > 1080)
         throw new Error('Invalid output dimensions'); this.worker.postMessage({ type: 'resize', width, height }); }
+    startupEvidence() {
+        // Read existing producer/consumer counters; no analyser or frame readback.
+        const audioDecoderConfigured = !!this.properties.get('audio-codec-name');
+        const audioDecoded = (Atomics.load(this.audioHeader, 0) >>> 0) > 0;
+        const audioProgress = (Atomics.load(this.audioHeader, 5) >>> 0) > 0;
+        const tracks = this.properties.get('track-list');
+        const videoPresented = !!tracks?.some(t => t.type === 'video' && t.selected) && !!this.diagnostics?.rendered && (this.diagnostics.presentation?.position !== undefined || this.diagnostics.presentedPosition !== undefined);
+        const stats = this.diagnostics?.decoderStats;
+        return { metadata: !!this.properties.get('track-list'), audioDecoderConfigured, audioDecoded, audioProgress, videoPresented,
+            decoderOutput: videoPresented || audioDecoded,
+            ...(stats?.supportCheck ? { apiHint: JSON.stringify(stats.supportCheck) } : {}) };
+    }
     audioDiagnostics() {
         const samples = new Float32Array(this.analyser?.fftSize || 2048);
         this.analyser?.getFloatTimeDomainData(samples);

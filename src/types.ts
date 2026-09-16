@@ -66,6 +66,7 @@ export type Capabilities = {
 };
 export type PlaybackEvent = {event: string; name?: string; data?: unknown; [key: string]: unknown};
 export type Diagnostics = {
+  runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
   planAdmission?:Array<{id:string;mode:PlaybackMode;eligible:boolean;code?:string;reason?:string}>;
   plan?: {id:string; mode:PlaybackMode; video:string; audio:string; qualification:string};
   mode: PlaybackMode;

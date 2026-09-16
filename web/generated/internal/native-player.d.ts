@@ -10,9 +10,11 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private initialAudioTrack?;
     private nativeASS;
     private fonts;
+    private requestedPlan?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
+    private capability;
     private ass?;
     private assAssets;
     private assIndex;
@@ -28,6 +30,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private adapted;
     private remuxSource?;
     private directFailure?;
+    private remoteSource?;
     private shiftedCues;
     private sourceTime;
     private sourceDuration;
@@ -36,12 +39,25 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[]);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined);
     private emit;
     private assertActive;
     private wait;
     private refresh;
     get diagnostics(): {
+        capability: {
+            apiHint?: string;
+            metadata?: boolean;
+            sourceBufferCreated?: boolean;
+            initAccepted?: boolean;
+            mediaAccepted?: boolean;
+            decoderOutput?: boolean;
+            videoPresented?: boolean;
+            audioProgress?: boolean;
+            audioDecoded?: boolean;
+            audioDecoderConfigured?: boolean;
+            playbackReady?: boolean;
+        };
         path: string;
         plan: string;
         subtitleOverlay: {
@@ -68,10 +84,17 @@ export declare class NativePlayer extends EventTarget implements Backend {
         readyState: number;
     };
     private load;
+    /** Paused open must establish decoded current data, not merely metadata or a
+     * canplay event. Presentation/audio counters are recorded only when observable. */
+    verifyStartup(expected?: {
+        video: boolean;
+        audio: boolean;
+    }): Promise<void>;
     private startRemux;
     private loadPlan;
     open(file: File | ArrayBuffer): Promise<void>;
     openRemote(source: RemoteSource): Promise<void>;
+    private classifyDirectFailure;
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;

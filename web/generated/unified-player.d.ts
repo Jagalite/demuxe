@@ -21,6 +21,8 @@ export declare class Player extends EventTarget {
     private currentMode;
     private automatic;
     private attempts;
+    private runtimeCapabilities;
+    private sourceInspection?;
     private inspection?;
     private recovering;
     private lifetime;
@@ -96,6 +98,8 @@ export declare class Player extends EventTarget {
     private replace;
     private record;
     private select;
+    private evidence;
+    private discover;
     private recover;
     setAutomaticSelection(enabled?: boolean): Promise<void>;
     open(input: MediaSourceInput, options?: OpenOptions): Promise<void>;

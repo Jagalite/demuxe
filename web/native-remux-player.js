@@ -34,6 +34,7 @@ export class RemuxPlayer {
  async start(target,rejected=new Set()){
   if(this.stopped)throw Error('Remux player is destroyed');
   const begun=performance.now(),generation=++this.generation;this.stopWorkers();
+  this.capability={};
   this.windowed=false;this.headerAccepted=false;this.presentationFloor=0;this.pulling=false;this.pullId=0;this.resumingWindow=false;this.primeVideo=false;this.sbs=[];this.receipts=new Map();this.pendingUpdates=new Set();this.lastEvictions=[];
   this.failedGeneration=undefined;this.failureError=undefined;this.stats.errors=[];this.stats.seeks.push({target,started:begun});if(this.stats.seeks.length>64)this.stats.seeks.shift();this.target=target;this.targetReady=false;this.frames=[];this.muxedFrames=false;this.lastEviction=-Infinity;this.raps=[];this.busy=true;this.eof=false;this.pending=null;this.receipt=null;this.segments=[];this.sourceStats={};this.remuxStats={};
   this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);
@@ -71,6 +72,7 @@ export class RemuxPlayer {
     for(const candidate of data.candidates){
      const attempt={...candidate};session.packaging.push(attempt);
      if(rejected.has(candidate.mime)){attempt.rejected='Initialization append failed';continue;}
+     this.capability.apiHint=`MediaSource.isTypeSupported(${candidate.mime})=${MediaSource.isTypeSupported(candidate.mime)}`;
      if(!MediaSource.isTypeSupported(candidate.mime)){attempt.rejected='MSE type unsupported';continue;}
      try{
       const mimes=data.windowed?data.lanes:[candidate.mime];
@@ -78,6 +80,7 @@ export class RemuxPlayer {
       this.sbs=[];for(const mime of mimes)this.sbs.push(this.media.addSourceBuffer(mime));this.sb=this.sbs[0];
       this.windowed=!!data.windowed;this.trackBounds=data.trackBounds;this.presentationFloor=this.windowed&&target>=Math.min(this.trackBounds.videoEnd,this.trackBounds.audioEnd)?Math.max(0,target-.5):0;this.primeVideo=this.windowed&&target>=this.trackBounds.videoEnd&&this.trackBounds.videoEnd<this.trackBounds.audioEnd;
      }catch(error){for(const sb of this.sbs)this.media.removeSourceBuffer(sb);this.sbs=[];attempt.rejected=String(error);continue;}
+     this.capability.sourceBufferCreated=true;
      attempt.selected=true;this.mime=candidate.mime;
      this.worker.postMessage({type:'select-container',container:candidate.container});return;
     }
@@ -93,7 +96,7 @@ export class RemuxPlayer {
       sb.addEventListener('updateend',()=>this.updateFinished(sb,generation));
       sb.addEventListener('error',()=>{if(generation===this.generation){this.packagingFailure=true;this.fail('MSE SourceBuffer error');}});
      }
-     try{this.append(data.buffers??[data.buffer]);}catch(error){this.packagingFailure=error.name!=='QuotaExceededError';throw error;}
+     try{this.append(data.buffers??[data.buffer],true);}catch(error){this.packagingFailure=error.name!=='QuotaExceededError';throw error;}
     }catch(e){this.fail(String(e));}
    }else if(data.type==='fragment'){
     this.pulling=false;
@@ -127,7 +130,7 @@ export class RemuxPlayer {
  ranges(){const b=this.windowed?this.video.buffered:this.sb?.buffered;return b?Array.from({length:b.length},(_,i)=>[(this.windowed?Math.max(b.start(i)-this.timelineBias,this.presentationFloor??0):b.start(i)-this.timelineBias),b.end(i)-this.timelineBias]).filter(([a,b])=>b>a):[];}
  updateFinished(sb,generation){
        if(generation!==this.generation||!this.pendingUpdates.delete(sb))return;
-       const receipt=this.receipts.get(sb);if(receipt){receipt.end=sb.buffered.length?sb.buffered.end(sb.buffered.length-1)-this.timelineBias:Infinity;this.receipts.delete(sb);}
+       const receipt=this.receipts.get(sb);if(receipt){if(receipt.initialization)this.capability.initAccepted=true;else this.capability.mediaAccepted=true;receipt.end=sb.buffered.length?sb.buffered.end(sb.buffered.length-1)-this.timelineBias:Infinity;this.receipts.delete(sb);}
        if(this.pendingUpdates.size||this.sbs.some(s=>s.updating))return;
        this.busy=false;
        if(this.windowed&&this.media.readyState==='open'&&this.sbs.every(s=>s.buffered.length)){
@@ -137,12 +140,12 @@ export class RemuxPlayer {
        this.resumeWindow();
        this.pump();
  }
- append(buffers){
+ append(buffers,initialization=false){
   this.busy=false;
   buffers.forEach((buffer,lane)=>{
    if(!buffer.byteLength)return;
    const sb=this.sbs[lane];if(!sb)throw Error('Unexpected fragment lane');
-   this.busy=true;const receipt={lane,bytes:buffer.byteLength,end:Infinity};this.segments.push(receipt);this.receipts.set(sb,receipt);this.pendingUpdates.add(sb);
+   this.busy=true;const receipt={lane,bytes:buffer.byteLength,end:Infinity,initialization};this.segments.push(receipt);this.receipts.set(sb,receipt);this.pendingUpdates.add(sb);
    this.stats.fragments.push({lane,bytes:buffer.byteLength,at:performance.now(),generation:this.generation});if(this.stats.fragments.length>256)this.stats.fragments.shift();sb.appendBuffer(buffer);
   });
   if(!this.busy)this.pump();
@@ -296,6 +299,6 @@ export class RemuxPlayer {
  get playbackEnded(){return this.video.ended&&(!this.windowed||this.eof&&!this.pending&&!this.busy&&this.video.currentTime>=this.duration+this.timelineBias-.02);}
  async play(){this.recoveryPlaying=true;if(this.starting)return;if(this.windowed){this.pump();if(this.video.ended&&!this.playbackEnded){this.resumeWindow();return;}}return this.video.play();}
  pause(){this.recoveryPlaying=false;this.video.pause();}
- snapshot(){return {stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},windowed:this.windowed,presentationFloor:this.presentationFloor,trackBounds:this.trackBounds,ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
+ snapshot(){return {capability:{...this.capability},stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},windowed:this.windowed,presentationFloor:this.presentationFloor,trackBounds:this.trackBounds,ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
  async destroy(){if(this.stopped)return;this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);this.objectURL=null;}
 }

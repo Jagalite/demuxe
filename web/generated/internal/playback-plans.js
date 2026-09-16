@@ -70,6 +70,8 @@ export function planAdmission(f) {
             reject('DEPLOYMENT_UNAVAILABLE', 'Web Audio is unavailable');
         else if (plan.mode !== 'native' && !f.isolated)
             reject('ISOLATION_REQUIRED', 'mpv deployment requires cross-origin isolation');
+        else if (plan.mode === 'hybrid' && f.hybridSourceRejection)
+            reject('QUALIFICATION_REQUIRED', f.hybridSourceRejection);
         else if (plan.mode === 'hybrid' && !f.webCodecs)
             reject('DEPLOYMENT_UNAVAILABLE', 'WebCodecs video decoding is unavailable');
         else if (plan.mode === 'hybrid' && plan.id.includes('audio-filter') !== !!f.af)
@@ -102,8 +104,10 @@ export function planAdmission(f) {
                 reject('POLICY_PROHIBITS_TRANSFORM', 'Lossy audio permission is absent');
             else if (flac && f.automatic && !f.adaptationSourceQualified)
                 reject('SOURCE_UNSUPPORTED', f.adaptationSourceRejection ?? 'Automatic FLAC source has not been qualified');
-            else if (f.nativeSourceRejection && !(flac && f.automatic && f.automaticLossless))
-                reject('SOURCE_UNSUPPORTED', f.nativeSourceRejection);
+            else if (f.nativeSourceRejection)
+                reject(f.nativeSourceRejection.startsWith('Native eligibility could not') ? 'QUALIFICATION_REQUIRED' : 'SOURCE_UNSUPPORTED', f.nativeSourceRejection);
+            else if (plan.id.startsWith('native-remux') && f.remuxSourceRejection)
+                reject('QUALIFICATION_REQUIRED', f.remuxSourceRejection);
         }
         return { id: plan.id, mode: plan.mode, eligible: !code, ...(code ? { code, reason } : {}) };
     });

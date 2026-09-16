@@ -57,7 +57,7 @@ export type PlanFacts={
   adaptation?:'flac'|'opus';allowLossy:boolean;nativeASS:boolean;externalFormats:string[];
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
   manifest:boolean;requiresRemux:boolean;isolated:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
-  nativeSourceRejection?:string;
+  nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;
   automaticLossless?:boolean;adaptationSourceQualified?:boolean;adaptationSourceRejection?:string;
 };
 /** Admission is executable and deliberately finite. Runtime output verification
@@ -72,6 +72,7 @@ export function planAdmission(f:PlanFacts){
     else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
     else if(gain&&!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Web Audio is unavailable');
     else if(plan.mode!=='native'&&!f.isolated)reject('ISOLATION_REQUIRED','mpv deployment requires cross-origin isolation');
+    else if(plan.mode==='hybrid'&&f.hybridSourceRejection)reject('QUALIFICATION_REQUIRED',f.hybridSourceRejection);
     else if(plan.mode==='hybrid'&&!f.webCodecs)reject('DEPLOYMENT_UNAVAILABLE','WebCodecs video decoding is unavailable');
     else if(plan.mode==='hybrid'&&plan.id.includes('audio-filter')!==!!f.af)reject('PLAN_NOT_REQUESTED','mpv scalar filter stage does not match the request');
     else if(plan.mode!=='native'&&f.browserTextTracks)reject('FEATURE_UNSUPPORTED','External browser text tracks cannot be silently discarded');
@@ -89,7 +90,8 @@ export function planAdmission(f:PlanFacts){
       else if((flac||opus)&&(f.automatic?(!flac||!f.automaticLossless):f.adaptation!==(flac?'flac':'opus')))reject('QUALIFICATION_REQUIRED','Audio adaptation requires explicit profile or qualified automatic lossless policy');
       else if(opus&&!f.allowLossy)reject('POLICY_PROHIBITS_TRANSFORM','Lossy audio permission is absent');
       else if(flac&&f.automatic&&!f.adaptationSourceQualified)reject('SOURCE_UNSUPPORTED',f.adaptationSourceRejection??'Automatic FLAC source has not been qualified');
-      else if(f.nativeSourceRejection&&!(flac&&f.automatic&&f.automaticLossless))reject('SOURCE_UNSUPPORTED',f.nativeSourceRejection);
+      else if(f.nativeSourceRejection)reject(f.nativeSourceRejection.startsWith('Native eligibility could not')?'QUALIFICATION_REQUIRED':'SOURCE_UNSUPPORTED',f.nativeSourceRejection);
+      else if(plan.id.startsWith('native-remux')&&f.remuxSourceRejection)reject('QUALIFICATION_REQUIRED',f.remuxSourceRejection);
     }
     return {id:plan.id,mode:plan.mode,eligible:!code,...(code?{code,reason}:{} )};
   });

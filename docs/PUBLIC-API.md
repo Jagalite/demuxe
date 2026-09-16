@@ -236,7 +236,10 @@ padding, timestamp and marker tests and the unresolved long-tail limit.
 `diagnostics.plan` identifies the accepted internal plan without adding a public
 mode. `diagnostics.planAdmission` lists finite candidates with `eligible`, typed
 rejection `code`, and `reason`. Eligibility is permission to attempt the plan;
-actual codec preparation and meaningful startup output must still succeed.
+actual codec preparation and meaningful startup readiness/output must still succeed.
+`diagnostics.runtimeCapabilities` adds source-scoped `untested`, `probing`, `verified`,
+and `failed` evidence for those same plans; it does not add modes or controls.
+See [runtime capability discovery](runtime-capability.md).
 Automatic routing retains Native copy, authorized qualified Native FLAC, eligible Hybrid, then Software. It
 uses requested effects, source inspection, selected tracks, transport constraints
 and browser prerequisites. The experimental adaptation option remains explicit-only;

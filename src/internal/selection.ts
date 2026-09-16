@@ -15,18 +15,24 @@ export function losslessAdaptationRejection(probe:Probe,settings:{aid:string;sid
  if(!Number.isFinite(probe.duration)||probe.duration<=0)return 'Automatic FLAC requires a finite duration';
 }
 export type SelectionAttempt = {mode: PlaybackMode | 'probe'; outcome: 'skipped' | 'failed' | 'selected'; reason: string};
-export function nativeRejection(probe: Probe, settings: {aid: string; sid: string; subtitles: boolean}, video: HTMLVideoElement): string | undefined {
+export function nativeRejection(probe: Probe, settings: {aid: string; sid: string; subtitles: boolean}, _video?: HTMLVideoElement): string | undefined {
  const selected=(type:string,id='auto')=>{const tracks=probe.tracks.filter(t=>t.type===type&&!t.attachedPicture);return id==='no'?undefined:id==='auto'?(tracks.find(t=>t.default)||tracks[0]):tracks.find(t=>t.id===id);};
  // Browser text-track exposure cannot reliably prove embedded subtitle delivery.
  if(settings.subtitles&&selected('sub',settings.sid))return 'Embedded subtitles require mpv rendering';
  const v=selected('video'),a=selected('audio',settings.aid);
  if(!['auto','no'].includes(settings.aid)&&!a)return 'Requested audio track was not found';
- const codecs:Record<string,string>={h264:'avc1',hevc:'hev1',vp8:'vp8',vp9:'vp09.00.10.08',av1:'av01.0.04M.08',aac:'mp4a.40.2',mp3:'mp3',opus:'opus',vorbis:'vorbis',flac:'flac',ac3:'ac-3',eac3:'ec-3'};
  if(!v&&!a)return 'No selected playable streams';
- for(const t of [v,a])if(t&&!codecs[t.codec])return `Native has no qualified ${t.type} mapping for ${t.codec}`;
- if(a?.codec==='aac'){if(!a.aacObject||a.aacObject<1||a.aacObject>=31)return 'Native AAC profile is unavailable';codecs.aac=`mp4a.40.${a.aacObject}`;}
- // Try each relevant packaging contract. A WebM rejection does not rule out MP4
- // (for example VP9 plus AAC). Actual remux configuration and playback still gate.
- const mimes=['mp4','webm'].map(container=>`${v?'video':'audio'}/${container}; codecs="${[v,a].filter(Boolean).map(t=>container==='webm'&&t!.codec==='vp9'?'vp9':t!.codecString??codecs[t!.codec]).join(',')}"`);
- if(!mimes.some(mime=>video.canPlayType(mime)))return `Browser does not report support for ${mimes.join(' or ')}`;
+ // Codec configuration knowledge belongs to preparation, not direct browser admission.
+ // Unknown mappings and canPlayType() answers cannot reject unchanged source bytes.
+}
+
+/** These are Demuxe's packet-construction contracts, not browser support.
+ * An absent contract excludes preparation only; direct playback stays testable. */
+export function remuxRejection(probe:Probe,settings:{aid:string}):string|undefined {
+ const video=probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture);
+ const audioTracks=probe.tracks.filter(t=>t.type==='audio');
+ const audio=settings.aid==='no'?undefined:settings.aid==='auto'?(audioTracks.find(t=>t.default)??audioTracks[0]):audioTracks.find(t=>t.id===settings.aid);
+ if(video&&!['h264','hevc','vp8','vp9','av1'].includes(video.codec))return `Demuxe has no packet-copy video construction contract for ${video.codec}`;
+ if(audio&&!['aac','mp3','opus','vorbis','flac','ac3','eac3'].includes(audio.codec))return `Demuxe has no packet-copy audio construction contract for ${audio.codec}`;
+ if((video?.codec==='vp8'&&audio&&!['opus','vorbis'].includes(audio.codec))||(audio?.codec==='vorbis'&&video&&!['vp8','vp9','av1'].includes(video.codec)))return 'Selected packets have no common Demuxe muxing contract';
 }

@@ -13,7 +13,7 @@ test('finite Native ASS and gain combinations exclude missing components',()=>{
  assert.ok(!eligible({externalFormats:['srt'],nativeASS:true}).some(id=>id.startsWith('native')));
 });
 test('source, deployment and filter requirements actually remove plans',()=>{
- assert.ok(!eligible({nativeSourceRejection:'Unsupported selected codec'}).some(id=>id.startsWith('native')));
+ assert.ok(!eligible({nativeSourceRejection:'Required embedded subtitles'}).some(id=>id.startsWith('native')));
  assert.deepEqual(eligible({requiresRemux:true,isolated:false}),[]);
  assert.deepEqual(eligible({af:'volume=0.5',hybridAudioFilters:true,gain:.5}),['hybrid-audio-filter-gain','software-gain']);
  assert.deepEqual(eligible({af:'rubberband',hybridAudioFilters:true}),['software']);
@@ -27,8 +27,9 @@ test('explicit adaptation respects profile, lossy permission and manifest bounda
 });
 test('automatic lossless permission requires source evidence and never admits Opus',()=>{
  assert.ok(!eligible({automaticLossless:true}).includes('native-flac'));
- const ids=eligible({automaticLossless:true,adaptationSourceQualified:true,nativeSourceRejection:'PCM cannot be copied'});
- assert.deepEqual(ids,['native-flac','hybrid','software']);
+ const ids=eligible({automaticLossless:true,adaptationSourceQualified:true});
+ assert.deepEqual(ids,['native-direct','native-remux','native-flac','hybrid','software']);
+ assert.deepEqual(eligible({automaticLossless:true,adaptationSourceQualified:true,nativeSourceRejection:'Embedded subtitles require mpv'}),['hybrid','software']);
  assert.ok(!eligible({automaticLossless:true,adaptationSourceQualified:false,adaptationSourceRejection:'Unequal tails'}).includes('native-flac'));
  assert.ok(!eligible({automaticLossless:true,adaptationSourceQualified:true,manifest:true}).includes('native-flac'));
 });

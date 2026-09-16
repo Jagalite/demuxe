@@ -4,10 +4,12 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const server=await serve(),out=`results/automatic-selection/run-${new Date().toISOString().replaceAll(':','-')}`;
 await mkdir(out,{recursive:true});const result={cases:[]};console.log(out);
-const browser=await chromium.launch({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});result.browser=browser.version();const fallbackBrowser=await firefox.launch({headless:true});result.fallbackBrowser=fallbackBrowser.version();
+const browser=await chromium.launch({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});result.browser=browser.version();const fallbackBrowser=process.env.BROWSER==='chrome'?undefined:await firefox.launch({headless:true});result.fallbackBrowser=fallbackBrowser?.version();
 const files={avc:'build/fixtures/software-full/h264-aac.mp4',ass:'build/fixtures/tracks.mkv',hevc:'build/fixtures/software-full/hevc-ac3.mkv',mpeg4:'build/fixtures/software-full/mpeg4-mp3.avi',ts:'build/pipeline-separation/fixtures/config-0.ts'};
 const open=async(p,name)=>{const b=await readFile(files[name]);return p.evaluate(b=>player.open(new File([Uint8Array.from(atob(b),c=>c.charCodeAt(0))],'source')),b.toString('base64'));};
 async function check(name,fn,options={}){
+ if(process.env.ONLY&&!process.env.ONLY.split('|').includes(name))return;
+ if(name==='browser-rejection'&&!fallbackBrowser){result.cases.push({name,skipped:'Chrome-only run'});return;}
  const p=await (name==='browser-rejection'?fallbackBrowser:browser).newPage();p.setDefaultTimeout(40000);const r={name};result.cases.push(r);
  try{await p.goto(server.origin+'/experiment/page.html');await p.evaluate(async options=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),options);window.errors=[];player.addEventListener('error',e=>errors.push(String(e.detail)));},options);
   r.evidence=await fn(p);await p.screenshot({path:out+'/'+name+'.png'});await p.evaluate(()=>player.destroy());await p.waitForTimeout(150);assert.equal(p.workers().length,0);r.passed=true;console.log('PASS',name);
@@ -75,4 +77,4 @@ try{
   assert.deepEqual(result,{destroyed:true,rejected:true});return result;
  });
  await check('destroy-during-probe',async p=>{await p.route('**/source-probe.js',async route=>{await new Promise(r=>setTimeout(r,300));await route.continue().catch(()=>{});});const r=await p.evaluate(async url=>{const opening=player.openRemote({url}).then(()=>false,()=>true);await new Promise(r=>setTimeout(r,50));await player.destroy();return {rejected:await opening};},server.origin+'/media/mkv');assert.equal(r.rejected,true);return r;});
-}finally{await browser.close();await fallbackBrowser.close();await server.close();result.passed=result.cases.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+}finally{await browser.close();await fallbackBrowser?.close();await server.close();result.passed=result.cases.every(c=>c.passed||c.skipped);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

@@ -55,7 +55,6 @@ function tracks(moov,video){
    const children=boxes(entry.b,28);if(children.some(x=>!['esds','btrt'].includes(x.type)))throw Error('Audio extensions');
    channels=aac(one(children,'esds'));codec='aac';mime='audio/mp4; codecs="mp4a.40.2"';
   }
-  if(!video.canPlayType(mime))throw Error('Browser admission');
   result.push({id:'1',index:result.length,type:handler==='vide'?'video':'audio',codec,codecString:mime.split('\"')[1],default:true,...(channels?{channels,aacObject:2}:{})});
  }
  if(!seen.has('vide'))throw Error('No video');return result;

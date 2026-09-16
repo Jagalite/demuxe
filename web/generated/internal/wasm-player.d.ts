@@ -109,6 +109,15 @@ export declare class WasmPlayer extends EventTarget {
     addSubtitle(subtitle: SubtitleAsset): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
     resize(width: number, height: number): void;
+    startupEvidence(): {
+        apiHint?: string | undefined;
+        metadata: boolean;
+        audioDecoderConfigured: boolean;
+        audioDecoded: boolean;
+        audioProgress: boolean;
+        videoPresented: boolean;
+        decoderOutput: boolean;
+    };
     audioDiagnostics(): {
         gain: number;
         gainStage: string;

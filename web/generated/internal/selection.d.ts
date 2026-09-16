@@ -42,4 +42,9 @@ export declare function nativeRejection(probe: Probe, settings: {
     aid: string;
     sid: string;
     subtitles: boolean;
-}, video: HTMLVideoElement): string | undefined;
+}, _video?: HTMLVideoElement): string | undefined;
+/** These are Demuxe's packet-construction contracts, not browser support.
+ * An absent contract excludes preparation only; direct playback stays testable. */
+export declare function remuxRejection(probe: Probe, settings: {
+    aid: string;
+}): string | undefined;

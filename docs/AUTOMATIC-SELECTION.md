@@ -25,7 +25,7 @@ flowchart TD
     S[Open source or reevaluate requirements] --> F{CPU filters requested?}
     F -->|Yes| SW[Software]
     F -->|No| C{Simple immutable local MP4?}
-    C -->|Bounded metadata and browser admission| N
+    C -->|Bounded metadata| N
     C -->|Unknown or remote| P[Bounded FFmpeg metadata inspection]
     P --> N{Native satisfies selected features?}
     N -->|Yes| D[Native direct]
@@ -43,8 +43,9 @@ flowchart TD
   needed Software. CPU filters skip directly to Software.
 - A packet-only FFmpeg probe discovers tracks before accepting Native. Enabled
   embedded subtitles require mpv rendering. Audio eligibility considers the selected
-  track rather than rejecting a file for every unused track. Native uses conservative
-  codec mappings and `canPlayType`; the actual Native open must still succeed.
+  track rather than rejecting a file for every unused track. Missing codec mappings
+  and negative `canPlayType()` hints do not reject unchanged Native playback.
+  A transactional candidate must establish decoded current-data readiness.
 - Native remux now attempts the [broader browser MP4 packet contracts](BROAD-ROUTING.md). No audio or video transcoding
   is introduced. Hybrid and Software retain their existing decoder/resource limits.
 - Hybrid must deliver an actual retained frame; a browser capability probe alone
@@ -85,7 +86,7 @@ A server that cannot satisfy range inspection may require explicit Native playba
 
 Destruction interrupts module-import waits as well as active probe work.
 The probe has a 20-second deadline and the existing bounded source/demux budgets.
-It does not invent support for unknown native codec/profile mappings. When metadata
+Unknown codec/profile mappings remain unknown until the runtime attempt. When metadata
 inspection is unavailable for a non-transport reason, Native is skipped and mpv
 routes are attempted. Explicit HLS/DASH sources currently start with mpv because
 this probe does not establish their Native track requirements; existing static-VOD
@@ -99,8 +100,8 @@ HDR, PiP/remote destinations and exact color handling retain the limitations in 
 or codec guarantees. Local Files now use bounded reads in all worker-backed routes, including fallback
 to Hybrid or Software above 32 MiB. The ArrayBuffer API remains size-limited.
 
-The metadata preflight is deliberately conservative about embedded subtitles and
-Native codec mappings. Language preference negotiation, track mapping when source stream identity is
+The metadata preflight remains conservative about uninspected track semantics;
+codec mappings constrain packet construction, not Native direct compatibility. Language preference negotiation, track mapping when source stream identity is
 unavailable, and audio-only conversion remain separate work.
 Unsupported explicit track requests continue to reject; automatic selection does
 not guess a different language or silently drop requested external subtitles.
@@ -131,7 +132,8 @@ playback tests, injected runtime-error policy tests, and remaining qualification
 Simple local MP4 files first undergo bounded JavaScript box inspection (at most
 256 KiB movie metadata plus 2 KiB headers, 64 top-level boxes). Filename/MIME are
 ignored. A single AVC video track and optional AAC-LC mono/stereo track must have
-self-contained data references, known sample entries and browser codec admission.
+self-contained data references and known sample entries. Browser hints do not
+affect this metadata fast path.
 Additional tracks, encryption, multiple sample descriptions, unfamiliar metadata or larger
 indexes retain FFmpeg inspection. Actual Native playback still gates selection.
 Remote sources retain the existing FFmpeg/source-identity path; no permission or
@@ -141,3 +143,10 @@ inspectors and Wasm, and is checked separately in the clean consumer test.
 This optimizes a deliberately narrow implemented case, not every MP4 or every
 automatic Native selection. See `web/cheap-mp4-probe.js` and
 `tests/cheap-mp4-probe.mjs`. No additional public mode or codec transformation is added.
+
+## Source/session runtime evidence
+
+See [runtime capability discovery](runtime-capability.md) for the finite plan order,
+readiness evidence, failure classification, session cache and regression commands.
+`diagnostics.runtimeCapabilities` distinguishes untested, probing, verified and
+failed plans separately from semantic eligibility.

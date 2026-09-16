@@ -1,3 +1,5 @@
+import {RuntimeCapabilities, compatibilityFailure} from './internal/runtime-capability.js';
+import type {CapabilityEvidence} from './internal/runtime-capability.js';
 import {featureRejection, executionPlan, qualifiedAudioFilter, planAdmission} from './internal/playback-plans.js';
 import {runtimeBase} from './internal/assets.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
@@ -5,7 +7,7 @@ import {freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './in
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, FeatureAvailability, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
-import {nativeRejection,losslessAdaptationRejection} from './internal/selection.js';
+import {nativeRejection,losslessAdaptationRejection,remuxRejection} from './internal/selection.js';
 import type {Probe, SelectionAttempt} from './internal/selection.js';
 import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions, ResourceLimits, MediaInputOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, TrackType, PlaybackEvent} from './types.js';
 import type {Backend, Session} from './internal/backend.js';
@@ -16,7 +18,7 @@ const filterChain = (value: string) => {
   if (typeof value !== 'string' || value.length > 4096 || value.includes('\0')) throw new PlayerError('INVALID_ARGUMENT','Invalid filter chain');
   return value.trim();
 };
-const terminalSourceFailure = (error: unknown) => /Source transport:|representation changed|changed length|origin is not allowed|Authorization refresh|HTTP (?:401|403)|received (?:401|403)/i.test(String(error));
+const terminalSourceFailure = (error: unknown) => /Source transport:|representation changed|changed length|origin is not allowed|integrity|source identity|Authorization refresh|HTTP (?:401|403)|received (?:401|403)/i.test(String(error));
 const modeValue = (mode: PlaybackMode) => {
   if (!PLAYBACK_MODES.includes(mode)) throw new PlayerError('INVALID_ARGUMENT','Mode must be native, hybrid or software');
   return mode;
@@ -46,6 +48,8 @@ export class Player extends EventTarget {
   private currentMode: PlaybackMode;
   private automatic: boolean;
   private attempts: SelectionAttempt[] = [];
+  private runtimeCapabilities=new RuntimeCapabilities();
+  private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
   private inspection?: AbortController;
   private recovering = false;
   private lifetime = new AbortController();
@@ -190,7 +194,7 @@ export class Player extends EventTarget {
     return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.nativeASS || this.automatic || this.mode !== 'native', customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined')};
   }
   get diagnostics(): Diagnostics {
-    return redact({mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay):undefined, planAdmission:this.planDecisions,selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
+    return redact({mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
   }
   audioDiagnostics() {return this.current?.backend.audioDiagnostics();}
   private emit(type: string, detail: unknown) {
@@ -233,9 +237,10 @@ export class Player extends EventTarget {
   }
   private async dispose(session?: Session) {
     if (!session) return;
+    session.retired=true;
     try {await session.backend.destroy();} finally {session.surface.remove();}
   }
-  private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus', forcePreparation=false): Promise<Session> {
+  private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus', forcePreparation=false, planId?:string): Promise<Session> {
     let backend: Backend;
     const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
     surface.width = this.width;surface.height = this.height;
@@ -245,12 +250,13 @@ export class Player extends EventTarget {
     this.assertOperation();
     this.root.append(surface);
     try {
-      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?undefined:Number(aid)-1,this.nativeASS,this.fonts) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
+      backend = 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?undefined:Number(aid)-1,this.nativeASS,this.fonts,planId) : new module.WasmPlayer(surface as HTMLCanvasElement, {mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase});
     } catch (error) {surface.remove();throw error;}
     const session: Session = {backend, surface};
     for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
+      if(session.retired)return;
       const detail = (event as CustomEvent).detail;
-      if (type === 'error') session.error = new Error(String(detail));
+      if (type === 'error') session.error = detail instanceof Error?detail:new Error(String(detail));
       if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error') session.error = new Error(String(detail.file_error));
       if (this.current === session && !this.busy && !this.destroyed) {
         if(session.error&&(type==='error'||(type==='mpv'&&detail.event==='end-file'))&&this.automatic&&this.mode!=='software'){this.recover(session);return;}
@@ -271,7 +277,11 @@ export class Player extends EventTarget {
     return session;
   }
   private async settled(session: Session, mode: PlaybackMode, target: number) {
-    if (mode === 'native') return;
+    if (mode === 'native') {
+      const probe=this.sourceInspection?.probe;
+      await (session.backend as Backend & {verifyStartup(expected?:{video:boolean;audio:boolean}):Promise<void>}).verifyStartup(probe?{video:probe.tracks.some(t=>t.type==='video'&&!t.attachedPicture),audio:this.sourceInspection!.settings.aid!=='no'&&probe.tracks.some(t=>t.type==='audio')}:undefined);
+      return;
+    }
     const deadline = performance.now() + 25000;
     while (performance.now() < deadline) {
       this.assertOperation();
@@ -280,7 +290,7 @@ export class Player extends EventTarget {
       const tracks = session.backend.properties.get('track-list') as Array<{type: string; codec?: string; selected?: boolean}> | undefined;
       // Selection is transiently empty while mpv initializes a video track.
       const hasVideo = tracks?.some(t => t.type === 'video');
-      if (hasVideo === false && tracks?.length) return;
+      if (hasVideo === false && tracks?.length && (!tracks.some(t=>t.type==='audio'&&t.selected)||session.backend.startupEvidence?.().audioDecoderConfigured)) return;
       if (mode === 'hybrid' && tracks?.some(t => t.type === 'video' && t.selected && !['h264','hevc','vp8','vp9','av1'].includes(t.codec ?? ''))) throw new Error('Hybrid mode has no browser bridge for this video codec. Choose software mode for this source.');
       const position = mode === 'hybrid' ? d?.presentation?.position : d?.presentedPosition;
       if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs') && !d.seeking && position !== undefined && Math.abs(position - target) < .15) return;
@@ -290,7 +300,11 @@ export class Player extends EventTarget {
   }
   private admissible(source:Source,settings:Settings,attachments:SubtitleAsset[],textTracks:TextTrackSource[],nativeSourceRejection?:string,automatic=this.automatic){
     const remote=source.kind==='remote'?source.options:undefined;
-    return planAdmission({automatic,...settings,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters,
+    const inspected=this.sourceInspection?.source===source?this.sourceInspection:undefined;
+    const video=inspected?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture);
+    return planAdmission({automatic,...settings,
+      remuxSourceRejection:inspected?remuxRejection(inspected.probe,inspected.settings):undefined,
+      hybridSourceRejection:video&&!['h264','hevc','vp8','vp9','av1'].includes(video.codec)?`Demuxe has no browser bridge configuration contract for ${video.codec}`:undefined,toneMapping:this.toneMapping,hybridAudioFilters:this.hybridAudioFilters,
       adaptation:this.audioAdaptation,allowLossy:this.allowLossy,nativeASS:this.nativeASS,externalFormats:attachments.map(a=>a.format),browserTextTracks:!!textTracks.length,
       automaticLossless:this.automaticLossless,adaptationSourceRejection:source.kind!=='local'?'Automatic FLAC is qualified only for local files':this.losslessInspection?.source===source?this.losslessInspection.reason:'Automatic FLAC source has not been qualified',
       adaptationSourceQualified:source.kind==='local'&&this.losslessInspection?.source===source&&!this.losslessInspection.reason,
@@ -298,11 +312,13 @@ export class Player extends EventTarget {
       requiresRemux:!!(remote&&(remote.headers||remote.refreshAuthorization||remote.allowedOrigins||remote.immutable!==undefined||remote.credentials==='omit')),
       isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',nativeSourceRejection});
   }
-  private async replace(source: Source, mode: PlaybackMode, settings: Settings, preserve: boolean, nativeTracks: TextTrackSource[], requestedTarget?: number, automaticAdmission=this.automatic) {
+  private async replace(source: Source, mode: PlaybackMode, settings: Settings, preserve: boolean, nativeTracks: TextTrackSource[], requestedTarget?: number, automaticAdmission=this.automatic, planId?:string) {
+    if(!planId)return this.discover(source,settings,preserve,nativeTracks,requestedTarget,automaticAdmission,mode);
+    if(this.sourceInspection?.source!==source)this.sourceInspection=undefined;
     this.validateFilters(mode, settings);
     const attachments=preserve?this.subtitleAssets:[];
     const admitted=this.admissible(source,settings,attachments,nativeTracks,automaticAdmission?this.admissionContext.nativeReason:undefined,automaticAdmission);
-    if(!automaticAdmission){this.planDecisions=admitted;this.admissionContext={automatic:false};}
+    if(!automaticAdmission)this.admissionContext={automatic:false};
     if(!admitted.some(p=>p.mode===mode&&p.eligible)){
       const candidates=admitted.filter(p=>p.mode===mode);
       const rejection=candidates.find(p=>p.code==='ISOLATION_REQUIRED')??candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED');
@@ -340,8 +356,8 @@ export class Player extends EventTarget {
     let candidate: Session | undefined;
     try {
       if (old && !old.error) await old.backend.pause();
-      const adaptation=automaticAdmission?(admitted.some(p=>p.eligible&&p.id.startsWith('native-flac'))?'flac':undefined):this.audioAdaptation;
-      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,automaticAdmission&&!!this.admissionContext.nativeReason&&adaptation==='flac');this.assertOperation();const p = candidate.backend;await p.ready;
+      const adaptation=planId.startsWith('native-flac')?'flac':planId.startsWith('native-opus')?'opus':undefined;
+      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,!planId.startsWith('native-direct'),planId);this.assertOperation();const p = candidate.backend;await this.interruptible(p.ready);
       this.assertOperation();
       const tone=this.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
       const vf=[tone?`lavfi=[${tone}]`:'',desired.vf].filter(Boolean).join(',');
@@ -351,7 +367,7 @@ export class Player extends EventTarget {
       await p.volume(this.muted?0:desired.volume);await p.rate(desired.speed);
       // Native numeric track IDs only exist after metadata/text-track loading.
       if (mode !== 'native') {await p.selectTrack('audio', desired.aid);await p.selectTrack('sub', desired.sid);await p.subtitleVisible(desired.subtitles);}
-      if (source.kind === 'local') await p.open(source.file,source.input);else await p.openRemote(source.options);
+      if (source.kind === 'local') await this.interruptible(p.open(source.file,source.input));else await this.interruptible(p.openRemote(source.options));
       if('inspectMetadata' in p)await (p as Backend & {inspectMetadata():Promise<void>}).inspectMetadata();
       this.assertOperation();
       for(const subtitle of attachments)await p.addSubtitle!(subtitle);
@@ -378,11 +394,12 @@ export class Player extends EventTarget {
       if (target > 0) {await p.seek(target);await this.settled(candidate, mode, target);}
       if (candidate.error) throw candidate.error;
       const actual=executionPlan(mode,(p.diagnostics as {plan?:string})?.plan,desired.af,desired.gain,!!(p.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
-      if(!actual||!admitted.some(plan=>plan.id===actual.id&&plan.eligible))throw new PlayerError('UNSUPPORTED_FEATURE','The prepared components do not match an admitted complete playback plan');
+      if(!actual||actual.id!==planId||!admitted.some(plan=>plan.id===actual.id&&plan.eligible))throw new PlayerError('UNSUPPORTED_FEATURE','The prepared components do not match an admitted complete playback plan');
       if (!desired.pause) await p.play();
       this.assertOperation();
       if(!preserve){this.sourceSerial++;this.publicSelections.clear();}
       this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;
+      this.runtimeCapabilities.update(planId,'verified',this.evidence(candidate),'Candidate startup validated; browser output fidelity beyond exposed evidence remains unverified');
       this.current = candidate;this.candidate = undefined;this.source = source;this.currentMode = mode;this.settings = desired;this.nativeTracks = nativeTracks;if(!preserve)this.subtitleAssets=[];
       // Acceptance is the cancellation boundary, including synchronous observers.
       // close/destroy still abort the internal controller during old-session cleanup.
@@ -406,6 +423,7 @@ export class Player extends EventTarget {
       for (const [name, data] of p.properties) this.emit('mpv', {event: 'property-change', name, data} satisfies PlaybackEvent);
       this.emit('mpv', {event: 'file-loaded'});this.emit('modechange', {phase: 'ready', mode, position: target});
     } catch (error) {
+      if(candidate)this.runtimeCapabilities.update(planId,'probing',this.evidence(candidate));
       if (candidate && candidate !== this.current) await this.dispose(candidate).catch(() => {});
       this.candidate = undefined;
       if (old && !old.error && this.current === old && !wasPaused && !this.destroyed && !this.closing) await old.backend.play().catch(() => {});
@@ -422,7 +440,7 @@ export class Player extends EventTarget {
     this.attempts=[];
     for(const attempt of priorAttempts)this.record(attempt);
     let nativeReason: string | undefined;
-    this.losslessInspection=undefined;
+    this.losslessInspection=undefined;this.sourceInspection=undefined;
     if(start===0&&!(settings.vf||settings.af||this.toneMapping!=='off')){
       if((source.kind==='local'&&source.input?.demuxer)||(source.kind==='remote'&&(source.options.demuxer||(source.options.format&&source.options.format!=='file')))){
         nativeReason='Manifest track requirements require mpv inspection';
@@ -454,42 +472,80 @@ export class Player extends EventTarget {
           const publicAudio=preserve?/^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio')??''):null;
           if(publicAudio)aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(publicAudio[1]))?.id??'missing';
           nativeReason=nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
-          // Original-track playback must not depend on optional preparation assets.
-          // Inspect for adaptation only after ordinary Native eligibility rejects
-          // this presentation. The existing terminal-source/cancellation guard
-          // still owns failures from either inspector.
-          const audioTracks=probe.tracks.filter(track=>track.type==='audio');
-          const selectedAudio=aid==='auto'?(audioTracks.find(track=>track.default)??audioTracks[0]):audioTracks.find(track=>track.id===aid);
-          if(nativeReason&&this.automaticLossless&&source.kind==='local'&&selectedAudio&&['pcm_s16le','pcm_s24le'].includes(selectedAudio.codec)){
-            const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-            const preparedProbe:Probe=await probeSource(transport,controller.signal,'flac');
-            this.assertOperation();
-            this.losslessInspection={source,reason:losslessAdaptationRejection(preparedProbe,{...settings,aid,sid})};
-          }
+          this.sourceInspection={source,probe,settings:{aid,sid,subtitles:settings.subtitles}};
         }catch(error){
-          if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;
+          if(this.destroyed||this.activeOperation?.controller.signal.aborted||['AUTOPLAY_BLOCKED','ABORTED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED'].includes(playerError(error).code)||terminalSourceFailure(error))throw error;
           nativeReason='Native eligibility could not be established: '+String(error);
           this.record({mode:'probe',outcome:'failed',reason:String(error)});
         }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
       }
     }
-    const errors:string[]=[];
-    for(const mode of PLAYBACK_MODES.slice(start)){
-      this.assertOperation();
-      this.admissionContext={nativeReason,automatic:this.automatic};
-      this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason);
-      const candidates=this.planDecisions.filter(p=>p.mode===mode);
-      const reason=candidates.some(p=>p.eligible)?undefined:candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED')?.reason??'No eligible complete playback plan';
-      if(reason){this.record({mode,outcome:'skipped',reason});continue;}
-      try{await this.replace(source,mode,settings,preserve,tracks,target);this.record({mode,outcome:'selected',reason:'Playback requirements and actual presentation accepted'});if(this.current?.error&&!this.recovering)this.recover(this.current);return;}
-      catch(error){if(this.destroyed||this.activeOperation?.controller.signal.aborted||playerError(error).code==='AUTOPLAY_BLOCKED'||terminalSourceFailure(error))throw error;errors.push(`${mode}: ${String(error)}`);this.record({mode,outcome:'failed',reason:String(error)});}
-    }
-    throw Error('No playback route satisfied the source: '+(errors.join('; ')||this.attempts.map(a=>a.reason).join('; ')));
+    this.admissionContext={nativeReason,automatic:true};
+    return this.discover(source,settings,preserve,tracks,target,true,undefined,start);
   }
+  private evidence(session=this.current):CapabilityEvidence {
+    if(session?.backend.startupEvidence)return session.backend.startupEvidence();
+    const d=session?.backend.diagnostics as {capability?:CapabilityEvidence;rendered?:number;decoder?:string;decoderStats?:{receivedFrames?:number;supportCheck?:unknown}}|undefined;
+    if(d?.capability)return {...d.capability};
+    return {metadata:true,decoderOutput:!!d?.rendered,videoPresented:!!d?.rendered,
+      ...(d?.decoderStats?.supportCheck?{apiHint:JSON.stringify(d.decoderStats.supportCheck)}:{})};
+  }
+  private async discover(source:Source,settings:Settings,preserve:boolean,tracks:TextTrackSource[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0):Promise<void> {
+    const nativeReason=automatic?this.admissionContext.nativeReason:undefined;
+    this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
+    this.runtimeCapabilities.begin(source,this.planDecisions);
+    if(pinnedMode&&!this.planDecisions.some(p=>p.mode===pinnedMode&&p.eligible)){
+      const candidates=this.planDecisions.filter(p=>p.mode===pinnedMode);
+      const rejection=candidates.find(p=>p.code==='ISOLATION_REQUIRED')??candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED');
+      throw new PlayerError(rejection?.code==='ISOLATION_REQUIRED'?'ISOLATION_REQUIRED':'UNSUPPORTED_FEATURE',rejection?.reason??'No qualified complete playback plan');
+    }
+    const errors:string[]=[];
+    // The finite registry supplies a deterministic order. No speculative engines.
+    for(let index=0;index<this.planDecisions.length;index++){
+      this.assertOperation();
+      let plan=this.planDecisions[index];
+      if(pinnedMode?plan.mode!==pinnedMode:PLAYBACK_MODES.indexOf(plan.mode)<start)continue;
+      // Optional inspection and preparation are strictly after original-copy attempts.
+      // Never let adaptation bypass subtitle/transport/filter semantic rejection.
+      if(automatic&&plan.id.startsWith('native-flac')&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
+        const inspected=this.sourceInspection;
+        const permitted=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic).find(p=>p.id===plan.id);
+        if(permitted?.code==='SOURCE_UNSUPPORTED'){
+          const controller=this.inspection=new AbortController();
+          try{
+            const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
+            const probe:Probe=await probeSource({file:source.file instanceof File?source.file:new File([source.file],'media')},controller.signal,'flac');
+            this.assertOperation();this.losslessInspection={source,reason:losslessAdaptationRejection(probe,inspected.settings)};
+          }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
+          this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
+          plan=this.planDecisions[index];this.runtimeCapabilities.admission(this.planDecisions);
+        }
+      }
+      if(!plan.eligible){if(plan.code!=='PLAN_NOT_REQUESTED')this.record({mode:plan.mode,outcome:'skipped',reason:`${plan.id}: ${plan.reason}`});continue;}
+      this.runtimeCapabilities.update(plan.id,'probing');
+      try{
+        await this.replace(source,plan.mode,settings,preserve,tracks,target,automatic,plan.id);
+        this.runtimeCapabilities.update(plan.id,'verified',this.evidence(),'Candidate startup validated; browser output fidelity beyond exposed evidence remains unverified');
+        this.record({mode:plan.mode,outcome:'selected',reason:`${plan.id}: Playback requirements and actual startup accepted`});
+        if(this.current?.error&&!this.recovering)this.recover(this.current);
+        return;
+      }catch(error){
+        const compatible=compatibilityFailure(error);
+        this.runtimeCapabilities.update(plan.id,'failed',undefined,String(error),compatible?'compatibility':'terminal');
+        this.record({mode:plan.mode,outcome:'failed',reason:`${plan.id}: ${String(error)}`});
+        if(this.destroyed||this.activeOperation?.controller.signal.aborted||!compatible)throw error;
+        errors.push(`${plan.id}: ${String(error)}`);
+      }
+    }
+    throw Error('No playback route satisfied the source: '+(errors.join('; ')||this.planDecisions.map(p=>p.reason).filter(Boolean).join('; ')));
+  }
+
   private recover(session: Session){
     if(this.recovering||this.recoveredSessions.has(session)||this.destroyed||!this.automatic||!this.source||this.mode==='software')return;
     this.recoveredSessions.add(session);
-    if(terminalSourceFailure(session.error)){void session.backend.pause().catch(()=>{});this.emit('error',String(session.error));return;}
+    const plan=executionPlan(this.mode,(session.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain,!!(session.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
+    this.runtimeCapabilities.update(plan.id,'failed',this.evidence(session),String(session.error),compatibilityFailure(session.error)?'compatibility':'terminal');
+    if(!compatibilityFailure(session.error)){void session.backend.pause().catch(()=>{});this.emit('error',String(session.error));return;}
     this.recovering=true;
     void this.enqueue(async()=>{
       if(this.current!==session||!this.automatic)return;
@@ -556,7 +612,14 @@ export class Player extends EventTarget {
       const desired={...this.settings,gain:value};
       if(this.current?.backend.gain){
         await this.current.backend.gain(value);this.assertOperation();this.settings=desired;
-        if(this.source)this.planDecisions=this.admissible(this.source,desired,this.subtitleAssets,this.nativeTracks,this.admissionContext.nativeReason,this.admissionContext.automatic);
+        if(this.source){
+          this.planDecisions=this.admissible(this.source,desired,this.subtitleAssets,this.nativeTracks,this.admissionContext.nativeReason,this.admissionContext.automatic);
+          // The same accepted backend now executes a different complete plan.
+          // Keep prior evidence in the bounded cache, but describe current requirements.
+          this.runtimeCapabilities.begin(this.source,this.planDecisions);
+          const plan=executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,desired.af,desired.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
+          this.runtimeCapabilities.update(plan.id,'verified',this.evidence(this.current),'Accepted session startup and in-place gain change validated');
+        }
       }else if(this.source)await this.select(this.source,desired,true,this.nativeTracks);
       else this.settings=desired;
     });
@@ -678,7 +741,7 @@ export class Player extends EventTarget {
     if(this.closing)return this.closing;
     this.operationEpoch++;this.activeOperation?.controller.abort();this.inspection?.abort();clearInterval(this.monitor);
     const cleanup=Promise.all([this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{})));
-    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.current=undefined;this.candidate=undefined;this.source=undefined;this.nativeTracks=[];this.subtitleAssets=[];this.publicSelections.clear();this.settings={...this.settings,pause:true,aid:'auto',sid:'auto'};this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;},'closing').finally(()=>{this.closing=undefined;});
+    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.current=undefined;this.candidate=undefined;this.source=undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.nativeTracks=[];this.subtitleAssets=[];this.publicSelections.clear();this.settings={...this.settings,pause:true,aid:'auto',sid:'auto'};this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
   }
   destroy(): Promise<void> {
@@ -687,7 +750,7 @@ export class Player extends EventTarget {
     this.destruction = (async () => {
       await Promise.all([this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {})));
       await this.queue;
-      try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.nativeTracks = [];this.subtitleAssets=[];this.fonts=[];this.settings.pause=true;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
+      try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.nativeTracks = [];this.subtitleAssets=[];this.fonts=[];this.settings.pause=true;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;
   }
 }

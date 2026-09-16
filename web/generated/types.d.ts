@@ -103,6 +103,7 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
     planAdmission?: Array<{
         id: string;
         mode: PlaybackMode;
