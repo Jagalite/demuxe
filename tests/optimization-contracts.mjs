@@ -77,3 +77,13 @@ test('a buffered frame can complete the seek before queued DOM seeking events',a
  const seeking=p.seekPresented(2.5,async()=>{});
  frame(3);await seeking;assert.equal(callbacks.size,0);
 });
+
+
+test('playing buffered seeks hold the clock until verified output then restore intent',async()=>{
+ const calls=[];
+ const video={paused:false,videoWidth:1280,currentTime:3,seeking:false};
+ const remux={timelineBias:1,canSeekBuffered:()=>true,pause(){calls.push('pause');video.paused=true},async seek(t){calls.push('seek');video.currentTime=t+1},async play(){calls.push('play');video.paused=false}};
+ const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux,stopped:false,refresh(){},async seekPresented(target,action){assert.equal(video.paused,true);await action();calls.push('verified')}});
+ await p.seek(5);assert.deepEqual(calls,['pause','seek','verified','play']);assert.equal(video.paused,false);
+ calls.length=0;video.paused=true;await p.seek(7);assert.deepEqual(calls,['pause','seek','verified']);assert.equal(video.paused,true);
+});

@@ -1,0 +1,1954 @@
+{
+  "cases": [
+    {
+      "name": "native-direct",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:20:40\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:20:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "native-remux",
+      "error": "Error: ENOENT: no such file or directory, open 'build/pipeline-separation/fixtures/config-0.ts'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:21:39\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:21:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "embedded-ass",
+      "evidence": {
+        "mode": "hybrid",
+        "auto": true,
+        "diagnostics": {
+          "mode": "hybrid",
+          "plan": {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "video": "webcodecs",
+            "audio": "mpv",
+            "qualification": "existing",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires its explicit Native experimental profile"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires its explicit Native experimental profile"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "probe",
+                "outcome": "skipped",
+                "reason": "Local MP4 metadata: 16 bytes; Error: Box bounds"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "Embedded subtitles require mpv rendering"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "selected",
+                "reason": "Playback requirements and actual presentation accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "pumpTicks": 57,
+            "subtitles": {
+              "updates": 1,
+              "bytes": 45251,
+              "peakBytes": 45251,
+              "parts": 3,
+              "renders": 12
+            },
+            "presentation": {
+              "position": 0.3,
+              "received": 12,
+              "closed": 9,
+              "drawn": 10,
+              "redraws": 1,
+              "peakRetained": 4,
+              "peakPending": 1,
+              "missing": 0,
+              "lateMs": [
+                36.149127996423715,
+                25.00544499761577,
+                8.429149008344666,
+                8.368498997019742,
+                21.260547995231605,
+                26.59570399105928,
+                13.58113799880789,
+                13.844775000596087,
+                25.16209100655658,
+                9.837481000000025
+              ],
+              "pts": [
+                0,
+                33000,
+                67000,
+                100000,
+                133000,
+                167000,
+                200000,
+                233000,
+                267000,
+                300000
+              ],
+              "pixelChecks": [],
+              "retained": 3,
+              "pending": 0
+            },
+            "mode": "retained",
+            "skipCanvas": true,
+            "canvasSubmissions": 10,
+            "rendered": 12,
+            "renderMs": 14.615000009536743,
+            "copyMs": 0,
+            "maxRenderMs": 12.459999993443489,
+            "heapBytes": 134217728,
+            "epoch": 2,
+            "path": "wasm",
+            "decoder": "webcodecs",
+            "decoderStats": {
+              "submitted": 15,
+              "frames": 10,
+              "receivedFrames": 10,
+              "closedFrames": 10,
+              "peakOutstanding": 8,
+              "peakFrames": 8,
+              "resets": 0,
+              "errors": 0,
+              "copyMs": 0,
+              "input": {
+                "kind": 1,
+                "width": 1920,
+                "height": 1080,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 58
+              },
+              "codec": "avc1.640028",
+              "supportCheck": {
+                "requested": {
+                  "codec": "avc1.640028",
+                  "codedWidth": 1920,
+                  "codedHeight": 1080,
+                  "descriptionBytes": 58,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                },
+                "source": {
+                  "kind": 1,
+                  "width": 1920,
+                  "height": 1080,
+                  "profile": -99,
+                  "level": -99,
+                  "depth": 0,
+                  "descriptionBytes": 58
+                },
+                "supported": true,
+                "recognized": {
+                  "codec": "avc1.640028",
+                  "codedWidth": 1920,
+                  "codedHeight": 1080,
+                  "descriptionBytes": 58,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                }
+              },
+              "actualWidth": 1920,
+              "actualHeight": 1080,
+              "pixelFormat": "NV12",
+              "placeholderFrames": 10,
+              "transferredFrames": 10,
+              "outstanding": 0,
+              "queued": 0,
+              "active": true
+            },
+            "demuxFormat": "mkv",
+            "seekPrerollSeconds": 0.5,
+            "presentedPosition": 0.3,
+            "ioPending": false,
+            "ioSerial": 24,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 2135316,
+              "requests": 24,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "peakChunkBytes": 196608,
+              "peakOwnedBytes": 458752,
+              "size": "9039757",
+              "reads": 24,
+              "seeks": 1,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 0.3,
+            "queuedFrames": 6144
+          }
+        },
+        "properties": {
+          "time-pos": 0.33299999999999996,
+          "duration": 12.066,
+          "pause": true,
+          "eof-reached": false,
+          "track-list": [
+            {
+              "id": "1",
+              "type": "video",
+              "src-id": 1,
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 0,
+              "decoder": "h264",
+              "decoder-desc": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "codec": "h264",
+              "demux-w": 1920,
+              "demux-h": 1080,
+              "demux-fps": 30.000000300000004,
+              "demux-par": 1,
+              "metadata": {
+                "HANDLER_NAME": "VideoHandler",
+                "ENCODER": "Lavc62.28.102 libx264",
+                "DURATION": "00:00:12.066000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "audio",
+              "src-id": 2,
+              "lang": "eng",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 1,
+              "decoder": "aac",
+              "decoder-desc": "AAC (Advanced Audio Coding)",
+              "codec": "aac",
+              "codec-desc": "AAC (Advanced Audio Coding)",
+              "codec-profile": "LC",
+              "demux-channel-count": 2,
+              "demux-channels": "stereo",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "audio",
+              "src-id": 3,
+              "lang": "jpn",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 2,
+              "codec": "aac",
+              "demux-channel-count": 2,
+              "demux-channels": "unknown2",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "sub",
+              "src-id": 4,
+              "lang": "eng",
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 3,
+              "codec": "ass",
+              "codec-desc": "Advanced Sub Station Alpha",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "sub",
+              "src-id": 5,
+              "lang": "ara",
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 4,
+              "codec": "ass",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            }
+          ],
+          "audio-codec-name": "aac",
+          "volume": 100,
+          "speed": 1,
+          "paused-for-cache": false,
+          "cache-buffering-state": 100,
+          "demuxer-cache-state": {
+            "cache-end": 1.514666667,
+            "reader-pts": 0.5116666670000001,
+            "cache-duration": 1.003,
+            "eof": false,
+            "underrun": false,
+            "idle": true,
+            "total-bytes": 826768,
+            "fw-bytes": 826768,
+            "raw-input-rate": 4166510,
+            "debug-low-level-seeks": 0,
+            "debug-byte-level-seeks": 0,
+            "debug-ts-last": 1.514666667,
+            "ts-per-stream": [
+              {
+                "type": "video",
+                "cache-duration": 1.166,
+                "reader-pts": 0.467,
+                "cache-end": 1.633
+              },
+              {
+                "type": "audio",
+                "cache-duration": 1.003,
+                "reader-pts": 0.5116666670000001,
+                "cache-end": 1.514666667
+              }
+            ],
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          },
+          "decoder-frame-drop-count": 0,
+          "frame-drop-count": 0,
+          "avsync": 0.013646499999999673,
+          "video-params": {
+            "pixelformat": "yuv420p",
+            "average-bpp": 12,
+            "w": 2,
+            "h": 2,
+            "dw": 2,
+            "dh": 2,
+            "crop-x": 0,
+            "crop-y": 0,
+            "crop-w": 2,
+            "crop-h": 2,
+            "aspect": 1,
+            "aspect-name": "Square",
+            "par": 1,
+            "sar": 1,
+            "sar-name": "Square",
+            "colormatrix": "bt.709",
+            "colorlevels": "limited",
+            "primaries": "bt.709",
+            "gamma": "bt.1886",
+            "sig-peak": 0,
+            "light": "display",
+            "chroma-location": "mpeg2/4/h264",
+            "stereo-in": "mono",
+            "rotate": 0
+          },
+          "seekable": true
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "name": "incompatible-native-audio",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/hevc-ac3.mkv'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:23:52\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:23:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "software-codec",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/mpeg4-mp3.avi'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:24:41\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:24:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "browser-rejection",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/hevc-ac3.mkv'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:25:44\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:25:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "reselect-new-source",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/mpeg4-mp3.avi'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:26:46\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:26:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "automatic-filters",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:27:44\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:27:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "explicit-mode-pins",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/mpeg4-mp3.avi'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:28:45\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:28:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "runtime-recovery",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/hevc-ac3.mkv'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:29:43\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:29:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "native-runtime-remux",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:30:47\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:30:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "subtitle-enable-reselect",
+      "evidence": {
+        "mode": "hybrid",
+        "auto": true,
+        "diagnostics": {
+          "mode": "hybrid",
+          "plan": {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "video": "webcodecs",
+            "audio": "mpv",
+            "qualification": "existing",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires its explicit Native experimental profile"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires its explicit Native experimental profile"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "probe",
+                "outcome": "skipped",
+                "reason": "Local MP4 metadata: 16 bytes; Error: Box bounds"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "Embedded subtitles require mpv rendering"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "selected",
+                "reason": "Playback requirements and actual presentation accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "pumpTicks": 51,
+            "subtitles": {
+              "updates": 1,
+              "bytes": 45251,
+              "peakBytes": 45251,
+              "parts": 3,
+              "renders": 12
+            },
+            "presentation": {
+              "position": 0.3,
+              "received": 12,
+              "closed": 9,
+              "drawn": 10,
+              "redraws": 1,
+              "peakRetained": 4,
+              "peakPending": 1,
+              "missing": 0,
+              "lateMs": [
+                38.279160003576294,
+                21.606022991059262,
+                7.726671990463274,
+                16.642071999999985,
+                22.528712999999982,
+                20.493259006556514,
+                21.74108199642376,
+                18.714895007152563,
+                17.11312300596046,
+                9.702768992251322
+              ],
+              "pts": [
+                0,
+                33000,
+                67000,
+                100000,
+                133000,
+                167000,
+                200000,
+                233000,
+                267000,
+                300000
+              ],
+              "pixelChecks": [],
+              "retained": 3,
+              "pending": 0
+            },
+            "mode": "retained",
+            "skipCanvas": true,
+            "canvasSubmissions": 10,
+            "rendered": 12,
+            "renderMs": 17.850000008940697,
+            "copyMs": 0,
+            "maxRenderMs": 15.185000002384186,
+            "heapBytes": 134217728,
+            "epoch": 2,
+            "path": "wasm",
+            "decoder": "webcodecs",
+            "decoderStats": {
+              "submitted": 17,
+              "frames": 11,
+              "receivedFrames": 12,
+              "closedFrames": 11,
+              "peakOutstanding": 8,
+              "peakFrames": 9,
+              "resets": 0,
+              "errors": 0,
+              "copyMs": 0,
+              "input": {
+                "kind": 1,
+                "width": 1920,
+                "height": 1080,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 58
+              },
+              "codec": "avc1.640028",
+              "supportCheck": {
+                "requested": {
+                  "codec": "avc1.640028",
+                  "codedWidth": 1920,
+                  "codedHeight": 1080,
+                  "descriptionBytes": 58,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                },
+                "source": {
+                  "kind": 1,
+                  "width": 1920,
+                  "height": 1080,
+                  "profile": -99,
+                  "level": -99,
+                  "depth": 0,
+                  "descriptionBytes": 58
+                },
+                "supported": true,
+                "recognized": {
+                  "codec": "avc1.640028",
+                  "codedWidth": 1920,
+                  "codedHeight": 1080,
+                  "descriptionBytes": 58,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                }
+              },
+              "actualWidth": 1920,
+              "actualHeight": 1080,
+              "pixelFormat": "NV12",
+              "placeholderFrames": 11,
+              "transferredFrames": 11,
+              "outstanding": 0,
+              "queued": 1,
+              "active": true
+            },
+            "demuxFormat": "mkv",
+            "seekPrerollSeconds": 0.5,
+            "presentedPosition": 0.3,
+            "ioPending": false,
+            "ioSerial": 24,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 2135316,
+              "requests": 24,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "peakChunkBytes": 196608,
+              "peakOwnedBytes": 458752,
+              "size": "9039757",
+              "reads": 24,
+              "seeks": 1,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 0.3,
+            "queuedFrames": 5888
+          }
+        },
+        "properties": {
+          "time-pos": 0.33299999999999996,
+          "duration": 12.066,
+          "pause": true,
+          "eof-reached": false,
+          "track-list": [
+            {
+              "id": "1",
+              "type": "video",
+              "src-id": 1,
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 0,
+              "decoder": "h264",
+              "decoder-desc": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "codec": "h264",
+              "demux-w": 1920,
+              "demux-h": 1080,
+              "demux-fps": 30.000000300000004,
+              "demux-par": 1,
+              "metadata": {
+                "HANDLER_NAME": "VideoHandler",
+                "ENCODER": "Lavc62.28.102 libx264",
+                "DURATION": "00:00:12.066000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "audio",
+              "src-id": 2,
+              "lang": "eng",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 1,
+              "decoder": "aac",
+              "decoder-desc": "AAC (Advanced Audio Coding)",
+              "codec": "aac",
+              "codec-desc": "AAC (Advanced Audio Coding)",
+              "codec-profile": "LC",
+              "demux-channel-count": 2,
+              "demux-channels": "stereo",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "audio",
+              "src-id": 3,
+              "lang": "jpn",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 2,
+              "codec": "aac",
+              "demux-channel-count": 2,
+              "demux-channels": "unknown2",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "sub",
+              "src-id": 4,
+              "lang": "eng",
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 3,
+              "codec": "ass",
+              "codec-desc": "Advanced Sub Station Alpha",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "sub",
+              "src-id": 5,
+              "lang": "ara",
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 4,
+              "codec": "ass",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            }
+          ],
+          "audio-codec-name": "aac",
+          "volume": 100,
+          "speed": 1,
+          "paused-for-cache": false,
+          "cache-buffering-state": 100,
+          "demuxer-cache-state": {
+            "cache-end": 1.514666667,
+            "reader-pts": 0.5116666670000001,
+            "cache-duration": 1.003,
+            "eof": false,
+            "underrun": false,
+            "idle": true,
+            "total-bytes": 826768,
+            "fw-bytes": 826768,
+            "raw-input-rate": 3944394,
+            "debug-low-level-seeks": 0,
+            "debug-byte-level-seeks": 0,
+            "debug-ts-last": 1.514666667,
+            "ts-per-stream": [
+              {
+                "type": "video",
+                "cache-duration": 1.166,
+                "reader-pts": 0.467,
+                "cache-end": 1.633
+              },
+              {
+                "type": "audio",
+                "cache-duration": 1.003,
+                "reader-pts": 0.5116666670000001,
+                "cache-end": 1.514666667
+              }
+            ],
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          },
+          "decoder-frame-drop-count": 0,
+          "frame-drop-count": 0,
+          "avsync": 0.008313166666666372,
+          "video-params": {
+            "pixelformat": "yuv420p",
+            "average-bpp": 12,
+            "w": 2,
+            "h": 2,
+            "dw": 2,
+            "dh": 2,
+            "crop-x": 0,
+            "crop-y": 0,
+            "crop-w": 2,
+            "crop-h": 2,
+            "aspect": 1,
+            "aspect-name": "Square",
+            "par": 1,
+            "sar": 1,
+            "sar-name": "Square",
+            "colormatrix": "bt.709",
+            "colorlevels": "limited",
+            "primaries": "bt.709",
+            "gamma": "bt.1886",
+            "sig-peak": 0,
+            "light": "display",
+            "chroma-location": "mpeg2/4/h264",
+            "stereo-in": "mono",
+            "rotate": 0
+          },
+          "seekable": true
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "name": "source-identity-is-terminal",
+      "error": "Error: ENOENT: no such file or directory, open 'build/pipeline-separation/fixtures/config-0.ts'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:32:54\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:32:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "range-change-does-not-fallback",
+      "error": "page.evaluate: PlayerError: Source transport: Error: Missing or invalid Content-Range\n    at playerError (http://127.0.0.1:60971/web/generated/internal/errors.js:51:12)\n    at http://127.0.0.1:60971/web/generated/unified-player.js:268:36\n    at /Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:39:11\n    at async check (/Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:33:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": [
+          "[object Object]"
+        ]
+      }
+    },
+    {
+      "name": "remote-authorization",
+      "error": "page.evaluate: PlayerError: Source transport: Error: Media read retry deadline exceeded\n    at playerError (http://127.0.0.1:60971/web/generated/internal/errors.js:51:12)\n    at http://127.0.0.1:60971/web/generated/unified-player.js:268:36\n    at /Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:43:55\n    at check (/Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:20)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:43:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": [
+          "[object Object]"
+        ]
+      }
+    },
+    {
+      "name": "disabled-tracks-survive-reselection",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:44:62\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:44:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "all-routes-fail-rollback",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:45:51\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:45:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "selected-language-survives-filters",
+      "evidence": {
+        "mode": "software",
+        "auto": true,
+        "diagnostics": {
+          "mode": "software",
+          "plan": {
+            "id": "software",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "existing",
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "terminal"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "FEATURE_UNSUPPORTED",
+              "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "Video filters and tone mapping require Software. Clear filters before leaving software mode."
+              },
+              {
+                "mode": "software",
+                "outcome": "selected",
+                "reason": "Playback requirements and actual presentation accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "hflip",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "softwarePresenter": "rgb",
+            "pumpTicks": 31,
+            "rendered": 3,
+            "renderMs": 11.654999986290932,
+            "copyMs": 2.9600000083446503,
+            "maxRenderMs": 7.24499998986721,
+            "heapBytes": 134217728,
+            "epoch": 2,
+            "path": "wasm",
+            "decoder": "software",
+            "demuxFormat": "mkv",
+            "seekPrerollSeconds": 1,
+            "presentedPosition": 0,
+            "ioPending": false,
+            "ioSerial": 19,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 1807636,
+              "requests": 19,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "peakChunkBytes": 131072,
+              "peakOwnedBytes": 393216,
+              "size": "9039757",
+              "reads": 19,
+              "seeks": 1,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 0,
+            "queuedFrames": 0
+          }
+        },
+        "properties": {
+          "time-pos": 0,
+          "duration": 12.066,
+          "pause": true,
+          "eof-reached": false,
+          "track-list": [
+            {
+              "id": "1",
+              "type": "video",
+              "src-id": 1,
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 0,
+              "decoder": "h264",
+              "decoder-desc": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "codec": "h264",
+              "codec-desc": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "codec-profile": "High",
+              "demux-w": 1920,
+              "demux-h": 1080,
+              "demux-fps": 30.000000300000004,
+              "demux-par": 1,
+              "metadata": {
+                "HANDLER_NAME": "VideoHandler",
+                "ENCODER": "Lavc62.28.102 libx264",
+                "DURATION": "00:00:12.066000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "audio",
+              "src-id": 2,
+              "lang": "eng",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 1,
+              "codec": "aac",
+              "codec-desc": "AAC (Advanced Audio Coding)",
+              "codec-profile": "LC",
+              "demux-channel-count": 2,
+              "demux-channels": "stereo",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "audio",
+              "src-id": 3,
+              "lang": "jpn",
+              "audio-channels": 2,
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 2,
+              "decoder": "aac",
+              "decoder-desc": "AAC (Advanced Audio Coding)",
+              "codec": "aac",
+              "codec-desc": "AAC (Advanced Audio Coding)",
+              "demux-channel-count": 2,
+              "demux-channels": "stereo",
+              "demux-samplerate": 48000,
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:12.021000000"
+              }
+            },
+            {
+              "id": "1",
+              "type": "sub",
+              "src-id": 4,
+              "lang": "eng",
+              "image": false,
+              "albumart": false,
+              "default": true,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": true,
+              "main-selection": 0,
+              "ff-index": 3,
+              "codec": "ass",
+              "codec-desc": "Advanced Sub Station Alpha",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            },
+            {
+              "id": "2",
+              "type": "sub",
+              "src-id": 5,
+              "lang": "ara",
+              "image": false,
+              "albumart": false,
+              "default": false,
+              "forced": false,
+              "dependent": false,
+              "visual-impaired": false,
+              "hearing-impaired": false,
+              "external": false,
+              "selected": false,
+              "ff-index": 4,
+              "codec": "ass",
+              "metadata": {
+                "ENCODER": "Lavc62.28.102 ass",
+                "DURATION": "00:00:12.000000000"
+              }
+            }
+          ],
+          "audio-codec-name": "aac",
+          "video-codec": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "volume": 100,
+          "speed": 1,
+          "paused-for-cache": false,
+          "cache-buffering-state": 100,
+          "demuxer-cache-state": {
+            "cache-end": 1.1306666669999998,
+            "reader-pts": 0.148666667,
+            "cache-duration": 0.9819999999999999,
+            "eof": false,
+            "underrun": false,
+            "idle": false,
+            "total-bytes": 781800,
+            "fw-bytes": 781800,
+            "raw-input-rate": 5575510,
+            "debug-low-level-seeks": 0,
+            "debug-byte-level-seeks": 0,
+            "debug-ts-last": 1.1306666669999998,
+            "ts-per-stream": [
+              {
+                "type": "video",
+                "cache-duration": 1.133,
+                "reader-pts": 0.1,
+                "cache-end": 1.233
+              },
+              {
+                "type": "audio",
+                "cache-duration": 0.9819999999999999,
+                "reader-pts": 0.148666667,
+                "cache-end": 1.1306666669999998
+              }
+            ],
+            "bof-cached": false,
+            "eof-cached": false,
+            "seekable-ranges": []
+          },
+          "decoder-frame-drop-count": 0,
+          "frame-drop-count": 0,
+          "avsync": 0,
+          "video-params": {
+            "pixelformat": "yuv420p",
+            "average-bpp": 12,
+            "w": 1920,
+            "h": 1080,
+            "dw": 1920,
+            "dh": 1080,
+            "crop-x": 0,
+            "crop-y": 0,
+            "crop-w": 1920,
+            "crop-h": 1080,
+            "aspect": 1.7777777777777777,
+            "aspect-name": "16:9",
+            "par": 1,
+            "sar": 1.7777777777777777,
+            "sar-name": "16:9",
+            "colormatrix": "bt.709",
+            "colorlevels": "limited",
+            "primaries": "bt.709",
+            "gamma": "bt.1886",
+            "sig-peak": 0,
+            "light": "display",
+            "chroma-location": "mpeg2/4/h264",
+            "stereo-in": "mono",
+            "rotate": 0
+          },
+          "seekable": true
+        },
+        "errors": []
+      },
+      "passed": true
+    },
+    {
+      "name": "second-failure-during-recovery",
+      "error": "Error: ENOENT: no such file or directory, open 'build/fixtures/software-full/h264-aac.mp4'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1243:14)\n    at async open (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:9:36)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:54:3\n    at async check (file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:53:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": []
+      }
+    },
+    {
+      "name": "identity-survives-decoder-fallback",
+      "error": "page.evaluate: PlayerError: Source transport: Error: Media read retry deadline exceeded\n    at playerError (http://127.0.0.1:60971/web/generated/internal/errors.js:51:12)\n    at http://127.0.0.1:60971/web/generated/unified-player.js:268:36\n    at check.nativeRemux (/Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:65:11)\n    at async check (/Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:13:14)\n    at async file:///Volumes/seed2/Projects/demuxe-optimization-integration/tests/automatic-selection.mjs:59:2",
+      "state": {
+        "mode": "native",
+        "diagnostics": {
+          "mode": "native",
+          "planAdmission": [],
+          "selection": {
+            "automatic": true,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          }
+        },
+        "errors": [
+          "[object Object]"
+        ]
+      }
+    },
+    {
+      "name": "destroy-during-stalled-probe-import",
+      "evidence": {
+        "destroyed": true,
+        "rejected": true
+      },
+      "passed": true
+    },
+    {
+      "name": "destroy-during-probe",
+      "evidence": {
+        "rejected": true
+      },
+      "passed": true
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "fallbackBrowser": "146.0.1"
+}

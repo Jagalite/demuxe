@@ -83,7 +83,7 @@ static int configure_aac(AVCodecParameters*p,const uint8_t*adts,int n){
 #ifdef DEMUXE_AUDIO_ADAPTATION
 static int adapt_enabled;
 static int adaptation_describe(AVCodecParameters *p);
-EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1)return reject("Invalid adaptation policy");adapt_enabled=enabled;return 0;}
+EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1&&enabled!=2)return reject("Invalid adaptation policy");adapt_enabled=enabled;return 0;}
 #endif
 static int configure_audio(AVCodecParameters *p){
 #ifdef DEMUXE_AUDIO_ADAPTATION
@@ -108,6 +108,10 @@ static void clear_prefetch(void){for(int i=0;i<prefetched;i++)av_packet_free(&pr
 static int video=-1,audio=-1,map[64],eof,is_ts,video_started;
 static int64_t position,total,aac_anchor,aac_count;
 static double fragment_start,origin;
+static int fragment_count;
+#ifndef DEMUXE_FIRST_FRAGMENT_SECONDS
+#define DEMUXE_FIRST_FRAGMENT_SECONDS 0.5
+#endif
 #ifdef DEMUXE_AUDIO_ADAPTATION
 #include "../adaptation/flac.h"
 #endif
@@ -291,7 +295,7 @@ EMSCRIPTEN_KEEPALIVE int rm_set_container(int webm){
 }
 EMSCRIPTEN_KEEPALIVE int rm_start(double target){
  int seek_stream=video>=0?video:audio;
- close_output();eof=0;video_started=0;fragment_start=-1;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
+ close_output();eof=0;video_started=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
  if(target>0){if(is_ts){int r=seek_ts(target);if(r<0)return r;}else{clear_prefetch();int r=av_seek_frame(in,seek_stream,(int64_t)((target+origin)/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}}
  else if(position>0&&target<0){int r=av_seek_frame(in,seek_stream,(int64_t)(origin/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}
  int r=audio>=0?configure_audio(in->streams[audio]->codecpar):0;if(r<0)return r;
@@ -332,6 +336,15 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
  if(mux_webm){
   av_dict_set(&opts,"live","1",0);av_dict_set(&opts,"cluster_time_limit",video>=0?"2147483647":"500",0);av_dict_set(&opts,"cluster_size_limit","8388608",0);av_dict_set(&opts,"write_crc32","0",0);
  }else{av_dict_set(&opts,"movflags","empty_moov+default_base_moof+frag_custom+frag_discont",0);av_dict_set(&opts,"use_editlist","0",0);}
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ if(adapt_enabled==2&&!mux_webm){
+  // Opus-in-MP4 needs its real startup delay in an edit list. Delay the moov
+  // until the first bounded fragment establishes track timestamps; never guess.
+  av_dict_set(&opts,"movflags","empty_moov+delay_moov+default_base_moof+frag_custom+frag_discont",0);
+  av_dict_set(&opts,"use_editlist","1",0);
+  av_dict_set_int(&opts,"movie_timescale",adapt_encoder->sample_rate,0);
+ }
+#endif
  r=avformat_write_header(out,&opts);av_dict_free(&opts);avio_flush(output_io);return r;
 }
 EMSCRIPTEN_KEEPALIVE int rm_step(void){
@@ -396,7 +409,8 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
 #endif
   }
   if(r<0)return r;
-  int boundary=idx==(video>=0?video:audio)&&time-fragment_start>=0.5;
+  double fragment_seconds=fragment_count?0.5:DEMUXE_FIRST_FRAGMENT_SECONDS;
+  int boundary=idx==(video>=0?video:audio)&&time-fragment_start>=fragment_seconds;
 #ifdef DEMUXE_AUDIO_ADAPTATION
   // A video track may finish long before audio. Bound decoding per call even
   // without another video packet; normal encoding remains continuous.
@@ -407,7 +421,7 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
    // Do not cut a video WebM cluster immediately after its first keyframe.
    // Let the muxer close clusters before the following boundary/keyframe.
    r=mux_webm&&video>=0?0:av_write_frame(out,NULL);
-   avio_flush(output_io);fragment_start=time;
+   avio_flush(output_io);fragment_start=time;fragment_count++;
 #ifdef DEMUXE_AUDIO_ADAPTATION
    if(adapt_enabled)adaptation_stats();
 #endif

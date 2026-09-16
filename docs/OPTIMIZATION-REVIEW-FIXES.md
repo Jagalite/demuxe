@@ -1,5 +1,7 @@
 # Review fixes: bounded work, track identity and frame-verified seeks
 
+Historical checkpoint report. For subsequent local implementation and current coverage, see [completion status](OPTIMIZATION-COMPLETION.md).
+
 All three findings from `results/optimization-review/REVIEW.md` are addressed.
 Work remains local and uncommitted on the saved integration checkpoint. This does
 not complete the wider optimization program or enable automatic FLAC admission.

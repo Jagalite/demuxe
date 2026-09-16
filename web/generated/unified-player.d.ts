@@ -28,6 +28,10 @@ export declare class Player extends EventTarget {
     private audioAdaptation?;
     private bufferedNativeSeeks;
     private hybridAudioFilters;
+    private nativeASS;
+    private allowLossy;
+    private planDecisions;
+    private admissionContext;
     private nativeRemux;
     private softwarePresenter;
     private settings;
@@ -86,6 +90,7 @@ export declare class Player extends EventTarget {
     private dispose;
     private create;
     private settled;
+    private admissible;
     private replace;
     private record;
     private select;

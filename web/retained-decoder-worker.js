@@ -1,6 +1,7 @@
 import {videoCodecConfig,vp9PacketConfig} from './video-codec-config.js';
 let pendingConfiguration;
 let packetPrefix,needsKey=true;
+let allowSharedPackets=true;
 const noCopy=true;
 // Dedicated service: native decoder pthread waits never block this event loop.
 let memory,pointer,header,view,decoder,configuration,queue=[],generation=0,busy=false;
@@ -10,7 +11,7 @@ const copying=new Set(),closed=new WeakSet();
 const packetOffset=80,frameOffset=80+8*1024*1024;
 // errno values are from the pinned Emscripten WASI ABI.
 const AGAIN=-6,EOF=-541478725,IO=-29;
-const stats={submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
+const stats={packetBytes:0,ownedPacketBytes:0,sharedPacketInputs:0,sharedPacketFallbacks:0,submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 function closeFrame(frame){if(closed.has(frame))return;closed.add(frame);frame.close();stats.closedFrames++;}
 function clear(){generation++;if(decoder&&decoder.state!=='closed')decoder.close();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;}
@@ -123,11 +124,23 @@ async function pump(){
     if(decoder.decodeQueueSize+queue.length>=8)result=AGAIN;
     else{
      const size=header[4];if(size<1||size>8*1024*1024)throw Error('Packet size limit');
-     let bytes=new Uint8Array(memory,pointer+packetOffset,size).slice();
-     if(needsKey&&header[7]&&packetPrefix?.length){const joined=new Uint8Array(packetPrefix.length+bytes.length);joined.set(packetPrefix);joined.set(bytes,packetPrefix.length);bytes=joined;}
+     let bytes=new Uint8Array(memory,pointer+packetOffset,size);stats.packetBytes+=size;
+     if(!allowSharedPackets){bytes=bytes.slice();stats.ownedPacketBytes+=bytes.length;}
+     if(needsKey&&header[7]&&packetPrefix?.length){const joined=new Uint8Array(packetPrefix.length+bytes.length);joined.set(packetPrefix);joined.set(bytes,packetPrefix.length);bytes=joined;stats.ownedPacketBytes+=joined.length;}
      const timestamp=view.getFloat64(64,true),duration=view.getFloat64(72,true);
      if(!Number.isSafeInteger(timestamp)||!Number.isSafeInteger(duration)||duration<0)throw Error(`Invalid timestamps: ${timestamp}, duration ${duration}`);
-     decoder.decode(new EncodedVideoChunk({type:header[7]?'key':'delta',timestamp,...(duration?{duration}:{}),data:bytes}));
+     const init={type:header[7]?'key':'delta',timestamp,...(duration?{duration}:{}),data:bytes};
+     let chunk;
+     // EncodedVideoChunk synchronously copies input when no transfer list is
+     // supplied. The producer still owns this mailbox until pump acknowledges
+     // it below. Never transfer or detach the shared Wasm heap.
+     try{chunk=new EncodedVideoChunk(init);if(bytes.buffer===memory)stats.sharedPacketInputs++;}
+     catch(error){
+      if(error?.name!=='TypeError'||bytes.buffer!==memory)throw error;
+      allowSharedPackets=false;stats.sharedPacketFallbacks++;
+      bytes=bytes.slice();stats.ownedPacketBytes+=bytes.length;chunk=new EncodedVideoChunk({...init,data:bytes});
+     }
+     decoder.decode(chunk);
      needsKey=false;submitted++;stats.submitted++;stats.peakOutstanding=Math.max(stats.peakOutstanding,decoder.decodeQueueSize);
     }
    }else if(operation===3){

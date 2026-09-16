@@ -1,0 +1,107 @@
+{
+  "browser": "152.0.7977.83",
+  "scope": "External authored ASS overlay on Native presentation; no embedded, PiP/casting or physical A/V claim",
+  "cases": [
+    {
+      "kind": "direct",
+      "active": {
+        "visible": 12896,
+        "green": 2380,
+        "width": 640,
+        "height": 360,
+        "stats": {
+          "renders": 1,
+          "bytes": 85475,
+          "peakBytes": 85475,
+          "discarded": 1
+        }
+      },
+      "animation": {
+        "visible": 12896,
+        "green": 2380,
+        "width": 640,
+        "height": 360,
+        "stats": {
+          "renders": 2,
+          "bytes": 170950,
+          "peakBytes": 85475,
+          "discarded": 1
+        }
+      },
+      "resize": {
+        "visible": 6111,
+        "green": 1012,
+        "width": 420,
+        "height": 236,
+        "stats": {
+          "renders": 3,
+          "bytes": 210691,
+          "peakBytes": 85475,
+          "discarded": 1
+        }
+      },
+      "gain": {
+        "same": true,
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-direct-ass-gain",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original+web-audio-gain",
+            "qualification": "experimental",
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement, Web Audio and CORS-clean media",
+            "subtitles": "external ASS/SSA via pinned libass; container presentation only",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 0.25,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "direct",
+            "subtitleOverlay": {
+              "component": "libass",
+              "scope": "external-ass",
+              "destination": "container-only",
+              "renders": 16,
+              "bytes": 727324,
+              "peakBytes": 85475,
+              "discarded": 1
+            },
+            "audioProcessing": {
+              "component": "web-audio-gain",
+              "gain": 0.25,
+              "contextState": "running",
+              "baseLatency": 0.005333333333333333
+            },
+            "position": 3.016142,
+            "rendered": 50,
+            "dropped": 0,
+            "readyState": 4
+          }
+        }
+      },
+      "track": {
+        "id": "1:sub:external:1",
+        "hybrid": "1:sub:external:1",
+        "native": "1:sub:external:1"
+      },
+      "errors": [],
+      "passed": true
+    }
+  ]
+}

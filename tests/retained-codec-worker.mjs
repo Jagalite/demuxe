@@ -77,3 +77,24 @@ test('drain after idle gets an output wait window and successful flush returns E
  assert.equal(await s.request(3),0);assert.equal(await s.request(4),0);
  await s.flush();s.advance(4000);assert.equal(await s.request(4),-541478725,'flush completion is not a watchdog failure when packets produce no visible frame');
 });
+
+test('packet ownership preserves prefixes and falls back once without transferring the heap',async()=>{
+ const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16),seen=[];let sharedAttempts=0;
+ class Chunk{
+  constructor(init){
+   assert.equal(init.transfer,undefined);
+   if(init.data.buffer===memory){sharedAttempts++;throw new TypeError('Shared input unsupported by this test implementation');}
+   this.bytes=Array.from(init.data);
+  }
+ }
+ const decoder={decodeQueueSize:0,decode(chunk){seen.push(chunk.bytes);new Uint8Array(memory,80,3).fill(255);}};
+ const context=vm.createContext({self:{},videoCodecConfig,vp9PacketConfig,EncodedVideoChunk:Chunk,Uint8Array,Int32Array,DataView,Atomics,performance,postMessage(){},shared:memory,instance:decoder});
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');
+ vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);decoder=instance;packetPrefix=new Uint8Array([99]);',context);
+ for(let i=0;i<3;i++){
+  new Uint8Array(memory,80,3).set([1+i*3,2+i*3,3+i*3]);h[0]=(i+1)*4+1;h[2]=2;h[4]=3;h[7]=i===0?1:0;
+  await context.pump();assert.equal(h[0],(i+1)*4+2);assert.equal(h[3],0);
+ }
+ assert.deepEqual(seen,[[99,1,2,3],[4,5,6],[7,8,9]]);assert.equal(sharedAttempts,1);assert.equal(memory.byteLength,80+8*1024*1024+16);
+ const stats=vm.runInContext('({...stats})',context);assert.equal(stats.ownedPacketBytes,10);assert.equal(stats.sharedPacketFallbacks,1);
+});

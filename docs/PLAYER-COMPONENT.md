@@ -233,3 +233,15 @@ The programmatic Player option `experimentalAudioAdaptation: 'flac'` is an expli
 Native trial gate. No new component attribute or automatic route is introduced.
 See [the FLAC qualification report](OPTIMIZATION-FLAC.md) for required optional assets,
 track/fidelity limits and unsupported subtitle combinations.
+
+
+## Optional playback processing
+
+The component delegates playback, subtitle selection and visibility to its core
+Player; it owns no separate optimization route or audio graph. Applications using
+an explicitly configured core can call `setAudioGain` repeatedly without replacing
+the video session. Ordinary component volume/mute controls retain their existing
+meaning. The component fullscreen container includes subtitle canvases. Native
+ASS and adaptation require explicit core constructor options and optional assets;
+there are no new component attributes or silently enabled experimental defaults.
+See [core options and restrictions](PUBLIC-API.md#experimental-playback-optimizations).

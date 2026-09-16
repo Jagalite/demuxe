@@ -1,4 +1,4 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,readFile,writeFile,mkdir,symlink} from 'node:fs/promises';import path from 'node:path';import {execFileSync} from 'node:child_process';
+import {test} from 'node:test';import {createHash} from 'node:crypto';import assert from 'node:assert/strict';import {mkdtemp,readFile,writeFile,mkdir,symlink} from 'node:fs/promises';import path from 'node:path';import {execFileSync} from 'node:child_process';
 const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-4/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/copy-qualification-'));execFileSync('tar',['-xzf',archive,'-C',root]);const pkg=path.join(root,'package'),cli=path.join(pkg,'bin/demuxe.mjs');
 const run=dest=>execFileSync(process.execPath,[cli,'copy-assets',dest],{encoding:'utf8',stdio:'pipe'});
 const failure=dest=>{try{run(dest);assert.fail('Expected copy rejection');}catch(error){return String(error.stderr||error);}};
@@ -7,3 +7,13 @@ test('copy refuses unrelated collisions and symlinks',async()=>{const dir=path.j
 test('copy rejects tampered and missing assets before writing runtime files',async()=>{const file=path.join(pkg,'web/io-worker.js'),original=await readFile(file);try{await writeFile(file,'corrupt');assert.match(failure(path.join(root,'tampered')),/hash mismatch/);}finally{await writeFile(file,original);}const manifestFile=path.join(pkg,'release-manifest.json'),before=await readFile(manifestFile);try{const m=JSON.parse(before);m.files['missing.js']={bytes:1,sha256:'bad'};await writeFile(manifestFile,JSON.stringify(m));assert.match(failure(path.join(root,'missing')),/Missing package asset/);}finally{await writeFile(manifestFile,before);}});
 test('copy rejects incompatible package manifest version',async()=>{const file=path.join(pkg,'package.json'),before=await readFile(file);try{const p=JSON.parse(before);p.version='999.0.0';await writeFile(file,JSON.stringify(p));assert.match(failure(path.join(root,'incompatible')),/Incompatible package/);}finally{await writeFile(file,before);}});
 test('packaged runtime contains no host build paths or private keys, including Wasm strings',async()=>{const manifest=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));for(const name of [...Object.keys(manifest.files),'release-manifest.json']){const text=(await readFile(path.join(pkg,name))).toString('latin1');assert.equal(/\/(?:Users|Volumes|private\/var)\//.test(text),false,'Host path in '+name);assert.equal(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(text),false,'Private key in '+name);}});
+
+test('optional source companions are listed and match their runtime manifests',async()=>{
+ const sums=await readFile(path.join(path.dirname(archive),'SHA256SUMS'),'utf8');
+ for(const engine of ['engine-adaptation','engine-ass']){
+  let manifest;try{manifest=JSON.parse(await readFile(path.join(pkg,'web',engine,'manifest.json')));}catch(e){if(e.code==='ENOENT')continue;throw e;}
+  const source=manifest.sourceCompanion,bytes=await readFile(path.join(path.dirname(archive),source.filename));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),source.sha256);
+  assert.ok(sums.split('\n').includes(`${source.sha256}  ${source.filename}`),'Companion missing from SHA256SUMS: '+engine);
+ }
+});

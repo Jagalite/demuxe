@@ -3,8 +3,8 @@ import type { PlaybackMode } from '../types.js';
 export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
@@ -15,8 +15,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
@@ -27,8 +27,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
@@ -39,8 +39,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
@@ -51,8 +51,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
@@ -63,8 +63,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
@@ -75,8 +75,104 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass-gain";
+    mode: "native";
+    video: "browser";
+    audio: "original+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
@@ -87,8 +183,8 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
@@ -99,8 +195,44 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
@@ -116,11 +248,11 @@ export declare function featureRejection(mode: PlaybackMode, features: {
     toneMapping: string;
     hybridAudioFilters?: boolean;
 }): string | undefined;
-export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number): Readonly<{
+export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number, nativeASS?: boolean): Readonly<{
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
@@ -131,8 +263,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
@@ -143,8 +275,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
@@ -155,8 +287,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
@@ -167,8 +299,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
@@ -179,8 +311,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
@@ -191,8 +323,104 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass-gain";
+    mode: "native";
+    video: "browser";
+    audio: "original+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
@@ -203,8 +431,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
@@ -215,8 +443,44 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "browser text tracks" | "mpv/libass";
-    fidelity: "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
@@ -225,3 +489,35 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv";
     qualification: "existing";
 }>;
+export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED';
+export type PlanFacts = {
+    automatic: boolean;
+    vf: string;
+    af: string;
+    gain: number;
+    toneMapping: string;
+    hybridAudioFilters: boolean;
+    adaptation?: 'flac' | 'opus';
+    allowLossy: boolean;
+    nativeASS: boolean;
+    externalFormats: string[];
+    browserTextTracks: boolean;
+    audioOutput: string;
+    nativeRemux: 'auto' | 'never' | 'always';
+    manifest: boolean;
+    requiresRemux: boolean;
+    isolated: boolean;
+    mse: boolean;
+    webCodecs: boolean;
+    webAudio: boolean;
+    nativeSourceRejection?: string;
+};
+/** Admission is executable and deliberately finite. Runtime output verification
+ * still owns acceptance; browser capability signals cannot prove presentation. */
+export declare function planAdmission(f: PlanFacts): {
+    code?: PlanRejectionCode | undefined;
+    reason?: string | undefined;
+    id: "hybrid" | "software" | "native-direct" | "native-remux" | "native-direct-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
+    mode: "native" | "hybrid" | "software";
+    eligible: boolean;
+}[];

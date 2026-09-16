@@ -50,16 +50,16 @@ try{
       const values=[];for(let i=0;i<8;i++){if(analyser){const data=new Float32Array(2048);analyser.getFloatTimeDomainData(data);values.push(Math.sqrt(data.reduce((a,b)=>a+b*b,0)/data.length));}else values.push(player.audioDiagnostics().rms);await new Promise(r=>setTimeout(r,25));}
       if(analyser)backend.gainNode.disconnect(analyser);await player.pause();return values.sort((a,b)=>a-b)[4];
      };
-     // Restore the same initial gain before comparing two fresh accepted plans.
+     // Restore the same initial filter before measuring the dedicated gain stage.
      if(kind==='hybrid-filter')await player.setAudioFilters('volume=0.5');
      const half=await sample();
      if(kind==='native-gain')await player.setAudioGain(.25);else await player.setAudioFilters('volume=0.25');
      const quarter=await sample();await player.setMuted(true);const mute=await sample();await player.setMuted(false);
-     if(kind==='native-gain'){await player.setAudioGain(0);const zero=await sample();await player.setAudioGain(1);return {half,quarter,mute,zero,oldContexts:contexts.map(c=>c.state),restored:player.current.backend.gainContext===undefined};}
+     if(kind==='native-gain'){await player.setAudioGain(0);const zero=await sample();await player.setAudioGain(1);const unity=await sample();return {unity,half,quarter,mute,zero,oldContexts:contexts.map(c=>c.state),restored:player.current.backend.gainNode.gain.value===1};}
      return {half,quarter,mute};
     },kind);
     assert.ok(item.signal.half>.005);assert.ok(Math.abs(item.signal.quarter/item.signal.half-.5)<.06);assert.ok(item.signal.mute<.00001);
-    if(kind==='native-gain'){assert.ok(item.signal.zero<.00001);assert.equal(item.signal.restored,true);assert.ok(item.signal.oldContexts.every(s=>s==='closed'));}
+    if(kind==='native-gain'){assert.ok(item.signal.zero<.00001);assert.equal(item.signal.restored,true);assert.ok(item.signal.oldContexts.every(s=>s==='running'));}
    }
    item.after=await page.evaluate(()=>({diagnostics:player.diagnostics,audio:player.audioDiagnostics(),errors}));assert.deepEqual(item.after.errors,[]);
    await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('#surface video,#surface canvas,iframe').count(),0);item.passed=true;

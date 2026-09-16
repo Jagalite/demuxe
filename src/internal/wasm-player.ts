@@ -12,6 +12,8 @@ export class WasmPlayer extends EventTarget {
   private audioContext: AudioContext;
   private audioNode?: AudioWorkletNode;
   private analyser?: AnalyserNode;
+  private gainNode?: GainNode;
+  private gainValue=1;
   private timing?: ReturnType<typeof setInterval>;
   private lastTiming?: {latencyUs:number;running:boolean};
   private nextId = 100;
@@ -78,6 +80,7 @@ export class WasmPlayer extends EventTarget {
             const pending=this.pending.get(event.id);
             if(pending) {clearTimeout(pending.timer);this.pending.delete(event.id);event.error?pending.reject(new Error(event.error)):pending.resolve(event.result);}
           }
+          if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'external-index':++external}:t);}
           if(event.event==='property-change' && event.name) this.properties.set(event.name,event.data);
           this.dispatchEvent(new CustomEvent('mpv',{detail:event}));
         }
@@ -186,17 +189,39 @@ export class WasmPlayer extends EventTarget {
   seek(seconds:number) {if(!Number.isFinite(seconds)||seconds<0) throw new Error('Invalid seek time');Atomics.store(this.audioHeader,2,0);return this.ready.then(()=>this.request({type:'seek',seconds}));}
   rate(rate:number){if(!Number.isFinite(rate)||rate<0.5||rate>2)throw new Error('Playback rate must be 0.5 to 2');return this.command('set','speed',String(rate));}
   volume(percent:number) {if(!Number.isFinite(percent)||percent<0||percent>100) throw new Error('Invalid volume');return this.command('set','volume',String(percent));}
+  async gain(value:number) {
+    if(!Number.isFinite(value)||value<0||value>1)throw new Error('Gain must be between 0 and 1');
+    await this.ready;
+    if(this.destroyed)throw new Error('Player is destroyed');
+    if(!this.gainNode&&value!==1){
+      const gain=this.audioContext.createGain();
+      gain.channelCount=this.outputChannels;gain.channelCountMode='explicit';gain.channelInterpretation='discrete';
+      gain.gain.setValueAtTime(value,this.audioContext.currentTime);
+      this.audioNode!.disconnect();
+      this.audioNode!.connect(gain);gain.connect(this.audioContext.destination);gain.connect(this.analyser!);
+      this.gainNode=gain;
+    }
+    this.gainNode?.gain.setValueAtTime(value,this.audioContext.currentTime);
+    this.gainValue=value;
+  }
   selectTrack(type:'audio'|'sub',id:string) {
     if(!['audio','sub'].includes(type)||!/^(?:[1-9][0-9]*|auto|no)$/.test(id)) throw new Error('Invalid track selection');
     return this.command('set',type==='audio'?'aid':'sid',id);
   }
-  async addSubtitle(subtitle:SubtitleAsset){await this.ready;const bytes=subtitle.bytes.slice(0);return this.request({type:'subtitle',...subtitle,bytes},[bytes]);}
+  async addSubtitle(subtitle:SubtitleAsset){
+    await this.ready;const bytes=subtitle.bytes.slice(0);
+    const previous=((this.properties.get('track-list')??[]) as Array<{external?:boolean}>).filter(t=>t.external).length;
+    // Command acceptance can precede the track-list event. Selection must wait
+    // for the new source-scoped external identity to become observable.
+    const listed=this.waitForEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous);
+    await Promise.all([listed,this.request({type:'subtitle',...subtitle,bytes},[bytes])]);
+  }
   subtitleVisible(visible:boolean) {return this.command('set','sub-visibility',visible?'yes':'no');}
   resize(width:number,height:number) {if(this.destroyed) throw new Error('Player is destroyed');if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>1920||height>1080) throw new Error('Invalid output dimensions');this.worker.postMessage({type:'resize',width,height});}
   audioDiagnostics() {
     const samples=new Float32Array(this.analyser?.fftSize||2048);
     this.analyser?.getFloatTimeDomainData(samples);
-    return {requestedOutput:this.requestedOutput,outputChannels:this.outputChannels,deviceChannels:this.deviceChannels,channelLayout:this.outputChannels===8?'7.1':this.outputChannels===6?'5.1':'stereo',state:this.audioContext.state,sampleRate:this.audioContext.sampleRate,mediaFrames:Atomics.load(this.audioHeader,5),underruns:Atomics.load(this.audioHeader,6),rms:Math.sqrt(samples.reduce((sum,v)=>sum+v*v,0)/samples.length),latencyConfidence:'reported-latency estimate'};
+    return {gain:this.gainValue,gainStage:this.gainNode?'web-audio':'none',requestedOutput:this.requestedOutput,outputChannels:this.outputChannels,deviceChannels:this.deviceChannels,channelLayout:this.outputChannels===8?'7.1':this.outputChannels===6?'5.1':'stereo',state:this.audioContext.state,sampleRate:this.audioContext.sampleRate,mediaFrames:Atomics.load(this.audioHeader,5),underruns:Atomics.load(this.audioHeader,6),rms:Math.sqrt(samples.reduce((sum,v)=>sum+v*v,0)/samples.length),latencyConfidence:'reported-latency estimate'};
   }
   destroy():Promise<void> {
     if(this.destruction) return this.destruction;
@@ -207,7 +232,7 @@ export class WasmPlayer extends EventTarget {
     this.fail(new Error('Player destroyed'),undefined,false);
     clearInterval(this.timing);
     Atomics.store(this.audioHeader,2,0);
-    this.audioNode?.port.postMessage('close');this.audioNode?.disconnect();this.audioNode?.port.close();this.analyser?.disconnect();
+    this.audioNode?.port.postMessage('close');this.audioNode?.disconnect();this.audioNode?.port.close();this.analyser?.disconnect();this.gainNode?.disconnect();
     this.destruction=(async()=>{
       let timeout:ReturnType<typeof setTimeout>;
       try {

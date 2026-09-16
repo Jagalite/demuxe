@@ -154,10 +154,14 @@ constructor options, both false by default. Hybrid currently admits only scalar
 Software routing or explicit-mode rejection.
 
 `audioGain` (default 1) and `setAudioGain(value)` request experimental scalar
-attenuation in [0, 1]. Native uses Web Audio lazily; mpv routes apply an audio
-filter. The setter currently reopens transactionally and preserves user controls.
+attenuation in [0, 1]. All three modes use a dedicated, lazy Web Audio gain stage.
+The setter updates that stage in place, preserving the engine, source, position,
+and pause intent. Hybrid/Software gain follows the mpv PCM output without changing
+the user audio filter chain. Ordinary volume and mute remain separate. Unity on a
+fresh player allocates no gain stage; restoration retains an existing stage.
+Transactional replacement is reserved for backends without an in-place gain method.
 Diagnostics expose `plan` and `audioGain`; feature capabilities include `audioGain`.
-See [qualification, limitations and integration evidence](OPTIMIZATION-INTEGRATION.md).
+See [current qualification and limitations](OPTIMIZATION-COMPLETION.md).
 
 ### Experimental selected-audio FLAC preparation
 
@@ -167,5 +171,46 @@ adaptation. The optional separately built preparation assets must be packaged.
 The tested subset is integer PCM16/24 mono/stereo at 44.1/48 kHz; unsupported
 precision/layouts reject instead of quantizing, downmixing or resampling. Video
 packets are copied. No Opus permission is implied. It supports the separately
-requested `audioGain` operation, but Native ASS remains unavailable.
+requested `audioGain` operation and external Native ASS, including their combination.
+Long unequal audio/video tails remain unsupported and reject within the work bound.
 See [qualification and reproduction](OPTIMIZATION-FLAC.md).
+
+### Experimental Native ASS/SSA
+
+Set `experimentalNativeASS: true` to use external ASS/SSA with Native direct,
+remux or qualified FLAC playback. Use the existing `addSubtitle(file)`,
+`addFont(file)`, `selectSubtitleTrack(id)` and `subtitleVisible(value)` methods.
+Fonts added before opening avoid a later transactional font refresh. Attachments
+are source-scoped and reset on opening a new source. Source-scoped external IDs
+follow attachment order across Native and mpv; they are distinct from embedded
+stream indices. Other subtitle formats and embedded ASS still require mpv.
+
+Install the optional libass assets using the package asset-copy command from a
+package built with `--ass-build`. This feature requires cross-origin isolation.
+Use container fullscreen; video-only fullscreen, PiP and casting cannot carry the
+external overlay. Native PiP/remote-playback controls are disabled for this plan.
+See [current coverage and limits](OPTIMIZATION-COMPLETION.md).
+
+### Experimental selected-audio Opus preparation
+
+`experimentalAudioAdaptation: 'opus'` requires `allowLossyAudio: true` and explicit
+Native mode. It is a separate profile, never a fallback from failed FLAC. The
+qualified input subset is copied H.264 video with selected PCM16/24 mono/stereo at
+48 kHz. Other sample rates/layouts/codecs reject; permission to encode lossily does
+not authorize resampling or downmixing. Original compressed audio remains preferred
+when it can be copied. Opus+gain is supported; Opus+Native ASS is not admitted.
+The matching optional preparation engine includes the pinned FFmpeg Opus encoder.
+No sample-exact claim applies to Opus. See the current coverage document for delay,
+padding, timestamp and marker tests and the unresolved long-tail limit.
+
+### Complete-plan admission diagnostics
+
+`diagnostics.plan` identifies the accepted internal plan without adding a public
+mode. `diagnostics.planAdmission` lists finite candidates with `eligible`, typed
+rejection `code`, and `reason`. Eligibility is permission to attempt the plan;
+actual codec preparation and meaningful startup output must still succeed.
+Automatic routing retains Native copy, then eligible Hybrid, then Software. It
+uses requested effects, source inspection, selected tracks, transport constraints
+and browser prerequisites. Adaptation remains explicit Native-only. Route ranking
+does not use prototype benchmark percentages. Explicit mode selection remains
+authoritative. In-place gain updates refresh plan diagnostics without rerouting.

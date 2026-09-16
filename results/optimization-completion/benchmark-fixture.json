@@ -1,0 +1,33 @@
+{
+  "command": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-nostdin",
+    "-n",
+    "-f",
+    "lavfi",
+    "-i",
+    "testsrc2=size=1280x720:rate=30:duration=16",
+    "-f",
+    "lavfi",
+    "-i",
+    "aevalsrc=0.1*sin(2*PI*440*t)|0.07*sin(2*PI*660*t):s=48000:d=16:c=stereo",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "24",
+    "-g",
+    "30",
+    "-bf",
+    "2",
+    "-c:a",
+    "pcm_s24le",
+    "-threads",
+    "2",
+    "build/optimization-fixtures/benchmark-720p.mkv"
+  ],
+  "sha256": "da4b1ba56f54b10b4a6046e48798ac01264dd811150777974603f06dd975335b"
+}

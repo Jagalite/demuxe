@@ -3,7 +3,8 @@ import {spawn} from 'node:child_process';
 import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const family=process.env.BROWSER||'chrome',out=`results/optimization-integration/stage2/lifecycle-${family}-${Date.now()}`;await mkdir(out,{recursive:true});
+const profile=process.env.PROFILE||'flac';
+const family=process.env.BROWSER||'chrome',out=`${process.env.RESULT_ROOT||'results/optimization-integration/stage2'}/lifecycle-${profile}-${family}-${Date.now()}`;await mkdir(out,{recursive:true});
 const app=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((r,j)=>{const t=setTimeout(()=>j(Error('server timeout')),10000);app.on('error',j);app.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(t);r(m[0])}})});
 const bytes=await readFile('build/optimization-fixtures/long-pcm.mkv');let fault='',heldResolve,requests=[];const held=new Set();
@@ -21,22 +22,32 @@ const media=createServer((req,res)=>{
 });await new Promise(r=>media.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${media.address().port}/fixture.mkv`;
 const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
 const result={browser:browser.version(),cases:[]};
-async function setup(page,gain=1){await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async gain=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalBufferedNativeSeeks:true,audioGain:gain});},gain)}
+async function setup(page,gain=1){await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async({gain,profile})=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalBufferedNativeSeeks:true,audioGain:gain});},{gain,profile})}
 async function cleanup(page){await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0)}
 try{
- for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','reject-pcm32','reject-float','reject-surround']){
+ for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={kind};result.cases.push(item);fault='';requests=[];
   try{
    await setup(page,kind==='bounded-local-gain'?.5:1);
-   if(kind.startsWith('reject-')){
+   if(kind==='lossy-policy'){
+    item.rejections=await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');return [undefined,false].map(allowLossyAudio=>{try{const p=new Player(document.querySelector('#surface'),{mode:'native',experimentalAudioAdaptation:'opus',allowLossyAudio});void p.destroy();return null;}catch(e){return e.message;}});});
+    assert.ok(item.rejections.every(e=>e?.includes('allowLossyAudio')));
+   }else if(kind==='original-audio-copy'||kind==='reject-rate'){
+    const requests=[];page.on('request',r=>requests.push(r.url()));
+    await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});
+    await page.locator('#file').setInputFiles('build/optimization-fixtures/'+(kind==='original-audio-copy'?'gain.mp4':'multi-audio.mkv'));await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
+    if(kind==='original-audio-copy'){assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-remux');assert.ok(!requests.some(url=>url.includes('engine-adaptation')));}
+    else{item.rejection=await page.evaluate(()=>player.selectTrack('audio','3').then(()=>null,e=>e.message));assert.match(item.rejection,/48 kHz/);assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);assert.equal(await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.sampleRate),48000);}
+   }else if(kind.startsWith('reject-')){
     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/'+kind.slice(7)+'.mkv');
     item.error=await page.evaluate(()=>player.open(document.querySelector('#file').files[0]).then(()=>null,e=>e.message));
     assert.match(item.error,/precision|quantization|mono\/stereo|not qualified/i);
    }else if(kind==='bounded-local-gain'){
     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/long-pcm.mkv');await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
-    await page.waitForTimeout(500);item.initial=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(500);item.idle=await page.evaluate(()=>player.diagnostics);
+    await page.waitForFunction(()=>{const r=player.current.backend.remux,now=Math.max(player.surface.currentTime-r.timelineBias,r.target);return !r.busy&&!r.pending&&!r.sb.updating&&(r.eof||(r.remuxStats.adaptation?.sourceEnd??0)-now>=5||r.ranges().some(([a,b])=>a<=now+.5&&b-now>=5));});
+    item.initial=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(500);item.idle=await page.evaluate(()=>player.diagnostics);
     const stats=d=>d.backend.remux.remux.adaptation;
-    assert.equal(stats(item.initial).audioSamplesDecoded,stats(item.idle).audioSamplesDecoded);assert.ok(stats(item.idle).audioSamplesDecoded<48000*8);assert.equal(item.idle.plan.id,'native-flac-gain');
+    assert.equal(stats(item.initial).audioSamplesDecoded,stats(item.idle).audioSamplesDecoded);assert.ok(stats(item.idle).audioSamplesDecoded<48000*8);assert.equal(item.idle.plan.id,`native-${profile}-gain`);
     item.buffered=await page.evaluate(async()=>{const r=player.current.backend.remux,worker=r.worker,gen=r.generation;await player.seek(2);return {sameWorker:r.worker===worker,sameGeneration:r.generation===gen,paused:player.state.playbackIntent==='pause'}});
     assert.equal(item.buffered.sameWorker,true);assert.equal(item.buffered.sameGeneration,true);
     await page.evaluate(()=>player.seek(24));item.distant=await page.evaluate(()=>player.diagnostics);assert.ok(stats(item.distant).audioSamplesDecoded<48000*8);assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
@@ -49,7 +60,7 @@ try{
      await page.evaluate(source=>{window.opening=player.open(source).then(()=>null,e=>e.code)},source);
      await Promise.race([blocked,new Promise((_,j)=>setTimeout(()=>j(Error('No outstanding read barrier')),10000))]);assert.ok(held.size>0);
      const begin=Date.now();await cleanup(page);item.destroyMs=Date.now()-begin;assert.ok(item.destroyMs<3000);assert.equal(await page.evaluate(()=>opening),'ABORTED');
-    }else{await page.evaluate(source=>player.open(source),source);item.diagnostics=await page.evaluate(()=>player.diagnostics);assert.equal(item.diagnostics.plan.id,'native-flac');assert.ok(requests.length>2);assert.ok(requests.every(r=>r.authorized));}
+    }else{await page.evaluate(source=>player.open(source),source);item.diagnostics=await page.evaluate(()=>player.diagnostics);assert.equal(item.diagnostics.plan.id,`native-${profile}`);assert.ok(requests.length>2);assert.ok(requests.every(r=>r.authorized));}
     item.requests=requests;
    }
    await cleanup(page);item.passed=true;

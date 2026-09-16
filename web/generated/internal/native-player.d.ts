@@ -1,4 +1,4 @@
-import type { RemoteSource, TextTrackSource, TrackType } from '../types.js';
+import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export declare class NativePlayer extends EventTarget implements Backend {
@@ -8,14 +8,20 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private bufferedSeeks;
     private audioAdaptation?;
     private initialAudioTrack?;
+    private nativeASS;
+    private fonts;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
+    private ass?;
+    private assAssets;
+    private assIndex;
     private gainContext?;
     private gainSource?;
     private gainNode?;
     private gainValue;
     gain(value: number): Promise<void>;
+    private resumeGain;
     private destruction?;
     private opening;
     private remux?;
@@ -30,7 +36,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | undefined, initialAudioTrack?: number | undefined);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[]);
     private emit;
     private assertActive;
     private wait;
@@ -38,6 +44,16 @@ export declare class NativePlayer extends EventTarget implements Backend {
     get diagnostics(): {
         path: string;
         plan: string;
+        subtitleOverlay: {
+            renders: number;
+            bitmapUpdates: number;
+            bytes: number;
+            peakBytes: number;
+            discarded: number;
+            component: string;
+            scope: string;
+            destination: string;
+        } | undefined;
         audioProcessing: {
             component: string;
             gain: number;
@@ -65,6 +81,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     selectTrack(type: TrackType, id: string): Promise<void>;
     private applySubtitles;
     subtitleVisible(visible: boolean): Promise<void>;
+    addSubtitle(asset: SubtitleAsset): Promise<void>;
     addTextTrack(source: TextTrackSource): Promise<void>;
     private shiftTextTrack;
     resize(width: number, height: number): void;

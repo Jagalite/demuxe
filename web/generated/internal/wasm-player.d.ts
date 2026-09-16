@@ -55,6 +55,8 @@ export declare class WasmPlayer extends EventTarget {
     private audioContext;
     private audioNode?;
     private analyser?;
+    private gainNode?;
+    private gainValue;
     private timing?;
     private lastTiming?;
     private nextId;
@@ -102,11 +104,14 @@ export declare class WasmPlayer extends EventTarget {
     seek(seconds: number): Promise<any>;
     rate(rate: number): Promise<void>;
     volume(percent: number): Promise<void>;
+    gain(value: number): Promise<void>;
     selectTrack(type: 'audio' | 'sub', id: string): Promise<void>;
-    addSubtitle(subtitle: SubtitleAsset): Promise<any>;
+    addSubtitle(subtitle: SubtitleAsset): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
     resize(width: number, height: number): void;
     audioDiagnostics(): {
+        gain: number;
+        gainStage: string;
         requestedOutput: AudioOutput;
         outputChannels: number;
         deviceChannels: number;

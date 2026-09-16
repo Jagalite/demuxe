@@ -7,7 +7,7 @@ out=args.output.resolve()
 if out.exists():raise SystemExit('Checkpoint output must be new; existing checkpoints are immutable')
 out.mkdir(parents=True)
 patch=subprocess.check_output(['git','diff','--binary','HEAD'],cwd=root)
-untracked=subprocess.check_output(['git','ls-files','--others','--exclude-standard','docs','src','web/generated','native/adaptation','scripts','tests','experiments/optimization-integration'],cwd=root,text=True).splitlines()
+untracked=subprocess.check_output(['git','ls-files','--others','--exclude-standard','docs','src','web/generated','native/adaptation','native/subtitles','web/native-ass-worker.js','scripts','tests','experiments/optimization-integration'],cwd=root,text=True).splitlines()
 untracked=[name for name in untracked if '__pycache__' not in name]
 for name in untracked:
  result=subprocess.run(['git','diff','--no-index','--binary','--','/dev/null',name],cwd=root,stdout=subprocess.PIPE)

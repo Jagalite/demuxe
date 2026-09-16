@@ -6,14 +6,25 @@ export const PLAYBACK_PLANS = Object.freeze([
     { id: 'native-remux-gain', mode: 'native', video: 'packet-copy', audio: 'web-audio-gain', qualification: 'experimental' },
     { id: 'native-flac', mode: 'native', video: 'packet-copy', audio: 'flac-lossless', qualification: 'experimental' },
     { id: 'native-flac-gain', mode: 'native', video: 'packet-copy', audio: 'flac-lossless+web-audio-gain', qualification: 'experimental' },
+    { id: 'native-direct-ass', mode: 'native', video: 'browser', audio: 'original', qualification: 'experimental' },
+    { id: 'native-direct-ass-gain', mode: 'native', video: 'browser', audio: 'original+web-audio-gain', qualification: 'experimental' },
+    { id: 'native-remux-ass', mode: 'native', video: 'packet-copy', audio: 'packet-copy', qualification: 'experimental' },
+    { id: 'native-remux-ass-gain', mode: 'native', video: 'packet-copy', audio: 'packet-copy+web-audio-gain', qualification: 'experimental' },
+    { id: 'native-flac-ass', mode: 'native', video: 'packet-copy', audio: 'flac-lossless', qualification: 'experimental' },
+    { id: 'native-flac-ass-gain', mode: 'native', video: 'packet-copy', audio: 'flac-lossless+web-audio-gain', qualification: 'experimental' },
+    { id: 'native-opus', mode: 'native', video: 'packet-copy', audio: 'opus-lossy', qualification: 'experimental' },
+    { id: 'native-opus-gain', mode: 'native', video: 'packet-copy', audio: 'opus-lossy+web-audio-gain', qualification: 'experimental' },
     { id: 'hybrid', mode: 'hybrid', video: 'webcodecs', audio: 'mpv', qualification: 'existing' },
     { id: 'hybrid-audio-filter', mode: 'hybrid', video: 'webcodecs', audio: 'mpv-filter', qualification: 'experimental' },
+    { id: 'hybrid-gain', mode: 'hybrid', video: 'webcodecs', audio: 'mpv+web-audio-gain', qualification: 'experimental' },
+    { id: 'hybrid-audio-filter-gain', mode: 'hybrid', video: 'webcodecs', audio: 'mpv-filter+web-audio-gain', qualification: 'experimental' },
+    { id: 'software-gain', mode: 'software', video: 'ffmpeg', audio: 'mpv+web-audio-gain', qualification: 'experimental' },
     { id: 'software', mode: 'software', video: 'ffmpeg', audio: 'mpv', qualification: 'existing' },
 ].map(plan => Object.freeze({ ...plan,
-    source: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac')) ? 'qualified random-access file and selected codec packaging' : plan.mode === 'native' ? 'browser-supported source and selected tracks' : 'existing mpv source/track contract',
-    prerequisites: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac')) ? 'MSE, cross-origin isolation, qualified MIME' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
-    subtitles: plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
-    fidelity: plan.id.startsWith('native-flac') ? 'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample' : 'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
+    source: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'qualified random-access file and selected codec packaging' : plan.mode === 'native' ? 'browser-supported source and selected tracks' : 'existing mpv source/track contract',
+    prerequisites: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'MSE, cross-origin isolation, qualified MIME' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
+    subtitles: plan.id.includes('-ass') ? 'external ASS/SSA via pinned libass; container presentation only' : plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
+    fidelity: plan.id.startsWith('native-opus') ? 'Explicitly permitted lossy audio; no resampling/downmix; video copied' : plan.id.startsWith('native-flac') ? 'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample' : 'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
     resources: plan.mode === 'native' ? 'existing bounded remux buffers when used; browser decoder allocations are opaque' : 'existing mpv allocation, PCM ring and retained-frame limits',
     fallback: plan.mode === 'software' ? 'terminal' : 'existing diagnosed-path fallback with source and user intent preserved',
 })));
@@ -37,6 +48,59 @@ export function featureRejection(mode, features) {
     if (!qualifiedAudioFilter(features.af))
         return 'This audio filter has not been qualified for Hybrid';
 }
-export function executionPlan(mode, packaging, audioFilter, gain = 1) {
-    return PLAYBACK_PLANS.find(plan => plan.id === (mode === 'native' ? packaging === 'adapted-flac' ? gain !== 1 ? 'native-flac-gain' : 'native-flac' : packaging === 'remux' ? gain !== 1 ? 'native-remux-gain' : 'native-remux' : gain !== 1 ? 'native-direct-gain' : 'native-direct' : mode === 'hybrid' && (audioFilter || gain !== 1) ? 'hybrid-audio-filter' : mode));
+export function executionPlan(mode, packaging, audioFilter, gain = 1, nativeASS = false) {
+    let id = (mode === 'native' ? packaging === 'adapted-opus' ? gain !== 1 ? 'native-opus-gain' : 'native-opus' : packaging === 'adapted-flac' ? gain !== 1 ? 'native-flac-gain' : 'native-flac' : packaging === 'remux' ? gain !== 1 ? 'native-remux-gain' : 'native-remux' : gain !== 1 ? 'native-direct-gain' : 'native-direct' : mode === 'hybrid' ? audioFilter ? gain !== 1 ? 'hybrid-audio-filter-gain' : 'hybrid-audio-filter' : gain !== 1 ? 'hybrid-gain' : 'hybrid' : gain !== 1 ? 'software-gain' : 'software');
+    if (mode === 'native' && nativeASS)
+        id = gain !== 1 ? id.replace(/-gain$/, '-ass-gain') : id + '-ass';
+    return PLAYBACK_PLANS.find(plan => plan.id === id);
+}
+/** Admission is executable and deliberately finite. Runtime output verification
+ * still owns acceptance; browser capability signals cannot prove presentation. */
+export function planAdmission(f) {
+    return PLAYBACK_PLANS.map(plan => {
+        let code, reason;
+        const reject = (c, r) => { code = c; reason = r; };
+        const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
+        const effect = featureRejection(plan.mode, { ...f });
+        if (effect)
+            reject('FEATURE_UNSUPPORTED', effect);
+        else if (gain !== (f.gain !== 1))
+            reject('PLAN_NOT_REQUESTED', 'Gain stage does not match the requested presentation');
+        else if (gain && !f.webAudio)
+            reject('DEPLOYMENT_UNAVAILABLE', 'Web Audio is unavailable');
+        else if (plan.mode !== 'native' && !f.isolated)
+            reject('DEPLOYMENT_UNAVAILABLE', 'mpv deployment requires cross-origin isolation');
+        else if (plan.mode === 'hybrid' && !f.webCodecs)
+            reject('DEPLOYMENT_UNAVAILABLE', 'WebCodecs video decoding is unavailable');
+        else if (plan.mode === 'hybrid' && plan.id.includes('audio-filter') !== !!f.af)
+            reject('PLAN_NOT_REQUESTED', 'mpv scalar filter stage does not match the request');
+        else if (plan.mode !== 'native' && f.browserTextTracks)
+            reject('FEATURE_UNSUPPORTED', 'External browser text tracks cannot be silently discarded');
+        else if (plan.mode === 'native') {
+            const prepared = plan.id.startsWith('native-remux') || flac || opus;
+            if (f.audioOutput !== 'stereo')
+                reject('FEATURE_UNSUPPORTED', 'Explicit PCM layout requires mpv');
+            else if (ass !== !!f.externalFormats.length)
+                reject('PLAN_NOT_REQUESTED', 'Subtitle component does not match the requested presentation');
+            else if (ass && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa'].includes(format))))
+                reject('FEATURE_UNSUPPORTED', 'External subtitle format requires mpv or explicit Native ASS admission');
+            else if (ass && f.manifest)
+                reject('QUALIFICATION_REQUIRED', 'Native ASS is qualified only on file presentations');
+            else if (ass && !f.isolated)
+                reject('DEPLOYMENT_UNAVAILABLE', 'Native libass requires cross-origin isolation');
+            else if (prepared && f.manifest)
+                reject('QUALIFICATION_REQUIRED', 'File preparation is not qualified for manifest sources');
+            else if (prepared && (f.nativeRemux === 'never' || !f.isolated || !f.mse))
+                reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires permitted MSE and cross-origin isolation');
+            else if (!prepared && (f.nativeRemux === 'always' || f.requiresRemux))
+                reject('SOURCE_UNSUPPORTED', 'This source policy requires controlled remux transport');
+            else if ((flac || opus) && (f.automatic || f.adaptation !== (flac ? 'flac' : 'opus')))
+                reject('QUALIFICATION_REQUIRED', 'Audio adaptation requires its explicit Native experimental profile');
+            else if (opus && !f.allowLossy)
+                reject('POLICY_PROHIBITS_TRANSFORM', 'Lossy audio permission is absent');
+            else if (f.nativeSourceRejection)
+                reject('SOURCE_UNSUPPORTED', f.nativeSourceRejection);
+        }
+        return { id: plan.id, mode: plan.mode, eligible: !code, ...(code ? { code, reason } : {}) };
+    });
 }

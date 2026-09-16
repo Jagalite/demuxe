@@ -68,7 +68,11 @@ export type PlayerOptions = {
     /** Opt-in retained-session seeks; broad automatic admission remains gated. */
     experimentalBufferedNativeSeeks?: boolean;
     /** Explicit Native trials only; copy original audio first, then qualified integer FLAC. */
-    experimentalAudioAdaptation?: 'flac';
+    experimentalAudioAdaptation?: 'flac' | 'opus';
+    /** Explicit lossy permission; does not authorize resampling or downmixing. */
+    allowLossyAudio?: boolean;
+    /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction. */
+    experimentalNativeASS?: boolean;
     nativeRemux?: 'auto' | 'never' | 'always';
     /** Optional Software presenter; RGB remains the default. */
     softwarePresenter?: 'rgb' | 'experimental-yuv';
@@ -97,6 +101,13 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    planAdmission?: Array<{
+        id: string;
+        mode: PlaybackMode;
+        eligible: boolean;
+        code?: string;
+        reason?: string;
+    }>;
     plan?: {
         id: string;
         mode: PlaybackMode;

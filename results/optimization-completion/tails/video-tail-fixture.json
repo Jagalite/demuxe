@@ -1,0 +1,31 @@
+{
+  "command": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-nostdin",
+    "-n",
+    "-f",
+    "lavfi",
+    "-i",
+    "testsrc2=size=160x90:rate=30:duration=30",
+    "-f",
+    "lavfi",
+    "-i",
+    "sine=frequency=440:sample_rate=48000:duration=1.017",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-g",
+    "30",
+    "-bf",
+    "2",
+    "-c:a",
+    "pcm_s24le",
+    "-threads",
+    "2",
+    "build/optimization-fixtures/video-tail.mkv"
+  ],
+  "sha256": "c5e7f1e56365aa3373db05bc72ee4ddcb04408d815c4e51641f00fc46e554936"
+}

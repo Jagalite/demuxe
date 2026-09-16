@@ -54,7 +54,7 @@ Arbitrary CDN worker roots, Safari/mobile, PiP/casting and physical output fidel
 remain separate qualification gates. See LICENSING.md and RELEASE.md for source
 and clean-engine-build obligations; this integration does not close them.
 
-## Optional experimental FLAC preparation
+## Optional experimental audio preparation
 
 Local candidates built with `scripts/package-beta.py --adaptation-build <versioned-engine-dir>`
 include `web/engine-adaptation/remux.mjs`, its matching `remux.wasm`, and a hash/inputs
@@ -63,4 +63,17 @@ the runtime. Default packages omit these assets; ordinary Native playback does n
 load them. A separately hashed `demuxe-audio-adaptation-source.tar.gz` accompanies
 that candidate. This profile follows the saved FFmpeg modernization pins and does
 not reuse the historical scratch LibAV binary. Release admission is disabled;
-see [qualification and source limitations](OPTIMIZATION-FLAC.md).
+see [current profiles, qualification and source limitations](OPTIMIZATION-COMPLETION.md).
+Opus-enabled builds declare that profile in their manifest; Player still requires
+explicit lossy permission. No package option enables automatic adaptation.
+
+
+## Optional external Native ASS
+
+Pass `--ass-build <versioned-ass-dir>` for the pinned libass wrapper and matching
+`web/engine-ass/subtitles.mjs` / `subtitles.wasm`. The worker is lazy, and the same
+asset-copy CLI copies and verifies its manifest, default font and notices. The
+separate `demuxe-native-ass-source.tar.gz` contains wrapper/build inputs and preferred
+library sources. Both optional source companions are listed in SHA256SUMS when
+packaged together. Their presence is not proof of clean rebuild correspondence;
+release packaging remains blocked. See the current optimization coverage report.

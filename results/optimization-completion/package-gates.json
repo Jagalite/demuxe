@@ -1,0 +1,48 @@
+[
+  {
+    "name": "ass-release",
+    "command": [
+      "python3",
+      "scripts/package-beta.py",
+      "--output",
+      "build/gate-must-not-produce",
+      "--release-tag",
+      "not-created",
+      "--ass-build",
+      "build/native-ass-02"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Native ASS remains experimental; release source/output admission is not qualified\n"
+  },
+  {
+    "name": "adaptation-release",
+    "command": [
+      "python3",
+      "scripts/package-beta.py",
+      "--output",
+      "build/gate-must-not-produce",
+      "--release-tag",
+      "not-created",
+      "--adaptation-build",
+      "build/adaptation-opus-01/engine-1789520173100009000"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Audio adaptation remains experimental; release admission is not qualified\n"
+  },
+  {
+    "name": "failed-first-fragment",
+    "command": [
+      "python3",
+      "scripts/package-beta.py",
+      "--output",
+      "build/gate-must-not-produce",
+      "--adaptation-build",
+      "build/adaptation-opus-01/engine-1789520097100736000"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Nondefault first-fragment sizing failed timestamp qualification; packaging is blocked\n"
+  }
+]

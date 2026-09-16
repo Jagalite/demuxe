@@ -1,0 +1,24 @@
+{
+  "command": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-nostdin",
+    "-n",
+    "-i",
+    "build/optimization-fixtures/multi-audio.mkv",
+    "-map",
+    "0:v:0",
+    "-map",
+    "0:a",
+    "-c:v",
+    "copy",
+    "-c:a",
+    "pcm_s24le",
+    "-ar",
+    "48000",
+    "build/optimization-fixtures/opus-multi-audio.mkv"
+  ],
+  "sha256": "702375f74c57fcad4acf04ca9e61da5b0914c31d11bf8c69a6b8a52a9ca4bc05",
+  "scope": "Offline test fixture generation: both source audio tracks are 48 kHz; video copied. Playback preparation does not resample."
+}

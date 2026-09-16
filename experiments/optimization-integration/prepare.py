@@ -18,7 +18,7 @@ assert not subprocess.check_output(['git','status','--porcelain'],cwd=base,text=
 
 prepared=out/'streaming'
 subprocess.run(['python3',str(base/'experiments/streaming-modernization/prepare.py'),'--timeline','--output',str(prepared)],cwd=base,check=True)
-paths=['src/internal/state.ts','src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
+paths=['web/retained-decoder-worker.js','src/internal/wasm-player.ts','src/internal/state.ts','src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
 patch=subprocess.check_output(['git','diff',checkpoint,'--',*paths],cwd=root)
 (out/'optimization.patch').write_bytes(patch)
 # Three-way source merge preserves the saved overlay's quality/lifecycle changes.
@@ -48,7 +48,7 @@ for name in paths:
 assert 'rm_adapt_audio' in (prepared/'native/remux/remux.c').read_text()
 assert 'experimentalAudioAdaptation' in (prepared/'src/types.ts').read_text()
 (out/'merges.json').write_text(json.dumps(merges,indent=2)+'\n')
-for name in ['src/internal/playback-plans.ts','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
+for name in ['src/internal/native-ass.ts','web/native-ass-worker.js','native/subtitles/ass.c','scripts/link-native-ass.py','src/internal/playback-plans.ts','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
  (prepared/name).parent.mkdir(parents=True,exist_ok=True)
  (prepared/name).write_bytes((root/name).read_bytes())
 (out/'assembly.json').write_text(json.dumps({'checkpoint':checkpoint,'patchSHA256':hashlib.sha256(patch).hexdigest(),'status':'source-only; build and qualification required'},indent=2)+'\n')

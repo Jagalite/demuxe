@@ -1,5 +1,7 @@
 # Optimization integration: local stage checkpoint
 
+Historical checkpoint report. For subsequent local implementation and current coverage, see [completion status](OPTIMIZATION-COMPLETION.md).
+
 For the subsequent correctness fixes and current unequal-tail limitation, see
 [the review-fix report](OPTIMIZATION-REVIEW-FIXES.md).
 

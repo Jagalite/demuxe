@@ -1,0 +1,119 @@
+{
+  "browser": "152.0.7977.83",
+  "scope": "Short output and lifecycle checks, not performance or endurance",
+  "cases": [
+    {
+      "kind": "native-gain",
+      "before": {
+        "mode": "native",
+        "plan": {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "video": "browser",
+          "audio": "web-audio-gain",
+          "qualification": "experimental",
+          "source": "browser-supported source and selected tracks",
+          "prerequisites": "HTMLMediaElement, Web Audio and CORS-clean media",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "selection": {
+          "automatic": false,
+          "attempts": []
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 0.5,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "path": "native",
+          "plan": "direct",
+          "audioProcessing": {
+            "component": "web-audio-gain",
+            "gain": 0.5,
+            "contextState": "running",
+            "baseLatency": 0.005333333333333333
+          },
+          "position": 0.8,
+          "rendered": 29,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "signal": {
+        "unity": 0.08833063976372174,
+        "half": 0.0440236658371155,
+        "quarter": 0.022141878097145868,
+        "mute": 0,
+        "zero": 0,
+        "oldContexts": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ],
+        "restored": true
+      },
+      "after": {
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "selection": {
+            "automatic": false,
+            "attempts": []
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "web-audio-gain",
+              "gain": 1,
+              "contextState": "running",
+              "baseLatency": 0.005333333333333333
+            },
+            "position": 3.410667,
+            "rendered": 108,
+            "dropped": 2,
+            "readyState": 4
+          }
+        },
+        "audio": {
+          "state": "paused",
+          "source": "native",
+          "decodedSampleCountersAvailable": false
+        },
+        "errors": []
+      },
+      "passed": true
+    }
+  ]
+}

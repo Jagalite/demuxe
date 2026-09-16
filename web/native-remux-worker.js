@@ -8,11 +8,11 @@ self.onmessage=async({data})=>{
  try{
   const start=performance.now();
   if(data.type==='init'||data.type==='probe'){
-   const {default:createRemux}=await import(data.audioAdaptation==='flac'?'./engine-adaptation/remux.mjs':'./engine-remux/remux.mjs');
+   const {default:createRemux}=await import(data.audioAdaptation?'./engine-adaptation/remux.mjs':'./engine-remux/remux.mjs');
    engine=await createRemux({printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];
    if(data.type==='probe'){check(engine._rm_probe(data.size));postMessage({type:'probed',tracks:engine.tracks,duration:engine._rm_duration()});return;}
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');chunks.push(b);};
-   if(data.audioAdaptation==='flac'){if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(1));}
+   if(data.audioAdaptation){if(!['flac','opus'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='opus'?2:1));}
    check(engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));const duration=engine._rm_duration();
    const video=engine.videoConfig?videoCodecConfig({...engine.videoConfig,maxWidth:8192,maxHeight:8192}).configuration.codec:engine.UTF8ToString(engine._rm_video_codec());
    const audio=engine.UTF8ToString(engine._rm_audio_codec());
