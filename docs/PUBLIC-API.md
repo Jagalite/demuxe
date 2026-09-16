@@ -91,7 +91,7 @@ Errors are PlayerError with code, operationId, operation, scope, retryable and
 redacted message. Session errors alone populate state.error. Failed controls or
 replacement errors are operation-scoped. Codes: INVALID_ARGUMENT, ABORTED,
 AUTOPLAY_BLOCKED, SOURCE_PERMISSION, SOURCE_CHANGED, NETWORK_TIMEOUT,
-UNSUPPORTED_MEDIA, UNSUPPORTED_FEATURE, ASSET_LOAD_FAILED, ISOLATION_REQUIRED,
+UNSUPPORTED_MEDIA, UNSUPPORTED_TIMELINE, UNSUPPORTED_FEATURE, ASSET_LOAD_FAILED, ISOLATION_REQUIRED,
 DECODE_FAILED. Normal events/diagnostics redact authorization fields, URL userinfo,
 queries and fragments; raw mpv properties remain an advanced inspection surface.
 
@@ -172,8 +172,36 @@ The tested subset is integer PCM16/24 mono/stereo at 44.1/48 kHz; unsupported
 precision/layouts reject instead of quantizing, downmixing or resampling. Video
 packets are copied. No Opus permission is implied. It supports the separately
 requested `audioGain` operation and external Native ASS, including their combination.
-Long unequal audio/video tails remain unsupported and reject within the work bound.
-See [qualification and reproduction](OPTIMIZATION-FLAC.md).
+Long unequal tails have a separate qualified experimental FLAC path for desktop
+Chrome, H264 and PCM16/24. It preserves the final video image while longer audio
+continues, and silence after shorter audio ends. Distant seeks regenerate bounded
+real preroll. Firefox rejects this Native timeline with `UNSUPPORTED_TIMELINE`;
+use an eligible mpv route. On Firefox, a distant seek after video EOF can
+recover from Hybrid through Software, with the failed seek disclosed in diagnostics.
+Use Software explicitly when continuous ASS behavior through a Firefox video-EOF
+audio tail is required; that Hybrid combination is not qualified.
+Opus long tails remain unsupported. See the
+[current qualification and reproductions](../results/optimization-final/README.md).
+
+### Automatic lossless adaptation policy
+
+```js
+const player = new Player(container, {automaticAudioAdaptation: 'lossless'});
+await player.open(file);
+```
+
+This optional policy permits Native FLAC only for inspected local Matroska with
+H264 up to 1080p and selected 48 kHz PCM16/24 mono/stereo audio, with established
+selected-track starts and ends within 50 ms. Original direct/copy playback remains
+preferred. Unsupported sources retain eligible Hybrid/Software alternatives;
+explicit modes remain authoritative. Selecting a different audio track repeats
+admission while preserving its source identity and user intent. External Native
+ASS and gain use their existing options and must form a supported complete plan.
+
+This does not enable Opus, resampling, downmixing, embedded Native subtitles,
+remote automatic adaptation or streaming adaptation. FLAC preserves admitted
+integer decoded samples; it does not restore an earlier lossy recording.
+Diagnostics disclose rejected alternatives and the accepted transformation.
 
 ### Experimental Native ASS/SSA
 
@@ -209,8 +237,9 @@ padding, timestamp and marker tests and the unresolved long-tail limit.
 mode. `diagnostics.planAdmission` lists finite candidates with `eligible`, typed
 rejection `code`, and `reason`. Eligibility is permission to attempt the plan;
 actual codec preparation and meaningful startup output must still succeed.
-Automatic routing retains Native copy, then eligible Hybrid, then Software. It
+Automatic routing retains Native copy, authorized qualified Native FLAC, eligible Hybrid, then Software. It
 uses requested effects, source inspection, selected tracks, transport constraints
-and browser prerequisites. Adaptation remains explicit Native-only. Route ranking
+and browser prerequisites. The experimental adaptation option remains explicit-only;
+automatic FLAC uses the separate lossless policy above. Route ranking
 does not use prototype benchmark percentages. Explicit mode selection remains
 authoritative. In-place gain updates refresh plan diagnostics without rerouting.

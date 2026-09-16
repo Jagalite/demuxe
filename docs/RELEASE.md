@@ -109,6 +109,30 @@ A changed runtime hash, source companion, tagged test harness, failed test, filt
 suite, or missing browser result prevents verification. Archive assembly does not
 publish anything; distribute the verified files without running the packager again.
 
+## Optional preparation and ASS runtimes
+
+When shipping the optional runtimes, pass their verified build directories to the
+same tagged packager with `--adaptation-build <engine-directory>` and
+`--ass-build <runtime-directory>`. Keep both optional source companions and their
+hashes alongside the standard source companion. See
+[Runtime assets](RUNTIME-ASSETS.md) for the pinned builds and asset-copy contract.
+
+Run the optional matrix against the immutable tagged archive:
+
+```sh
+python3 scripts/qualify-optional-runtime.py \
+  --archive <tagged-runtime.tgz> \
+  --adaptation-build <engine-directory> \
+  --ass-build <runtime-directory> \
+  --output <fresh-qualification-directory>
+```
+
+Supply `--optional <fresh-qualification-directory>/qualification.json` to
+`verify-beta-release.py`, alongside all standard consumer, transport and extra
+results. Optional evidence from an earlier untagged archive cannot qualify a new
+release archive. Qualification preserves the documented browser and source gates;
+it does not admit Firefox Native long unequal tails or staged streaming adaptation.
+
 ## Current component and npm consumer qualification
 
 After the four archive suites above, run the full additional qualification against

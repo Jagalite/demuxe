@@ -17,3 +17,50 @@ test('optional source companions are listed and match their runtime manifests',a
   assert.ok(sums.split('\n').includes(`${source.sha256}  ${source.filename}`),'Companion missing from SHA256SUMS: '+engine);
  }
 });
+
+test('clean ASS companion preserves the preferred sources recorded by the build',async()=>{
+ let manifest;try{manifest=JSON.parse(await readFile(path.join(pkg,'web/engine-ass/manifest.json')));}catch(e){if(e.code==='ENOENT')return;throw e;}
+ if(!manifest.sourceBuildVerification?.verified)return; // Historical reused-library packages have no clean-build claim.
+ assert.equal(manifest.sourceBuildVerification.releaseQualified,false);
+ const source=path.join(path.dirname(archive),manifest.sourceCompanion.filename);
+ execFileSync('python3',['-c',`
+import hashlib,json,sys,tarfile
+with tarfile.open(sys.argv[1]) as archive:
+ record=json.load(archive.extractfile('source-build.json'))
+ count=0
+ for name,digest in record['files'].items():
+  if name.startswith('build/sources/'):
+   target='libraries/'+name[len('build/sources/'):]
+  elif name.startswith('scripts/') or name in ['sources.lock.json','toolchain.lock.json']:
+   target='demuxe/'+name
+  else: continue
+  assert hashlib.sha256(archive.extractfile(target).read()).hexdigest()==digest,target
+  count+=1
+ assert count>0
+ linked=json.load(archive.extractfile('build-manifest.json'))
+ for suffix in ['native/subtitles/ass.c','scripts/link-native-ass.py']:
+  expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
+  assert hashlib.sha256(archive.extractfile('demuxe/'+suffix).read()).hexdigest()==expected,suffix
+`,source],{stdio:'pipe'});
+});
+
+test('clean preparation companion preserves all patched preferred sources and wrapper configuration',async()=>{
+ let manifest;try{manifest=JSON.parse(await readFile(path.join(pkg,'web/engine-adaptation/manifest.json')));}catch(e){if(e.code==='ENOENT')return;throw e;}
+ if(!manifest.sourceBuildVerification?.verified)return;
+ assert.equal(manifest.sourceBuildVerification.releaseQualified,false);
+ execFileSync('python3',['-c',`
+import hashlib,json,sys,tarfile
+with tarfile.open(sys.argv[1]) as archive:
+ sources=json.load(archive.extractfile('preferred-source-hashes.json'))
+ assert sources
+ for name,digest in sources.items():
+  assert hashlib.sha256(archive.extractfile('ffmpeg/'+name).read()).hexdigest()==digest,name
+ linked=json.load(archive.extractfile('build-manifest.json'))
+ for suffix in ['native/remux/remux.c','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
+  expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
+  assert hashlib.sha256(archive.extractfile('demuxe/'+suffix).read()).hexdigest()==expected,suffix
+ for suffix,target in [('ffmpeg/config.h','build/config.h'),('ffmpeg/config_components.h','build/config_components.h'),('ffmpeg/ffbuild/config.mak','build/config.mak')]:
+  expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
+  assert hashlib.sha256(archive.extractfile(target).read()).hexdigest()==expected,target
+`,path.join(path.dirname(archive),manifest.sourceCompanion.filename)],{stdio:'pipe'});
+});

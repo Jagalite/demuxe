@@ -8,8 +8,8 @@ source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=T
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root))
 build=None;source_archive=None;optional_sources=[]
 if args.release_tag:
- if args.ass_build:raise SystemExit('Native ASS remains experimental; release source/output admission is not qualified')
- if args.adaptation_build:raise SystemExit('Audio adaptation remains experimental; release admission is not qualified')
+ # Optional assets remain subject to clean source correspondence here and
+ # mandatory exact-archive optional evidence in verify-beta-release.py.
  if dirty:raise SystemExit('Release packaging requires a clean source checkout')
  if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
  if project.get('license') not in ['MIT','GPL-2.0-or-later'] or not (root/'LICENSE').is_file():raise SystemExit('Select and include the original-code license before release')
@@ -51,12 +51,17 @@ while pending:
    if target.is_file():pending.append(str(target.relative_to(root)))
    declaration=target.with_suffix('.d.ts')
    if declaration.is_file():pending.append(str(declaration.relative_to(root)))
-for name in ['native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','vod-manifest.js','streaming-manifest.js','segmented-subtitles.js','native-remux-player.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','cheap-mp4-probe.js','video-codec-config.js','remux-packaging.js']:
+for name in ['native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','vod-manifest.js','streaming-manifest.js','segmented-subtitles.js','split-mp4.js','native-remux-player.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','cheap-mp4-probe.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-full','player')}
 if args.yuv:engines['experimental-yuv']=('engine-software-yuv','player');add('web/yuv-presenter.js')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
+ if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')
+ if args.release_tag and not record.get('cleanSourceBuild'):raise SystemExit('Release preparation requires clean preferred-source verification')
+ preparation_verification=None
+ if record.get('cleanSourceBuild'):
+  preparation_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-audio-adaptation-build.py'),str(adaptation)],text=True))
  if record.get('linkSettings',{}).get('firstFragmentSeconds',0.5)!=0.5:raise SystemExit('Nondefault first-fragment sizing failed timestamp qualification; packaging is blocked')
  for filename in ['remux.mjs','remux.wasm']:
   expected=record['files'][str(adaptation/filename)]['sha256'];data=(adaptation/filename).read_bytes()
@@ -78,7 +83,11 @@ if args.adaptation_build:
   archive.add(adaptation.parent/'inputs.json',arcname='locked-inputs.json')
   archive.add(adaptation.parent/'ffmpeg/config.h',arcname='build/config.h')
   archive.add(adaptation.parent/'ffmpeg/ffbuild/config.mak',arcname='build/config.mak')
- files['web/engine-adaptation/manifest.json']=(json.dumps({'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac','opus'] if record['inputs'].get('opus') else ['flac'],'linkSettings':record.get('linkSettings',{}),'qualification':'experimental; explicit Native qualified profiles only; Opus requires lossy permission'},indent=2)+'\n').encode()
+  if preparation_verification:
+   archive.add(adaptation.parent/'preferred-source-hashes.json',arcname='preferred-source-hashes.json')
+   archive.add(adaptation.parent/'ffmpeg/config_components.h',arcname='build/config_components.h')
+   archive.add(root/'scripts/verify-audio-adaptation-build.py',arcname='demuxe/scripts/verify-audio-adaptation-build.py')
+ files['web/engine-adaptation/manifest.json']=(json.dumps({'apiVersion':2,'sourceBuildVerification':preparation_verification,'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac','opus'] if record['inputs'].get('opus') else ['flac'],'linkSettings':record.get('linkSettings',{}),'qualification':'qualified file profiles; automatic FLAC requires explicit policy and source admission; Opus remains explicit and requires lossy permission'},indent=2)+'\n').encode()
  for name in ['COPYING.LGPLv2.1','LICENSE.md']:
   files['third_party/notices/ffmpeg-adaptation/'+name]=(source_root/name).read_bytes()
 if args.ass_build:
@@ -91,6 +100,10 @@ if args.ass_build:
  # Local source companion includes the precise wrapper and all preferred library
  # sources. A reused-library link is not proof of a clean release rebuild.
  library=pathlib.Path(next(k for k in record['files'] if k.endswith('/lib/libass.a'))).parents[3]
+ clean_ass=(library/'source-build.json').is_file()
+ source_verification=None
+ if clean_ass:
+  source_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-native-ass-build.py'),str(ass)],text=True))
  args.output.mkdir(parents=True,exist_ok=True)
  source_out=args.output/'demuxe-native-ass-source.tar.gz'
  optional_sources.append(source_out)
@@ -99,9 +112,13 @@ if args.ass_build:
    archive.add(library/'build/sources'/name,arcname='libraries/'+name)
   archive.add(ass/'sources',arcname='demuxe')
   archive.add(ass/'manifest.json',arcname='build-manifest.json')
+  if clean_ass:
+   archive.add(library/'source-build.json',arcname='source-build.json')
+   archive.add(library/'scripts/build-native-ass.py',arcname='demuxe/scripts/build-native-ass.py')
+   archive.add(root/'scripts/verify-native-ass-build.py',arcname='demuxe/scripts/verify-native-ass-build.py')
   for name in ['sources.lock.json','toolchain.lock.json','scripts/build.sh','scripts/fetch-sources.py','scripts/apply-patches.py']:
    archive.add(library/name,arcname='demuxe/'+name)
- files['web/engine-ass/manifest.json']=(json.dumps({'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'experimental external Native ASS; clean release library correspondence gate remains open'},indent=2)+'\n').encode()
+ files['web/engine-ass/manifest.json']=(json.dumps({'sourceBuildVerification':source_verification,'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'External Native ASS; clean library correspondence verified; exact-archive release verification remains mandatory'},indent=2)+'\n').encode()
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/RELEASE.md']:add(name)
@@ -128,7 +145,7 @@ package={'name':project['name'],'version':project['version'],'license':('GPL-2.0
 package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
 package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
-manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build),'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
 for name,data in files.items():

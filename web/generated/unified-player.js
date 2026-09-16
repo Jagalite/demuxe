@@ -3,7 +3,7 @@ import { runtimeBase } from './internal/assets.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
-import { nativeRejection } from './internal/selection.js';
+import { nativeRejection, losslessAdaptationRejection } from './internal/selection.js';
 const filterChain = (value) => {
     if (typeof value !== 'string' || value.length > 4096 || value.includes('\0'))
         throw new PlayerError('INVALID_ARGUMENT', 'Invalid filter chain');
@@ -45,6 +45,8 @@ export class Player extends EventTarget {
     lifetime = new AbortController();
     recoveredSessions = new WeakSet();
     audioAdaptation;
+    automaticLossless = false;
+    losslessInspection;
     bufferedNativeSeeks;
     hybridAudioFilters;
     nativeASS;
@@ -96,6 +98,9 @@ export class Player extends EventTarget {
         if (!Number.isInteger(this.resourceLimits.maxDecodePixels) || this.resourceLimits.maxDecodePixels < 1 || this.resourceLimits.maxDecodePixels > 8294400 || !Number.isInteger(this.resourceLimits.maxAllocationBytes) || this.resourceLimits.maxAllocationBytes < 33554432 || this.resourceLimits.maxAllocationBytes > 268435456)
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid decode resource limits');
         this.audioAdaptation = options.experimentalAudioAdaptation;
+        if (options.automaticAudioAdaptation !== undefined && options.automaticAudioAdaptation !== 'lossless')
+            throw new PlayerError('INVALID_ARGUMENT', 'Unsupported automatic audio adaptation policy');
+        this.automaticLossless = options.automaticAudioAdaptation === 'lossless';
         if (this.audioAdaptation !== undefined && this.audioAdaptation !== 'flac' && this.audioAdaptation !== 'opus')
             throw new PlayerError('INVALID_ARGUMENT', 'Unsupported audio adaptation policy');
         this.bufferedNativeSeeks = options.experimentalBufferedNativeSeeks ?? false;
@@ -309,7 +314,7 @@ export class Player extends EventTarget {
             session.surface.remove();
         }
     }
-    async create(mode, aid = 'auto') {
+    async create(mode, aid = 'auto', adaptation, forcePreparation = false) {
         let backend;
         const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
         surface.width = this.width;
@@ -320,7 +325,7 @@ export class Player extends EventTarget {
         this.assertOperation();
         this.root.append(surface);
         try {
-            backend = 'NativePlayer' in module ? new module.NativePlayer(surface, this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, this.audioAdaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
+            backend = 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
         }
         catch (error) {
             surface.remove();
@@ -392,6 +397,8 @@ export class Player extends EventTarget {
         const remote = source.kind === 'remote' ? source.options : undefined;
         return planAdmission({ automatic, ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => a.format), browserTextTracks: !!textTracks.length,
+            automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
+            adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
             isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined', nativeSourceRejection });
@@ -399,13 +406,16 @@ export class Player extends EventTarget {
     async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic) {
         this.validateFilters(mode, settings);
         const attachments = preserve ? this.subtitleAssets : [];
-        const admitted = this.admissible(source, settings, attachments, nativeTracks, undefined, automaticAdmission);
+        const admitted = this.admissible(source, settings, attachments, nativeTracks, automaticAdmission ? this.admissionContext.nativeReason : undefined, automaticAdmission);
         if (!automaticAdmission) {
             this.planDecisions = admitted;
             this.admissionContext = { automatic: false };
         }
-        if (!admitted.some(p => p.mode === mode && p.eligible))
-            throw new PlayerError('UNSUPPORTED_FEATURE', admitted.find(p => p.mode === mode && p.code !== 'PLAN_NOT_REQUESTED')?.reason ?? 'No qualified complete playback plan');
+        if (!admitted.some(p => p.mode === mode && p.eligible)) {
+            const candidates = admitted.filter(p => p.mode === mode);
+            const rejection = candidates.find(p => p.code === 'ISOLATION_REQUIRED') ?? candidates.find(p => p.code !== 'PLAN_NOT_REQUESTED');
+            throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
+        }
         if (mode === 'native' && attachments.length && (!this.nativeASS || attachments.some(a => !['ass', 'ssa'].includes(a.format))))
             throw Error('External mpv subtitles require Hybrid or Software');
         if (mode === 'native' && this.audioOutput !== 'stereo')
@@ -457,7 +467,8 @@ export class Player extends EventTarget {
         try {
             if (old && !old.error)
                 await old.backend.pause();
-            candidate = this.candidate = await this.create(mode, desired.aid);
+            const adaptation = automaticAdmission ? (admitted.some(p => p.eligible && p.id.startsWith('native-flac')) ? 'flac' : undefined) : this.audioAdaptation;
+            candidate = this.candidate = await this.create(mode, desired.aid, adaptation, automaticAdmission && !!this.admissionContext.nativeReason && adaptation === 'flac');
             this.assertOperation();
             const p = candidate.backend;
             await p.ready;
@@ -615,6 +626,7 @@ export class Player extends EventTarget {
         for (const attempt of priorAttempts)
             this.record(attempt);
         let nativeReason;
+        this.losslessInspection = undefined;
         if (start === 0 && !(settings.vf || settings.af || this.toneMapping !== 'off')) {
             if ((source.kind === 'local' && source.input?.demuxer) || (source.kind === 'remote' && (source.options.demuxer || (source.options.format && source.options.format !== 'file')))) {
                 nativeReason = 'Manifest track requirements require mpv inspection';
@@ -647,7 +659,22 @@ export class Player extends EventTarget {
                     const sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
                     if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
                         aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
+                    const publicAudio = preserve ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
+                    if (publicAudio)
+                        aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(publicAudio[1]))?.id ?? 'missing';
                     nativeReason = nativeRejection(probe, { ...settings, aid, sid }, document.createElement('video'));
+                    // Original-track playback must not depend on optional preparation assets.
+                    // Inspect for adaptation only after ordinary Native eligibility rejects
+                    // this presentation. The existing terminal-source/cancellation guard
+                    // still owns failures from either inspector.
+                    const audioTracks = probe.tracks.filter(track => track.type === 'audio');
+                    const selectedAudio = aid === 'auto' ? (audioTracks.find(track => track.default) ?? audioTracks[0]) : audioTracks.find(track => track.id === aid);
+                    if (nativeReason && this.automaticLossless && source.kind === 'local' && selectedAudio && ['pcm_s16le', 'pcm_s24le'].includes(selectedAudio.codec)) {
+                        const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
+                        const preparedProbe = await probeSource(transport, controller.signal, 'flac');
+                        this.assertOperation();
+                        this.losslessInspection = { source, reason: losslessAdaptationRejection(preparedProbe, { ...settings, aid, sid }) };
+                    }
                 }
                 catch (error) {
                     if (this.destroyed || this.activeOperation?.controller.signal.aborted || playerError(error).code === 'AUTOPLAY_BLOCKED' || terminalSourceFailure(error))
@@ -844,7 +871,8 @@ export class Player extends EventTarget {
             catch (error) {
                 if (this.activeOperation?.controller.signal.aborted || playerError(error).code === 'AUTOPLAY_BLOCKED' || !this.automatic || this.mode === 'software' || terminalSourceFailure(error) || /out of range|Invalid seek/i.test(String(error)))
                     throw error;
-                await this.select(this.source, this.settings, true, this.nativeTracks, PLAYBACK_MODES.indexOf(this.mode) + 1, seconds);
+                const priorAttempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `Seek presentation failure: ${playerError(error).message}` }];
+                await this.select(this.source, this.settings, true, this.nativeTracks, PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, priorAttempts);
             }
         }, 'seeking');
     }
@@ -870,6 +898,24 @@ export class Player extends EventTarget {
             if (id !== null && id !== 'auto' && !track)
                 throw new PlayerError('INVALID_ARGUMENT', 'Unknown or stale public track ID');
             const backendId = id === null ? 'no' : id === 'auto' ? 'auto' : String(track.id);
+            if (type === 'audio' && this.automatic && this.automaticLossless && this.source) {
+                const previous = this.publicSelections.get(type);
+                if (track)
+                    this.publicSelections.set(type, trackKey(track, this.mode, plan));
+                else
+                    this.publicSelections.delete(type);
+                try {
+                    await this.select(this.source, { ...this.settings, aid: backendId }, true, this.nativeTracks);
+                }
+                catch (error) {
+                    if (previous)
+                        this.publicSelections.set(type, previous);
+                    else
+                        this.publicSelections.delete(type);
+                    throw error;
+                }
+                return;
+            }
             await this.current.backend.selectTrack(type, backendId);
             this.settings[type === 'audio' ? 'aid' : 'sid'] = backendId;
             if (track)
@@ -886,6 +932,12 @@ export class Player extends EventTarget {
     selectTrack(type, id) {
         if (!['audio', 'sub'].includes(type) || !/^(?:[1-9][0-9]*|auto|no)$/.test(id))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid track selection');
+        if (type === 'audio' && this.automatic && this.automaticLossless) {
+            const raw = (this.properties.get('track-list') ?? []);
+            const track = raw.find(t => t.type === 'audio' && String(t.id) === id);
+            const plan = this.current?.backend.diagnostics?.plan;
+            return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');
+        }
         return this.setting(p => p.selectTrack(type, id), () => { this.settings[type === 'audio' ? 'aid' : 'sid'] = id; this.publicSelections.delete(type); });
     }
     subtitleVisible(visible) {

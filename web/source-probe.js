@@ -1,5 +1,5 @@
 // Packet-only metadata preflight. No decoded audio or video is produced.
-export async function probeSource(source,signal){
+export async function probeSource(source,signal,audioAdaptation){
  if(!crossOriginIsolated)throw Error('Automatic source inspection requires cross-origin isolation');
  if(signal.aborted)throw new DOMException('Aborted','AbortError');
  const mailbox=new SharedArrayBuffer(64+262144),workers=[];let abort;
@@ -16,8 +16,8 @@ export async function probeSource(source,signal){
    if(data.type==='ready'){
     const probe=make('./native-remux-worker.js');probe.onmessage=({data:message})=>{
      if(message.type==='error')finish(Error(message.message));
-     if(message.type==='probed')finish(null,{tracks:message.tracks,duration:message.duration,identity:data.identity});
-    };probe.postMessage({type:'probe',size:data.size,mailbox});
+     if(message.type==='probed')finish(null,{tracks:message.tracks,duration:message.duration,format:message.format,identity:data.identity});
+    };probe.postMessage({type:'probe',size:data.size,mailbox,audioAdaptation});
    }
   };
   const {refreshAuthorization,...transport}=source;reader.postMessage({type:'init',mailbox,...transport});

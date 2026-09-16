@@ -2,7 +2,7 @@
 """Bind passing exact-archive tests and corresponding source to a release record."""
 import argparse, hashlib, json, os, pathlib, subprocess, tarfile, tempfile
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);args=p.parse_args()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def archive_sha(path):
  h=hashlib.sha256()
@@ -17,6 +17,16 @@ with tarfile.open(args.archive)as tar:
   if sha(tar.extractfile('package/'+name).read())!=expected['sha256']:raise SystemExit('Runtime hash mismatch: '+name)
  build=json.load(tar.extractfile('package/engine-build.json'))
  reader=tar.extractfile('package/web/range-reader.js').read()
+ for engine in ['ass','adaptation']:
+  name='web/engine-'+engine+'/manifest.json'
+  if name not in manifest['files']:continue
+  optional=json.load(tar.extractfile('package/'+name))
+  if not optional.get('sourceBuildVerification',{}).get('verified'):raise SystemExit('Optional engine lacks clean source correspondence: '+engine)
+  companion=optional['sourceCompanion']
+  if pathlib.Path(companion['filename']).name!=companion['filename']:raise SystemExit('Invalid optional source companion path')
+  path=args.archive.parent/companion['filename']
+  if archive_sha(path)!=companion['sha256']:raise SystemExit('Optional source companion differs: '+engine)
+
 source_hash=archive_sha(args.source)
 if source_hash!=manifest['sourceArchive']['sha256']:raise SystemExit('Source archive does not match runtime')
 with tarfile.open(args.source)as tar:
@@ -28,9 +38,15 @@ with tarfile.open(args.source)as tar:
   if source['files'].get('toolchain/emscripten/'+name)!=digest:raise SystemExit('Missing corresponding SDK source: '+name)
  for name,digest in build['inputs'].items():
   if source['files'].get('demuxe/'+name)!=digest:raise SystemExit('Missing corresponding engine source: '+name)
-consumer_cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','omitted-yuv','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
+optional_present=any(name.startswith(('web/engine-ass/','web/engine-adaptation/')) for name in manifest['files'])
+if optional_present and not args.optional:raise SystemExit('Optional runtime release requires exact-archive optional qualification')
+from optional_release import required_consumer_cases
+consumer_cases=required_consumer_cases(manifest)
 streaming_cases={f'{mode}:{test}'for mode in ['hybrid','software']for test in ['seek-completes-packet','seek-deadline','destroy-progress']}
 evidence=[]
+if optional_present:
+ from optional_release import verify
+ evidence.append(verify(args.optional,args.archive,manifest,source['files']))
 for paths,script,expected in [(args.consumer,'tests/beta-consumer.mjs',consumer_cases),(args.streaming,'tests/beta-streaming.mjs',streaming_cases)]:
  families=set()
  for file in paths:

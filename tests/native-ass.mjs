@@ -13,7 +13,7 @@ try{
   try{
    await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async kind=>{
-    await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];
+    await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];window.frameTrace=[];const request=HTMLVideoElement.prototype.requestVideoFrameCallback;HTMLVideoElement.prototype.requestVideoFrameCallback=function(cb){return request.call(this,(now,m)=>{const r=player?.current?.backend?.remux;frameTrace.push({mediaTime:m.mediaTime,currentTime:this.currentTime,seeking:this.seeking,expected:r?.expectedVideoFrame?.(this.currentTime-(r.timelineBias??0)),bias:r?.timelineBias});if(frameTrace.length>100)frameTrace.shift();cb(now,m);});};
     window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:kind==='direct'?'never':'always',experimentalNativeASS:true,experimentalAudioAdaptation:kind.startsWith('flac')?'flac':undefined,audioGain:kind==='flac-gain'?.5:1,experimentalBufferedNativeSeeks:true});
     player.addEventListener('error',e=>errors.push(e.detail));const input=document.createElement('input');input.type='file';input.id='ass-media';document.body.append(input);
     const font=await(await fetch('/fixtures/DejaVuSans.ttf')).blob();await player.addFont(new File([font],'DejaVuSans.ttf'));
@@ -51,9 +51,9 @@ try{
    await page.evaluate(()=>document.exitFullscreen());
    item.errors=await page.evaluate(()=>errors);assert.deepEqual(item.errors,[]);
    await page.evaluate(()=>player.open(mediaFile));assert.equal(await page.locator('.demuxe-native-ass').count(),0);
-   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
    for(const key of ['active','animation','resize'])delete item[key].image;
-  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
  const page=await browser.newPage(),item={kind:'destroy-during-wasm-load'};result.cases.push(item);
  let release,entered;const barrier=new Promise(r=>entered=r),unblock=new Promise(r=>release=r);
@@ -69,6 +69,6 @@ try{
   await Promise.race([barrier,new Promise((_,j)=>setTimeout(()=>j(Error('Wasm load barrier not reached')),15000))]);
   assert.equal(await page.evaluate(()=>window.settled),false);
   item.output=await page.evaluate(async()=>{await player.destroy();return await window.pending;});
-  assert.match(item.output.error,/destroy|abort/i);release();await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-native-ass').count(),0);item.passed=true;
- }catch(error){item.error=String(error.stack);process.exitCode=1;}finally{release();await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+  assert.match(item.output.error,/destroy|abort/i);release();await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-native-ass').count(),0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
+ }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);process.exitCode=1;}finally{release();await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 }finally{await browser.close();server.kill();}

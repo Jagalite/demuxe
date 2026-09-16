@@ -26,6 +26,8 @@ export declare class Player extends EventTarget {
     private lifetime;
     private recoveredSessions;
     private audioAdaptation?;
+    private automaticLossless;
+    private losslessInspection?;
     private bufferedNativeSeeks;
     private hybridAudioFilters;
     private nativeASS;

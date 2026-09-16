@@ -1,3 +1,23 @@
+/** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
+ * The runtime still verifies packets, samples, actual MSE output and work bounds. */
+export function losslessAdaptationRejection(probe, settings) {
+    if (!probe.format?.includes('matroska'))
+        return 'Automatic FLAC requires inspected Matroska';
+    const selected = (type, id = 'auto') => { const tracks = probe.tracks.filter(t => t.type === type && !t.attachedPicture); return id === 'no' ? undefined : id === 'auto' ? (tracks.find(t => t.default) || tracks[0]) : tracks.find(t => t.id === id); };
+    if (settings.subtitles && selected('sub', settings.sid))
+        return 'Embedded subtitles require mpv rendering';
+    const v = selected('video'), a = selected('audio', settings.aid);
+    if (!v || v.codec !== 'h264' || !v.width || !v.height || v.width * v.height > 1920 * 1080)
+        return 'Automatic FLAC requires H264 up to 1080p';
+    if (!a || !['pcm_s16le', 'pcm_s24le'].includes(a.codec) || a.sampleRate !== 48000 || ![1, 2].includes(a.channels ?? 0) || ![16, 24].includes(a.bits ?? 0))
+        return 'Automatic FLAC requires selected 48 kHz mono/stereo PCM16/24';
+    if ([v, a].some(t => !Number.isFinite(t.startTime) || t.startTime < 0 || !Number.isFinite(t.endTime) || t.endTime <= t.startTime))
+        return 'Automatic FLAC requires known selected-track bounds';
+    if (Math.abs(v.startTime - a.startTime) > .05 || Math.abs(v.endTime - a.endTime) > .05)
+        return 'Automatic FLAC selected-track offsets or tails exceed qualification';
+    if (!Number.isFinite(probe.duration) || probe.duration <= 0)
+        return 'Automatic FLAC requires a finite duration';
+}
 export function nativeRejection(probe, settings, video) {
     const selected = (type, id = 'auto') => { const tracks = probe.tracks.filter(t => t.type === type && !t.attachedPicture); return id === 'no' ? undefined : id === 'auto' ? (tracks.find(t => t.default) || tracks[0]) : tracks.find(t => t.id === id); };
     // Browser text-track exposure cannot reliably prove embedded subtitle delivery.

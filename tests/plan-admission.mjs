@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {planAdmission} from '../web/generated/internal/playback-plans.js';
+import {losslessAdaptationRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
 test('ordinary automatic admission contains copy plans and never implicitly permits adaptation',()=>{
@@ -23,4 +24,31 @@ test('explicit adaptation respects profile, lossy permission and manifest bounda
  assert.ok(eligible({automatic:false,adaptation:'opus',allowLossy:true}).includes('native-opus'));
  assert.ok(!eligible({automatic:false,adaptation:'opus',allowLossy:true,manifest:true}).includes('native-opus'));
  assert.ok(!eligible({automatic:false,adaptation:'opus',allowLossy:true,nativeASS:true,externalFormats:['ass']}).includes('native-opus'));
+});
+test('automatic lossless permission requires source evidence and never admits Opus',()=>{
+ assert.ok(!eligible({automaticLossless:true}).includes('native-flac'));
+ const ids=eligible({automaticLossless:true,adaptationSourceQualified:true,nativeSourceRejection:'PCM cannot be copied'});
+ assert.deepEqual(ids,['native-flac','hybrid','software']);
+ assert.ok(!eligible({automaticLossless:true,adaptationSourceQualified:false,adaptationSourceRejection:'Unequal tails'}).includes('native-flac'));
+ assert.ok(!eligible({automaticLossless:true,adaptationSourceQualified:true,manifest:true}).includes('native-flac'));
+});
+test('automatic FLAC inspects the selected track, known endpoints and exact PCM configuration',()=>{
+ const video={id:'1',index:0,type:'video',codec:'h264',width:1280,height:720,startTime:0,endTime:16};
+ const audio={id:'1',index:1,type:'audio',codec:'pcm_s24le',sampleRate:48000,channels:2,bits:24,startTime:0,endTime:16};
+ const other={...audio,id:'2',index:2,sampleRate:44100};
+ const settings={aid:'auto',sid:'no',subtitles:false};
+ const probe={format:'matroska,webm',duration:16,tracks:[video,audio,other]};
+ assert.equal(losslessAdaptationRejection(probe,settings),undefined);
+ assert.match(losslessAdaptationRejection(probe,{...settings,aid:'2'}),/48 kHz/);
+ for(const endTime of [undefined,-1,1,30])assert.ok(losslessAdaptationRejection({...probe,tracks:[video,{...audio,endTime}]},settings));
+ assert.ok(losslessAdaptationRejection({...probe,tracks:[video,{...audio,bits:32}]},settings));
+ assert.ok(losslessAdaptationRejection({...probe,tracks:[{...video,endTime:1},audio]},settings));
+});
+
+test('isolation admission remains structurally distinct from unsupported media',()=>{
+ const decisions=planAdmission({...facts,isolated:false});
+ for(const id of ['hybrid','software','native-remux'])assert.equal(decisions.find(p=>p.id===id).code,'ISOLATION_REQUIRED');
+ assert.equal(decisions.find(p=>p.id==='native-direct').eligible,true);
+ const ass=planAdmission({...facts,isolated:false,nativeASS:true,externalFormats:['ass']});
+ assert.equal(ass.find(p=>p.id==='native-direct-ass').code,'ISOLATION_REQUIRED');
 });

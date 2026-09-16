@@ -10,15 +10,29 @@ export type ProbeTrack = {
     channels?: number;
     aacObject?: number;
     attachedPicture?: boolean;
+    sampleRate?: number;
+    bits?: number;
+    startTime?: number;
+    endTime?: number;
+    width?: number;
+    height?: number;
 };
 export type Probe = {
     tracks: ProbeTrack[];
     duration: number;
+    format?: string;
     identity?: {
         size: string;
         etag?: string;
     };
 };
+/** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
+ * The runtime still verifies packets, samples, actual MSE output and work bounds. */
+export declare function losslessAdaptationRejection(probe: Probe, settings: {
+    aid: string;
+    sid: string;
+    subtitles: boolean;
+}): string | undefined;
 export type SelectionAttempt = {
     mode: PlaybackMode | 'probe';
     outcome: 'skipped' | 'failed' | 'selected';

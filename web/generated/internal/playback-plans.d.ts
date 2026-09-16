@@ -489,7 +489,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv";
     qualification: "existing";
 }>;
-export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED';
+export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
 export type PlanFacts = {
     automatic: boolean;
     vf: string;
@@ -511,6 +511,9 @@ export type PlanFacts = {
     webCodecs: boolean;
     webAudio: boolean;
     nativeSourceRejection?: string;
+    automaticLossless?: boolean;
+    adaptationSourceQualified?: boolean;
+    adaptationSourceRejection?: string;
 };
 /** Admission is executable and deliberately finite. Runtime output verification
  * still owns acceptance; browser capability signals cannot prove presentation. */

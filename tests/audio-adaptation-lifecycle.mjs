@@ -48,7 +48,7 @@ try{
     item.initial=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(500);item.idle=await page.evaluate(()=>player.diagnostics);
     const stats=d=>d.backend.remux.remux.adaptation;
     assert.equal(stats(item.initial).audioSamplesDecoded,stats(item.idle).audioSamplesDecoded);assert.ok(stats(item.idle).audioSamplesDecoded<48000*8);assert.equal(item.idle.plan.id,`native-${profile}-gain`);
-    item.buffered=await page.evaluate(async()=>{const r=player.current.backend.remux,worker=r.worker,gen=r.generation;await player.seek(2);return {sameWorker:r.worker===worker,sameGeneration:r.generation===gen,paused:player.state.playbackIntent==='pause'}});
+    item.buffered=await page.evaluate(async()=>{window.seekTrace=[];const v=player.surface,request=v.requestVideoFrameCallback.bind(v);v.requestVideoFrameCallback=cb=>request((now,m)=>{seekTrace.push({event:'frame',mediaTime:m.mediaTime,seeking:v.seeking,time:v.currentTime});cb(now,m)});for(const event of ['seeking','seeked'])v.addEventListener(event,()=>seekTrace.push({event,seeking:v.seeking,time:v.currentTime}));const r=player.current.backend.remux,worker=r.worker,gen=r.generation;await player.seek(2);return {sameWorker:r.worker===worker,sameGeneration:r.generation===gen,paused:player.state.playbackIntent==='pause'}});
     assert.equal(item.buffered.sameWorker,true);assert.equal(item.buffered.sameGeneration,true);
     await page.evaluate(()=>player.seek(24));item.distant=await page.evaluate(()=>player.diagnostics);assert.ok(stats(item.distant).audioSamplesDecoded<48000*8);assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
     await page.evaluate(()=>Promise.all([player.seek(3),player.seek(15)]));assert.ok(Math.abs(await page.evaluate(()=>player.state.currentTime)-15)<.15);assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
@@ -63,8 +63,8 @@ try{
     }else{await page.evaluate(source=>player.open(source),source);item.diagnostics=await page.evaluate(()=>player.diagnostics);assert.equal(item.diagnostics.plan.id,`native-${profile}`);assert.ok(requests.length>2);assert.ok(requests.every(r=>r.authorized));}
     item.requests=requests;
    }
-   await cleanup(page);item.passed=true;
-  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>player.diagnostics).catch(()=>null);process.exitCode=1;}
+   item.seekTrace=await page.evaluate(()=>window.seekTrace);await cleanup(page);item.passed=true;
+  }catch(error){item.error=String(error.stack);item.seekTrace=await page.evaluate(()=>window.seekTrace);item.state=await page.evaluate(()=>player.diagnostics).catch(()=>null);process.exitCode=1;}
   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();for(const r of held)r.destroy();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
 }finally{await browser.close();for(const r of held)r.destroy();media.closeAllConnections();await new Promise(r=>media.close(r));app.kill();}

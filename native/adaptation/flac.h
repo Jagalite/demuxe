@@ -97,7 +97,7 @@ static int adaptation_frames(void){
   if(f->sample_rate!=adapt_encoder->sample_rate||av_channel_layout_compare(&f->ch_layout,&adapt_encoder->ch_layout)||av_get_packed_sample_fmt(f->format)!=(adapt_enabled==2?adapt_decoder->request_sample_fmt:adapt_encoder->sample_fmt))return reject("Decoded audio configuration/precision changed; lossless adaptation rejected");
   if(f->pts==AV_NOPTS_VALUE)return reject("Missing decoded audio timestamp");
   int64_t pts=av_rescale_q(f->pts,adapt_decoder->pkt_timebase,adapt_encoder->time_base);
-  if(adapt_first_pts==AV_NOPTS_VALUE)adapt_first_pts=pts;
+  if(adapt_first_pts==AV_NOPTS_VALUE)adapt_first_pts=pts-adapt_decoded_samples;
   int64_t tolerance=FFMAX(1,av_rescale_q(1,adapt_decoder->pkt_timebase,adapt_encoder->time_base));
   if(llabs(pts-adapt_first_pts-adapt_decoded_samples)>tolerance)return reject("Decoded audio timeline discontinuity");
   if(f->nb_samples<=0||f->nb_samples>65536)return reject("Decoded audio frame budget exceeded");
@@ -134,4 +134,16 @@ static int adaptation_finish(void){
  r=adaptation_packets();if(r<0)return r;
  if(adapt_decoded_samples!=adapt_encoded_samples)return reject("Audio encoder drain lost samples");
  adaptation_stats();return 0;
+}
+
+// Only an explicit source seek can introduce a gap. Drain real preroll samples
+// before restarting the selected FLAC encoder at the target; sequential playback
+// keeps its encoder. Cumulative work/sample counters survive this reset.
+static int adaptation_seek_restart(void){
+ if(adapt_enabled!=1)return reject("Tail preroll reset is qualified only for FLAC");
+ int r=adaptation_finish();if(r<0)return r;
+ int64_t decoded=adapt_decoded_samples,encoded=adapt_encoded_samples,video_count=adapt_video_packets,frames=adapt_audio_frames,packets=adapt_audio_packets;double end=adapt_last_end;
+ adaptation_close();r=adaptation_open();if(r<0)return r;
+ adapt_decoded_samples=decoded;adapt_encoded_samples=encoded;adapt_video_packets=video_count;adapt_audio_frames=frames;adapt_audio_packets=packets;adapt_last_end=end;
+ return 0;
 }

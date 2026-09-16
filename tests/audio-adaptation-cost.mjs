@@ -9,11 +9,18 @@ const out=`${process.env.RESULT_ROOT||'results/optimization-integration/stage2'}
 const app=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('server timeout')),10000);app.on('error',reject);app.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(t);resolve(m[0])}})});
 const fixture=process.env.FIXTURE||'build/optimization-fixtures/long-pcm.mkv';
+const automaticLossless=process.env.AUTOMATIC_FLAC==='1';
 const ass=process.env.ASS==='1',gain=Number(process.env.GAIN??1),profile=process.env.PROFILE||'flac';
-assert.ok(['flac','opus'].includes(profile));
+assert.ok(['flac','opus'].includes(profile));assert.ok(!automaticLossless||profile==='flac');
 const variants=process.env.VARIANTS?.split(',');
 const variantAssets=variants?await Promise.all(variants.map(async path=>({path,mjs:await readFile(path+'/remux.mjs'),wasm:await readFile(path+'/remux.wasm')}))):[];
-const result={profile,ass,gain,scope:'Local PCM fixture (dimensions recorded by fixture manifest); short headless Chrome cost screen. CDP browser processes only; external OS services excluded. New processes include their observed lifetime CPU; any disappearing process invalidates the run. Cold means fresh browser, not flushed OS cache. Warm means one preceding open/play/destroy. No sustained or universal ranking claim.',fixture,fixtureSHA256:createHash('sha256').update(await readFile(fixture)).digest('hex'),trials:[]};
+const result={profile,ass,gain,automaticLossless,scope:'Local PCM fixture (dimensions recorded by fixture manifest); short headless Chrome cost screen. CDP browser processes only; external OS services excluded. New processes include their observed lifetime CPU; any disappearing process invalidates the run. Cold means fresh browser, not flushed OS cache. Warm means one preceding open/play/destroy. No sustained or universal ranking claim.',fixture,fixtureSHA256:createHash('sha256').update(await readFile(fixture)).digest('hex'),trials:[]};
+if(process.env.DEMUXE_RUNTIME_ROOT){
+ const root=process.env.DEMUXE_RUNTIME_ROOT,bytes=await readFile(root+'/release-manifest.json'),manifest=JSON.parse(bytes);
+ result.runtimeManifestSHA256=createHash('sha256').update(bytes).digest('hex');result.runtimeFiles=manifest.files;
+ for(const [name,entry] of Object.entries(manifest.files))assert.equal(createHash('sha256').update(await readFile(root+'/'+name)).digest('hex'),entry.sha256,name);
+}
+if(process.env.BETA_ARCHIVE)result.archiveSHA256=createHash('sha256').update(await readFile(process.env.BETA_ARCHIVE)).digest('hex');
 try{
  const trials=variants?[['cold','native',0],['cold','native',1],['warm','native',1],['warm','native',0]]:[['cold','native'],['cold','hybrid'],['warm','hybrid'],['warm','native'],['cold','hybrid'],['cold','native'],['warm','native'],['warm','hybrid']].slice(0,process.env.QUICK==='1'?4:8);
  for(const [condition,mode,variant] of trials){
@@ -23,8 +30,8 @@ try{
    if(variants){const assets=variantAssets[variant];item.variant=assets.path;item.artifacts={mjs:createHash('sha256').update(assets.mjs).digest('hex'),wasm:createHash('sha256').update(assets.wasm).digest('hex')};await page.route('**/engine-adaptation/remux.*',r=>r.fulfill({contentType:r.request().url().endsWith('.wasm')?'application/wasm':'text/javascript',body:r.request().url().endsWith('.wasm')?assets.wasm:assets.mjs}));}
    await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async()=>{await player.destroy();window.PlayerClass=(await import('/web/generated/index.js')).Player;const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles(fixture);
-   async function open(){return page.evaluate(async({mode,ass,gain,profile})=>{
-    window.errors=[];window.player=new PlayerClass(document.querySelector('#surface'),{mode,nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalNativeASS:ass,audioGain:gain,experimentalBufferedNativeSeeks:true});
+   async function open(){return page.evaluate(async({mode,ass,gain,profile,automaticLossless})=>{
+    window.errors=[];window.player=new PlayerClass(document.querySelector('#surface'),{mode:mode==='native'&&automaticLossless?undefined:mode,automaticAudioAdaptation:automaticLossless?'lossless':undefined,nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalNativeASS:ass,audioGain:gain,experimentalBufferedNativeSeeks:true});
     player.addEventListener('error',e=>errors.push(e.detail));const start=performance.now();await player.open(document.querySelector('#file').files[0]);const opened=performance.now();
     if(ass){const bytes=await(await fetch('/fixtures/qualification.ass')).arrayBuffer();await player.addSubtitle(new File([bytes],'qualification.ass'));}
     const subtitleReady=performance.now();let frame;
@@ -35,7 +42,7 @@ try{
     let colorful=0;for(let i=0;i<pixels.length;i+=4)if(Math.max(...pixels.slice(i,i+3))-Math.min(...pixels.slice(i,i+3))>40)colorful++;
     if(colorful<20)throw Error('No meaningful moving-fixture video output observed');
     return {start,openMs:opened-start,setupMs:subtitleReady-start,firstPlayingFrame:first,observedVideoMs:performance.now()-start,colorful};
-   },{mode,ass,gain,profile})}
+   },{mode,ass,gain,profile,automaticLossless})}
    if(condition==='warm'){await open();await page.waitForFunction(()=>player.state.currentTime>.5);await page.evaluate(()=>player.destroy());for(let i=0;i<20&&page.workers().length;i++)await page.waitForTimeout(100);assert.equal(page.workers().length,0)}
    async function sample(){const processes=(await cdp.send('SystemInfo.getProcessInfo')).processInfo;const rss=execFileSync('/bin/ps',['-o','rss=','-p',processes.map(p=>p.id).join(',')],{encoding:'utf8'}).trim().split(/\s+/).map(Number).reduce((a,b)=>a+b,0)*1024;item.samples.push({at:Date.now(),processes,rss})}
    await sample();item.startup=await open();

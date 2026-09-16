@@ -18,7 +18,7 @@ assert not subprocess.check_output(['git','status','--porcelain'],cwd=base,text=
 
 prepared=out/'streaming'
 subprocess.run(['python3',str(base/'experiments/streaming-modernization/prepare.py'),'--timeline','--output',str(prepared)],cwd=base,check=True)
-paths=['web/retained-decoder-worker.js','src/internal/wasm-player.ts','src/internal/state.ts','src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
+paths=['src/internal/errors.ts','src/internal/selection.ts','web/source-probe.js','web/retained-decoder-worker.js','src/internal/wasm-player.ts','src/internal/state.ts','src/types.ts','src/unified-player.ts','src/internal/backend.ts','src/internal/native-player.ts','web/native-remux-player.js','web/native-remux-worker.js','native/remux/remux.c']
 patch=subprocess.check_output(['git','diff',checkpoint,'--',*paths],cwd=root)
 (out/'optimization.patch').write_bytes(patch)
 # Three-way source merge preserves the saved overlay's quality/lifecycle changes.
@@ -40,6 +40,9 @@ for name in paths:
   if 'return redact({mode:' in staged and 'streamingRecovery:' in staged and 'executionPlan(' in ours:
    resolutions.append('preserve streaming recovery diagnostics and add execution plan')
    return ours[:ours.index('backend:')]+staged[staged.index('backend:'):]
+  if "source.options.streaming?.qualityPolicy" in staged and ours=='    this.losslessInspection=undefined;\n'+base:
+   resolutions.append('preserve persistent streaming quality routing and reset file-only adaptation inspection')
+   return '    this.losslessInspection=undefined;\n'+staged
   (out/('conflict-'+name.replace('/','_'))).write_text(content)
   raise SystemExit('Unreviewed merge conflict: '+name)
  content=re.sub(r'^<<<<<<< [^\n]*\n(.*?)^\|\|\|\|\|\|\| [^\n]*\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]*\n',resolve_conflict,content,flags=re.M|re.S)
@@ -48,7 +51,7 @@ for name in paths:
 assert 'rm_adapt_audio' in (prepared/'native/remux/remux.c').read_text()
 assert 'experimentalAudioAdaptation' in (prepared/'src/types.ts').read_text()
 (out/'merges.json').write_text(json.dumps(merges,indent=2)+'\n')
-for name in ['src/internal/native-ass.ts','web/native-ass-worker.js','native/subtitles/ass.c','scripts/link-native-ass.py','src/internal/playback-plans.ts','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
+for name in ['web/split-mp4.js','src/internal/native-ass.ts','web/native-ass-worker.js','native/subtitles/ass.c','scripts/link-native-ass.py','src/internal/playback-plans.ts','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
  (prepared/name).parent.mkdir(parents=True,exist_ok=True)
  (prepared/name).write_bytes((root/name).read_bytes())
 (out/'assembly.json').write_text(json.dumps({'checkpoint':checkpoint,'patchSHA256':hashlib.sha256(patch).hexdigest(),'status':'source-only; build and qualification required'},indent=2)+'\n')

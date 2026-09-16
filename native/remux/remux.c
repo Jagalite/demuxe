@@ -83,7 +83,7 @@ static int configure_aac(AVCodecParameters*p,const uint8_t*adts,int n){
 #ifdef DEMUXE_AUDIO_ADAPTATION
 static int adapt_enabled;
 static int adaptation_describe(AVCodecParameters *p);
-EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1&&enabled!=2)return reject("Invalid adaptation policy");adapt_enabled=enabled;return 0;}
+EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1&&enabled!=2)return reject("Invalid adaptation policy");adapt_enabled=enabled;EM_ASM({Module.preparationInterface=2;});return 0;}
 #endif
 static int configure_audio(AVCodecParameters *p){
 #ifdef DEMUXE_AUDIO_ADAPTATION
@@ -207,9 +207,17 @@ static int open_input(double size){
  ret=avformat_find_stream_info(in,NULL);if(ret<0)return ret;
  return 0;
 }
+static double declared_track_end(AVStream *st){
+ double start=st->start_time==AV_NOPTS_VALUE?-1:st->start_time*av_q2d(st->time_base);
+ double end=st->duration==AV_NOPTS_VALUE||start<0?-1:start+st->duration*av_q2d(st->time_base);
+ if(strstr(in->iformat->name,"matroska"))end=-1;
+ AVDictionaryEntry *duration=av_dict_get(st->metadata,"DURATION",NULL,0);
+ if(end<0&&duration){int hh,mm;double ss;char extra;if(sscanf(duration->value,"%d:%d:%lf%c",&hh,&mm,&ss,&extra)==3&&hh>=0&&mm>=0&&mm<60&&ss>=0&&ss<60)end=hh*3600.0+mm*60.0+ss;}
+ return end;
+}
 EMSCRIPTEN_KEEPALIVE int rm_probe(double size){
  int r=open_input(size);if(r<0)return r;
- EM_ASM({Module.tracks=[];});
+ EM_ASM({Module.tracks=[];Module.format=UTF8ToString($0);},in->iformat->name);
  // TS often lacks AAC extradata until an actual ADTS packet is inspected.
  if(strstr(in->iformat->name,"mpegts")){
   AVPacket *q=av_packet_alloc();int bytes=0;
@@ -229,6 +237,14 @@ EMSCRIPTEN_KEEPALIVE int rm_probe(double size){
   int aac_object=p->codec_id==AV_CODEC_ID_AAC&&p->extradata_size>0?p->extradata[0]>>3:0;
   EM_ASM({Module.tracks.push({id:String($0),index:$1,type:['video','audio','sub'][$2],codec:UTF8ToString($3),default:!!$4,forced:!!$5,channels:$6,aacObject:$7,attachedPicture:!!$8});},
    ++ids[type],i,type,avcodec_get_name(p->codec_id),!!(st->disposition&AV_DISPOSITION_DEFAULT),!!(st->disposition&AV_DISPOSITION_FORCED),p->ch_layout.nb_channels,aac_object,!!(st->disposition&AV_DISPOSITION_ATTACHED_PIC));
+  // Declared source metadata is admission evidence, not proof of later packets.
+  // Missing track ends stay unknown; never substitute the overall movie duration.
+  double start=st->start_time==AV_NOPTS_VALUE?-1:st->start_time*av_q2d(st->time_base);
+  // FFmpeg can estimate missing stream durations from the whole container.
+  // For Matroska that estimate must not masquerade as an independent track end.
+  double end=declared_track_end(st);
+  int bits=p->codec_id==AV_CODEC_ID_PCM_S16LE?16:p->codec_id==AV_CODEC_ID_PCM_S24LE?24:p->bits_per_raw_sample;
+  EM_ASM({Object.assign(Module.tracks[Module.tracks.length-1],{sampleRate:$0,bits:$1,startTime:$2,endTime:$3,width:$4,height:$5});},p->sample_rate,bits,start,end,p->width,p->height);
  }
  return 0;
 }
@@ -278,6 +294,7 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
   if(par->codec_type!=AVMEDIA_TYPE_VIDEO&&par->codec_type!=AVMEDIA_TYPE_AUDIO)continue;
   EM_ASM({Module.tracks.push({id:String($0+1),type:$1?'video':'audio',codec:UTF8ToString($2),selected:!!$3});},i,par->codec_type==AVMEDIA_TYPE_VIDEO,avcodec_get_name(par->codec_id),(int)i==video||(int)i==audio);
  }
+ EM_ASM({Module.trackBounds=({videoEnd:$0,audioEnd:$1});},video>=0?declared_track_end(in->streams[video])-origin:-1,audio>=0?declared_track_end(in->streams[audio])-origin:-1);
  packet=av_packet_alloc();return 0;
 }
 EMSCRIPTEN_KEEPALIVE double rm_duration(void){return in&&in->duration!=AV_NOPTS_VALUE?in->duration/(double)AV_TIME_BASE:0;}
@@ -293,10 +310,60 @@ EMSCRIPTEN_KEEPALIVE int rm_set_container(int webm){
  }else if(v==AV_CODEC_ID_VP8||a==AV_CODEC_ID_VORBIS)return reject("Selected codecs incompatible with MP4");
  mux_webm=webm;return 0;
 }
+#ifdef DEMUXE_AUDIO_ADAPTATION
+// A new presentation after one track ended still needs real preroll for that
+// track. Retain only its final GOP/PCM packets, then seek the continuing track.
+// This path is controlled by the browser qualification gate, never inferred
+// from a movie-wide duration estimate.
+static int tail_short=-1,tail_reset_pending;static int64_t tail_scan_bytes;static double tail_long_floor,tail_short_max,tail_audio_max;
+static int prepare_tail_seek(double target){
+ tail_short=-1;tail_reset_pending=0;tail_scan_bytes=0;tail_long_floor=0;tail_short_max=tail_audio_max=-1;
+ if(!EM_ASM_INT({return !!Module.windowedTails;})||target<=0||video<0||audio<0)return 0;
+ double ve=declared_track_end(in->streams[video])-origin,ae=declared_track_end(in->streams[audio])-origin;
+ double end=ve<ae?ve:ae;
+ if(end<=0||target<end||fabs(ve-ae)<=1)return 0;
+ enum AVCodecID codec=in->streams[audio]->codecpar->codec_id;
+ if(adapt_enabled!=1||(codec!=AV_CODEC_ID_PCM_S16LE&&codec!=AV_CODEC_ID_PCM_S24LE))return reject("Unequal-tail seeking requires qualified integer PCM");
+ tail_short=ve<ae?video:audio;
+ clear_prefetch();double point=end>.5?end-.5:0;
+ int r=av_seek_frame(in,video,(int64_t)((point+origin)/av_q2d(in->streams[video]->time_base)),AVSEEK_FLAG_BACKWARD);
+ if(r<0)return reject("Completed-track preroll seek failed");avformat_flush(in);
+ int bytes=0,scanned=0;double covered=-1;
+ for(int count=0;count<20000;count++){
+  AVPacket*q=av_packet_alloc();r=av_read_frame(in,q);
+  if(r<0){av_packet_free(&q);if(r!=AVERROR_EOF)return r;break;}
+  scanned+=q->size;if(scanned>8*1024*1024){av_packet_free(&q);return reject("Completed-track preroll read budget exceeded");}
+  AVStream*st=in->streams[q->stream_index];double pts=q->pts==AV_NOPTS_VALUE?-1:q->pts*av_q2d(st->time_base)-origin;
+  if(q->stream_index==tail_short){
+   if(pts<0){av_packet_free(&q);return reject("Completed-track preroll timestamp unavailable");}
+   double packet_end=pts+q->duration*av_q2d(st->time_base);if(packet_end>covered)covered=packet_end;
+   if(tail_short==video||packet_end>=point){
+    if(prefetched>=256||bytes+q->size>2*1024*1024){av_packet_free(&q);return reject("Completed-track preroll retention budget exceeded");}
+    bytes+=q->size;if(pts>tail_short_max)tail_short_max=pts;prefetch[prefetched++]=q;continue;
+   }
+  }
+  if(tail_short==video&&q->stream_index==audio&&pts>=0&&pts<=end+.1){
+   if(prefetched>=256||bytes+q->size>2*1024*1024){av_packet_free(&q);return reject("Tail audio preroll retention budget exceeded");}
+   bytes+=q->size;if(pts>tail_audio_max)tail_audio_max=pts;prefetch[prefetched++]=q;continue;
+  }
+  av_packet_free(&q);if(pts>end+.5)break;
+ }
+ if(!prefetched||covered<end-.002)return reject("Completed-track preroll does not establish declared end");
+ int continuing=tail_short==video?audio:video;
+ tail_long_floor=target>.5?target-.5:0;
+ r=av_seek_frame(in,continuing,(int64_t)((tail_long_floor+origin)/av_q2d(in->streams[continuing]->time_base)),AVSEEK_FLAG_BACKWARD);
+ if(r<0)return reject("Continuing-track seek failed");avformat_flush(in);
+ tail_reset_pending=tail_short==video;return 1;
+}
+#endif
 EMSCRIPTEN_KEEPALIVE int rm_start(double target){
  int seek_stream=video>=0?video:audio;
  close_output();eof=0;video_started=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
- if(target>0){if(is_ts){int r=seek_ts(target);if(r<0)return r;}else{clear_prefetch();int r=av_seek_frame(in,seek_stream,(int64_t)((target+origin)/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}}
+ int tail_seek=0;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ tail_seek=prepare_tail_seek(target);if(tail_seek<0)return tail_seek;
+#endif
+ if(target>0&&!tail_seek){if(is_ts){int r=seek_ts(target);if(r<0)return r;}else{clear_prefetch();int r=av_seek_frame(in,seek_stream,(int64_t)((target+origin)/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}}
  else if(position>0&&target<0){int r=av_seek_frame(in,seek_stream,(int64_t)(origin/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}
  int r=audio>=0?configure_audio(in->streams[audio]->codecpar):0;if(r<0)return r;
 #ifdef DEMUXE_AUDIO_ADAPTATION
@@ -353,7 +420,8 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
  int64_t step_audio_start=adapt_decoded_samples;
 #endif
  for(int count=0;count<20000;count++){
-  int r;if(prefetch_at<prefetched){av_packet_move_ref(packet,prefetch[prefetch_at++]);r=0;}else r=av_read_frame(in,packet);
+  int from_prefetch=prefetch_at<prefetched;
+  int r;if(from_prefetch){av_packet_move_ref(packet,prefetch[prefetch_at++]);r=0;}else r=av_read_frame(in,packet);
   if(r==AVERROR_EOF){
 #ifdef DEMUXE_AUDIO_ADAPTATION
    if(adapt_enabled){int end=adaptation_finish();if(end<0)return end;}
@@ -361,12 +429,36 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
    int t=av_write_trailer(out);if(t<0)return t;avio_flush(output_io);eof=1;return 0;}
   if(r<0)return r;
   int idx=packet->stream_index;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+  if(tail_short>=0&&!from_prefetch&&(idx==audio||idx==video)){
+   AVStream*st=in->streams[idx];double pts=packet->pts==AV_NOPTS_VALUE?-1:packet->pts*av_q2d(st->time_base)-origin;
+   if(pts<0)return reject("Tail seek timestamp unavailable");
+   if(idx==tail_short){
+    if(pts>tail_short_max+.001)return reject("Completed track contains unexpected later packets");
+    av_packet_unref(packet);continue; // Already retained seek preroll; do not append twice.
+   }
+   if(idx==audio&&(pts<=tail_audio_max+.000001||pts+packet->duration*av_q2d(st->time_base)<tail_long_floor)){tail_scan_bytes+=packet->size;if(tail_scan_bytes>8*1024*1024)return reject("Tail seek source scan budget exceeded");av_packet_unref(packet);continue;}
+   if(tail_reset_pending){
+    // Adjacent PCM packets use the established sample clock. Matroska's
+    // millisecond timestamps can round across the final partial FLAC frame;
+    // restarting an otherwise continuous encoder would create an overlap.
+    int64_t shifted=packet->pts-(int64_t)((origin-1.0)/av_q2d(st->time_base));
+    int64_t next=av_rescale_q(shifted,st->time_base,adapt_encoder->time_base);
+    int64_t tolerance=FFMAX(1,av_rescale_q(1,st->time_base,adapt_encoder->time_base));
+    if(llabs(next-adapt_first_pts-adapt_decoded_samples)>tolerance){r=adaptation_seek_restart();if(r<0)return r;}
+    tail_reset_pending=0;
+   }
+  }
+#endif
   if(idx>=64||map[idx]<0){av_packet_unref(packet);continue;}
   if(idx==audio&&audio_bsf){r=configure_aac(in->streams[audio]->codecpar,packet->data,packet->size);if(r<0)return r;r=av_bsf_send_packet(audio_bsf,packet);if(r<0)return r;r=av_bsf_receive_packet(audio_bsf,packet);if(r<0)return r;}
   AVStream *src=in->streams[idx],*dst=out->streams[map[idx]];
   if(idx==audio&&audio_bsf){r=repair_audio(packet,1);if(r<0)return r;}
   if(packet->pts==AV_NOPTS_VALUE)return reject("Missing selected packet PTS");
   if(idx==video){
+#ifdef DEMUXE_AUDIO_ADAPTATION
+   if(adapt_enabled)EM_ASM({if(!Module.videoFrames)Module.videoFrames=[];Module.videoFrames.push([$0,$1]);},packet->pts*av_q2d(src->time_base)-origin,packet->duration*av_q2d(src->time_base));
+#endif
    if(src->codecpar->codec_id==AV_CODEC_ID_VP9&&(packet->flags&AV_PKT_FLAG_KEY)){
     int same=EM_ASM_INT({const next=Module.parseVP9(HEAPU8.slice($0,$0+$1));return next.profile===Module.vp9.profile&&next.pixelFormat===Module.vp9.pixelFormat&&next.fullRange===Module.vp9.fullRange;},packet->data,packet->size);
     if(!same)return reject("Selected VP9 configuration changed; new initialization required");

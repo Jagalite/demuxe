@@ -1,16 +1,43 @@
 # Playback optimization completion work
 
-Latest review fixes: the four Native ASS findings are fixed and covered by Chrome/Firefox regressions. Current subtitle assets are `build/native-ass-04` (interface version 2); matching local package candidate is `build/optimization-package-13`. See the review-fix section at the end. Earlier package-12 benchmark and checkpoint records remain historical evidence, not measurements of the rebuilt subtitle artifact.
+Post-review fixes: public range objects are restored for windowed Native, and
+original-track inspection no longer depends on optional preparation assets.
+Package 22 passed the focused Chrome/Firefox routing and Chrome tail regressions;
+see [the fix evidence](../results/optimization-review-fixes-final/README.md).
+The complete package-20 matrix below remains historical exact-artifact evidence.
+Tagged candidate qualification is recorded separately in
+`results/optimization-release-closeout/` and the release verification record.
 
-Current local work starts at `f97588443ff4d2a043a2fd8500fb73bd45e656e1`.
+Latest local stage (2026-09-16): automatic lossless admission is implemented for
+the documented local-file subset. The progressive FLAC long-tail path passes
+Chrome output, seek, pause/rate, sample and packet comparisons, including nonzero
+starts and ASS+gain. Firefox's unequal-tail paused-seek failure remains reproduced;
+that Native configuration rejects explicitly and retains the mpv alternatives.
+A distant short-video seek can recover through Software; continuous Firefox Hybrid
+ASS behavior after video EOF is not qualified (see the current evidence).
+Preparation ABI 2 rejects mixed assets. Frame verification uses emitted MP4 sample
+intervals and edit mapping, including rounded B-frame overlaps at fractional seeks.
+Clean optional source builds and the integrated exact-archive release gate are in
+place. Final candidate qualification is recorded in
+[the current closeout evidence](../results/optimization-final/README.md).
+
+Earlier package-14 source-build and benchmark results below are historical, as are
+package-12/13 reports. They are not measurements of the final ABI-2 runtime.
+
+Prior review fixes: the four Native ASS findings are fixed and covered by Chrome/Firefox regressions. That review used `build/native-ass-04` (interface version 2) and local package candidate `build/optimization-package-13`. See the review-fix section at the end. Earlier package-12 benchmark and checkpoint records remain historical evidence, not measurements of the rebuilt subtitle artifact.
+
+The implementation below started at `f97588443ff4d2a043a2fd8500fb73bd45e656e1`.
 Remote main was fetched and verified at that commit, with no later commits and
-no initial working changes. Work remains uncommitted in the dedicated
-`demuxe-optimization-integration` checkout. The optimization laboratory is unchanged.
+no initial working changes. That implementation and its review fixes were committed
+and pushed to main as `cdd1cb5cc2e48f484e58bc0c2f1bc05fb6a7de83`. Subsequent
+closeout work is local in `demuxe-optimization-integration`. The optimization
+laboratory is unchanged.
 Earlier integration, FLAC and review-fix reports are historical evidence; their
 references to an uncommitted checkpoint describe their original preparation date.
 
-**The overall program is not complete.** This document records incremental
-implementation and evidence, including unresolved mandatory paths.
+**Release promotion has not occurred.** The latest scope and remaining browser/
+source limitations are in the current closeout evidence; older sections retain
+their historical qualification boundaries.
 
 ## In-place gain
 
@@ -42,7 +69,7 @@ source assembled with the saved streaming overlay compiles and passes its 59
 contracts (`build/optimization-streaming-16`, logs in the gain evidence directory).
 This is source/contract qualification, not end-to-end HLS/DASH qualification.
 
-## Unequal tails: precise remaining limitation
+## Historical unequal-tail limitation (before the 2026-09-16 stage)
 
 Both one-second video with 30-second audio and 1.017-second audio with 30-second
 video reproduce the bounded-work rejection. The new reverse fixture command and
@@ -104,7 +131,7 @@ open. Ordinary Native playback does not load this worker or Wasm.
 | Buffered Native seeks | Existing opt-in behavior preserved; previous frame and authority regressions retained |
 | Native / Hybrid / Software gain | In-place implementation and Chrome/Firefox digital-output tests |
 | Hybrid scalar filter | Existing qualified forms preserved; combined gain now has a separate stage |
-| Progressive FLAC, original DTS repair, multi-audio | Existing opt-in implementation preserved; no generalized automatic admission |
+| Progressive FLAC, original DTS repair, multi-audio | Opt-in implementation preserved; separate automatic lossless policy admits the narrow documented subset |
 | Long unequal tails | Reproduced both directions; unsupported with bounded rejection |
 | External Native ASS and combinations | Implemented, opt-in; Chrome/Firefox output checks and installed consumer checks |
 | Embedded Native ASS | Not implemented; mpv remains alternative |
@@ -118,7 +145,8 @@ open. Ordinary Native playback does not load this worker or Wasm.
 | Rejected transport, routine background handoff, video transcode | Not revived |
 
 No dependency upgrades, old/new glue mixing, HLS/DASH manifest ownership changes,
-ABR/live admission, commits, pushes or publication are part of these local changes.
+ABR/live admission or publication are part of the implementation. The source push
+recorded above did not promote an optional runtime to release qualification.
 Final-artifact paired benchmarks and clean-consumer checks are recorded below.
 Clean release source correspondence remains open; no historical percentages are
 used as measurements of the new artifacts.
@@ -308,16 +336,16 @@ Evidence directory: `results/optimization-completion/`. Key logs:
 `source-companion-before.log`, `package-gates.json`.
 Historical failures remain alongside passing reruns.
 
-Current optional artifacts are `build/adaptation-opus-01/engine-1789520173100009000`
+Historical package-12 optional artifacts were `build/adaptation-opus-01/engine-1789520173100009000`
 and `build/native-ass-02`. Local package candidate: `build/optimization-package-12`.
 `results/optimization-completion/checkpoint-delivery/` contains the binary integration
 patch and SHA-256 inventory, including untracked new runtime sources and evidence.
-HEAD remains f97588443ff4d2a043a2fd8500fb73bd45e656e1; there is no new committed
-revision. No refs, releases, laboratory files or remote branches were changed.
+At that historical checkpoint, HEAD was f97588443ff4d2a043a2fd8500fb73bd45e656e1
+and the work was uncommitted. The later source push is recorded at the top.
 
-## Remaining blockers and exact reruns
+## Historical package-12 blockers and reruns
 
-The program remains incomplete: progressive long unequal tails have no qualified
+At that checkpoint, the program remained incomplete: progressive long unequal tails have no qualified
 continuation implementation; clean optional-runtime release correspondence and
 broader source/browser/endurance qualification remain open. Embedded Native ASS,
 Opus+ASS and automatic adaptation are not admitted. Legacy error-message adapters
@@ -397,7 +425,7 @@ BROWSER=firefox PROFILE=opus CASES=opus-multi-audio node tests/audio-adaptation.
 This post-build confirmation adds evidence to the repository report; the frozen
 package includes the report as it stood at packaging. Its runtime bytes are those
 verified and benchmarked above. `delivery.json` provides the machine-readable
-closeout. Work remains local and uncommitted.
+closeout. This was a local, uncommitted snapshot before the source push.
 
 
 The final Opus+gain cost screen also passes four trials

@@ -63,6 +63,7 @@ function seekingPlayer(){
 test('seek presentation accepts a covering low-fps frame only after seeking completes',async()=>{
  const {p,video,frame,callbacks}=seekingPlayer();let completed=false;
  const seeking=p.seekPresented(2.5,async()=>{video.seeking=true;video.dispatchEvent(new Event('seeking'))}).then(()=>{completed=true});
+ await Promise.resolve();assert.equal(video.seeking,true); // Barrier: the queued seek action has started.
  frame(3);await Promise.resolve();assert.equal(completed,false); // Decoder has not completed the seek.
  video.seeking=false;frame(4);await Promise.resolve();assert.equal(completed,false); // Future frame cannot cover the target.
  frame(3);await seeking;assert.equal(completed,true);assert.equal(callbacks.size,0);

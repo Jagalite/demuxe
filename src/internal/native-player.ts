@@ -5,9 +5,11 @@ type RemuxSource = {file?: File; options?: RemoteSource; audioTrack?: number};
 type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
 type RemuxController = {
   audioAdaptation?:'flac'|'opus'; generation?:number;
+  windowed?:boolean; ranges?():[number,number][]; duration?:number; playbackPaused?:boolean; playbackEnded?:boolean;
   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
   open(source: RemuxSource, target?: number): Promise<unknown>;
-  canSeekBuffered?(target:number): boolean;
+  canSeekBuffered?(target:number): boolean; expectedVideoFrame?(target:number):number|undefined;
+  muxedFrames?:boolean; matchesVideoFrame?(target:number,mediaTime:number):boolean|undefined;
   seek(target: number): Promise<unknown>; play(): Promise<void>; pause(): void;
   destroy(): Promise<void>; snapshot(): Record<string, unknown>;
 };
@@ -67,7 +69,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private directFailure?: string;
   private shiftedCues = new WeakSet<TextTrackCue>();
   private sourceTime() {return Math.max(0,this.video.currentTime-(this.remux?.timelineBias??0));}
-  private sourceDuration() {return Number.isFinite(this.video.duration)?Math.max(0,this.video.duration-(this.remux?.timelineBias??0)):0;}
+  private sourceDuration() {if(this.remux?.windowed)return this.remux.duration??0;return Number.isFinite(this.video.duration)?Math.max(0,this.video.duration-(this.remux?.timelineBias??0)):0;}
   private objectURL?: string;
   private selectedSub = 'auto';
   private subsVisible = true;
@@ -82,7 +84,7 @@ export class NativePlayer extends EventTarget implements Backend {
       const listener = () => {
         this.refresh();
         this.emit('activity', event);
-        if (event === 'ended') this.emit('mpv', {event: 'end-file', reason: 'eof'});
+        if (event === 'ended'&&(!this.remux?.windowed||this.remux.playbackEnded)) this.emit('mpv', {event: 'end-file', reason: 'eof'});
       };
       video.addEventListener(event, listener);
       this.listeners.push(() => video.removeEventListener(event, listener));
@@ -120,7 +122,7 @@ export class NativePlayer extends EventTarget implements Backend {
     if(this.remux?.tracks)tracks.push(...this.remux.tracks.filter(t=>t.type==='audio').map(t=>({...t,selected:t.selected&&!this.video.muted})));
     else if (audio) tracks.push(...Array.from(audio, (t, i) => ({id: String(i + 1), type: 'audio', title: t.label, lang: t.language, selected: t.enabled})));
     const timeRanges=(r:TimeRanges)=>Array.from({length:r.length},(_,i)=>({start:Math.max(0,r.start(i)-(this.remux?.timelineBias??0)),end:Math.max(0,r.end(i)-(this.remux?.timelineBias??0))}));
-    const values: Record<string, unknown> = {'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration)?this.sourceDuration():null, 'native-buffered':timeRanges(this.video.buffered),'native-seekable':timeRanges(this.video.seekable),'native-live':this.video.duration===Infinity, pause: this.video.paused, 'eof-reached': this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks};
+    const values: Record<string, unknown> = {'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration)?this.sourceDuration():null, 'native-buffered':this.remux?.windowed?(this.remux.ranges?.()??[]).map(([start,end])=>({start,end})):timeRanges(this.video.buffered),'native-seekable':this.remux?.windowed?[{start:0,end:this.sourceDuration()}]:timeRanges(this.video.seekable),'native-live':this.video.duration===Infinity, pause: this.remux?.playbackPaused??this.video.paused, 'eof-reached': this.remux?.playbackEnded??this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks};
     for (const [name, data] of Object.entries(values)) {
       if (name !== 'track-list' && this.properties.get(name) === data) continue;
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
@@ -193,7 +195,7 @@ export class NativePlayer extends EventTarget implements Backend {
   async seek(seconds: number) {
     this.assertActive();
     if(this.remux){
-      const paused=this.video.paused;
+      const paused=this.remux.playbackPaused??this.video.paused;
       if(this.remux.canSeekBuffered?.(seconds)&&this.video.videoWidth&&Math.abs(this.sourceTime()-seconds)>.001){
         // Hold the presentation clock while verifying the target frame. Otherwise
         // a playing clock can advance beyond the exact target before rVFC runs.
@@ -210,22 +212,26 @@ export class NativePlayer extends EventTarget implements Backend {
   private seekPresented(target:number, action:()=>Promise<unknown>):Promise<void> {
     return new Promise((resolve,reject)=>{
       let frame=0,accepted=false,completed=false,finished=false;
-      const presentation=this.remux,generation=presentation?.generation,mediaTarget=target+(presentation?.timelineBias??0);
-      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);this.video.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
+      const presentation=this.remux,generation=presentation?.generation,mediaTarget=target+(presentation?.timelineBias??0),expected=presentation?.expectedVideoFrame?.(target);
+      const correlated=!!presentation?.muxedFrames||expected!==undefined;let presented=false;
+      const seeked=()=>{if(this.stopped||this.remux!==presentation||presentation?.generation!==generation){finish(new Error('Native seek presentation was retired'));return;}if(correlated&&presented&&!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001){accepted=true;if(completed)finish();}};
+      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);this.video.cancelVideoFrameCallback(frame);this.video.removeEventListener('seeked',seeked);this.cancelers.delete(cancel);error?reject(error):resolve();};
       const cancel=(error:Error)=>finish(error);
       const timer=setTimeout(()=>finish(new Error('Native seek did not present the target')),10000);
       const next=(_:number,metadata:VideoFrameCallbackMetadata)=>{
         if(this.stopped||this.remux!==presentation||presentation?.generation!==generation){finish(new Error('Native seek presentation was retired'));return;}
-        // The browser selects the frame covering currentTime. Its PTS may be
-        // far earlier for low-frame-rate/VFR content. Accept only a callback
-        // registered before issuing the seek and delivered after seek completion.
-        if(!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001&&metadata.mediaTime<=mediaTarget+.001){accepted=true;if(completed)finish();}
+        // A browser may report the frame's PTS or clip that timestamp to the seek
+        // point (Firefox). Accept only the corresponding source-frame interval.
+        // Legacy remux artifacts without packet metadata retain their prior guard.
+        const matches=presentation?.matchesVideoFrame?.(target,metadata.mediaTime)??(expected!==undefined&&metadata.mediaTime>=expected+(presentation?.timelineBias??0)-.001&&metadata.mediaTime<=mediaTarget+.001);
+        if(correlated&&matches&&Math.abs(this.video.currentTime-mediaTarget)<.001)presented=true;
+        if(!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001&&(correlated?presented:metadata.mediaTime<=mediaTarget+.001)){accepted=true;if(completed)finish();}
         else frame=this.video.requestVideoFrameCallback(next);
       };
       // Register before currentTime changes: the compositor callback may precede
       // the queued DOM seeking/seeked events, especially for buffered media.
-      this.cancelers.add(cancel);frame=this.video.requestVideoFrameCallback(next);
-      action().then(()=>{completed=true;if(accepted)finish();},error=>finish(error));
+      this.cancelers.add(cancel);this.video.addEventListener('seeked',seeked);frame=this.video.requestVideoFrameCallback(next);
+      Promise.resolve().then(action).then(()=>{completed=true;if(accepted)finish();},error=>finish(error));
     });
   }
   async rate(value: number) {this.assertActive();this.video.defaultPlaybackRate = value;this.video.playbackRate = value;this.refresh();}

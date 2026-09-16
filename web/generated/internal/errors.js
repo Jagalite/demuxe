@@ -36,6 +36,8 @@ export class PlayerError extends Error {
 export function playerError(error, id = null, operation = null, scope = 'operation') {
     if (error instanceof PlayerError)
         return new PlayerError(error.code, error.message, id ?? error.operationId, operation ?? error.operation, scope, error.retryable);
+    if (error instanceof Error && 'code' in error && error.code === 'UNSUPPORTED_TIMELINE')
+        return new PlayerError('UNSUPPORTED_TIMELINE', error.message, id, operation, scope);
     const message = error instanceof Error ? error.message : String(error);
     const name = error instanceof Error ? error.name : '';
     const code = name === 'AbortError' || /^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/i.test(message) ? 'ABORTED'

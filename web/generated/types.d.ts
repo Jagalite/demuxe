@@ -69,6 +69,8 @@ export type PlayerOptions = {
     experimentalBufferedNativeSeeks?: boolean;
     /** Explicit Native trials only; copy original audio first, then qualified integer FLAC. */
     experimentalAudioAdaptation?: 'flac' | 'opus';
+    /** Permit automatic FLAC for the qualified local-file subset; never permits lossy conversion. */
+    automaticAudioAdaptation?: 'lossless';
     /** Explicit lossy permission; does not authorize resampling or downmixing. */
     allowLossyAudio?: boolean;
     /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction. */
@@ -141,7 +143,7 @@ export type PendingOperation = Readonly<{
     id: number;
     kind: OperationKind;
 }>;
-export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
+export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_TIMELINE' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
 export type SessionError = Readonly<{
     code: PlayerErrorCode;
     message: string;
