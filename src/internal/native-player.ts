@@ -1,4 +1,4 @@
-import {nativeMediaError,compatibilityFailure} from './runtime-capability.js';
+import {nativeMediaError,compatibilityFailure,StartupEvidenceTimeout} from './runtime-capability.js';
 import {PlayerError} from './errors.js';
 import type {CapabilityEvidence} from './runtime-capability.js';
 import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset} from '../types.js';
@@ -142,37 +142,50 @@ export class NativePlayer extends EventTarget implements Backend {
     this.capability.metadata=true;
     this.refresh();this.emit('mpv', {event: 'file-loaded'});
   }
-  /** Paused open must establish decoded current data, not merely metadata or a
-   * canplay event. Presentation/audio counters are recorded only when observable. */
-  async verifyStartup(expected?:{video:boolean;audio:boolean}) {
-    this.assertActive();
+  private expectedOutput?:{video:boolean;audio:boolean};
+  /** A paused candidate may prepare current data without presenting it. Only
+   * verifyOutput can promote this evidence to executed playback. */
+  async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false) {
+    this.assertActive();this.expectedOutput=expected??this.expectedOutput;
+    expected=this.expectedOutput;
+    if(output){this.capability.outputVerified=false;this.capability.videoPresented=false;this.capability.playbackReady=false;this.capability.audioProgress=false;}
+    const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number;mozDecodedFrames?:number;mozHasAudio?:boolean};
+    const initialTime=v.currentTime,initialFrames=v.getVideoPlaybackQuality().totalVideoFrames;
+    const timing=this.capability.timing??(this.capability.timing={});
+    timing[output?'outputRequested':'preparationRequested']=performance.now();
     await new Promise<void>((resolve,reject)=>{
-      let finished=false,frame=0;
-      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);clearInterval(poll);if(frame)this.video.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
+      let finished=false,frame=0,presented=false;
+      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);clearInterval(poll);if(frame)v.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
       const cancel=(error:Error)=>finish(error);
       const check=()=>{
         if(this.stopped){finish(new Error('Player is destroyed'));return;}
-        if(this.video.error){clearInterval(poll);void this.classifyDirectFailure(nativeMediaError(this.video.error)).then(error=>finish(error instanceof Error?error:new Error(String(error))),error=>finish(error));return;}
-        const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number};
-        this.capability.metadata=v.readyState>=1;
+        if(v.error){void this.classifyDirectFailure(nativeMediaError(v.error)).then(error=>finish(error instanceof Error?error:new Error(String(error))),error=>finish(error));return;}
+        this.capability.metadata=v.readyState>=1;if(this.capability.metadata)timing.metadata??=performance.now();
         const hasVideo=expected?.video??v.videoWidth>0;
-        const decoded=v.getVideoPlaybackQuality().totalVideoFrames>0;
+        const decoded=v.getVideoPlaybackQuality().totalVideoFrames>0||(v.mozDecodedFrames??0)>0;
         if(decoded)this.capability.decoderOutput=true;
-        if((v.webkitAudioDecodedByteCount??0)>0)this.capability.audioProgress=true;
-        // Browsers without audio counters expose readiness, not sample proof.
-        const audioReady=!expected?.audio||v.webkitAudioDecodedByteCount===undefined||this.capability.audioProgress;
-        if(v.readyState>=3&&!v.seeking&&(!hasVideo||(v.videoWidth>0&&decoded))&&audioReady){this.capability.playbackReady=true;finish();}
+        const ready=v.readyState>=3&&!v.seeking&&(!hasVideo||v.videoWidth>0);
+        if(!ready)return;
+        this.capability.prepared=true;timing.ready??=performance.now();
+        if(!output){finish();return;}
+        const advancing=!v.paused&&v.currentTime>initialTime+.02;
+        if(presented||v.getVideoPlaybackQuality().totalVideoFrames>initialFrames){this.capability.videoPresented=true;timing.firstFrame??=performance.now();}
+        const audioCount=v.webkitAudioDecodedByteCount;
+        const audioReady=!expected?.audio||(typeof audioCount==='number'?audioCount>0:typeof v.mozHasAudio==='boolean'?v.mozHasAudio&&advancing:advancing);
+        // Readiness/clock fallback is explicitly weaker than decoded-sample evidence.
+        if(expected?.audio&&audioReady){this.capability.audioProgress=advancing;this.capability.audioEvidence=typeof audioCount==='number'?'decoded-byte-counter':typeof v.mozHasAudio==='boolean'?'browser-audio-presence-and-clock':'browser-readiness-and-clock';}
+        if(advancing&&(!hasVideo||this.capability.videoPresented)&&audioReady){this.capability.playbackReady=true;this.capability.outputVerified=true;timing.outputAccepted=performance.now();finish();}
       };
       const timer=setTimeout(()=>{
-        const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number};
-        const missingOutput=v.readyState>=3&&((expected?.video&&!v.videoWidth)||(expected?.audio&&v.webkitAudioDecodedByteCount===0));
-        finish(missingOutput?new PlayerError('DECODE_FAILED','Native selected track produced no decoded output'):new Error('Native startup evidence timed out'));
+        const missing=v.readyState>=3&&((expected?.video&&!v.videoWidth)||(output&&expected?.audio&&(v.webkitAudioDecodedByteCount===0||v.mozHasAudio===false)));
+        finish(missing?new PlayerError('DECODE_FAILED','Native selected track produced no decoded output'):new StartupEvidenceTimeout(output?'output':'preparation'));
       },10000);
       const poll=setInterval(check,25);this.cancelers.add(cancel);
-      if(typeof this.video.requestVideoFrameCallback==='function')frame=this.video.requestVideoFrameCallback(()=>{if(!finished&&!this.stopped){this.capability.videoPresented=true;check();}});
+      if(output&&typeof v.requestVideoFrameCallback==='function')frame=v.requestVideoFrameCallback(()=>{if(!finished&&!this.stopped){presented=true;check();}});
       check();
     });
   }
+  verifyOutput(){return this.verifyStartup(this.expectedOutput,true);}
   private async startRemux(source: RemuxSource, target=0) {
     this.assertActive();
     if(!crossOriginIsolated||typeof MediaSource==='undefined')throw Error('Native remux requires MediaSource and cross-origin isolation');

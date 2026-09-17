@@ -1,4 +1,4 @@
-import { RuntimeCapabilities, compatibilityFailure } from './internal/runtime-capability.js';
+import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted } from './internal/runtime-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
 import { runtimeBase } from './internal/assets.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
@@ -156,9 +156,19 @@ export class Player extends EventTarget {
         queueMicrotask(() => { this.publishQueued = false; if (!this.busy)
             this.publish(); });
     }
+    sourceTracks() {
+        const raw = (this.properties.get('track-list') ?? []);
+        if (!this.sourceInspection || this.mode !== 'native' || usesRemuxTracks(this.current?.backend.diagnostics?.plan) || this.sourceInspection?.source !== this.source)
+            return raw;
+        const audio = this.sourceInspection.probe.tracks.filter(t => t.type === 'audio');
+        const fallback = audio.find(t => t.default) ?? audio[0];
+        // Expose demux source identities even if HTMLMediaElement has no track API.
+        // These are selectable requirements, not a claim of in-place browser support.
+        return [...raw.filter(t => t.type !== 'audio'), ...audio.map(t => ({ ...t, id: t.id, 'ff-index': t.index, selected: this.settings.aid !== 'no' && t === fallback }))];
+    }
     publish() {
         const previous = this.snapshot, p = this.properties;
-        let raw = (p.get('track-list') ?? []);
+        let raw = this.sourceTracks();
         if (this.mode === 'native' && this.surface?.videoWidth && !raw.some(t => t.type === 'video'))
             raw = [...raw, { id: '1', type: 'video', selected: true }];
         const list = this.current ? tracks(raw, this.sourceSerial, this.mode, this.current.backend.diagnostics?.plan) : [];
@@ -406,7 +416,7 @@ export class Player extends EventTarget {
         const remote = source.kind === 'remote' ? source.options : undefined;
         const inspected = this.sourceInspection?.source === source ? this.sourceInspection : undefined;
         const video = inspected?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
-        return planAdmission({ automatic, ...settings,
+        const decisions = planAdmission({ automatic, ...settings,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspected.settings) : undefined,
             hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) ? `Demuxe has no browser bridge configuration contract for ${video.codec}` : undefined, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => a.format), browserTextTracks: !!textTracks.length,
@@ -415,6 +425,20 @@ export class Player extends EventTarget {
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
             isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined', nativeSourceRejection });
+        const explicit = inspected?.probe.tracks.find(t => t.type === 'audio' && t.id === inspected.settings.aid);
+        const selected = (source === this.source ? this.publicSelections.get('audio') : undefined) ?? (explicit ? `audio:stream:${explicit.index}` : undefined);
+        if (selected?.startsWith('audio:stream:')) {
+            const audio = inspected?.probe.tracks.filter(t => t.type === 'audio') ?? [];
+            const defaultTrack = audio.find(t => t.default) ?? audio[0];
+            if (!defaultTrack || selected !== `audio:stream:${defaultTrack.index}`)
+                for (const plan of decisions)
+                    if (plan.id.startsWith('native-direct') && plan.eligible) {
+                        plan.eligible = false;
+                        plan.code = 'SOURCE_UNSUPPORTED';
+                        plan.reason = 'Original Native has no proven source-stream identity selection contract for the requested alternate audio';
+                    }
+        }
+        return decisions;
     }
     async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic, planId) {
         if (!planId)
@@ -448,13 +472,18 @@ export class Player extends EventTarget {
         // Public stream identities are known before Native preparation starts.
         // Select that stream at open rather than adapting the default track first.
         const publicAudio = preserve && mode === 'native' ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
-        if (publicAudio)
-            desired.aid = String(Number(publicAudio[1]) + 1);
+        const initialAudio = !preserve && !old && !['auto', 'no'].includes(settings.aid) ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio' && t.id === settings.aid) : undefined;
+        if (publicAudio || initialAudio)
+            desired.aid = planId.startsWith('native-direct') ? 'auto' : String((publicAudio ? Number(publicAudio[1]) : initialAudio.index) + 1);
+        if (mode !== 'native' && initialAudio)
+            desired.aid = initialAudio.id;
         const crossing = preserve && this.automatic && (mode === 'native') !== (this.mode === 'native');
         const trackIndexes = new Map();
         let externalSubtitleKey;
         if (crossing) {
             for (const type of ['audio', 'sub']) {
+                if (this.publicSelections.has(type))
+                    continue;
                 const id = settings[type === 'audio' ? 'aid' : 'sid'];
                 if (['auto', 'no'].includes(id))
                     continue;
@@ -539,6 +568,10 @@ export class Player extends EventTarget {
             }
             if (preserve)
                 for (const [type, key] of this.publicSelections) {
+                    if (type === 'audio' && planId.startsWith('native-direct')) {
+                        desired.aid = 'auto';
+                        continue;
+                    }
                     const raw = (p.properties.get('track-list') ?? []);
                     const plan = p.diagnostics?.plan;
                     const track = raw.find(t => t.type === type && trackKey(t, mode, plan) === key);
@@ -558,17 +591,22 @@ export class Player extends EventTarget {
             const actual = executionPlan(mode, p.diagnostics?.plan, desired.af, desired.gain, !!p.diagnostics?.subtitleOverlay);
             if (!actual || actual.id !== planId || !admitted.some(plan => plan.id === actual.id && plan.eligible))
                 throw new PlayerError('UNSUPPORTED_FEATURE', 'The prepared components do not match an admitted complete playback plan');
-            if (!desired.pause)
+            if (!desired.pause) {
                 await p.play();
+                if (mode === 'native')
+                    await p.verifyOutput();
+            }
             this.assertOperation();
             if (!preserve) {
                 this.sourceSerial++;
                 this.publicSelections.clear();
+                if (initialAudio)
+                    this.publicSelections.set('audio', `audio:stream:${initialAudio.index}`);
             }
             this.sessionError = null;
             this.observedPlaying = false;
             this.observedWaiting = false;
-            this.runtimeCapabilities.update(planId, 'verified', this.evidence(candidate), 'Candidate startup validated; browser output fidelity beyond exposed evidence remains unverified');
+            this.acceptEvidence(planId, candidate);
             this.current = candidate;
             this.candidate = undefined;
             this.source = source;
@@ -638,7 +676,7 @@ export class Player extends EventTarget {
         this.emit('selectionchange', { ...attempt });
     }
     async select(source, settings, preserve, tracks, start = 0, target, priorAttempts = []) {
-        if (!this.automatic)
+        if (!this.automatic && this.mode !== 'native')
             return this.replace(source, this.mode, settings, preserve, tracks, target);
         this.attempts = [];
         for (const attempt of priorAttempts)
@@ -674,7 +712,7 @@ export class Player extends EventTarget {
                     if (source.kind === 'remote' && probe.identity)
                         source.options.identity ??= probe.identity;
                     // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
-                    let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : 'auto';
+                    let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : !this.source ? settings.aid : 'auto';
                     const sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
                     if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
                         aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
@@ -697,8 +735,12 @@ export class Player extends EventTarget {
                 }
             }
         }
-        this.admissionContext = { nativeReason, automatic: true };
-        return this.discover(source, settings, preserve, tracks, target, true, undefined, start);
+        this.admissionContext = { nativeReason, automatic: this.automatic };
+        return this.discover(source, settings, preserve, tracks, target, this.automatic, this.automatic ? undefined : this.mode, start);
+    }
+    acceptEvidence(planId, session = this.current) {
+        const evidence = this.evidence(session);
+        this.runtimeCapabilities.update(planId, evidence.prepared && !evidence.outputVerified ? 'prepared' : 'verified', evidence, evidence.prepared && !evidence.outputVerified ? 'Paused candidate prepared; actual output is pending a permitted play request' : 'Runtime output observed; physical output and opaque track internals remain unverified');
     }
     evidence(session = this.current) {
         if (session?.backend.startupEvidence)
@@ -756,7 +798,7 @@ export class Player extends EventTarget {
             this.runtimeCapabilities.update(plan.id, 'probing');
             try {
                 await this.replace(source, plan.mode, settings, preserve, tracks, target, automatic, plan.id);
-                this.runtimeCapabilities.update(plan.id, 'verified', this.evidence(), 'Candidate startup validated; browser output fidelity beyond exposed evidence remains unverified');
+                this.acceptEvidence(plan.id);
                 this.record({ mode: plan.mode, outcome: 'selected', reason: `${plan.id}: Playback requirements and actual startup accepted` });
                 if (this.current?.error && !this.recovering)
                     this.recover(this.current);
@@ -764,7 +806,7 @@ export class Player extends EventTarget {
             }
             catch (error) {
                 const compatible = compatibilityFailure(error);
-                this.runtimeCapabilities.update(plan.id, 'failed', undefined, String(error), compatible ? 'compatibility' : 'terminal');
+                this.runtimeCapabilities.update(plan.id, evidenceInterrupted(error) ? 'untested' : 'failed', undefined, String(error), compatible ? 'compatibility' : 'terminal');
                 this.record({ mode: plan.mode, outcome: 'failed', reason: `${plan.id}: ${String(error)}` });
                 if (this.destroyed || this.activeOperation?.controller.signal.aborted || !compatible)
                     throw error;
@@ -843,7 +885,19 @@ export class Player extends EventTarget {
         catch (error) {
             return Promise.reject(playerError(error));
         }
-        return this.enqueue(() => this.select(source, this.settings, false, []), 'opening', options.signal);
+        return this.enqueue(async () => {
+            const inspection = this.sourceInspection, lossless = this.losslessInspection;
+            try {
+                await this.select(source, this.settings, false, []);
+            }
+            catch (error) {
+                if (this.source !== source) {
+                    this.sourceInspection = inspection;
+                    this.losslessInspection = lossless;
+                }
+                throw error;
+            }
+        }, 'opening', options.signal);
     }
     openRemote(source, options = {}) { return this.open(source, options); }
     setMode(mode) {
@@ -899,7 +953,7 @@ export class Player extends EventTarget {
                     // Keep prior evidence in the bounded cache, but describe current requirements.
                     this.runtimeCapabilities.begin(this.source, this.planDecisions);
                     const plan = executionPlan(this.mode, this.current.backend.diagnostics?.plan, desired.af, desired.gain, !!this.current.backend.diagnostics?.subtitleOverlay);
-                    this.runtimeCapabilities.update(plan.id, 'verified', this.evidence(this.current), 'Accepted session startup and in-place gain change validated');
+                    this.acceptEvidence(plan.id);
                 }
             }
             else if (this.source)
@@ -916,8 +970,47 @@ export class Player extends EventTarget {
         // Initiate resume before yielding the user's activation to the operation queue.
         const immediate = !this.destroyed && this.queued === 0 && this.current ? this.current.backend.play() : undefined;
         immediate?.catch(() => { });
-        return this.enqueue(async () => { if (!this.current)
-            throw Error('No source'); await (immediate ?? this.current.backend.play()); this.settings.pause = false; });
+        return this.enqueue(async () => {
+            if (!this.current)
+                throw Error('No source');
+            const session = this.current;
+            this.settings.pause = false;
+            try {
+                await (immediate ?? session.backend.play());
+                if (this.mode === 'native')
+                    await session.backend.verifyOutput();
+                this.assertOperation();
+                if (this.current === session) {
+                    const plan = this.diagnostics.plan;
+                    if (plan)
+                        this.acceptEvidence(plan.id, session);
+                }
+            }
+            catch (error) {
+                if (this.automatic && compatibilityFailure(error) && this.source) {
+                    const policy = this.nativeRemux, tryRemux = this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
+                    const plan = this.diagnostics.plan;
+                    if (plan)
+                        this.runtimeCapabilities.update(plan.id, 'failed', this.evidence(session), String(error), 'compatibility');
+                    try {
+                        if (tryRemux)
+                            this.nativeRemux = 'always';
+                        await this.select(this.source, this.settings, true, this.nativeTracks, tryRemux ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1);
+                    }
+                    finally {
+                        this.nativeRemux = policy;
+                    }
+                }
+                else {
+                    const plan = this.diagnostics.plan;
+                    if (plan && evidenceInterrupted(error))
+                        this.runtimeCapabilities.update(plan.id, 'prepared', this.evidence(session), String(error));
+                    this.settings.pause = true;
+                    await session.backend.pause().catch(() => { });
+                    throw error;
+                }
+            }
+        });
     }
     pause() { return this.setting(p => p.pause(), () => { this.settings.pause = true; this.observedPlaying = false; this.observedWaiting = false; }); }
     seek(seconds) {
@@ -957,20 +1050,25 @@ export class Player extends EventTarget {
         return this.enqueue(async () => {
             if (!this.current)
                 throw Error('No source');
-            const raw = (this.properties.get('track-list') ?? []);
+            const raw = this.sourceTracks();
             const plan = this.current.backend.diagnostics?.plan;
             const track = raw.find(t => t.type === type && `${this.sourceSerial}:${trackKey(t, this.mode, plan)}` === id);
             if (id !== null && id !== 'auto' && !track)
                 throw new PlayerError('INVALID_ARGUMENT', 'Unknown or stale public track ID');
             const backendId = id === null ? 'no' : id === 'auto' ? 'auto' : String(track.id);
-            if (type === 'audio' && this.automatic && this.automaticLossless && this.source) {
+            if (type === 'audio' && this.source && (this.automaticLossless || this.mode === 'native') && track) {
                 const previous = this.publicSelections.get(type);
                 if (track)
                     this.publicSelections.set(type, trackKey(track, this.mode, plan));
                 else
                     this.publicSelections.delete(type);
                 try {
-                    await this.select(this.source, { ...this.settings, aid: backendId }, true, this.nativeTracks);
+                    if (track.selected)
+                        return;
+                    if (this.automatic)
+                        await this.select(this.source, { ...this.settings, aid: backendId }, true, this.nativeTracks);
+                    else
+                        await this.replace(this.source, this.mode, { ...this.settings, aid: backendId }, true, this.nativeTracks, undefined, false);
                 }
                 catch (error) {
                     if (previous)
@@ -997,8 +1095,8 @@ export class Player extends EventTarget {
     selectTrack(type, id) {
         if (!['audio', 'sub'].includes(type) || !/^(?:[1-9][0-9]*|auto|no)$/.test(id))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid track selection');
-        if (type === 'audio' && this.automatic && this.automaticLossless) {
-            const raw = (this.properties.get('track-list') ?? []);
+        if (type === 'audio' && this.current) {
+            const raw = this.sourceTracks();
             const track = raw.find(t => t.type === 'audio' && String(t.id) === id);
             const plan = this.current?.backend.diagnostics?.plan;
             return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');

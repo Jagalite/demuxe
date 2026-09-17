@@ -32,6 +32,7 @@ export function remuxRejection(probe:Probe,settings:{aid:string}):string|undefin
  const video=probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture);
  const audioTracks=probe.tracks.filter(t=>t.type==='audio');
  const audio=settings.aid==='no'?undefined:settings.aid==='auto'?(audioTracks.find(t=>t.default)??audioTracks[0]):audioTracks.find(t=>t.id===settings.aid);
+ if(probe.format?.split(',').includes('mpegts')&&(!video||video.codec!=='h264'||(audio&&audio.codec!=='aac')))return 'Demuxe TS timestamp-repair construction requires H264 with optional AAC audio';
  if(video&&!['h264','hevc','vp8','vp9','av1'].includes(video.codec))return `Demuxe has no packet-copy video construction contract for ${video.codec}`;
  if(audio&&!['aac','mp3','opus','vorbis','flac','ac3','eac3'].includes(audio.codec))return `Demuxe has no packet-copy audio construction contract for ${audio.codec}`;
  if((video?.codec==='vp8'&&audio&&!['opus','vorbis'].includes(audio.codec))||(audio?.codec==='vorbis'&&video&&!['vp8','vp9','av1'].includes(video.codec)))return 'Selected packets have no common Demuxe muxing contract';

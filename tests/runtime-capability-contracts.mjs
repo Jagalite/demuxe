@@ -36,3 +36,13 @@ test('known preparation limits permit fallback without weakening terminal failur
  assert.equal(compatibilityFailure(new PlayerError('UNSUPPORTED_TIMELINE','Qualified timeline cannot be preserved')),true);
  assert.equal(compatibilityFailure(new Error('Unknown resource budget exceeded')),false);
 });
+
+test('TS construction limits never veto direct playback or block runtime fallback',()=>{
+ const probe={format:'mpegts',duration:12,tracks:[{id:'1',type:'video',codec:'hevc'},{id:'2',type:'audio',codec:'aac'}]};
+ assert.equal(nativeRejection(probe,{aid:'auto',sid:'no',subtitles:false}),undefined);
+ assert.match(remuxRejection(probe,{aid:'auto'}),/TS timestamp-repair construction/);
+ assert.equal(compatibilityFailure(new Error('FFmpeg error -1094995529: TS timestamp repair requires AVC with optional AAC audio')),true);
+ assert.equal(compatibilityFailure(new Error('Source transport: FFmpeg error -1094995529: TS timestamp repair requires AVC with optional AAC audio')),false);
+ assert.equal(compatibilityFailure(new Error('FFmpeg error -1: Unknown failure')),false);
+ probe.tracks[0].codec='h264';assert.equal(remuxRejection(probe,{aid:'auto'}),undefined);
+});

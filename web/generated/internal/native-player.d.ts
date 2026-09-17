@@ -47,6 +47,10 @@ export declare class NativePlayer extends EventTarget implements Backend {
     get diagnostics(): {
         capability: {
             apiHint?: string;
+            prepared?: boolean;
+            outputVerified?: boolean;
+            audioEvidence?: string;
+            timing?: Record<string, number>;
             metadata?: boolean;
             sourceBufferCreated?: boolean;
             initAccepted?: boolean;
@@ -84,12 +88,14 @@ export declare class NativePlayer extends EventTarget implements Backend {
         readyState: number;
     };
     private load;
-    /** Paused open must establish decoded current data, not merely metadata or a
-     * canplay event. Presentation/audio counters are recorded only when observable. */
+    private expectedOutput?;
+    /** A paused candidate may prepare current data without presenting it. Only
+     * verifyOutput can promote this evidence to executed playback. */
     verifyStartup(expected?: {
         video: boolean;
         audio: boolean;
-    }): Promise<void>;
+    }, output?: boolean): Promise<void>;
+    verifyOutput(): Promise<void>;
     private startRemux;
     private loadPlan;
     open(file: File | ArrayBuffer): Promise<void>;

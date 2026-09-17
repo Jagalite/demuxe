@@ -76,6 +76,7 @@ export declare class Player extends EventTarget {
     removeEventListener<K extends keyof PlayerEventMap>(type: K, listener: ((this: Player, ev: PlayerEventMap[K]) => any) | null, options?: boolean | EventListenerOptions): void;
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions): void;
     private schedulePublish;
+    private sourceTracks;
     private publish;
     private featureCapabilities;
     get mode(): "native" | "hybrid" | "software";
@@ -98,6 +99,7 @@ export declare class Player extends EventTarget {
     private replace;
     private record;
     private select;
+    private acceptEvidence;
     private evidence;
     private discover;
     private recover;

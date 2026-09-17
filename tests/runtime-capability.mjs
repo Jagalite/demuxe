@@ -28,14 +28,14 @@ const verifyNative=async(page)=>{
  const d=await page.evaluate(()=>player.diagnostics);
  assert.equal(d.mode,'native');assert.equal(d.plan.id,'native-direct');
  const r=d.runtimeCapabilities.find(r=>r.planId==='native-direct');
- assert.equal(r.state,'verified');assert.equal(r.evidence.playbackReady,true);assert.equal(r.evidence.decoderOutput,true);
+ assert.equal(r.state,'prepared');assert.equal(r.evidence.prepared,true);assert.notEqual(r.evidence.outputVerified,true);
  assert.equal(d.runtimeCapabilities.find(r=>r.planId==='hybrid').state,'untested');
- await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.15);await page.evaluate(()=>player.pause());
+ await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.15);assert.equal(await page.evaluate(()=>player.diagnostics.runtimeCapabilities.find(r=>r.planId===player.diagnostics.plan.id).state),'verified');await page.evaluate(()=>player.pause());
 };
 try{
  await check('gain changes synchronize current capability and later failure invalidates it',async(page)=>{
   await open(page,'fixtures/example.mp4');
-  await page.evaluate(()=>player.setAudioGain(.5));
+  await page.evaluate(()=>player.play());await page.evaluate(()=>player.setAudioGain(.5));
   let d=await page.evaluate(()=>player.diagnostics);
   assert.equal(d.plan.id,'native-direct-gain');
   let r=d.runtimeCapabilities.find(r=>r.planId===d.plan.id);
@@ -82,7 +82,7 @@ try{
    NativePlayer.prototype.load=async function(url){if(!first)return load.call(this,url);first=false;window.failedVideo=this.video;const bad=URL.createObjectURL(new Blob(['invalid media']));try{return await load.call(this,bad);}finally{URL.revokeObjectURL(bad);}};
   });
   await open(page,'fixtures/example.mp4');
-  const d=await page.evaluate(()=>player.diagnostics);assert.equal(d.plan.id,'native-remux');
+  await page.evaluate(()=>player.play());const d=await page.evaluate(()=>player.diagnostics);assert.equal(d.plan.id,'native-remux');
   assert.equal(d.runtimeCapabilities.find(r=>r.planId==='native-direct').state,'failed');
   const remux=d.runtimeCapabilities.find(r=>r.planId==='native-remux');assert.equal(remux.state,'verified');
   assert.equal(remux.evidence.sourceBufferCreated,true);assert.equal(remux.evidence.initAccepted,true);assert.equal(remux.evidence.mediaAccepted,true);
@@ -134,8 +134,10 @@ try{
   await page.route('**/denied.mp4',route=>route.fulfill({status:403,body:'forbidden'}));
   await assert.rejects(()=>page.evaluate(url=>player.open(url),server.origin+'/denied.mp4'),/403/);
   const d=await page.evaluate(()=>player.diagnostics);
-  assert.equal(d.runtimeCapabilities.find(r=>r.planId==='native-direct').failureKind,'terminal');
-  assert.equal(d.runtimeCapabilities.find(r=>r.planId==='native-remux').state,'untested');
+  // Explicit Native now inspects requested tracks before constructing a plan.
+  // Authorization fails at that source boundary: no codec candidate was attempted.
+  assert.deepEqual(d.runtimeCapabilities,[]);
+  assert.deepEqual(d.planAdmission,[]);
   assert.ok(!requests.some(r=>/native-remux-player|engine-hybrid|engine-software/.test(r)));
  },{mode:'native'});
  await check('destroy interrupts a stalled preparation import without orphan resources',async(page)=>{

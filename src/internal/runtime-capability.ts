@@ -1,13 +1,13 @@
 import {PlayerError, playerError} from './errors.js';
 
 export type CapabilityEvidence = {
-  apiHint?: string; metadata?: boolean; sourceBufferCreated?: boolean;
+  apiHint?: string; prepared?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
   initAccepted?: boolean; mediaAccepted?: boolean; decoderOutput?: boolean;
   videoPresented?: boolean; audioProgress?: boolean; audioDecoded?:boolean; audioDecoderConfigured?:boolean; playbackReady?: boolean;
 };
 export type CapabilityRecord = {
   planId: string; sourceIdentity: string; eligible: boolean;
-  state: 'untested' | 'probing' | 'verified' | 'failed'; reason?: string;
+  state: 'untested' | 'probing' | 'prepared' | 'verified' | 'failed'; reason?: string;
   failureKind?: 'compatibility' | 'terminal'; evidence?: CapabilityEvidence;
   previouslyVerified?: boolean;
 };
@@ -45,6 +45,10 @@ export class RuntimeCapabilities {
 /** Only positive compatibility failures permit another pipeline. Unknown errors,
  * missing assets, authorization, identity, network and cancellation stay terminal. */
 export function compatibilityFailure(error:unknown):boolean {
+  // Legacy decoder-worker diagnostics contain the words "initialization data".
+  // That source configuration report is not an asset initialization failure.
+  // Match only this existing worker boundary; explicit typed terminal errors win.
+  if(!(error instanceof PlayerError)&&error instanceof Error&&/^Hybrid browser decoder: Error: Unsupported browser configuration \([^\n]+\)\.\nCodec string:/.test(error.message)&&error.message.includes('WebCodecs reported supported=false')&&!/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))return true;
   const code=playerError(error).code;
   if(['ABORTED','AUTOPLAY_BLOCKED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED','INVALID_ARGUMENT','ISOLATION_REQUIRED'].includes(code))return false;
   if(/Source transport:|integrity|identity|network|HTTP |received \d{3}/i.test(String(error)))return false;
@@ -53,6 +57,7 @@ export function compatibilityFailure(error:unknown):boolean {
   // Existing preparation guards reject this pipeline, not the source. Keep the
   // allowlist exact so unrelated resource, transport and unknown errors stay terminal.
   const message=(error instanceof Error?error.message:String(error)).split('\n')[0].replace(/^Error: /,'');
+  if(/^FFmpeg error -\d+: TS timestamp repair requires AVC with optional AAC audio$/.test(message))return true;
   if(['Remux random-access interval exceeds fragment production budget',
     'Remux timeline gap exceeds forward buffer budget',
     'Adapted track timelines cannot progress within the preparation budget; use Hybrid'].includes(message))return true;
@@ -67,3 +72,6 @@ export function nativeMediaError(error:MediaError|null):Error {
   // Retain it as terminal transport uncertainty rather than guessing a codec.
   return new Error(`Source transport: ${message}`);
 }
+
+export class StartupEvidenceTimeout extends Error { readonly evidenceTimeout=true; constructor(stage:string){super(`Native ${stage} evidence timed out`);this.name='StartupEvidenceTimeout';} }
+export function evidenceInterrupted(error:unknown):boolean {return error instanceof StartupEvidenceTimeout||['ABORTED','AUTOPLAY_BLOCKED','NETWORK_TIMEOUT'].includes(playerError(error).code);}

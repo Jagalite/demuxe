@@ -1,5 +1,9 @@
 export type CapabilityEvidence = {
     apiHint?: string;
+    prepared?: boolean;
+    outputVerified?: boolean;
+    audioEvidence?: string;
+    timing?: Record<string, number>;
     metadata?: boolean;
     sourceBufferCreated?: boolean;
     initAccepted?: boolean;
@@ -15,7 +19,7 @@ export type CapabilityRecord = {
     planId: string;
     sourceIdentity: string;
     eligible: boolean;
-    state: 'untested' | 'probing' | 'verified' | 'failed';
+    state: 'untested' | 'probing' | 'prepared' | 'verified' | 'failed';
     reason?: string;
     failureKind?: 'compatibility' | 'terminal';
     evidence?: CapabilityEvidence;
@@ -46,3 +50,8 @@ export declare class RuntimeCapabilities {
  * missing assets, authorization, identity, network and cancellation stay terminal. */
 export declare function compatibilityFailure(error: unknown): boolean;
 export declare function nativeMediaError(error: MediaError | null): Error;
+export declare class StartupEvidenceTimeout extends Error {
+    readonly evidenceTimeout = true;
+    constructor(stage: string);
+}
+export declare function evidenceInterrupted(error: unknown): boolean;
