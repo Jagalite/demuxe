@@ -27,3 +27,27 @@ separate harness and is not inferred from Playwright results.
 reproducer from C01. These binaries and fonts are not embedded in this patch.
 The qualification lab preserves generators, generation commands, hashes and font
 notices. Native ASS/adaptation optional builds are not required for these tests.
+
+## Follow-up regressions
+
+```
+node tests/native-eof.mjs
+node tests/tail-contract.mjs
+BROWSER=firefox node tests/tail-contract.mjs
+CASE_IDS=MIN-tail MODE=software node tests/tail-contract.mjs
+BROWSER=firefox CASE_IDS=MIN-tail MODE=software node tests/tail-contract.mjs
+BROWSER_EXECUTABLE='/Applications/Firefox.app/Contents/MacOS/firefox' node tests/software-standalone.mjs
+```
+
+The standalone Software test records the selected executable and exact version,
+uses a fresh lab profile, and fails below27 presented canvas updates/second or
+without moving pixels, audio signal, seek recovery and cleanup. It uses the same
+P720 source and960x540 presentation size. No browser settings change image quality,
+frame rate or decoder choice. Default executable is the existing Playwright Firefox;
+it remains a failing sustained-output configuration in the recorded146/153 builds.
+Stock Firefox156 passes this short screen with the unchanged Software Wasm/glue.
+Do not replace old failures with newer-browser results or infer endurance.
+
+Tail-contract success means a prompt explicit limitation plus position/intent
+recovery. It does not mean subtitle-only presentation after AV EOF is supported.
+The original tail diagnostic remains available and records every raw outcome.

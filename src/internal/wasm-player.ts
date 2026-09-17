@@ -25,6 +25,7 @@ export class WasmPlayer extends EventTarget {
   private rejectReady?: (error:Error)=>void;
   private eventWaiters=new Set<(error:Error)=>void>();
   private hasFile=false;
+  private seekObservation?: {target:number; restarted:boolean; eof:boolean; clamped?:number};
   private opening=false;
   private refreshAuthorization?:RemoteSource['refreshAuthorization'];
   private audioHeader: Int32Array;
@@ -72,7 +73,8 @@ export class WasmPlayer extends EventTarget {
         else if(data.type==='log') this.dispatchEvent(new CustomEvent('log',{detail:data.message}));
         else if(data.type==='event') {
           const event=data.event as PlayerEvent;
-          if(event.event==='start-file') this.hasFile=true;
+          if(event.event==='start-file'){this.hasFile=true;this.seekObservation=undefined;}
+          this.observeSeekEvent(event);
           if(event.event==='end-file') this.hasFile=false;
           if(event.event==='property-change' && event.name==='track-list' && Array.isArray(event.data))
             event.data=event.data.map(track=>({...track,id:String(track.id)}));
@@ -186,7 +188,7 @@ export class WasmPlayer extends EventTarget {
     await resume;this.sendTiming();await this.setPause(false);
   }
   pause() {return this.setPause(true);}
-  seek(seconds:number) {if(!Number.isFinite(seconds)||seconds<0) throw new Error('Invalid seek time');Atomics.store(this.audioHeader,2,0);return this.ready.then(()=>this.request({type:'seek',seconds}));}
+  seek(seconds:number) {if(!Number.isFinite(seconds)||seconds<0) throw new Error('Invalid seek time');this.seekObservation={target:seconds,restarted:false,eof:false};Atomics.store(this.audioHeader,2,0);return this.ready.then(()=>this.request({type:'seek',seconds}));}
   rate(rate:number){if(!Number.isFinite(rate)||rate<0.5||rate>2)throw new Error('Playback rate must be 0.5 to 2');return this.command('set','speed',String(rate));}
   volume(percent:number) {if(!Number.isFinite(percent)||percent<0||percent>100) throw new Error('Invalid volume');return this.command('set','volume',String(percent));}
   async gain(value:number) {
@@ -207,6 +209,33 @@ export class WasmPlayer extends EventTarget {
   selectTrack(type:'audio'|'sub',id:string) {
     if(!['audio','sub'].includes(type)||!/^(?:[1-9][0-9]*|auto|no)$/.test(id)) throw new Error('Invalid track selection');
     return this.command('set',type==='audio'?'aid':'sid',id);
+  }
+  private observeSeekEvent(event:PlayerEvent){
+    const seek=this.seekObservation;
+    if(seek){
+      if(event.event==='playback-restart'){seek.restarted=true;const cache=this.properties.get('demuxer-cache-state') as {eof?:boolean;idle?:boolean}|undefined;seek.eof=cache?.eof===true&&cache?.idle===true;}
+      if(seek.restarted&&event.event==='property-change'&&event.name==='demuxer-cache-state'){
+        const cache=event.data as {eof?:boolean;idle?:boolean}|undefined;
+        seek.eof=cache?.eof===true&&cache?.idle===true;
+      }
+      if(seek.restarted&&seek.eof&&event.event==='property-change'&&event.name==='time-pos'&&typeof event.data==='number'&&event.data<seek.target-.15)seek.clamped=event.data;
+    }
+  }
+  async confirmSeek(target:number):Promise<boolean> {
+    const seek=this.seekObservation;
+    if(!seek||seek.target!==target)return true;
+    // A frame notification can precede mpv's final clamped position. Query the
+    // runtime after presentation instead of trusting the requested clock value.
+    const value=String(await this.command('expand-text','${=time-pos}|${seeking}'));
+    if(this.seekObservation!==seek)return false;
+    const [time,seeking]=value.split('|'),position=Number(time);
+    if(!Number.isFinite(position)||seeking!=='no')return false;
+    if(seek.restarted&&seek.eof&&position<target-.15)seek.clamped=position;
+    return Math.abs(position-target)<.15;
+  }
+  seekBoundary(target:number):number|undefined {
+    const seek=this.seekObservation;
+    return seek?.target===target&&seek.restarted&&seek.eof?seek.clamped:undefined;
   }
   async addSubtitle(subtitle:SubtitleAsset){
     await this.ready;const bytes=subtitle.bytes.slice(0);

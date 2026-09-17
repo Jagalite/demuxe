@@ -178,7 +178,9 @@ export class NativePlayer extends EventTarget {
         this.assertActive();
         this.expectedOutput = expected ?? this.expectedOutput;
         expected = this.expectedOutput;
+        const previouslyVerified = this.capability.outputVerified === true;
         if (output) {
+            this.capability.completedAtEOF = false;
             this.capability.outputVerified = false;
             this.capability.videoPresented = false;
             this.capability.playbackReady = false;
@@ -189,7 +191,7 @@ export class NativePlayer extends EventTarget {
         const timing = this.capability.timing ?? (this.capability.timing = {});
         timing[output ? 'outputRequested' : 'preparationRequested'] = performance.now();
         await new Promise((resolve, reject) => {
-            let finished = false, frame = 0, presented = false;
+            let finished = false, classifying = false, frame = 0, presented = false;
             const finish = (error) => { if (finished)
                 return; finished = true; clearTimeout(timer); clearInterval(poll); if (frame)
                 v.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
@@ -199,7 +201,11 @@ export class NativePlayer extends EventTarget {
                     finish(new Error('Player is destroyed'));
                     return;
                 }
+                if (finished || classifying)
+                    return;
                 if (v.error) {
+                    classifying = true;
+                    clearInterval(poll);
                     void this.classifyDirectFailure(nativeMediaError(v.error)).then(error => finish(error instanceof Error ? error : new Error(String(error))), error => finish(error));
                     return;
                 }
@@ -210,6 +216,16 @@ export class NativePlayer extends EventTarget {
                 const decoded = v.getVideoPlaybackQuality().totalVideoFrames > 0 || (v.mozDecodedFrames ?? 0) > 0;
                 if (decoded)
                     this.capability.decoderOutput = true;
+                // A previously verified session can naturally finish a short remaining
+                // interval without presenting another frame. This is completion, not
+                // fresh frame/audio evidence; do not strand play() until its deadline.
+                if (output && previouslyVerified && v.ended) {
+                    this.capability.completedAtEOF = true;
+                    this.capability.outputVerified = true;
+                    timing.outputAccepted = performance.now();
+                    finish();
+                    return;
+                }
                 const ready = v.readyState >= 3 && !v.seeking && (!hasVideo || v.videoWidth > 0);
                 if (!ready)
                     return;
@@ -219,7 +235,7 @@ export class NativePlayer extends EventTarget {
                     finish();
                     return;
                 }
-                const advancing = !v.paused && v.currentTime > initialTime + .02;
+                const advancing = (!v.paused || v.ended) && v.currentTime > initialTime + (v.ended ? 0 : .02);
                 if (presented || v.getVideoPlaybackQuality().totalVideoFrames > initialFrames) {
                     this.capability.videoPresented = true;
                     timing.firstFrame ??= performance.now();

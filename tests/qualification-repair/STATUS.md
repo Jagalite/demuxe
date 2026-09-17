@@ -33,3 +33,13 @@ Existing experimental gates and explicit lossy permission requirements remain in
 The lab preserves raw results, fixture generation commands/hashes, original failing
 captures, review reproducers and exact runtime hashes. Fixture binaries are not part
 of this source patch; see README.md for corpus setup.
+
+
+Follow-up status (see new regression commands in README): EOF verification and
+concurrent transport validation are repaired. Both Native direct and forced remux
+pass near-EOF resume on Chrome152/PlaywrightFirefox146. The subtitle-tail hang and
+transient requested-position acceptance are repaired by explicit INVALID_ARGUMENT
+with rollback; complete subtitle-only playback remains unsupported on these plans.
+Stock Firefox156 reaches about29.6fps on the unchanged Software runtime. Bundled
+Firefox146/153 still reaches about14fps and remains unqualified; no native rendering
+fix is claimed. Optional artifacts have not been rebuilt in this follow-up.

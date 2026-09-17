@@ -5,6 +5,9 @@ import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
+class SeekPresentationBoundary extends PlayerError {
+    constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
+}
 const filterChain = (value) => {
     if (typeof value !== 'string' || value.length > 4096 || value.includes('\0'))
         throw new PlayerError('INVALID_ARGUMENT', 'Invalid filter chain');
@@ -397,6 +400,9 @@ export class Player extends EventTarget {
             this.assertOperation();
             if (session.error)
                 throw session.error;
+            const boundary = session.backend.seekBoundary?.(target);
+            if (boundary !== undefined)
+                throw new SeekPresentationBoundary(target, boundary);
             const d = session.backend.diagnostics;
             const tracks = session.backend.properties.get('track-list');
             // Selection is transiently empty while mpv initializes a video track.
@@ -406,7 +412,7 @@ export class Player extends EventTarget {
             if (mode === 'hybrid' && tracks?.some(t => t.type === 'video' && t.selected && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(t.codec ?? '')))
                 throw new Error('Hybrid mode has no browser bridge for this video codec. Choose software mode for this source.');
             const position = mode === 'hybrid' ? d?.presentation?.position : d?.presentedPosition;
-            if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs') && !d.seeking && position !== undefined && Math.abs(position - target) < .15)
+            if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs') && !d.seeking && position !== undefined && Math.abs(position - target) < .15 && await session.backend.confirmSeek?.(target) !== false)
                 return;
             await new Promise(resolve => setTimeout(resolve, 25));
         }
@@ -740,7 +746,7 @@ export class Player extends EventTarget {
     }
     acceptEvidence(planId, session = this.current) {
         const evidence = this.evidence(session);
-        this.runtimeCapabilities.update(planId, evidence.prepared && !evidence.outputVerified ? 'prepared' : 'verified', evidence, evidence.prepared && !evidence.outputVerified ? 'Paused candidate prepared; actual output is pending a permitted play request' : 'Runtime output observed; physical output and opaque track internals remain unverified');
+        this.runtimeCapabilities.update(planId, evidence.prepared && !evidence.outputVerified ? 'prepared' : 'verified', evidence, evidence.prepared && !evidence.outputVerified ? 'Paused candidate prepared; actual output is pending a permitted play request' : evidence.completedAtEOF ? 'Previously verified source completed at natural EOF; no new frame or audio observation claimed' : 'Runtime output observed; physical output and opaque track internals remain unverified');
     }
     evidence(session = this.current) {
         if (session?.backend.startupEvidence)
@@ -1022,11 +1028,24 @@ export class Player extends EventTarget {
             const window = this.state.seekable;
             if (window && !window.some(r => seconds >= r.start && seconds <= r.end))
                 throw new PlayerError('INVALID_ARGUMENT', 'Seek is outside the current seekable window');
+            const accepted = this.current, previous = Number(accepted.backend.properties.get('time-pos')) || 0, wasPaused = this.settings.pause;
             try {
-                await this.current.backend.seek(seconds);
-                await this.settled(this.current, this.mode, seconds);
+                await accepted.backend.seek(seconds);
+                await this.settled(accepted, this.mode, seconds);
             }
             catch (error) {
+                if (error instanceof SeekPresentationBoundary) {
+                    // A demux restart can prove the requested subtitle-only interval has no
+                    // AV presentation. Restore the accepted position rather than leave its
+                    // audio held behind an impossible seek target or try other codecs.
+                    if (this.current === accepted && !this.destroyed && !this.activeOperation?.controller.signal.aborted) {
+                        await accepted.backend.seek(previous);
+                        await this.settled(accepted, this.mode, previous);
+                        if (!wasPaused)
+                            await accepted.backend.play();
+                    }
+                    throw error;
+                }
                 if (this.activeOperation?.controller.signal.aborted || playerError(error).code === 'AUTOPLAY_BLOCKED' || !this.automatic || this.mode === 'software' || terminalSourceFailure(error) || /out of range|Invalid seek/i.test(String(error)))
                     throw error;
                 const priorAttempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `Seek presentation failure: ${playerError(error).message}` }];

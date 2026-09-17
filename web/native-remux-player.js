@@ -123,7 +123,7 @@ export class RemuxPlayer {
   return session;
  }
  hasStartupCoverage(){
-  const target=this.target,margin=this.windowed?Math.min(.02,Math.max(0,this.duration-target)/2):.02;
+  const target=this.target,margin=Math.min(.02,Math.max(0,this.duration-target)/2);
   return this.ranges().some(([a,b])=>a<=target+.5&&b>target+margin);
  }
  contains(t){t+=this.timelineBias;const b=this.sb?.buffered;if(!b)return false;for(let i=0;i<b.length;i++)if(t>=b.start(i)&&t<b.end(i))return true;return false;}

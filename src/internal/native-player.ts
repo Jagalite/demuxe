@@ -148,27 +148,33 @@ export class NativePlayer extends EventTarget implements Backend {
   async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false) {
     this.assertActive();this.expectedOutput=expected??this.expectedOutput;
     expected=this.expectedOutput;
-    if(output){this.capability.outputVerified=false;this.capability.videoPresented=false;this.capability.playbackReady=false;this.capability.audioProgress=false;}
+    const previouslyVerified=this.capability.outputVerified===true;
+    if(output){this.capability.completedAtEOF=false;this.capability.outputVerified=false;this.capability.videoPresented=false;this.capability.playbackReady=false;this.capability.audioProgress=false;}
     const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number;mozDecodedFrames?:number;mozHasAudio?:boolean};
     const initialTime=v.currentTime,initialFrames=v.getVideoPlaybackQuality().totalVideoFrames;
     const timing=this.capability.timing??(this.capability.timing={});
     timing[output?'outputRequested':'preparationRequested']=performance.now();
     await new Promise<void>((resolve,reject)=>{
-      let finished=false,frame=0,presented=false;
+      let finished=false,classifying=false,frame=0,presented=false;
       const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);clearInterval(poll);if(frame)v.cancelVideoFrameCallback(frame);this.cancelers.delete(cancel);error?reject(error):resolve();};
       const cancel=(error:Error)=>finish(error);
       const check=()=>{
         if(this.stopped){finish(new Error('Player is destroyed'));return;}
-        if(v.error){void this.classifyDirectFailure(nativeMediaError(v.error)).then(error=>finish(error instanceof Error?error:new Error(String(error))),error=>finish(error));return;}
+        if(finished||classifying)return;
+        if(v.error){classifying=true;clearInterval(poll);void this.classifyDirectFailure(nativeMediaError(v.error)).then(error=>finish(error instanceof Error?error:new Error(String(error))),error=>finish(error));return;}
         this.capability.metadata=v.readyState>=1;if(this.capability.metadata)timing.metadata??=performance.now();
         const hasVideo=expected?.video??v.videoWidth>0;
         const decoded=v.getVideoPlaybackQuality().totalVideoFrames>0||(v.mozDecodedFrames??0)>0;
         if(decoded)this.capability.decoderOutput=true;
+        // A previously verified session can naturally finish a short remaining
+        // interval without presenting another frame. This is completion, not
+        // fresh frame/audio evidence; do not strand play() until its deadline.
+        if(output&&previouslyVerified&&v.ended){this.capability.completedAtEOF=true;this.capability.outputVerified=true;timing.outputAccepted=performance.now();finish();return;}
         const ready=v.readyState>=3&&!v.seeking&&(!hasVideo||v.videoWidth>0);
         if(!ready)return;
         this.capability.prepared=true;timing.ready??=performance.now();
         if(!output){finish();return;}
-        const advancing=!v.paused&&v.currentTime>initialTime+.02;
+        const advancing=(!v.paused||v.ended)&&v.currentTime>initialTime+(v.ended?0:.02);
         if(presented||v.getVideoPlaybackQuality().totalVideoFrames>initialFrames){this.capability.videoPresented=true;timing.firstFrame??=performance.now();}
         const audioCount=v.webkitAudioDecodedByteCount;
         const audioReady=!expected?.audio||(typeof audioCount==='number'?audioCount>0:typeof v.mozHasAudio==='boolean'?v.mozHasAudio&&advancing:advancing);

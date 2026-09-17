@@ -42,7 +42,15 @@ known empty. Byte-cache statistics are never converted into buffered time.
 Native ranges use the browser timeline translated out of remux bias. mpv
 buffered time is unknown; seek ranges use observed demuxer seekable ranges for
 live sources, and confirmed demuxer seekability plus duration for VOD. An unknown
-live window disables a finite seek slider. mediaInfo includes display geometry,
+live window disables a finite seek slider. Container duration may include subtitle
+events after audiovisual samples end. A target inside that reported duration is
+not proof of subtitle-only presentation support: if the current engine restarts
+the seek at demux EOF and clamps its audiovisual position before the target,
+`seek()` rejects with `INVALID_ARGUMENT` and restores the prior position and
+play/pause intent. Duration and subtitle events are retained. This is a seek
+presentation limitation, not a codec failure, and does not trigger codec fallback.
+A successful seek also checks the runtime position after frame presentation;
+the requested clock value alone is insufficient. mediaInfo includes display geometry,
 source rotation when reported, display aspect and selected streams; absent
 metadata stays null. No UI needs mpv property names.
 

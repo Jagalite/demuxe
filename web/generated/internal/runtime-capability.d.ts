@@ -1,6 +1,7 @@
 export type CapabilityEvidence = {
     apiHint?: string;
     prepared?: boolean;
+    completedAtEOF?: boolean;
     outputVerified?: boolean;
     audioEvidence?: string;
     timing?: Record<string, number>;

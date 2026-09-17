@@ -68,6 +68,7 @@ export declare class WasmPlayer extends EventTarget {
     private rejectReady?;
     private eventWaiters;
     private hasFile;
+    private seekObservation?;
     private opening;
     private refreshAuthorization?;
     private audioHeader;
@@ -106,6 +107,9 @@ export declare class WasmPlayer extends EventTarget {
     volume(percent: number): Promise<void>;
     gain(value: number): Promise<void>;
     selectTrack(type: 'audio' | 'sub', id: string): Promise<void>;
+    private observeSeekEvent;
+    confirmSeek(target: number): Promise<boolean>;
+    seekBoundary(target: number): number | undefined;
     addSubtitle(subtitle: SubtitleAsset): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
     resize(width: number, height: number): void;

@@ -1,7 +1,7 @@
 import {PlayerError, playerError} from './errors.js';
 
 export type CapabilityEvidence = {
-  apiHint?: string; prepared?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
+  apiHint?: string; prepared?:boolean; completedAtEOF?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
   initAccepted?: boolean; mediaAccepted?: boolean; decoderOutput?: boolean;
   videoPresented?: boolean; audioProgress?: boolean; audioDecoded?:boolean; audioDecoderConfigured?:boolean; playbackReady?: boolean;
 };

@@ -48,6 +48,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
         capability: {
             apiHint?: string;
             prepared?: boolean;
+            completedAtEOF?: boolean;
             outputVerified?: boolean;
             audioEvidence?: string;
             timing?: Record<string, number>;
