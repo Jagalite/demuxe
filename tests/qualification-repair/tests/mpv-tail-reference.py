@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 import pathlib,subprocess,socket,time,json,os
 root=pathlib.Path(__file__).resolve().parents[1];out=[]
 for name in ['C21','C22']:

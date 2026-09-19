@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Sanitized source-bound native terminal-error control; no browser playback claim."""
 import argparse,hashlib,json,runpy,subprocess,sys
 from pathlib import Path

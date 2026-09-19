@@ -1,2 +1,3 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';import{RemuxPlayer}from'../web/native-remux-player.js';
 test('startup coverage does not demand media beyond known EOF',()=>{for(const windowed of [false,true]){const p=Object.assign(Object.create(RemuxPlayer.prototype),{target:11.995,duration:12,windowed,ranges:()=>[[11,12]]});assert.equal(p.hasStartupCoverage(),true);p.ranges=()=>[[11,11.99]];assert.equal(p.hasStartupCoverage(),false);p.target=5;p.ranges=()=>[[4,5.01]];assert.equal(p.hasStartupCoverage(),false);}});

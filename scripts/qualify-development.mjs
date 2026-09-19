@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Reuse the accepted G1 harnesses without overwriting their release evidence.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {spawn} from 'node:child_process';

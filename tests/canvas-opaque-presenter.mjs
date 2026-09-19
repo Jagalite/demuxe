@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Exact differential pixels for omitting redundant clears on opaque full frames.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

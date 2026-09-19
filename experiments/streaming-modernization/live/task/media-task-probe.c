@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Actual container parsing in bounded tasks; no decoder or browser qualification.
 #include "container-task.h"
 #include <stdio.h>

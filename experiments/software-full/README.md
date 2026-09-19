@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Expanded FFmpeg software playback
 
 This profile removes the original small decoder/demuxer/filter allowlists. It

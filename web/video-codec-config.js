@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Codec-specific transport descriptions; capability acceptance still requires
 // VideoDecoder.isConfigSupported AND successful decoded-frame delivery.
 const hex=n=>n.toString(16).padStart(2,'0');

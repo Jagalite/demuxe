@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Optional preparation profile. Included by the maintained packet bridge.
  * The decoder is selected only for the selected audio stream. No video decoder
  * is enabled in the build. Integer samples are copied without swresample. */

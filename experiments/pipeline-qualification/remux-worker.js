@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import createRemux from '/experiment/remux-engine/remux.mjs';
 let engine,chunks=[],bytes=0;
 const stats={calls:0,remuxMs:0,generatedBytes:0,peakBatchBytes:0,heapBytes:0};

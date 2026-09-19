@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Retire validator records only after the authoritative manifest owner drops
  * every reference to a resource. Open AVIO handles retain their own validators.
  * An allocation failure keeps old identities; it never weakens consistency. */

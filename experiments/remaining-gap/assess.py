@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Audit raw samples and recompute paired remaining-gap costs."""
 import hashlib,json,statistics,sys
 from pathlib import Path

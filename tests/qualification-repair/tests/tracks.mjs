@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';import {serve} from '../server.mjs';import {readFile,mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 const fixtures=JSON.parse(await readFile(new URL('../fixtures/manifest.json',import.meta.url)));const server=await serve(),browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']}),dir=new URL(`../results/tracks-${Date.now()}/`,import.meta.url),rows=[];await mkdir(dir,{recursive:true});
 const tone=async(page,left,right)=>page.waitForFunction(([l,r])=>metrics.channels?.some(c=>c.ch===0&&c.rms>.001&&Math.abs(c.hz-l)<35)&&metrics.channels?.some(c=>c.ch===1&&c.rms>.001&&Math.abs(c.hz-r)<35),[left,right],{timeout:6000});

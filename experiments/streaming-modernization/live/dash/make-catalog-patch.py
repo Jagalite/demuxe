@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build all-period tables through FFmpeg's existing MPD/representation parser."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

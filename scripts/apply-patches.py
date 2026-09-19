@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Replay the complete patch series against locked sources before updating files.
 
 Later patches may overlap earlier hunks. Comparing complete replayed files makes

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native delayed-audio interleaving and truthful-length corrupted-container admission."""
 import argparse,hashlib,importlib.util,json,subprocess,threading,time
 from http.server import ThreadingHTTPServer

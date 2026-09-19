@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
 import {remuxPackaging} from './remux-packaging.js';
 let engine,chunks=[],bytes=0,emptyBatches=0,negotiation,splitter,timing;

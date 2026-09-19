@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* All session plans reference the accepted native catalog. Sequence tokens are
  * source-private: high 31 bits identify a retained period, low 32 bits preserve
  * that representation's SegmentTemplate numbering. No URL scheduling in JS. */

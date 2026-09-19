@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adaptive-session.h"
 #include "random-access.h"
 #include "component-group.h"

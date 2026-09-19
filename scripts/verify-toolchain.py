@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Fail closed if the container toolchain or any installed Debian package drifts."""
 import hashlib,json,pathlib,subprocess,sys
 lock=json.loads(pathlib.Path(sys.argv[1]).read_text())

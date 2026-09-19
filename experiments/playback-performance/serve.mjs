@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Snapshot-backed experiment mounts reach nested workers without DevTools routing.
 import http from 'node:http';
 import {readFile,stat,mkdir,writeFile} from 'node:fs/promises';

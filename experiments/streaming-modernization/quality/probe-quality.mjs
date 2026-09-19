@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Exercise the experimental integrated mpv session. Only measurement hooks
 // are overridden; source manifests and switching implementation are unchanged.
 import {chromium,firefox} from 'playwright';import assert from 'node:assert/strict';

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';import http from 'node:http';import path from 'node:path';import {mkdtemp,mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
 const family=process.env.BROWSER||'chrome',stamp=new Date().toISOString().replaceAll(':','-'),out=`results/public-api-consumer/${family}-${stamp}`;await mkdir(out,{recursive:true});console.log(out);
 const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-2/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/public-api-consumer-'));await writeFile(path.join(root,'package.json'),'{"type":"module","private":true}\n');

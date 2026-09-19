@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Preserve genuine chunked EOF and reject incomplete chunks in native FFmpeg HTTP.
 
 Wasm production networking uses browser AVIO, not FFmpeg's HTTP protocol. This

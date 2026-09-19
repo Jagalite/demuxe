@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {firefox} from 'playwright';import {serve} from '../server.mjs';import http from 'node:http';import {spawn,execFileSync} from 'node:child_process';import {mkdir,writeFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url),stamp=Date.now(),dir=new URL(`results/standalone-${stamp}/`,root);await mkdir(dir,{recursive:true});let done;const result=new Promise(r=>done=r);const callback=http.createServer(async(req,res)=>{res.setHeader('Access-Control-Allow-Origin','*');let body='';for await(const c of req)body+=c;res.end('ok');done(JSON.parse(body))});await new Promise(r=>callback.listen(0,'127.0.0.1',r));const s=await serve();
 await writeFile(new URL('runner.html',dir),`<!doctype html><div id="stage" style="width:960px;height:540px"></div><script type="module">

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Run bounded exact-package optional-runtime qualification without release promotion."""
 import argparse, hashlib, json, os, pathlib, subprocess, tarfile, time
 

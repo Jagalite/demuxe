@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Playback pipeline separation: findings
 
 **Keep Native, Hybrid and Software. Prioritize a qualified YUV GPU presenter for Software; keep progressive Native remux experimental.** Two isolated prototypes were implemented without changing public modes, production defaults or maintained engine binaries.

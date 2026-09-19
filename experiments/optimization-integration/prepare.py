@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Apply the optimization delta after assembling the protected streaming checkpoint.
 No engines are reused here: this creates source requiring its own build/qualification.
 """

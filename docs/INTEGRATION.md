@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Browser integration
 
 The additive normalized API and optional component are documented in

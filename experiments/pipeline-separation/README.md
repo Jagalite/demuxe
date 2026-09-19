@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Experimental pipeline separation
 
 Findings, routing decisions, raw results and limits: [results README](../../results/pipeline-separation/README.md).

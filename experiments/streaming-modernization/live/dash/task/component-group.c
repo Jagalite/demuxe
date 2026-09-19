@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "component-group.h"
 #include "manifest-plan.h"
 #include <stdlib.h>

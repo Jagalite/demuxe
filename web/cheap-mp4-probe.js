@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {LocalFileReader} from './file-reader.js';
 // Conservative, bounded local MP4 metadata admission. Unknown means inspect with FFmpeg.
 // File bytes are immutable for the lifetime of this selection; MIME/name are never used.

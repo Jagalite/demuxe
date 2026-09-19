@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Archive exact experimental preferred source and build evidence, without a tag."""
 import argparse, gzip, hashlib, io, json, tarfile
 from pathlib import Path

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Streaming modernization evidence
 
 Status: baseline restored; streaming overhaul **not qualified or complete**.

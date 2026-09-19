@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Build all three engines from locked sources; see docs/RELEASE.md for a clean run.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

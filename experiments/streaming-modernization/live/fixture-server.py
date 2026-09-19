@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Serve recorded finite bytes through controlled standard rolling HLS/DASH windows.
 
 This is a test origin, not a playback adapter. Every served manifest and request

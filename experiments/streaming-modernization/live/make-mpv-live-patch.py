@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Add the isolated HLS component/window experiment after integration patches 0016/17."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

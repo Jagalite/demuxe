@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Sanitized native child MOV reads: short chunks, cancellation, timeout and EOF."""
 import argparse, hashlib, json, subprocess, shutil
 from pathlib import Path

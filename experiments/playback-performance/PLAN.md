@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Software and Hybrid performance work window
 
 Authorized window: 2026-09-08 12:29:14 to 22:29:14 UTC (10 hours).

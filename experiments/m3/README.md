@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M3 standalone decoder comparison
 
 Read [the predeclared contract](../../docs/M3-BENCHMARK.md) and

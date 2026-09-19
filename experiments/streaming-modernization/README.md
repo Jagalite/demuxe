@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Streaming modernization staging area
 
 This profile is **unqualified**. It does not change the root release source lock,

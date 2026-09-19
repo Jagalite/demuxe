@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Integrated M4 measurement protocol
 
 This protocol is declared before collecting integrated comparison results.

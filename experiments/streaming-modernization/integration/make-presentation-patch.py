@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate private packet/frame quality identity hooks; no second playback clock."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

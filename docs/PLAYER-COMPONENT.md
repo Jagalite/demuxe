@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Optional player component
 
 This is the target contract; qualification is recorded separately. Import

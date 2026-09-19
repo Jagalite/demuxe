@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Compose an isolated DSP initializer without changing the validated kernel set."""
 from pathlib import Path
 import sys

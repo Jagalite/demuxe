@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Normalize embedded configuration strings before compilation, never archive bytes.
 
 Compiler -ffile-prefix-map covers __FILE__; generated configuration literals need

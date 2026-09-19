@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Integrated streaming development stage
 
 The current implementation connects the shared native coordinator to mpv in the

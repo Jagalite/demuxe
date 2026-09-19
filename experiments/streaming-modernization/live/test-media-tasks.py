@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compile isolated generalized container tasks and parse real AAC/WebVTT packets."""
 import argparse,hashlib,json,subprocess
 from pathlib import Path

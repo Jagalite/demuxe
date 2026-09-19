@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Qualify public entrypoints and current component behavior against one immutable archive.
 import {execFileSync,spawnSync} from 'node:child_process';
 import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,readdirSync,statSync} from 'node:fs';

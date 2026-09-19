@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 import json,os,shlex,subprocess
 from pathlib import Path
 root=Path.cwd();(root/'build/retained').mkdir(exist_ok=True)

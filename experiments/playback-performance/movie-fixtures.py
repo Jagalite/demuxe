@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Keyframe-aligned licensed movie excerpts for fair startup and CPU comparisons."""
 from pathlib import Path
 import json,subprocess,hashlib

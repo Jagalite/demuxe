@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Private catalog characterization seam. No network reads or stream probing. */
 int av_demuxe_dash_period_count(AVFormatContext *s){
     if(!s||!s->iformat||strcmp(s->iformat->name,"dash"))return AVERROR(EINVAL);

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M3 follow-up: isolated processes and packet bridge
 
 Declared 2026-09-07 before follow-up measurement. Preserve the original contract,

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Real dedicated-worker chunk ownership after shared-mailbox reuse.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

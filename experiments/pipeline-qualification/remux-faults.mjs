@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {serve} from './server.mjs';
 const server=await serve(),out=`results/pipeline-qualification/remux-faults-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);const result={cases:[]};
 const cases=[{name:'truncated-range',media:'sample',query:'truncate=12'},{name:'auth-refresh-cors',media:'sample',query:'auth=1&cors=allow',refresh:true,cors:true},{name:'changed-source',media:'sample',query:'changed=1',reason:'representation changed',recover:true},{name:'invalid-selected-track',media:'sample',audioTrack:42,reason:'Invalid selected tracks'},{name:'selected-alternate-audio',media:'animated',audioTrack:2},{name:'eos',media:'sync',target:10,eos:true},{name:'configuration-during-play',media:'config',reason:'configuration changed|discontinuity',wait:7000}];

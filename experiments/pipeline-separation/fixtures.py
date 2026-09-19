@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 import subprocess,json,hashlib
 out=Path('build/pipeline-separation/fixtures');out.mkdir(parents=True,exist_ok=True)

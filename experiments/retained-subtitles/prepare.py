@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 s=Path('experiments/retained-presenter/vo_libmpv.c').read_text()
 s=s.replace('    mp_mutex_unlock(&ctx->lock);\n\n    MP_STATS(ctx, "glcb-render");','    struct osd_state *subtitle_osd=ctx->vo?ctx->vo->osd:NULL;\n    mp_mutex_unlock(&ctx->lock);\n\n    MP_STATS(ctx, "glcb-render");')

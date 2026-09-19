@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Verify both pre-existing artifact sets without modifying their manifests."""
 import hashlib,json
 from pathlib import Path

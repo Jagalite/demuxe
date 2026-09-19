@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build a libmpv VO override for the RGB Software engine.
 
 The upstream libmpv VO advertises ROTATE90 for its GPU renderer. The RGB

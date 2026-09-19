@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compile the real transport bridge with a native simulated mailbox peer."""
 import argparse, hashlib, json, subprocess
 from pathlib import Path

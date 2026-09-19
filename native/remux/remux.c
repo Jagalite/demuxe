@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Packet-copy bridge; optional build profile adds selected-audio-only FLAC preparation.
 #include <emscripten.h>
 #include <libavformat/avformat.h>

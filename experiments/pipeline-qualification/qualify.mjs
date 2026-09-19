@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Correctness matrix, deliberately separate from visible CPU measurements.
 import {chromium,firefox,webkit} from 'playwright';
 const family=process.env.BROWSER||'chrome';

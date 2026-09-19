@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // A real MOV parser + software decoder test, not mpv/browser playback proof.
 #include "rewind-reader.h"
 #include <stdio.h>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Run after other benchmarks/stability tests have finished; never in parallel.
 import {spawn} from 'node:child_process';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';

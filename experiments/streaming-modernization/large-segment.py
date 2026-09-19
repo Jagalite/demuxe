@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Original synthetic progressive-startup fixture; one segment exceeds 8 MiB."""
 import argparse, hashlib, json, subprocess
 from pathlib import Path

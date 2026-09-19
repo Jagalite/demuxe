@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Isolated software decoding measurement and optional full decoded-pixel checksum.
 #include <emscripten/emscripten.h>
 #include <libavformat/avformat.h>

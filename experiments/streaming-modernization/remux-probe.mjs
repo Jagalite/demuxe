@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Exact Wasm packet remux characterization with a synthetic local byte provider.
 import {Worker} from 'node:worker_threads';
 import {readFile} from 'node:fs/promises';

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Apply maintained presenter fixes after generating the historical worker base."""
 def fix_retained_worker(s):
     s="import {drawRetainedVideo} from './retained-video.js';\nlet videoTrack;\n"+s

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M3 matched decoder experiment
 
 Contract declared 2026-09-07, before performance measurements. M3 is authorized;

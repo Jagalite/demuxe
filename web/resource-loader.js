@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {validateVODManifest} from './vod-manifest.js';
 import {prepareDASH,selectHLS} from './streaming-manifest.js';
 import {subtitleSegments,mergeWebVTT} from './segmented-subtitles.js';

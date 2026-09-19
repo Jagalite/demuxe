@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef WEB_STREAM_BRIDGE_H
 #define WEB_STREAM_BRIDGE_H
 #include <stdatomic.h>

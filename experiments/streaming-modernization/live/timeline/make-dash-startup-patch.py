@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Keep integrated DASH discovery away from the expiring oldest live segment."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

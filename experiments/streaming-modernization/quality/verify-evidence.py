@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Verify exact-archive quality evidence; does not replace source/build/release verification."""
 import argparse,hashlib,json,math,tarfile
 from pathlib import Path

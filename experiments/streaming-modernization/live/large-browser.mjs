@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Real browser playback through the experimental Fetch -> mailbox -> AVIO path.
 import {chromium,firefox} from 'playwright';
 import assert from 'node:assert/strict';

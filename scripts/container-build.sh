@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 # Run inside the pinned toolchain image. /input is a read-only repository mount;
 # /output is a caller-selected result directory. /work starts empty.

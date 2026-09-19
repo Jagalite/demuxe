@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import {createHash} from 'node:crypto';import assert from 'node:assert/strict';import {mkdtemp,readFile,writeFile,mkdir,symlink} from 'node:fs/promises';import path from 'node:path';import {execFileSync} from 'node:child_process';
 const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-4/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/copy-qualification-'));execFileSync('tar',['-xzf',archive,'-C',root]);const pkg=path.join(root,'package'),cli=path.join(pkg,'bin/demuxe.mjs');
 const run=dest=>execFileSync(process.execPath,[cli,'copy-assets',dest],{encoding:'utf8',stdio:'pipe'});

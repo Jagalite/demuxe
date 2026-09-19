@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // The historical LibAV binary is used ONLY to reproduce its failure. It is not
 // copied into the runtime, exported, packaged, or evidence for a new engine.
 import {createServer} from 'node:http';

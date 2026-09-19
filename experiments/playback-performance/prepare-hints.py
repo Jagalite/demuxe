@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Isolated decoder-ready hints; legacy workers retain the original mailbox path."""
 from pathlib import Path
 import json

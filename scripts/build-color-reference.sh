@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Host-only reference used by compatibility color tests, never shipped.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

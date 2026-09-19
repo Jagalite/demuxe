@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Review fixes: bounded work, track identity and frame-verified seeks
 
 Historical checkpoint report. For subsequent local implementation and current coverage, see [completion status](OPTIMIZATION-COMPLETION.md).

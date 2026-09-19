@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {Player} from '../../../web/generated/unified-player.js';
 import {planAdmission} from '../../../web/generated/internal/playback-plans.js';
 import {nativeRejection,remuxRejection} from '../../../web/generated/internal/selection.js';

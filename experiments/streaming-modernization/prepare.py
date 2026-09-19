@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Materialize a non-release baseline without modifying the working engines."""
 import argparse
 import hashlib

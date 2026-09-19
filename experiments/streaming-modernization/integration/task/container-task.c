@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Container execution only: plans come from the one authoritative manifest owner.
 #include "container-task.h"
 #include "rewind-reader.h"

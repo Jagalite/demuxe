@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Keep active playback responsive; lower worker wakeups after paused work settles."""
 def schedule_paused_worker(s):
     scheduler='''

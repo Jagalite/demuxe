@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Private representation/segment-plan seam. HLS remains the timeline owner. */
 static struct playlist *demuxe_hls_playlist(AVFormatContext *s, int stream)
 {

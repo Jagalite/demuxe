@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Synthetic, finite software-decoder S1 fixtures; no private media inputs."""
 from pathlib import Path
 import subprocess,json,hashlib

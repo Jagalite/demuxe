@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # mpv video-filter compatibility routing
 
 `web/filter-player.js` adds an experimental `FilterPlayer` facade over the retained

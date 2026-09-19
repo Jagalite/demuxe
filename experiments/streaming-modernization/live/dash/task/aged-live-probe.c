@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Synthetic stale-MPD admission: valid targets must not depend on expired first entries.
 #include "adaptive-session.h"
 #include <stdio.h>

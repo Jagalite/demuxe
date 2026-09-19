@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Check a clean optional ASS build's sources and linked archive correspondence."""
 import argparse
 import hashlib

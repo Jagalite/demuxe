@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Real native manifest/container execution. This measures packets, not rendered A/V.
 #include "adaptive-session.h"
 #include <stdio.h>

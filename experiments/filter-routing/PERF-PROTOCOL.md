@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Quick filter-routing performance screen
 
 Three fresh foreground Chrome processes, fixed order: retained frames without

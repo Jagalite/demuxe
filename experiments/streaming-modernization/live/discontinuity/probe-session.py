@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native HLS discontinuity packet proof with repeated timestamp epochs; no A/V rendering claim."""
 import argparse,hashlib,json,subprocess,threading
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer

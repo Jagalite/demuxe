@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Retained frames cannot use native software replay; keep legacy mode 1 behavior."""
 from pathlib import Path
 import json

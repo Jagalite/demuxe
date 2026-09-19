@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Characterize mpv's existing track switch on full manifests. The adapter and
 // instrumentation overrides are explicit test inputs, never shipped runtime code.
 import {chromium,firefox} from 'playwright';import assert from 'node:assert/strict';

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Bounded local-file adapter for the existing AVIO source contract.
 // File handles are cloned to workers; complete media never enters an ArrayBuffer.
 export class LocalFileReader {

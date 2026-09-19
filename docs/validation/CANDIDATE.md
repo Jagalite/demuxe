@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Clean candidate acceptance
 
 The clean software candidate passes strict G1 requalification. The optional

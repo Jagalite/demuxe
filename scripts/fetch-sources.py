@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Fetch only locked upstream archives, verifying their SHA-256 before extraction."""
 import hashlib
 import json

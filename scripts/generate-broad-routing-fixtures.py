@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Derived test media only; does not alter original fixtures."""
 import subprocess
 from pathlib import Path

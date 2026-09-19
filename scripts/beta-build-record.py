@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Record the actual linked beta configuration and reject changed build inputs."""
 import argparse, datetime, hashlib, json, os, pathlib, platform, re, shutil, subprocess
 root=pathlib.Path(__file__).resolve().parent.parent
@@ -52,6 +53,6 @@ else:
   actual=sha(root/'build/downloads'/(item['name']+'.tar.gz'))
   if actual!=item['sha256']:raise SystemExit('Source archive changed: '+item['name'])
   source_archives[item['name']]=actual
- data={**start,'finished':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),'sharedTools':tools,'sdk':str(sdk),'historicalLinuxToolchainLockAppliesToHost':False,'sources':source_archives,'configurations':{n:sha(root/n)for n in configs},'licenses':{'hybrid':'GPL-2.0-or-later','software':'GPL-2.0-or-later','remuxFFmpegLibrary':'LGPL-2.1-or-later','remuxWrapper':json.loads((root/'package.json').read_text()).get('license','UNLICENSED'),'fullFFmpeg':full,'remuxFFmpeg':remux,'mpvGPL':True},'artifacts':artifacts}
+ data={**start,'finished':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),'sharedTools':tools,'sdk':str(sdk),'historicalLinuxToolchainLockAppliesToHost':False,'sources':source_archives,'configurations':{n:sha(root/n)for n in configs},'licenses':{'hybrid':'GPL-3.0-or-later','software':'GPL-3.0-or-later','remuxFFmpegLibrary':'LGPL-2.1-or-later','remuxWrapper':json.loads((root/'package.json').read_text()).get('license','UNLICENSED'),'fullFFmpeg':full,'remuxFFmpeg':remux,'mpvGPL':True},'artifacts':artifacts}
  (root/'build/beta-build.json').write_text(json.dumps(data,indent=2)+'\n')
  print(root/'build/beta-build.json')

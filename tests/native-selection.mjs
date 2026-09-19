@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {nativeRejection} from '../web/generated/internal/selection.js';
 const settings={aid:'auto',sid:'auto',subtitles:true};

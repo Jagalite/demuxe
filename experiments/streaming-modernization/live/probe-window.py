@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compile and characterize the native HLS window hook with a controlled origin."""
 import argparse, hashlib, importlib.util, json, subprocess, threading
 from http.server import ThreadingHTTPServer

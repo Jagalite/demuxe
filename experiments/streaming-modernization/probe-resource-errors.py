@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Real native HTTP truncation, comparing strict and legacy demux error handling."""
 import argparse, hashlib, json, os, shlex, subprocess, threading
 from pathlib import Path

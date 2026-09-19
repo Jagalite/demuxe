@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Independent decoded flash/beep timing, not a physical display/speaker measurement or CPU benchmark.
 import {chromium} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const server=await serve({pagePath:'tests/beta-av-page.html'}),out=`results/beta/av-sync-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);const result={method:'AudioWorklet beep onset mapped through getOutputTimestamp, versus rVFC white-frame expectedDisplayTime; software-clock estimate only',trials:[]};

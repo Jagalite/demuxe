@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Verify clean preparation sources, linked libraries and audio-only configuration."""
 import argparse, hashlib, json, pathlib, re
 

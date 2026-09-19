@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Playback optimization completion work
 
 Post-review fixes: public range objects are restored for windowed Native, and

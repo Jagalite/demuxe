@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build the optional FLAC preparation profile from the SAME locked FFmpeg sources.
 Does not install or replace any served engine. Use a fresh output per qualification.
 """

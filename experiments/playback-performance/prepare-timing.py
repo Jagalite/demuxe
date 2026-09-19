@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Coalesce unchanged timing messages while preserving the post-init handoff."""
 from pathlib import Path
 import json

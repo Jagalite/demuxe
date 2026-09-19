@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Summarize completed sustained playback; sum counters separately across seeks."""
 import json
 import sys

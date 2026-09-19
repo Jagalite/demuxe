@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Configure an installed Emscripten 4.0.14 SDK with a fresh per-checkout cache."""
 import argparse, json, pathlib, shutil, subprocess
 root=pathlib.Path(__file__).resolve().parent.parent

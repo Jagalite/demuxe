@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M0 acceptance profile
 
 Frozen before the first playback test, 2026-09-06. This is local port validation;

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Paced native async-container transition probe; not mpv or browser qualification."""
 import argparse
 import hashlib

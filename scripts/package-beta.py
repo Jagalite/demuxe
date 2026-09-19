@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build an offline-installable beta candidate, without asserting release qualification."""
 import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
+from license_policy import Policy, LEGAL, encoded
 root=pathlib.Path(__file__).resolve().parent.parent
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--ass-build',type=pathlib.Path);args=p.parse_args()
 project=json.loads((root/'package.json').read_text())
@@ -12,7 +14,7 @@ if args.release_tag:
  # mandatory exact-archive optional evidence in verify-beta-release.py.
  if dirty:raise SystemExit('Release packaging requires a clean source checkout')
  if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
- if project.get('license') not in ['MIT','GPL-2.0-or-later'] or not (root/'LICENSE').is_file():raise SystemExit('Select and include the original-code license before release')
+ if project.get('license') != 'GPL-3.0-or-later' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the original-code license before release: complete player must be GPL-3.0-or-later')
  if args.yuv:raise SystemExit('The clean beta release record covers only the three standard engines')
  build=json.loads((root/'build/beta-build.json').read_text())
  if not build['clean']:raise SystemExit('Release requires a completed clean engine build')
@@ -31,6 +33,8 @@ if args.release_tag:
  source_path=args.output/f"{project['name']}-{project['version']}-source.tar.gz"
  source_archive={'filename':source_path.name,'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),'bytes':source_path.stat().st_size}
 
+subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
+license_policy=Policy(root)
 files={}
 def add(name):
  f=root/name
@@ -80,6 +84,7 @@ if args.adaptation_build:
   for name in ['patches/ffmpeg','sources.lock.json','toolchain.lock.json']:
    archive.add(source_checkout/name,arcname='demuxe/'+name)
   archive.add(adaptation/'manifest.json',arcname='build-manifest.json')
+  for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)
   archive.add(adaptation.parent/'inputs.json',arcname='locked-inputs.json')
   archive.add(adaptation.parent/'ffmpeg/config.h',arcname='build/config.h')
   archive.add(adaptation.parent/'ffmpeg/ffbuild/config.mak',arcname='build/config.mak')
@@ -112,6 +117,7 @@ if args.ass_build:
    archive.add(library/'build/sources'/name,arcname='libraries/'+name)
   archive.add(ass/'sources',arcname='demuxe')
   archive.add(ass/'manifest.json',arcname='build-manifest.json')
+  for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)
   if clean_ass:
    archive.add(library/'source-build.json',arcname='source-build.json')
    archive.add(library/'scripts/build-native-ass.py',arcname='demuxe/scripts/build-native-ass.py')
@@ -122,7 +128,7 @@ if args.ass_build:
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/RELEASE.md']:add(name)
-if (root/'LICENSE').is_file():add('LICENSE')
+for name in LEGAL:add(name)
 if build:
  # Absolute host paths belong in the source companion, not the installed runtime.
  public_build={k:v for k,v in build.items() if k not in ['sdk','sharedTools']}
@@ -134,17 +140,19 @@ for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATIO
 # The review report keeps local evidence locations in the repository only.
 report='docs/OPTIMIZATION-INTEGRATION.md'
 files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
-files['player.js']=b"export * from './web/generated/player/index.js';\n"
-files['player.d.ts']=b"export * from './web/generated/player/index.js';\n"
-files['index.js']=b"export * from './web/generated/index.js';\n"
-files['index.d.ts']=b"export * from './web/generated/index.js';\n"
+files['player.js']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/player/index.js';\n"
+files['player.d.ts']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/player/index.js';\n"
+files['index.js']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/index.js';\n"
+files['index.d.ts']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/index.js';\n"
 files['README.md']=(root/'README.md').read_bytes()
 for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
-package={'name':project['name'],'version':project['version'],'license':('GPL-2.0-or-later' if project.get('license') in ['MIT','GPL-2.0-or-later'] else 'UNLICENSED'),'demuxeOriginalCodeLicense':project.get('license','UNLICENSED'),'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package={'name':project['name'],'version':project['version'],'license':'GPL-3.0-or-later','demuxeLicenses':license_policy.config['packageLicenses'],'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
 package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
 package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
+files['license-map.json']=encoded(license_policy.package_map(files,'player'))
+license_policy.check_package(files,'player')
 manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build),'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.

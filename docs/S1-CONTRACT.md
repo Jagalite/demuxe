@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # S1 fixed segmented VOD acceptance contract
 
 Status: passed for the declared profile. TS/fMP4 discontinuities, core playback,

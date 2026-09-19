@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Produce isolated native rendering experiments from the maintained bridge."""
 from pathlib import Path
 import sys

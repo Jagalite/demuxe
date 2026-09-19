@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Verify correspondence of an experimental baseline; never authorize release."""
 import argparse, hashlib, json, os, subprocess, tarfile
 from pathlib import Path, PurePosixPath

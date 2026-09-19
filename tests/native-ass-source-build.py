@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Source/output correspondence contracts, separate from playback qualification."""
 import hashlib
 import importlib.util

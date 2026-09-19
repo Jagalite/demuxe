@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Experimental Software YUV presenter
 
 Software still uses RGB rendering by default. To build and explicitly choose the

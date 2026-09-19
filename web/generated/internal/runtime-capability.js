@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { PlayerError, playerError } from './errors.js';
 /** Player-local, bounded evidence. No URL/credentials, persistent fingerprint or
  * cross-source acceptance shortcut. Every candidate must validate startup again. */

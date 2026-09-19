@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Qualification repair branch status
 
 This branch contains the September16 qualification repairs against application

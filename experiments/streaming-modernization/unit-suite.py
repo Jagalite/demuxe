@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Run injected unit regressions against modules extracted from one exact archive."""
 import argparse,hashlib,json,os,re,subprocess,tarfile
 from pathlib import Path

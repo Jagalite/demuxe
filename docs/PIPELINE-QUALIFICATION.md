@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Pipeline qualification and correctness
 
 This continues the [pipeline investigation](PIPELINE-SEPARATION-FINDINGS.md). The original report and artifacts are preserved as historical evidence. Only the two existing experiments are extended: progressive Native remux and Software YUV GPU presentation. Production defaults and public Native/Hybrid/Software modes remain unchanged.

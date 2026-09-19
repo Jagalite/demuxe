@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Public API contract
 
 Contract for the public API milestone work. Implementation and qualification are

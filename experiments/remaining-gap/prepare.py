@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 p=Path('native/player.c').read_text()
 p=p.replace('static int width, height;', '''static int width, height;

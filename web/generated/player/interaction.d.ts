@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 export declare function formatTime(value: number): string;
 export declare function outputDimensions(ratio: number): {
     width: number;

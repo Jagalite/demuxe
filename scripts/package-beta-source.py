@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Package matching preferred source and build materials beside a release binary."""
 import argparse, gzip, hashlib, io, json, pathlib, subprocess, tarfile
 root=pathlib.Path(__file__).resolve().parent.parent
+subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);p.add_argument('--tag',required=True);args=p.parse_args()
 build=json.loads((root/'build/beta-build.json').read_text());sdk=pathlib.Path(build['sdk'])
 files={}

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import type {FontAsset,SubtitleAsset} from '../types.js';
 type Tile={x:number;y:number;w:number;h:number;color:number;bytes:Uint8Array};
 /** External ASS rendering on the accepted media timeline. One bounded RPC at a time. */

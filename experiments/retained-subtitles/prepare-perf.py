@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 import re
 # Performance-only bindings; preserve the functionally qualified files.

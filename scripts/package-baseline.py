@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Assemble a deterministic baseline archive only after qualification passes."""
-import argparse,gzip,hashlib,io,json,pathlib,tarfile
+import argparse,gzip,hashlib,io,json,pathlib,tarfile,subprocess
+from license_policy import LEGAL
 
 root=pathlib.Path(__file__).resolve().parent.parent
+subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 parser=argparse.ArgumentParser()
 parser.add_argument('--engine',type=pathlib.Path,default=root/'web/engine')
 parser.add_argument('--output',type=pathlib.Path,default=root/'build/releases')
@@ -47,7 +50,7 @@ for folder in ['web','src','native','scripts','patches','fixtures','docs','third
             if name in ['results/release-manifest.json','results/release-summary.json','results/release-reproducibility.json']:
                 continue
             files[name]=args.engine/file.name if name.startswith('web/engine/') else file
-for name in ['README.md','Dockerfile','sources.lock.json','toolchain.lock.json',
+for name in LEGAL+['README.md','Dockerfile','sources.lock.json','toolchain.lock.json',
              'package.json','package-lock.json','tsconfig.json',
              'browser-player-feasibility-and-architecture-v3.md']:
     files[name]=root/name

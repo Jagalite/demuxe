@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Rolling DASH period additions/removals with repeated encoded timestamp epochs."""
 import copy,hashlib,importlib.util,re,time
 from pathlib import Path

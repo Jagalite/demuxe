@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {SubtitleOverlay} from '/web/subtitle-overlay.js';
 export class YUVPresenter {
  constructor(canvas){

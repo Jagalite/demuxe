@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Diagnostics, TrackType } from './types.js';
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
@@ -81,7 +82,7 @@ export declare class Player extends EventTarget {
     private featureCapabilities;
     get mode(): "native" | "hybrid" | "software";
     get automaticSelection(): boolean;
-    get surface(): HTMLCanvasElement | HTMLVideoElement | undefined;
+    get surface(): HTMLVideoElement | HTMLCanvasElement | undefined;
     get properties(): ReadonlyMap<string, unknown>;
     get capabilities(): PlayerCapabilities;
     private get legacyCapabilities();

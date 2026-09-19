@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Injected backend and actual Player operation queue; no playback claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';

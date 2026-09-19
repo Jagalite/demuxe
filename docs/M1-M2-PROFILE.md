@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M1/M2 qualification contract
 
 Declared before streaming qualification, 2026-09-06. This extends the accepted

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Source after entering the project root. FFmpeg remains the decoder owner;
 # these replacements specialize selected eight-bit DSP operations only.
 # Keep a harmless argument when disabled: macOS Bash 3.2 treats an empty array

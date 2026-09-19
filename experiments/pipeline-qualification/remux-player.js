@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Experimental Native execution plan. MSE stays in the window; demux/mux and
 // bounded source reads use separate workers, so synchronous Wasm AVIO cannot
 // block the event loop responsible for completing its reads.

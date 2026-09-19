@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Demuxe
 
 Demuxe is a browser media playback runtime that automatically chooses the least
@@ -26,7 +28,7 @@ Cross-Origin-Embedder-Policy: require-corp
 Native direct playback does not require Wasm or isolation. Remote sources need
 appropriate CORS and range support. See [runtime assets](docs/RUNTIME-ASSETS.md).
 
-## Core runtime
+## Player runtime
 
 ```js
 import { Player } from 'demuxe';
@@ -62,7 +64,15 @@ npm. `scripts/package-beta.py` assembles the publishable package; only the exact
 verified release tarball is published, with the `beta` dist-tag. See
 [the release procedure](docs/RELEASE.md).
 
-The combined package is GPL-2.0-or-later. Preserve the license, dependency notices,
+The complete `demuxe` package is **GPL-3.0-or-later**. Original reusable core,
+routing, standalone probes and research tooling use **Apache-2.0**;
+original reports and result data use **CC BY 4.0**. Third-party
+licenses stay separate. See [the boundary summary](LICENSING.md).
+
+`npm run build:core` assembles a separate engine-free `demuxe-core` candidate from
+the explicit reusable file list. See [core package usage](packages/core/README.md).
+
+Preserve the license, dependency notices,
 and matching source companion when distributing the runtime. See
 [licensing](docs/LICENSING.md). Safari/mobile, physical HDR/surround, PiP/casting,
 and broad device/performance qualification remain follow-up work.

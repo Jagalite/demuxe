@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Sanitized native live-start preroll admission; ordinary seeks remain strict."""
 import argparse,hashlib,importlib.util,json,subprocess,threading,shutil
 from pathlib import Path

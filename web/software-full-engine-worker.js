@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 let audioChannels=2;
 let YUVPresenter,uploader,gpuPauseIntent;
 function installPresenter(canvas,prior){

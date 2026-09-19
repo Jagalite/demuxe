@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 s=Path('build/sources/mpv/video/out/vo_libmpv.c').read_text()
 s=s.replace('    if (do_render)\n        err = ctx->renderer->fns->render(ctx->renderer, params, frame);','''    extern void web_experiment_frame(double pts, int64_t target_ns, int redraw);

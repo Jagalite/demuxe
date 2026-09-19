@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Expose the same qualified HLS anchor to window discovery and segment planning."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Real child MOV parsing with injected short reads and transport termination.
 #include "container-task.h"
 #include <stdio.h>

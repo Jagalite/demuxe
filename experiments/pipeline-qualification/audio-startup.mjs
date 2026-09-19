@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // First non-silent decoded audio callback, not physical speaker onset or CPU measurement.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';

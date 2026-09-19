@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Runtime capability discovery
 
 Public modes and controls are unchanged. The finite plan registry is still the

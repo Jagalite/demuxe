@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Sanitized packet-transition ownership test; not integrated playback evidence."""
 import argparse
 import hashlib

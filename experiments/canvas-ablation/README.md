@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Canvas output ablation results
 
 Removing the final Wasm-to-ImageData copy, alpha fill and Canvas submission

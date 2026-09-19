@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Fresh recorded rolling origin for one real browser/decoder live playback case."""
 import argparse,hashlib,importlib.util,json,os,subprocess,threading
 from http.server import ThreadingHTTPServer

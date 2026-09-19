@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include <stdint.h>
 // Local parser lookbehind, not arbitrary resource seeking. Memory is fixed per

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """DASH discovery expiry with actual playback and one persistent quality switch."""
 import argparse,hashlib,importlib.util,json,os,subprocess,threading
 from http.server import ThreadingHTTPServer

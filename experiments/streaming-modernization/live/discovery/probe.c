@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include <libavformat/avformat.h>
 #include <stdio.h>
 int main(int argc,char **argv){

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Small synthetic media for demo geometry and interaction checks; requires FFmpeg."""
 import json
 import subprocess

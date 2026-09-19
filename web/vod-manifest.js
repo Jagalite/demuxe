@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Admission policy only. FFmpeg remains the manifest/timeline parser.
 export function validateVODManifest(bytes,format,options={}){
   const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');

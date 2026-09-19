@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate a fixed public fixture and extract exact MP4 packet bytes once."""
 import hashlib
 import json

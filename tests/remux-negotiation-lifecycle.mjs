@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const server=await serve(),browser=await chromium.launch({channel:'chrome',headless:false,args:['--autoplay-policy=no-user-gesture-required']});const out=`results/packaging-negotiation/lifecycle-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);const result={cases:[]};
 try{for(const kind of ['eof','eof-webm','cancel-negotiation']){const p=await browser.newPage();p.setDefaultTimeout(15000);const r={kind};result.cases.push(r);try{

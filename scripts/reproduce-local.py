@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Two clean local builds, sharing installed tools but no build objects/cache.
 
 Uses cached, hash-verified source archives. Never invokes Docker. Outputs are

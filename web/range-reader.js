@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Original bounded, single-flight VOD range reader. No decoder dependency.
 export class RangeReader {
   constructor(options, refresh) {

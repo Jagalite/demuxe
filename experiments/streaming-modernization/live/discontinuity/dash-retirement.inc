@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Bounded URL identity sets are computed from native catalog plans, without
  * fetching or probing unselected representations. A refresh failure retains
  * the old catalog and its validators. Callback ownership stays source-scoped. */

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """The release flag must not bless dirty, unlicensed or mismatched build artifacts."""
 import hashlib, json, pathlib, shutil, subprocess, tempfile, unittest
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 class ReleaseGates(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory(dir=ROOT/'build');self.root=pathlib.Path(self.tmp.name)
-  (self.root/'scripts').mkdir();shutil.copy2(ROOT/'scripts/package-beta.py',self.root/'scripts/package-beta.py')
+  (self.root/'scripts').mkdir()
+  for name in ['package-beta.py','license_policy.py']:shutil.copy2(ROOT/'scripts'/name,self.root/'scripts'/name)
   subprocess.run(['git','init','-q',str(self.root)],check=True)
   self.write('package.json',{'version':'0.0.0-test'})
-  self.write('.gitignore','/build/\n')
+  self.write('.gitignore','/build/\n__pycache__/\n')
   self.commit()
  def tearDown(self):self.tmp.cleanup()
  def write(self,name,value):
@@ -28,7 +30,7 @@ class ReleaseGates(unittest.TestCase):
   self.run_gate('Release tag must identify HEAD')
  def test_unlicensed_source(self):self.run_gate('original-code license')
  def licensed(self):
-  self.write('package.json',{'version':'0.0.0-test','license':'GPL-2.0-or-later'});self.write('LICENSE','license fixture');self.commit()
+  self.write('package.json',{'version':'0.0.0-test','license':'GPL-3.0-or-later'});self.write('LICENSE','license fixture');self.commit()
  def test_incremental_build(self):
   self.licensed();self.write('build/beta-build.json',{'clean':False});self.run_gate('completed clean engine build')
  def test_clean_build_allows_worker_sources_but_rejects_old_outputs(self):

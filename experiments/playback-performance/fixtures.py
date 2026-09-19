@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate bounded, original performance fixtures; never modify source media."""
 import hashlib,json,subprocess
 from pathlib import Path

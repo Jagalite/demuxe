@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Isolate the WebGPU presenter while keeping the existing native and decoder bytes."""
 from pathlib import Path
 import json

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Remaining pipeline cost experiment
 
 Four arms: native HTML video; WebCodecs copy-back with mpv software rendering

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Compile maintained production sources. Measure only after all linking exits.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)

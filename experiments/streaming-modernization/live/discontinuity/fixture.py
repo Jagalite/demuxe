@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Repeat encoded HLS timestamps across two explicit discontinuity epochs."""
 import argparse,hashlib,json,shutil
 from pathlib import Path

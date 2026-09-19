@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const stage=document.querySelector('#stage');let p,kind,cfg;const plain=x=>JSON.parse(JSON.stringify(x,(_,v)=>typeof v==='bigint'?String(v):v));window.harnessVersion=5;window.errors=[];window.events=[];window.metrics={};window.addEventListener('error',e=>errors.length<30&&errors.push(e.message));window.addEventListener('unhandledrejection',e=>errors.length<30&&errors.push(String(e.reason)));
 const all=(tag)=>[...stage.querySelectorAll(tag),...[...stage.querySelectorAll('*')].flatMap(e=>e.shadowRoot?[...e.shadowRoot.querySelectorAll(tag)]:[])];
 const script=url=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=url;s.onload=resolve;s.onerror=()=>reject(Error('Asset load failed: '+url));document.head.append(s)});

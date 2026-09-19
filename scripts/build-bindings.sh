@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Browser sidecars are assembled separately from the clean native compilation.
 set -euo pipefail
 cd "$(dirname "$0")/.."

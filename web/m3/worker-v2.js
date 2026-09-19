@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const sleep = ms => new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
 const now = () => performance.now();
 const percentile = (values, p) => {

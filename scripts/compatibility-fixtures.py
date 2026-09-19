@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Deterministic small fixtures for the compatibility expansion; source media is untouched."""
 from pathlib import Path
 import subprocess,json,hashlib,shutil

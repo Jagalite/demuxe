@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Compressed packet ownership
 
 The original retained decoder sliced the shared mailbox packet before constructing

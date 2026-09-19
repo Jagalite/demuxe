@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Diagnostic-only incremental rewind relink. Never a clean build/release record."""
 import argparse,hashlib,json,os,shlex,shutil,subprocess,tarfile
 from pathlib import Path

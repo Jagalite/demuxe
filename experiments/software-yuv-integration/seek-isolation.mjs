@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Diagnostic interventions only. No production worker or timeout is changed.
 import {chromium} from 'playwright';import {readFile,writeFile,mkdir} from 'node:fs/promises';import assert from 'node:assert/strict';import {serve} from './server.mjs';
 const server=await serve(),out=`results/beta/yuv-seek-isolation-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);const result={scope:'Headless seek diagnosis; no CPU qualification',cases:[]};

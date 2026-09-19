@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Sanitize the actual native bridge with an injected concurrent mailbox peer."""
 import argparse,hashlib,json,subprocess
 from pathlib import Path

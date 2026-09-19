@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Qualification gate is overridden only in this harness. Production stays gated.
 import {chromium,firefox} from 'playwright';
 import {spawn,execFileSync} from 'node:child_process';

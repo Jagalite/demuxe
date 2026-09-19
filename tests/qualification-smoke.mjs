@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';
 import {writeFile,mkdir} from 'node:fs/promises';
 await mkdir('results/m2',{recursive:true});

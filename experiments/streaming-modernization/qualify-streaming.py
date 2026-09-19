@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Serial exact-archive streaming matrices; separate from clean source/release verification."""
 import argparse,hashlib,json,os,signal,subprocess,time
 from pathlib import Path

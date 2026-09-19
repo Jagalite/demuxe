@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Benchmark-only origin supporting ordinary browser open-ended/suffix ranges.
 // The production range broker and original qualification origin stay unchanged.
 import http from 'node:http';

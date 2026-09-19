@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /** External ASS rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeASS {
     video;

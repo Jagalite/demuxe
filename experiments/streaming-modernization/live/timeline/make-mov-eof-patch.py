@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Honor strict error recognition when a declared MOV sample has no payload."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

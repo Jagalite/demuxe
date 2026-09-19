@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Stage 2: maintained progressive FLAC preparation
 
 Historical checkpoint report. For subsequent local implementation and current coverage, see [completion status](OPTIMIZATION-COMPLETION.md).

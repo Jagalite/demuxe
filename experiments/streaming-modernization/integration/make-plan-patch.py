@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate the private plan seam against the recorded strict/continuous baseline."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

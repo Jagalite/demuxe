@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { MediaInfo, MediaTrack, TimeRange, PlaybackMode } from '../types.js';
 export declare function freeze<T>(value: T): T;
 export declare function ranges(value: unknown): readonly TimeRange[] | null;

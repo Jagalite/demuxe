@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Real native packet/decoder transition probe; not mpv playback qualification."""
 import argparse
 import hashlib

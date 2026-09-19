@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox,webkit} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {serve} from './server.mjs';
 const family=process.env.BROWSER||'chrome',server=await serve(),out=`results/software-yuv-integration/yuv-${family}-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});const results={family,cases:[]};console.log(out);
 const tests=[...['bt709','smpte170m'].flatMap(m=>[0,1].map(f=>({media:`color-${m}-${f}`,color:true,matrix:m,full:f}))),{media:'tenbit',fallback:true},{media:'tenbit',filters:'format=rotate=90',reject:'Rotated fallback pixel format'},{media:'rotation'},{media:'animated',subtitles:true,lifecycle:true},{media:'sample',filters:'format=yuv444p',fallback:true},{media:'sample',filters:'vflip'},{media:'sample',filters:'hflip,eq=brightness=0.1'}];

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Milestones and acceptance
 
 The original architecture is preserved unchanged. Current implementation and

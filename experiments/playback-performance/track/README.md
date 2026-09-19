@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Native video compositor experiment
 
 This isolated candidate sends **mpv-selected** browser VideoFrames through a

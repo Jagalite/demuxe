@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Strict retained-mode failures must not silently decode/replay software frames.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

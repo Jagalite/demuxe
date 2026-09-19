@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Diagnostic only: same warm-engine setup as G1, with stage/resource timings.
 import {chromium} from 'playwright';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';

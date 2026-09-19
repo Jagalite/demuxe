@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Compose isolated, named Software experiments without changing maintained assets."""
 from pathlib import Path
 import json,runpy,sys

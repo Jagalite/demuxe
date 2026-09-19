@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Recompute CPU comparisons and audit saved ablation samples."""
 import json,sys,statistics,hashlib
 from pathlib import Path

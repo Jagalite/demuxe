@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate short, original fixtures with the host FFmpeg, never the Wasm encoder."""
 import hashlib,json,subprocess
 from pathlib import Path

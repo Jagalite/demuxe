@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate aligned, original synthetic media; refuse to overwrite a prior run."""
 import argparse
 import hashlib

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Bind passing exact-archive tests and corresponding source to a release record."""
 import argparse, hashlib, json, os, pathlib, subprocess, tarfile, tempfile
+from license_policy import Policy, archive_files, LEGAL
 root=pathlib.Path(__file__).resolve().parent.parent
 p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);args=p.parse_args()
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -10,6 +12,7 @@ def archive_sha(path):
   for b in iter(lambda:f.read(1048576),b''):h.update(b)
  return h.hexdigest()
 runtime_hash=archive_sha(args.archive)
+Policy(root).check_package(archive_files(args.archive),'player')
 with tarfile.open(args.archive)as tar:
  manifest=json.load(tar.extractfile('package/release-manifest.json'))
  if manifest['dirtySource']or not manifest['sourceTag']or not manifest['sourceArchive']:raise SystemExit('Not a tagged source-backed release candidate')
@@ -31,6 +34,9 @@ source_hash=archive_sha(args.source)
 if source_hash!=manifest['sourceArchive']['sha256']:raise SystemExit('Source archive does not match runtime')
 with tarfile.open(args.source)as tar:
  source=json.load(tar.extractfile('source-manifest.json'))
+ for name in LEGAL:
+  data=tar.extractfile('demuxe/'+name).read()
+  if data!=(root/name).read_bytes():raise SystemExit('Corresponding source license material differs: '+name)
  if (source['sourceCommit'],source['sourceTag'])!=(manifest['sourceCommit'],manifest['sourceTag']):raise SystemExit('Source revision mismatch')
  for name,digest in source['files'].items():
   if sha(tar.extractfile(name).read())!=digest:raise SystemExit('Source content mismatch: '+name)

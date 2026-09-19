@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Final presentation windows
 
 This stage preserves the native manifest owner's final window when HLS gains

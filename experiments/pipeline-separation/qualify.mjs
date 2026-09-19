@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Correctness matrix, deliberately separate from visible CPU measurements.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';

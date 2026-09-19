@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Serve nested worker candidates explicitly; Playwright cannot route their requests."""
 from pathlib import Path
 import json

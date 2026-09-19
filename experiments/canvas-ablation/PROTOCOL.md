@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Canvas output ablation
 
 Compare the full WebCodecs copy-back mpv path against that same path skipping

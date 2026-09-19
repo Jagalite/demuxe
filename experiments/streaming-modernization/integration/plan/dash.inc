@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Snapshot plans from the authoritative MPD parser, without nested demux reads. */
 static struct representation *demuxe_dash_representation(AVFormatContext *s, int stream)
 {

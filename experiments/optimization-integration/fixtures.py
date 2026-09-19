@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate controlled timestamp cases; native FFmpeg is fixture preparation only."""
 import itertools, subprocess, pathlib, json, hashlib
 out=pathlib.Path('build/optimization-fixtures');out.mkdir(parents=True,exist_ok=True)

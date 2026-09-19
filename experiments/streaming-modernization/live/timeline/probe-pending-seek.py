@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native integrated live packet coordinator, independent from Wasm/browser playback."""
 import argparse,hashlib,importlib.util,json,subprocess,threading
 from http.server import ThreadingHTTPServer

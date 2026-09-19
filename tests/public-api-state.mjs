@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {playerError,redact} from '../web/generated/internal/errors.js';import {ranges,tracks,mediaInfo,freeze} from '../web/generated/internal/state.js';
 test('runtime Wasm abort is asset failure; user AbortError is cancellation',()=>{assert.equal(playerError(Error('Aborted(both async and sync fetching of the wasm failed)')).code,'ASSET_LOAD_FAILED');assert.equal(playerError(new DOMException('Aborted','AbortError')).code,'ABORTED');assert.equal(playerError(new DOMException('play() failed','NotAllowedError')).code,'AUTOPLAY_BLOCKED');});

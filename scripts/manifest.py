@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 import hashlib,json,pathlib,platform,subprocess,os
 root=pathlib.Path(__file__).resolve().parent.parent
 def hashed(paths):

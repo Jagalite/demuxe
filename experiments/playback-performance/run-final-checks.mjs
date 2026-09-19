@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Sequential regression closeout for the maintained performance changes.
 import {spawn} from 'node:child_process';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';

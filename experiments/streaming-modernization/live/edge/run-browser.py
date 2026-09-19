@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """One recorded fixed live window for a real API/component boundary regression."""
 import argparse,hashlib,importlib.util,json,os,subprocess,threading
 from pathlib import Path

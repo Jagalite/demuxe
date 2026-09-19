@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Packet/container contracts, independent of browser admission. Selected codecs only.
 export function remuxPackaging(video, audio, preferred='mp4') {
  const webmVideo=!video||/^(vp8|vp09\.|av01\.)/.test(video);

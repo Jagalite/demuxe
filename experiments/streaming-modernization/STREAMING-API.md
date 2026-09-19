@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Streaming API and migration draft
 
 This describes the staged implementation. Promote it with the implementation only

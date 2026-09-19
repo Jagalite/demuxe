@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Decode bounded mpv A8/color or premultiplied BGRA tiles into cached browser surfaces.
 export class SubtitleOverlay {
  constructor(){this.serial=-1;this.snapshot={parts:[]};this.stats={updates:0,bytes:0,peakBytes:0,parts:0,renders:0};}

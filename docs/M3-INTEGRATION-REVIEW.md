@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M3 integration and maintenance review
 
 This is a source-grounded cost estimate, not an implementation authorization.

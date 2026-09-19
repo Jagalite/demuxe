@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Save immutable review patches and hashes without changing refs or the index."""
 import argparse,pathlib,subprocess,hashlib,json
 root=pathlib.Path(__file__).resolve().parents[2]

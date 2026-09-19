@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import path from 'node:path';
 const {qualityState,qualityRequest,checkedQualityPolicy,initialQualityPolicy}=await import(pathToFileURL(path.resolve(process.env.QUALITY_MODULE)).href);
 const backend=()=>({quality:{source:9,available:true,request:1,requested:1,preparing:1,demuxed:0,presented:-1,error:0,qualities:[{index:0,width:320,height:180,bitrate:350000},{index:1,width:640,height:360,bitrate:900000}]},adaptation:{policy:{mode:'manual'}}});

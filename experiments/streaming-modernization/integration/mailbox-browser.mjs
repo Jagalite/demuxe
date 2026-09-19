@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Real Fetch/I/O worker protocol tests; native mailbox producer is simulated.
 import {chromium,firefox} from 'playwright';import assert from 'node:assert/strict';
 import http from 'node:http';import path from 'node:path';import {mkdir,readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';

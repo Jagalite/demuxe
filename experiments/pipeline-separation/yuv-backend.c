@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Experimental replacement of mpv's private render_backend_sw symbol.
 // Uses the existing libmpv scheduler/lock; image pointers never escape this call.
 #include <emscripten.h>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {definePlayerElement} from './generated/player/index.js';
 definePlayerElement();
 const $=id=>document.getElementById(id),viewer=$('viewer'),player=window.player=await viewer.ready;

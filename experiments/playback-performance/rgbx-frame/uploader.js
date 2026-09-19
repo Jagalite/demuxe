@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // A raw-pixel presentation experiment; FFmpeg still performs all video decoding.
 // The existing ImageData path remains available without the VideoFrame API.
 export class RGBXFrameUploader {

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 import runpy
 s=Path('web/engine-worker.js').read_text().replace("'./engine-m4/player.mjs'", "'./engine-filter-copyback/player.mjs'")

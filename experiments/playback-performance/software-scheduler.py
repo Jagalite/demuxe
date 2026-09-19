@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Bound active pump cadence without adding render cost to the next deadline."""
 def schedule_software_worker(source,active_delay=10):
     assert active_delay in (5,10)

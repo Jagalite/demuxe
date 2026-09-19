@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Regression for aborted responses closing the shared movie descriptor.
 import test from 'node:test';
 import assert from 'node:assert/strict';

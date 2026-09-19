@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Playback routing completion plan
 
 Status: initial implementation increments in progress, 2026-09-09 (local date).

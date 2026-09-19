@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Recompute the two-arm screen and audit retained-frame ownership/timing."""
 import json,hashlib,statistics,sys
 from pathlib import Path

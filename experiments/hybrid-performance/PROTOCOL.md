@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Short Hybrid optimization screen
 
 Compare the public Native mode, Hybrid at commit `79c2daf`, and the current Hybrid

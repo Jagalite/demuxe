@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';import {chromium,firefox} from 'playwright';import {serve} from '../server.mjs';import {readFile,mkdir,writeFile} from 'node:fs/promises';
 const server=await serve(),browser=await (process.env.BROWSER==='firefox'?firefox.launch({headless:true,firefoxUserPrefs:{'media.autoplay.default':0}}):chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']})),fixtures=JSON.parse(await readFile(new URL('../fixtures/manifest.json',import.meta.url))),dir=new URL(`../results/tail-${Date.now()}/`,import.meta.url),rows=[];await mkdir(dir,{recursive:true});
 fixtures.push(JSON.parse(await readFile(new URL('../fixtures/repair-tail.json',import.meta.url))));

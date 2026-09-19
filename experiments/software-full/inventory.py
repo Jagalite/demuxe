@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Record configured components separately from browser-qualified formats."""
 import hashlib, json, re, gzip, os
 from pathlib import Path

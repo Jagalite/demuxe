@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Link the optional external subtitle worker from the pinned root libass build.
 Build libraries with scripts/build.sh first. No runtime installation or release.
 """

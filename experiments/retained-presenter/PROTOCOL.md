@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Retained-frame presenter screen
 
 Compare native HTML video with an isolated retained-VideoFrame mpv presenter.

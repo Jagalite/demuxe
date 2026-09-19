@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Experimental FFmpeg packet-only bridge. No decoders or encoders are linked.
 #include <emscripten.h>
 #include <libavformat/avformat.h>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
 import {chromium,firefox} from 'playwright';import {spawn} from 'node:child_process';import {writeFile,mkdir} from 'node:fs/promises';
 const family=process.env.BROWSER||'chrome',out=`results/optimization-ass-fixes/style-${family}-${Date.now()}`;await mkdir(out,{recursive:true});

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 export function validateReply(reply,request,packet){
   if(reply.error)throw Error(reply.error);
   if(reply.id!==request.id||reply.generation!==request.generation||reply.index!==request.index)throw Error('Stale or mismatched bridge reply');

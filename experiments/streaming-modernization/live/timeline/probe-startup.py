@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native finite-subtitle startup and live-window boundary admission; independent from browser playback."""
 import argparse,hashlib,importlib.util,json,subprocess,threading
 from http.server import ThreadingHTTPServer

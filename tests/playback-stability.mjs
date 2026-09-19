@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Sustained development playback in an isolated headless browser. This is not
 // foreground qualification. Keep one player alive across repeated remote seeks.
 import {chromium} from 'playwright';

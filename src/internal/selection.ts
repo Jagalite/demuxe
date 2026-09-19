@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type {PlaybackMode} from '../types.js';
 export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
 export type Probe = {tracks: ProbeTrack[]; duration: number; format?:string; identity?: {size: string; etag?: string}};

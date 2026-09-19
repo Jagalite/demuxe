@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ffmpeg -hide_banner -y -f lavfi -i 'testsrc2=size=640x360:rate=30:duration=12' \

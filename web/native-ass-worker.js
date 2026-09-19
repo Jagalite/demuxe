@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Owns one pinned libass instance. No transport, media decoder or independent clock.
 let engine;
 function bytesCall(name,bytes,extra=[]){

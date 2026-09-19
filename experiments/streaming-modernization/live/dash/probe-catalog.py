@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native full-MPD period/plan qualification; no mpv playback claim."""
 import argparse,copy,datetime,hashlib,json,subprocess,threading,time,xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer

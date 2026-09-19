@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Explicitly finish a rolling presentation, retaining its final DVR window."""
 import importlib.util,hashlib
 from pathlib import Path

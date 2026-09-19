@@ -1,6 +1,8 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Test media and screenshot attribution
 
-The original-code GPL grant does not replace the licenses of third-party media
+The original-code grants and CC BY 4.0 report/result grant do not replace the licenses of third-party media
 shown in test results.
 
 ## Big Buck Bunny

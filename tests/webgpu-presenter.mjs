@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Differential renderer checks using controlled pixels, independent of codec color guesses.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Real FFmpeg MOV/software decode at short-read boundaries; no mpv playback claim."""
 import argparse,hashlib,json,os,shlex,subprocess
 from pathlib import Path

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Bind complete streaming, public quality, unit and clean-source gates to one archive."""
 import argparse,hashlib,json,tarfile
 from pathlib import Path

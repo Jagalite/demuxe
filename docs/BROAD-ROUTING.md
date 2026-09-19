@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Broad browser routing
 
 The policy is Native direct, Native packet-copy remux when packaging blocks direct

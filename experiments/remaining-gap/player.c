@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include <emscripten.h>
 #include <mpv/client.h>
 #include <mpv/render.h>

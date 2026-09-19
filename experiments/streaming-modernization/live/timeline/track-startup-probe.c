@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Compile the actual patched reselect_demux_stream with observable demux calls.
 #include <assert.h>
 #include <stdbool.h>

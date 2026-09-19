@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Generated codec samples
 
 `generate.py` matches the configured software decoder registrations to locally

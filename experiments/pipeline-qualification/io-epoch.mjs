@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Deterministic reproduction: an old epoch notification arrives after the next read starts.
 import vm from 'node:vm';import {readFile,mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 const out=`results/pipeline-qualification/io-epoch-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Capability/ownership evidence only; this does not measure hardware decode or playback.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';

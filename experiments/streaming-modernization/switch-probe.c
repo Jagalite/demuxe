@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Native libavformat characterization only: no mpv clock, decoding or playback.
 #include <libavformat/avformat.h>
 #include <libavutil/error.h>

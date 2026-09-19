@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Bound fMP4 rendition discovery to initialization, not unselected media.
 
 An opt-in FFmpeg seam, generated separately from the switching baseline. Native

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Permanent September 16 repair regressions
 
 Run from this directory with the generated qualification corpus linked as `fixtures`.

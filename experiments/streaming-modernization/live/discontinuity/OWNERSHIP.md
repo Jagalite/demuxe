@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Discontinuity and retained-resource stage
 
 This stage is not yet qualified. Its source and generated patches are separate

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Deterministic origin checks; not playback qualification."""
 import importlib.util, pathlib, tempfile, unittest, xml.etree.ElementTree as ET
 spec=importlib.util.spec_from_file_location('fixture_server',pathlib.Path(__file__).with_name('fixture-server.py'));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Public API and component qualification
 
 Implementation baseline: working files matched demo-source 8bb451b while main was

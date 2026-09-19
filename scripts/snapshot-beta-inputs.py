@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Create an isolated development snapshot; this is NOT a tagged release."""
 import argparse, hashlib, json, pathlib, shutil, subprocess
 root=pathlib.Path(__file__).resolve().parent.parent

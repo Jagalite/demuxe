@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Beta.3 branding and migration audit
 
 Public package/executable: `demuxe`. Component: `<demuxe-player>`; exported class:

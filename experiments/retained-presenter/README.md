@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Retained-VideoFrame presenter: implemented experimental path
 
 The prototype displays actual decoded VideoFrames directly through Canvas2D

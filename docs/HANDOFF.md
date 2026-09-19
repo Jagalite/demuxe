@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # webmpv handoff
 
 Updated 2026-09-07. M0, M1, M2/G1, M3 and the declared S1 fixed-VOD work are

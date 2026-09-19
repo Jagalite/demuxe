@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate the experimental logical-video mpv seam against a recorded baseline."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

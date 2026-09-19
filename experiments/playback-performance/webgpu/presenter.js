@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Experimental VideoFrame presentation. mpv still selects frames and subtitles.
 // External textures follow the retained VideoFrame lifetime:
 // https://gpuweb.github.io/gpuweb/#gpuexternaltexture

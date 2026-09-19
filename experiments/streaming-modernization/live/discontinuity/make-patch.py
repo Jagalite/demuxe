@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Attach HLS discontinuity identities to copied native segment plans."""
 import argparse,difflib,hashlib,json
 from pathlib import Path

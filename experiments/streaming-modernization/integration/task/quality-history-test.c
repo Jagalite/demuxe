@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "common/demuxe-quality.h"
 #include <assert.h>
 int main(void){struct demuxe_quality_history h={0};struct demuxe_quality_tag a={1,1,2},b={1,2,0};

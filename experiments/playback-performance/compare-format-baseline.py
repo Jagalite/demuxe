@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compare exact fixture outcomes without hiding the existing format gaps."""
 import json
 import sys

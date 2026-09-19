@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef WEBMPV_AUDIO_BRIDGE_H
 #define WEBMPV_AUDIO_BRIDGE_H
 #include <stdatomic.h>

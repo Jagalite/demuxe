@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Progressive remux experiment
 
 This is an isolated **host FFmpeg → progressive fragmented MP4 → Native Player**

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Integrated streaming modernization
 
 Status: staged implementation with final qualification pending.

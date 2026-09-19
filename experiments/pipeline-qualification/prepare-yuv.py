@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 import json,shlex,subprocess,os
 from pathlib import Path
 root=Path.cwd();out=root/'build/pipeline-qualification/yuv';out.mkdir(parents=True,exist_ok=True)

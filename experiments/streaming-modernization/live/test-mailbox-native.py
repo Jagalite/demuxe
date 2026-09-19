@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """ASan/UBSan checks of the eight-lane bridge with a simulated mailbox peer."""
 import argparse,hashlib,json,subprocess
 from pathlib import Path

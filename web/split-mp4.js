@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Packaging-only split of the maintained muxer's clear, default-base-is-moof
 // fragments. Sample bytes, decode times, composition offsets and sample metadata
 // are preserved. Other BMFF addressing schemes are rejected, never guessed.

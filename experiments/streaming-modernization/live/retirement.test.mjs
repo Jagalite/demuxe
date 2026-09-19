@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';
 const {ResourceLoader}=await import(pathToFileURL(process.env.RESOURCE_LOADER).href);
 const url='https://media.test/master.m3u8';

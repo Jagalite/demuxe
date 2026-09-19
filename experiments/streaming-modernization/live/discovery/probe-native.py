@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native sparse DASH discovery with deterministic oldest-segment expiry."""
 import argparse,hashlib,importlib.util,json,subprocess,threading
 from pathlib import Path

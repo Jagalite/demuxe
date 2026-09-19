@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Packet-only metadata preflight. No decoded audio or video is produced.
 export async function probeSource(source,signal,audioAdaptation){
  if(!crossOriginIsolated)throw Error('Automatic source inspection requires cross-origin isolation');

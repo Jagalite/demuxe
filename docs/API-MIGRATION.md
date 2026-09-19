@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # API migration
 
 The current baseline is demo-source 8bb451b, not the older main implementation.

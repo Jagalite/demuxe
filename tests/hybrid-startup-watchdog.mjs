@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';
 import http from 'node:http';
 import {spawn} from 'node:child_process';

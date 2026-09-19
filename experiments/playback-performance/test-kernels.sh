@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Build first, then measure each kernel with no concurrent compilation.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)

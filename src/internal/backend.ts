@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions} from '../types.js';
 export interface Backend extends EventTarget {
   readonly ready: Promise<void>;

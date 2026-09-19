@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Qualification-only checks; never included in the player runtime.
 import {execFileSync} from 'node:child_process';
 const browserPIDs=new WeakMap();

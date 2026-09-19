@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Media routing integration
 
 The subsequent [broad routing expansion](BROAD-ROUTING.md) supersedes the original

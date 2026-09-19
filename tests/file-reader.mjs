@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {LocalFileReader} from '../web/file-reader.js';
 test('64-bit local slices stay bounded and never materialize the complete file',async()=>{

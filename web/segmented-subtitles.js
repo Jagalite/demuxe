@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Convert a bounded HLS WebVTT window to one indexed subtitle resource. Preserve
 // cue settings and payload; normalize MPEGTS/LOCAL maps and timestamp wrap.
 const timestamp=s=>{const p=s.split(':').map(Number);if(p.some(n=>!Number.isFinite(n))||p.length<2||p.length>3)throw Error('Invalid WebVTT timestamp');return p.reduce((n,v)=>n*60+v,0);};

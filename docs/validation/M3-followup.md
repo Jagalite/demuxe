@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M3 follow-up — process isolation and per-packet bridge
 
 **Recommendation: defer M4.** The complete follow-up passes every declared

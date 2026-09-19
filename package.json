@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && python3 scripts/check-licenses.py --stamp-generated",
     "build:engine": "bash scripts/build.sh",
     "dev": "node scripts/serve.mjs",
     "test:demo": "node tests/player-component.mjs",
@@ -41,7 +41,10 @@
     "fixtures:compatibility": "python3 scripts/compatibility-fixtures.py",
     "test:compatibility": "npm run build && node --test tests/audio-worklet.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs tests/remux-buffering.mjs && node tests/compatibility-expansion.mjs",
     "test:public-api": "npm run build && node tests/public-api.mjs",
-    "test:component": "node tests/player-component.mjs"
+    "test:component": "node tests/player-component.mjs",
+    "build:core": "npm run build && python3 scripts/package-core.py",
+    "check:licenses": "python3 scripts/check-licenses.py",
+    "test:licenses": "python3 tests/licenses.py"
   },
   "devDependencies": {
     "playwright": "1.58.2",
@@ -58,7 +61,7 @@
     }
   },
   "types": "./web/generated/index.d.ts",
-  "license": "GPL-2.0-or-later",
+  "license": "GPL-3.0-or-later",
   "bin": {
     "demuxe": "./bin/demuxe.mjs"
   },
@@ -83,5 +86,11 @@
     "mpv",
     "mse",
     "remux"
-  ]
+  ],
+  "demuxeLicenses": {
+    "reusableOriginalCode": "Apache-2.0",
+    "completePlayer": "GPL-3.0-or-later",
+    "researchReportsAndResults": "CC-BY-4.0",
+    "thirdParty": "See third_party/notices/, docs/MEDIA-NOTICES.md and source headers"
+  }
 }

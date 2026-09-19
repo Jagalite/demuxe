@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Rebuild isolated mpv/bridges with identical pinned dependency libraries.
 Not a clean engine build, source-release record, or release qualification.
 """

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef DEMUXE_CUE_BUDGET_H
 #define DEMUXE_CUE_BUDGET_H
 #include <stdint.h>

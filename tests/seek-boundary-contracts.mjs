@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';import {WasmPlayer} from '../web/generated/internal/wasm-player.js';
 const p=()=>Object.assign(Object.create(WasmPlayer.prototype),{properties:new Map(),seekObservation:{target:59.7,restarted:false,eof:false}});
 const property=(name,data)=>({event:'property-change',name,data});

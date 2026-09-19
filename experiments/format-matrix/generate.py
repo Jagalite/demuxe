@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Small generated samples for every locally encodable bundled audio/video codec."""
 import hashlib,json,re,subprocess,sys
 from pathlib import Path

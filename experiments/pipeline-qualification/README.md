@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Qualified pipeline experiments
 
 Continuation of `experiments/pipeline-separation`, kept in a new directory so the previous sources, builds and results remain reproducible. Public Native/Hybrid/Software modes and production defaults are unchanged. No commits or pushes.

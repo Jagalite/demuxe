@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Immutable, bounded-range movie origin for headless performance/endurance tests.
 import http from 'node:http';
 import {open} from 'node:fs/promises';

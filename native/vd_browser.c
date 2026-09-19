@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // mpv browser decoder with copy-back or retained-frame output.
 // Browser transport does not own playback time.
 #include <emscripten.h>

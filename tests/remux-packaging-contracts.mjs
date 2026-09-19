@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';
 import {remuxPackaging} from '../web/remux-packaging.js';
 test('only common selected-track packaging is offered',()=>{

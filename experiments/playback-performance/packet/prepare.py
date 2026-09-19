@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Isolate the redundant pre-constructor compressed-packet copy."""
 from pathlib import Path
 import json

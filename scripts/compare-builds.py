@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compare independent container outputs, including their recorded build inputs."""
 import hashlib,json,pathlib,sys
 first,second=map(pathlib.Path,sys.argv[1:3])

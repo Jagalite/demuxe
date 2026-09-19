@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Preserve an immutable JS baseline and remux a shared short benchmark sample."""
 import argparse,hashlib,json,subprocess
 from pathlib import Path

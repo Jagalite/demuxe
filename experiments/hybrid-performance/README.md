@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Hybrid performance optimization
 
 The final change is the retained-worker scheduler in

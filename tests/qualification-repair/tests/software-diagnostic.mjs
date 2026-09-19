@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';import {serve} from '../server.mjs';import {readFile,mkdir,writeFile} from 'node:fs/promises';
 const server=await serve(),dir=new URL(`../results/software-diagnostic-${Date.now()}/`,import.meta.url),rows=[];await mkdir(dir,{recursive:true});
 let code=await readFile(new URL('../../../web/software-full-engine-worker.js',import.meta.url),'utf8');

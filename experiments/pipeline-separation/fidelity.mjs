@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';
 import {writeFile,mkdir} from 'node:fs/promises';
 import {PNG} from '../../node_modules/playwright-core/lib/utilsBundle.js';

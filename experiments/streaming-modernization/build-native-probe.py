@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build pristine pinned FFmpeg for native characterization, independent of Wasm."""
 import argparse
 import hashlib

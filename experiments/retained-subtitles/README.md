@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Subtitles over retained VideoFrames
 
 This experiment keeps mpv and libass responsible for subtitle decoding, fonts,

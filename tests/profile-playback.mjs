@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Diagnostic sampling run. Results from this harness are not CPU benchmarks.
 import {chromium} from 'playwright';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';

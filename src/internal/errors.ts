@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type {PlayerErrorCode, SessionError, OperationKind} from '../types.js';
 /** Public text intentionally omits all URL queries, fragments and userinfo. */
 export function redact(value: unknown): any {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Match original media PTS to submission wall time across worker/main task order.
 // Chromium's live-video sink can retain the underlying timestamp when a
 // VideoFrame clone overrides only its JavaScript-visible timestamp.

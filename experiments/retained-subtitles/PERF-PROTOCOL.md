@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Quick subtitle overhead screen
 
 Two fresh headed Chrome processes, fixed order: subtitles off, subtitles on.

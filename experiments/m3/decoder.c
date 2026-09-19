@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Standalone measurement ABI; never linked into the production mpv engine.
 #include <emscripten.h>
 #include <libavcodec/avcodec.h>

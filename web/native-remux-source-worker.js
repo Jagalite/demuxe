@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {LocalFileReader} from './file-reader.js';
 import {RangeReader} from './range-reader.js';
 let reader,file,h,view,buffer,stopped=false;

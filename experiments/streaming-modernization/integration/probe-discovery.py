@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Measure native FFmpeg full-manifest discovery and unselected media traffic."""
 import argparse
 import hashlib

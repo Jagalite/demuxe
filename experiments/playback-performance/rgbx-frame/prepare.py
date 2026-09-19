@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Isolate raw RGBX VideoFrame upload from the maintained Software pipeline."""
 from pathlib import Path
 import json

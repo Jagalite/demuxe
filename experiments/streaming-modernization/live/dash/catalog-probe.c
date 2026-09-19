@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Native all-period parsing/plans; this is not playback qualification. */
 #include <stdio.h>
 #include <string.h>

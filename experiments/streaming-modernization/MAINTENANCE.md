@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Streaming source maintenance
 
 The upstream pins are exact commits and archive hashes in the prepared

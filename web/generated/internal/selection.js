@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
  * The runtime still verifies packets, samples, actual MSE output and work bounds. */
 export function losslessAdaptationRejection(probe, settings) {

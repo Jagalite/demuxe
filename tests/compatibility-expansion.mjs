@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';import {isDeepStrictEqual} from 'node:util';
 import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';

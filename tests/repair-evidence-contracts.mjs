@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';
 import {RuntimeCapabilities,StartupEvidenceTimeout,compatibilityFailure,evidenceInterrupted} from '../web/generated/internal/runtime-capability.js';
 import {PlayerError} from '../web/generated/internal/errors.js';

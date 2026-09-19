@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 let audioChannels=2;
 import {drawRetainedVideo} from './retained-video.js';
 let videoTrack;

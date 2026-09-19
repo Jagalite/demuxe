@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {RuntimeCapabilities, compatibilityFailure, evidenceInterrupted} from './internal/runtime-capability.js';
 import type {CapabilityEvidence} from './internal/runtime-capability.js';
 import {featureRejection, executionPlan, qualifiedAudioFilter, planAdmission} from './internal/playback-plans.js';

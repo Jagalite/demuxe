@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Bounded browser contract probe: retirement of a genuinely completed track.
 // Inputs are offline fixtures, not a playback-time transcoding implementation.
 import {chromium,firefox} from 'playwright';

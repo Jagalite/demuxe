@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Original browser push AO. mpv retains ownership of decoding and synchronization.
 #include "audio/format.h"
 #include "audio/chmap.h"

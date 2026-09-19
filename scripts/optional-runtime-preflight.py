@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Read-only prerequisite audit for maintained optional runtime builders.
 Never grants release admission or substitutes binaries for missing sources.
 """

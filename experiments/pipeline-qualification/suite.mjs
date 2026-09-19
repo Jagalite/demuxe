@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Qualification is sequential: do not mix browser timing or resource-pressure conditions.
 import {spawn,execFileSync} from 'node:child_process';import {mkdir,writeFile,readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';
 const out=`results/pipeline-qualification/suite-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);

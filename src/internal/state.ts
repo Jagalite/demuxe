@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type {MediaInfo, MediaTrack, TimeRange, PlaybackMode} from '../types.js';
 export function freeze<T>(value: T): T {
   if(value && typeof value==='object' && !Object.isFrozen(value)) {Object.values(value).forEach(freeze);Object.freeze(value);}return value;

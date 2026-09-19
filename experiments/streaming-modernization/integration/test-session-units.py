@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Native ownership/control tests with sanitizers; no playback qualification."""
 import argparse,hashlib,json,shlex,subprocess
 from pathlib import Path

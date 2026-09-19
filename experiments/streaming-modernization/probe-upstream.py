@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Characterize unadapted manifests with a pinned native ffprobe, not browser playback."""
 import argparse
 import hashlib

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Three-mode beta candidate
 
 demuxe is a browser media compatibility runtime. Automatic selection chooses Native

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Generate isolated software bindings from the unchanged production bindings."""
 from pathlib import Path
 import runpy

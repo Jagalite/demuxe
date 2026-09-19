@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Force collection between paused redraws to expose weak external-texture ownership.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

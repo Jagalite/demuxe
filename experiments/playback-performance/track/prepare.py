@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Experimental video-compositor surface. Not a public API implementation.
 
 The canvas becomes a transparent subtitle layer, so canvas-only screenshots no

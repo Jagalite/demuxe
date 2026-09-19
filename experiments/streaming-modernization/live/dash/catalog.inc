@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* One manifest parse builds all period tables. Only period zero's initial
  * representations are probed; later periods remain metadata/segment plans. */
 static void demuxe_dash_free_catalog(DASHContext *c)

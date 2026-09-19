@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Quick filter performance result
 
 The foreground comparison completed in 143.5 seconds. All three trials passed,

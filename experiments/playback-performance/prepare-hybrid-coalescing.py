@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Coalesce decoder diagnostics; mailbox readiness and frame ownership are unchanged."""
 from pathlib import Path
 import json

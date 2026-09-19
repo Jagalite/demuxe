@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {RangeReader} from '/web/range-reader.js';
 let reader,file,h,view,buffer,stopped=false;
 let refreshPending;

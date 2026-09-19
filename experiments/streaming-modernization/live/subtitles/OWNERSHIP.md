@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Subtitle integration stage
 
 This opt-in overlay follows the discontinuity stage. It does not change the three

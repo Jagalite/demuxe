@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Three-way playback comparison protocol
 
 Compare ordinary HTML video playback, mpv/FFmpeg Wasm software decoding, and

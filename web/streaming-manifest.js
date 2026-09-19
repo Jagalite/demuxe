@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Bounded manifest selection and finite DASH-period adaptation. Compressed media
 // is never decoded here; FFmpeg still demuxes segments and owns packet timelines.
 const enc=new TextEncoder();

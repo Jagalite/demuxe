@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Source-scoped quality API (staging)
 
 This overlay is separate from the native integration and its qualification.

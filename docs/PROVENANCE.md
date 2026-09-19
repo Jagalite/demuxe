@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Source and build provenance
 
 `sources.lock.json` records the upstream repository, exact release/commit,

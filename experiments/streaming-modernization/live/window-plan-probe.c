@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Native manifest/window characterization, not browser playback qualification.
 #include <stdio.h>
 #include <stdlib.h>

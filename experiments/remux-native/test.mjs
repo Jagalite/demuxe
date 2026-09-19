@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Isolated host-FFmpeg experiment; no changes to the public playback modes.
 import http from 'node:http';
 import path from 'node:path';

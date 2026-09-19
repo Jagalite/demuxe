@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Runtime assets and package integration
 
 The assetBase/copy-assets interfaces are implemented in this working candidate.

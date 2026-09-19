@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Traceable beta release
 
 A release candidate is one archive from a clean tagged revision, built and tested
@@ -52,7 +54,10 @@ review and make a new candidate revision.
 
 ## Assemble, test and identify the same bytes
 
-Resolve the original-code license and inspect `docs/LICENSING.md` before tagging.
+Run `npm run check:licenses` and inspect `docs/LICENSING.md` before tagging.
+The complete package must be GPL-3.0-or-later; reusable original modules
+use Apache-2.0 and reports retain CC BY 4.0. Include the license texts,
+boundary manifest and per-file license map in the exact archive being verified.
 Use a new version/tag for changed candidate bytes. The release packaging option
 requires a clean tagged revision, clean-build evidence, the original license and
 matching input/configuration/engine hashes. It also produces the source companion.

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Automatic playback selection
 
 `new Player(host)` now selects the route automatically. The actual engine is still

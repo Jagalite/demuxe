@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 import json,sys,hashlib
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]

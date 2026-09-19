@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Quick subtitle performance result
 
 The foreground screen completed in 92.7 seconds. Both trials passed: 10 seconds

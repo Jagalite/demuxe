@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Summarize measured trials without treating failed screens as CPU comparisons."""
 import json,statistics,sys
 from pathlib import Path

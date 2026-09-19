@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Upstream characterization — 2026-09-14
 
 This is measured native demux behavior, not qualified browser streaming.

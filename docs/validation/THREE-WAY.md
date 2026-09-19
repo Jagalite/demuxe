@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Three-way playback results
 
 Measured 2026-09-07 on Apple M1 / 8 GiB, using the same synthetic front-index

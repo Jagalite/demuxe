@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from pathlib import Path
 s=Path('tests/retained-presenter.mjs').read_text().replace('results/retained-presenter/', 'results/filter-routing/perf-')
 a=s.index('const files=');b=s.index('\nconst hashes=',a)

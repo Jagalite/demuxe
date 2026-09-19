@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Create valid sparse MP4s; free-box padding tests offsets, not duration."""
 from pathlib import Path
 import struct

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """DASH two-period fixture with aligned fragmented mov_text subtitles."""
 import argparse,hashlib,json,shutil,struct,subprocess,xml.etree.ElementTree as ET
 from pathlib import Path

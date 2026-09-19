@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Recompute three-way summaries from saved raw CPU samples."""
 import hashlib
 import json

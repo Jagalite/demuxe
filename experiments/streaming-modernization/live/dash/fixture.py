@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Make a reproducible two-period MPD that reuses the ladder's first eight fragments."""
 import argparse,copy,hashlib,json,xml.etree.ElementTree as ET
 from pathlib import Path

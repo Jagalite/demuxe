@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build optional libass from verified archives in a fresh, isolated directory.
 
 This records source correspondence; it does not grant release admission.

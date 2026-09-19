@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Software playback profile
 
 M1 and M2/G1 are accepted for this declared software profile. See the

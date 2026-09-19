@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Reuse exact experimental engine bytes for explicitly listed JS/TS changes.
 This is not clean-build or release evidence. Native changes are rejected.
 """

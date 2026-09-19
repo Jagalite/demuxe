@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Assemble the Pages demo and its source distribution from local built engines."""
 import argparse, gzip, hashlib, html, io, json, shutil, subprocess, tarfile
 from pathlib import Path
@@ -61,8 +62,10 @@ bundle('build-materials.tar.gz',{name:root/name for name in materials})
 readme='''# Demo source and licenses
 
 This is a development demo, not the clean-build beta release candidate.
-The original demuxe code and combined engines are GPL-2.0-or-later. Third-party
-components retain their licenses and notices; see ../docs/LICENSING.md and ../third_party/.
+The complete player and combined engines are GPL-3.0-or-later. Reusable original
+modules use Apache-2.0; original reports/results use CC BY 4.0.
+Third-party components retain their terms; see ../LICENSING.md, ../docs/LICENSING.md
+and ../third_party/. The deployed GPLv3 player retains Apache modules' license and notices.
 
 Download demuxe-source.tar.gz for the preferred project source, scripts and patches.
 Extract it, then place the individual upstream archives in demuxe/build/downloads/.

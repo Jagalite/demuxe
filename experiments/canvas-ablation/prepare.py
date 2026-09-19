@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Generate isolated experimental bindings without changing production files."""
 from pathlib import Path
 worker=Path('web/engine-worker.js').read_text()

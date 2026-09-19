@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {nativeMediaError,compatibilityFailure,StartupEvidenceTimeout} from './runtime-capability.js';
 import {PlayerError} from './errors.js';
 import type {CapabilityEvidence} from './runtime-capability.js';

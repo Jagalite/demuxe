@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # M4 optional browser decoder integration
 
 Authorized by the user's instruction to proceed with all remaining milestones.

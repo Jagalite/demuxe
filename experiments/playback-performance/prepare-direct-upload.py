@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Direct RGB presentation experiment; retain Canvas2D when WebGL2 is unavailable."""
 from pathlib import Path
 import json

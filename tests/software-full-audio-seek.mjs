@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';
 import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';

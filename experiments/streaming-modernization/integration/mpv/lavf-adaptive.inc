@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Source-bound preparation; called exclusively by the lavf demux owner.
 static int adaptive_description(AVFormatContext *f,int stream,struct AVDemuxeRepresentation *d)
 {

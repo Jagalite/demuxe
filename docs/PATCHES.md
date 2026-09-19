@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Baseline portability patch inventory
 
 Owner: demuxe maintainers. Inputs are the upstream archives in sources.lock.json.

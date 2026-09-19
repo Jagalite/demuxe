@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compile browser bindings twice locally from a single source snapshot."""
 import datetime
 import hashlib

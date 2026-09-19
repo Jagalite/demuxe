@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const skipCanvas=true;const mode=new URL(self.location.href).searchParams.get('mode');
 let canvasSubmissions=0;
 let decoderWorker,decoderStats;

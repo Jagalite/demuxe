@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import { Player } from '../unified-player.js';
 import { PLAYER_EVENTS } from '../types.js';
 import { PlayerError, playerError } from '../internal/errors.js';

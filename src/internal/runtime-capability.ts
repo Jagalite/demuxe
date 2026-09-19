@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {PlayerError, playerError} from './errors.js';
 
 export type CapabilityEvidence = {

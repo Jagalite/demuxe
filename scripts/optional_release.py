@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Validate exact-archive optional-runtime evidence for the standard release gate."""
 import hashlib
 import json

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Transactional refresh runs on the owning demux thread after child demuxers
  * have handed off. Failed parsing/binding cannot replace the accepted catalog. */
 static void demuxe_dash_release_tables(DASHContext *c){

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Differential checks against the actual bundled FFmpeg kernel, including guards.
 #include <stdint.h>
 #include <stdio.h>

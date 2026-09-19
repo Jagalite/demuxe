@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Run the existing qualification workloads on one unqualified upgrade archive."""
 import argparse
 import hashlib

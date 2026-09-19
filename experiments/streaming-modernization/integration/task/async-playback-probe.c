@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Real native containers/decoders, paced output; still no mpv clock or audio device.
 #include "container-task.h"
 #include <assert.h>

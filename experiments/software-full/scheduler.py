@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Preserve 5ms active service and settle paused software playback to 100ms."""
 def schedule_software_worker(source):
     def replace(old,new):

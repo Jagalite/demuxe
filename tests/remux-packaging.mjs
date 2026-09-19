@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const family=process.env.BROWSER||'chrome',server=await serve(),browser=await(family==='chrome'?chromium:firefox).launch({headless:process.env.HEADLESS!=='0',...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
 const out=`results/routing-completion/packaging-${family}-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});const result={browser:browser.version(),headless:process.env.HEADLESS!=='0',cases:[]};console.log(out);

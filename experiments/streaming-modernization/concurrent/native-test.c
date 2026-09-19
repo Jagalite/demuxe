@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Native ownership/error regression. Real C bridge, mocked AVIO allocation and
 // futex/Fetch peer; this is not Wasm or browser playback qualification.
 #include <assert.h>

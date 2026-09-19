@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Remaining playback costs: preliminary screen
 
 The four-arm foreground screen passed. Its results point to mpv software

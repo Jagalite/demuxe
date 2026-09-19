@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # DASH catalog and packet-session stage
 
 This is isolated, unqualified staging. No release-path switch is implied.

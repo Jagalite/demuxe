@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Group an existing clean CPU comparison by Chrome process type."""
 import json
 import statistics

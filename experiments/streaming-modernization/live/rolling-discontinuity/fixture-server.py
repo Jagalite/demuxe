@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Rolling HLS discontinuities and DASH periods over immutable repeated fragments."""
 import hashlib,importlib.util,re
 from pathlib import Path

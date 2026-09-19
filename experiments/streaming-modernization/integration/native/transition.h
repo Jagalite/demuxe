@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Demux-owned packet transition prototype. No clock, transport, or decoder API.
 #pragma once
 #include <stdint.h>

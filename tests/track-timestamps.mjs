@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Isolated compositor experiment; does not change the public Player surface.
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';

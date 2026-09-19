@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /** Public text intentionally omits all URL queries, fragments and userinfo. */
 export function redact(value) {
     if (typeof value === 'string')

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """A short live DVR window whose oldest segment expires during discovery."""
 import importlib.util,re
 from pathlib import Path

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import {videoCodecConfig,vp9PacketConfig} from './video-codec-config.js';
 let pendingConfiguration;
 let packetPrefix,needsKey=true;

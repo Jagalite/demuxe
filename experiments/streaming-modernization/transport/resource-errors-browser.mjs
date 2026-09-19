@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Actual Wasm demux failures over HTTP; no injected engine result.
 import {chromium,firefox} from 'playwright';
 import http from 'node:http';

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Group existing encoded fragments into 12-second HLS resources for incremental-delivery tests."""
 import argparse,hashlib,json,shutil
 from pathlib import Path

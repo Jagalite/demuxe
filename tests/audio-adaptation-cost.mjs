@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Bounded extension of tests/playback-performance.mjs: same CDP whole-browser
 // CPU counters and ps RSS accounting, now covering open through destroy.
 import {chromium} from 'playwright';

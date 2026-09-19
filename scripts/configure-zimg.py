@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Build upstream's portable source list without host autotools or SIMD assembly."""
 from pathlib import Path
 import re

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Verify preserved comparison/release bytes without changing active engines."""
 import hashlib,json,sys
 from pathlib import Path

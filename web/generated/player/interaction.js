@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 export function formatTime(value) {
     const n = Math.max(0, Math.floor(value)), seconds = String(n % 60).padStart(2, '0'), minutes = String(Math.floor(n / 60) % 60).padStart(2, '0');
     return n >= 3600 ? `${Math.floor(n / 3600)}:${minutes}:${seconds}` : `${Math.floor(n / 60)}:${seconds}`;

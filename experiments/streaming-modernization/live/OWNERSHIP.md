@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Live/period integration: acceptance boundary
 
 This next overlay is not implemented or qualified yet. Its fixture origin serves

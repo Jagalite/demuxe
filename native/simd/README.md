@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Wasm decoder DSP specializations
 
 FFmpeg remains responsible for codec parsing, decoding, threading and frame

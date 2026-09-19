@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';import {serve} from '../server.mjs';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 const server=await serve(),dir=new URL(`../results/startup-negative-${Date.now()}/`,import.meta.url),rows=[];await mkdir(dir,{recursive:true});
 try{for(const family of ['chrome','firefox']){const browser=await(family==='chrome'?chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']}):firefox.launch({headless:true,firefoxUserPrefs:{'media.autoplay.default':0}}));

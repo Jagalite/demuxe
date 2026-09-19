@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Compatibility expansion — 0.3.0-beta.1
 
 This increment extends Native, Hybrid and Software without adding a public mode.
