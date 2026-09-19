@@ -1,0 +1,437 @@
+{
+  "scope": "Separate fetch/body/compile/instance attribution; optional one-page immutable module reuse with fresh mutable instances. Diagnostic only; browser compilation cache remains active.",
+  "reuse": false,
+  "workerSHA256": "9e2b9bf64b02fe76ff072e6469e83e98dcb001e4ab12f24bf1171c34e0c7af6d",
+  "cases": [
+    {
+      "name": "cold",
+      "observations": [
+        {
+          "operation": "probe",
+          "reused": false,
+          "fetchHeadersMs": 3.1399999856948853,
+          "bodyMs": 7.535000026226044,
+          "compileMs": 3.7350000143051147,
+          "instantiateMs": 2.7799999713897705
+        },
+        {
+          "operation": "init",
+          "reused": false,
+          "fetchHeadersMs": 3.0299999713897705,
+          "bodyMs": 7.5,
+          "compileMs": 3.6200000047683716,
+          "instantiateMs": 2.915000021457672
+        }
+      ],
+      "sourceReads": [
+        {
+          "readMs": 0.7149999737739563,
+          "reader": "9a41cd7d-563c-4604-849b-11831ac7654f",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.4150000214576721,
+          "reader": "9a41cd7d-563c-4604-849b-11831ac7654f",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6000000238418579,
+          "reader": "9a41cd7d-563c-4604-849b-11831ac7654f",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.7050000429153442,
+          "reader": "10d8cf9c-01e4-487e-85da-4d7f2fb5b4a5",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.4950000047683716,
+          "reader": "10d8cf9c-01e4-487e-85da-4d7f2fb5b4a5",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6399999856948853,
+          "reader": "10d8cf9c-01e4-487e-85da-4d7f2fb5b4a5",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.7099999785423279,
+          "reader": "10d8cf9c-01e4-487e-85da-4d7f2fb5b4a5",
+          "offset": 200048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.7150000333786011,
+          "reader": "10d8cf9c-01e4-487e-85da-4d7f2fb5b4a5",
+          "offset": 400048,
+          "requested": 200000,
+          "bytes": 200000
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 7
+        }
+      ],
+      "openPlayDestroyMs": 479.98904100000004,
+      "moduleBuilds": [],
+      "passed": true
+    },
+    {
+      "name": "repeat-1",
+      "observations": [
+        {
+          "operation": "probe",
+          "reused": false,
+          "fetchHeadersMs": 3.689999997615814,
+          "bodyMs": 8.694999992847443,
+          "compileMs": 4.084999978542328,
+          "instantiateMs": 3.315000057220459
+        },
+        {
+          "operation": "init",
+          "reused": false,
+          "fetchHeadersMs": 2.7199999690055847,
+          "bodyMs": 7.330000042915344,
+          "compileMs": 3.4449999928474426,
+          "instantiateMs": 3.024999976158142
+        }
+      ],
+      "sourceReads": [
+        {
+          "readMs": 0.9900000095367432,
+          "reader": "188d9c36-8a3a-4032-b40e-43fb2de8e2a2",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.4150000214576721,
+          "reader": "188d9c36-8a3a-4032-b40e-43fb2de8e2a2",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.5699999928474426,
+          "reader": "188d9c36-8a3a-4032-b40e-43fb2de8e2a2",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.8799999952316284,
+          "reader": "e113a395-cb44-494a-9aaa-38abc589eb81",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.5049999952316284,
+          "reader": "e113a395-cb44-494a-9aaa-38abc589eb81",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.5850000381469727,
+          "reader": "e113a395-cb44-494a-9aaa-38abc589eb81",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.8500000238418579,
+          "reader": "e113a395-cb44-494a-9aaa-38abc589eb81",
+          "offset": 200048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.9500000476837158,
+          "reader": "e113a395-cb44-494a-9aaa-38abc589eb81",
+          "offset": 400048,
+          "requested": 200000,
+          "bytes": 200000
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 10
+        }
+      ],
+      "openPlayDestroyMs": 242.33925,
+      "moduleBuilds": [],
+      "passed": true
+    },
+    {
+      "name": "repeat-2",
+      "observations": [
+        {
+          "operation": "probe",
+          "reused": false,
+          "fetchHeadersMs": 2.9300000071525574,
+          "bodyMs": 8.324999988079071,
+          "compileMs": 3.600000023841858,
+          "instantiateMs": 2.884999990463257
+        },
+        {
+          "operation": "init",
+          "reused": false,
+          "fetchHeadersMs": 2.8550000190734863,
+          "bodyMs": 7.310000002384186,
+          "compileMs": 3.334999978542328,
+          "instantiateMs": 3.0450000166893005
+        }
+      ],
+      "sourceReads": [
+        {
+          "readMs": 0.9900000095367432,
+          "reader": "b41d0164-a018-4af6-980d-ee2655a6591a",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.4650000333786011,
+          "reader": "b41d0164-a018-4af6-980d-ee2655a6591a",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6100000143051147,
+          "reader": "b41d0164-a018-4af6-980d-ee2655a6591a",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.8299999833106995,
+          "reader": "7adc67ba-2836-4d11-9c21-41f94f2b6ce4",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.4350000023841858,
+          "reader": "7adc67ba-2836-4d11-9c21-41f94f2b6ce4",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6650000214576721,
+          "reader": "7adc67ba-2836-4d11-9c21-41f94f2b6ce4",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 1.4900000095367432,
+          "reader": "7adc67ba-2836-4d11-9c21-41f94f2b6ce4",
+          "offset": 200048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 1.8849999904632568,
+          "reader": "7adc67ba-2836-4d11-9c21-41f94f2b6ce4",
+          "offset": 400048,
+          "requested": 200000,
+          "bytes": 200000
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 11
+        }
+      ],
+      "openPlayDestroyMs": 239.5885830000002,
+      "moduleBuilds": [],
+      "passed": true
+    },
+    {
+      "name": "concurrent",
+      "observations": [
+        {
+          "operation": "probe",
+          "reused": false,
+          "fetchHeadersMs": 3.9699999690055847,
+          "bodyMs": 11.314999997615814,
+          "compileMs": 5.665000021457672,
+          "instantiateMs": 3.384999990463257
+        },
+        {
+          "operation": "probe",
+          "reused": false,
+          "fetchHeadersMs": 3.990000009536743,
+          "bodyMs": 11.589999973773956,
+          "compileMs": 6.665000021457672,
+          "instantiateMs": 3.5149999856948853
+        },
+        {
+          "operation": "init",
+          "reused": false,
+          "fetchHeadersMs": 2.8950000405311584,
+          "bodyMs": 9.444999992847443,
+          "compileMs": 5.235000014305115,
+          "instantiateMs": 3.060000002384186
+        },
+        {
+          "operation": "init",
+          "reused": false,
+          "fetchHeadersMs": 2.9800000190734863,
+          "bodyMs": 9.069999992847443,
+          "compileMs": 5.889999985694885,
+          "instantiateMs": 3.0550000071525574
+        }
+      ],
+      "sourceReads": [
+        {
+          "readMs": 0.8299999833106995,
+          "reader": "9abe67d3-ca31-4167-8aa5-e453be6aaf29",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.5199999809265137,
+          "reader": "b9dad1f5-9b90-424f-b85d-0d4984f70d2f",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.5950000286102295,
+          "reader": "b9dad1f5-9b90-424f-b85d-0d4984f70d2f",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6299999952316284,
+          "reader": "9abe67d3-ca31-4167-8aa5-e453be6aaf29",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.6899999976158142,
+          "reader": "b9dad1f5-9b90-424f-b85d-0d4984f70d2f",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.7449999451637268,
+          "reader": "9abe67d3-ca31-4167-8aa5-e453be6aaf29",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.75,
+          "reader": "bc4623ad-0c48-400e-bf65-3a6b1e8fba54",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.949999988079071,
+          "reader": "922fa2a3-8f93-48b3-a646-75fd30b3d3bb",
+          "offset": 0,
+          "requested": 65536,
+          "bytes": 65536
+        },
+        {
+          "readMs": 0.5999999642372131,
+          "reader": "bc4623ad-0c48-400e-bf65-3a6b1e8fba54",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.5899999737739563,
+          "reader": "922fa2a3-8f93-48b3-a646-75fd30b3d3bb",
+          "offset": 1031041,
+          "requested": 11768,
+          "bytes": 11768
+        },
+        {
+          "readMs": 0.7649999856948853,
+          "reader": "922fa2a3-8f93-48b3-a646-75fd30b3d3bb",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 0.7799999713897705,
+          "reader": "bc4623ad-0c48-400e-bf65-3a6b1e8fba54",
+          "offset": 48,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 2.189999997615814,
+          "reader": "bc4623ad-0c48-400e-bf65-3a6b1e8fba54",
+          "offset": 200048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 2.1649999618530273,
+          "reader": "922fa2a3-8f93-48b3-a646-75fd30b3d3bb",
+          "offset": 200048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 1.600000023841858,
+          "reader": "bc4623ad-0c48-400e-bf65-3a6b1e8fba54",
+          "offset": 400048,
+          "requested": 200000,
+          "bytes": 200000
+        },
+        {
+          "readMs": 1.0099999904632568,
+          "reader": "922fa2a3-8f93-48b3-a646-75fd30b3d3bb",
+          "offset": 400048,
+          "requested": 200000,
+          "bytes": 200000
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 7
+        },
+        {
+          "plan": "native-remux",
+          "frames": 6
+        }
+      ],
+      "openPlayDestroyMs": 260.1974580000001,
+      "moduleBuilds": [],
+      "passed": true
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "sourceWorkerSHA256": "c80e658ab2621450931577d1ee3cd5e2105c737b39041590ab63497a54d21a94"
+}

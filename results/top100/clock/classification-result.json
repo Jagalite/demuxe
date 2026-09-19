@@ -1,0 +1,49 @@
+{
+  "scope": "Controlled clock-observation component with real AudioContext timestamp schema/anchor. Injected60-second rate/jump/callback-delay traces; not observed physical device latency changes or drift.",
+  "rows": [
+    {
+      "name": "drift",
+      "expectedDriftPPM": 100.0,
+      "expectedLatencyStep": 0,
+      "actual": {
+        "kind": "drift-only",
+        "driftPPM": 99.99829603593855,
+        "latencyStepSeconds": 0
+      }
+    },
+    {
+      "name": "step",
+      "expectedDriftPPM": 0.0,
+      "expectedLatencyStep": 0.05,
+      "actual": {
+        "kind": "latency-step-plus-drift",
+        "stepIndex": 60,
+        "driftPPM": -0.03929102405237385,
+        "latencyStepSeconds": 0.04999849465745444
+      }
+    },
+    {
+      "name": "both",
+      "expectedDriftPPM": 100.0,
+      "expectedLatencyStep": 0.05,
+      "actual": {
+        "kind": "latency-step-plus-drift",
+        "stepIndex": 60,
+        "driftPPM": 99.96070897594187,
+        "latencyStepSeconds": 0.0500034946574546
+      }
+    },
+    {
+      "name": "delayed-callback",
+      "expectedDriftPPM": 100.0,
+      "expectedLatencyStep": 0,
+      "actual": {
+        "kind": "drift-only",
+        "driftPPM": 99.99829603593855,
+        "latencyStepSeconds": 0
+      }
+    }
+  ],
+  "outputTimestampRuntimeEvidence": "../independent-audio-result.json",
+  "passed": true
+}

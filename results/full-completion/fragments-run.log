@@ -1,0 +1,91 @@
+{
+  "scope": "Browser SourceBuffer component with identical existing fMP4 payload; split appends, partial-parser reset and actual A/V output. No current-controller patch or CPU claim.",
+  "cases": [
+    {
+      "mode": "whole",
+      "error": null,
+      "eof": true,
+      "av": 103,
+      "appends": 3,
+      "staleRejected": false,
+      "quotaRetries": 0,
+      "quotaCount": 0,
+      "cleanup": true
+    },
+    {
+      "mode": "split-moof-mdat",
+      "error": null,
+      "eof": true,
+      "av": 103,
+      "appends": 4,
+      "staleRejected": false,
+      "quotaRetries": 0,
+      "quotaCount": 0,
+      "cleanup": true
+    },
+    {
+      "mode": "abort-mid-moof",
+      "error": null,
+      "eof": true,
+      "av": 102,
+      "appends": 4,
+      "staleRejected": true,
+      "quotaRetries": 0,
+      "quotaCount": 0,
+      "cleanup": true
+    },
+    {
+      "mode": "abort-mid-sample",
+      "error": null,
+      "eof": true,
+      "av": 103,
+      "appends": 4,
+      "staleRejected": true,
+      "quotaRetries": 0,
+      "quotaCount": 0,
+      "cleanup": true
+    },
+    {
+      "mode": "quota-once",
+      "error": null,
+      "eof": true,
+      "av": 41,
+      "appends": 3,
+      "staleRejected": false,
+      "quotaRetries": 1,
+      "quotaCount": 1,
+      "cleanup": true
+    },
+    {
+      "mode": "quota-twice",
+      "error": {
+        "name": "QuotaExceededError",
+        "message": "Injected quota"
+      },
+      "eof": false,
+      "av": 0,
+      "appends": 2,
+      "staleRejected": false,
+      "quotaRetries": 1,
+      "quotaCount": 2,
+      "cleanup": true
+    },
+    {
+      "mode": "non-quota",
+      "error": {
+        "name": "InvalidStateError",
+        "message": "Injected invalid state"
+      },
+      "eof": false,
+      "av": 0,
+      "appends": 2,
+      "staleRejected": false,
+      "quotaRetries": 0,
+      "quotaCount": 0,
+      "cleanup": true
+    }
+  ],
+  "firstSampleEnd": 2733,
+  "browser": "152.0.7977.83",
+  "passed": true
+}

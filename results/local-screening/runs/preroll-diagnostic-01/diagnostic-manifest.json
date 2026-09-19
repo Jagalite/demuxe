@@ -1,0 +1,35 @@
+{
+  "scope": "Only annotate existing negative DTS rejection, no acceptance change",
+  "command": [
+    "emcc",
+    "-O2",
+    "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe=/demuxe",
+    "-pthread",
+    "-msimd128",
+    "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg",
+    "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1",
+    "/Volumes/seed2/Projects/demuxe/build/local-screening/preroll-diagnostic/remux.c",
+    "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavformat/libavformat.a",
+    "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavcodec/libavcodec.a",
+    "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavutil/libavutil.a",
+    "-sMODULARIZE=1",
+    "-sEXPORT_ES6=1",
+    "-sEXPORT_NAME=createRemux",
+    "-sENVIRONMENT=worker",
+    "-sINITIAL_MEMORY=67108864",
+    "-sMAXIMUM_MEMORY=134217728",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sSTACK_SIZE=2097152",
+    "-sWASM_BIGINT=1",
+    "-sFILESYSTEM=0",
+    "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_malloc\", \"_free\"]",
+    "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+    "-o",
+    "/Volumes/seed2/Projects/demuxe/build/local-screening/preroll-diagnostic/remux.mjs"
+  ],
+  "hashes": {
+    "remux.c": "df3ed75505165e638667722bdfc95443f206efd7218e2d23ba7a49b242a27aca",
+    "remux.mjs": "e05a006695e84a4afcaf3845aa39c4810f0ca9fd618e9bf21ad83340559f87ac",
+    "remux.wasm": "679da9451daae6cf9d7796d2fd2673c94cb50027a171009906a73fabbdfcb978"
+  }
+}

@@ -1,0 +1,2179 @@
+[
+  {
+    "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+    "hypothesis": "New route candidate \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
+    "tested_profile": "Source/current-owner first-pass audit: Raw AAC/MP3 audio beside fragmented video. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/remux-packaging.js:3-11",
+      "web/native-remux-player.js:73-86"
+    ],
+    "observed_gap": "The maintained selector negotiates one common MP4/WebM MIME; split lanes are tied to windowed adaptation, not generated-timestamp raw AAC. Historical AAC payload equality leaves priming/offset lifetime integration unresolved.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Implement only a research raw-ADTS lane adapter around existing packet output; compare the same AAC access units against fMP4 at a nonzero audio offset, then seek and drain.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "The maintained selector negotiates one common MP4/WebM MIME; split lanes are tied to windowed adaptation, not generated-timestamp raw AAC. Historical AAC payload equality leaves priming/offset lifetime integration unresolved."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R031.raw-aac-mp3-audio-beside-fragmented-video.md",
+        "sha256": "d3de7c3dc4c625f36d4a37d8d73903352b28cffba6c63d251e993d48c4ca9307",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained selector negotiates one common MP4/WebM MIME; split lanes are tied to windowed adaptation, not generated-timestamp raw AAC. Historical AAC payload equality leaves priming/offset lifetime integration unresolved.",
+    "next_test": "Implement only a research raw-ADTS lane adapter around existing packet output; compare the same AAC access units against fMP4 at a nonzero audio offset, then seek and drain.",
+    "reopen_condition": "Reopen when a bounded raw-audio placement adapter exists; MIME acceptance alone cannot authorize routing.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R032.use-different-output-containers-for-different-tracks",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+    "hypothesis": "New route candidate \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. Try one MediaSource with H.264 video in fMP4 and Opus or Vorbis audio in WebM. Select packaging per track rather than insisting on one common mux format for the entire presentation. New question versus prior work. The prior audio-switch experiment used AAC/FLAC/Opus in MP4. This tests a mixed-container pair and whether that avoids unnecessary audio repackaging or an otherwise unavailable joint mux combination. Source primitive. MSE has distinct MP4 and WebM byte-stream specifications. Their individual validity does not establish that this browser accepts both together. [S3\u2013S5] Why testable here. Only native FFmpeg muxing and window-owned MSE are required. Mixed-format support itself remains the first experiment.",
+    "tested_profile": "Source/current-owner first-pass audit: Use different output containers for different tracks. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/remux-packaging.js:3-11",
+      "src/internal/selection.ts:32-40"
+    ],
+    "observed_gap": "Common-container negotiation excludes H264/Vorbis while mixed H264-MP4 and Opus-WebM has only historical source evidence. Independent per-track packaging requires a new finite-plan producer contract.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Prototype one H264/Opus mixed pair without changing admission; compare packet hashes, codec delay and selected audio after seek against all-MP4.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Common-container negotiation excludes H264/Vorbis while mixed H264-MP4 and Opus-WebM has only historical source evidence. Independent per-track packaging requires a new finite-plan producer contract."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R032.use-different-output-containers-for-different-tracks.md",
+        "sha256": "f288d790e5987c31d53ef5ed161749712f5d4934913a8c486f5cfe7eaa2026c5",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Common-container negotiation excludes H264/Vorbis while mixed H264-MP4 and Opus-WebM has only historical source evidence. Independent per-track packaging requires a new finite-plan producer contract.",
+    "next_test": "Prototype one H264/Opus mixed pair without changing admission; compare packet hashes, codec delay and selected audio after seek against all-MP4.",
+    "reopen_condition": "Reopen with a two-lane producer retaining track identity and exact timestamps.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R046.a-small-javascript-ordinary-mp4-to-mse-adapter",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+    "hypothesis": "New deployment/packaging candidate \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R06, R09. Reference primitives: S2, S3, S10. Question. Can a tightly scoped MP4 preparation route avoid downloading or compiling a Wasm muxer when controlled MSE playback is needed? Mechanism. Parse the selected ordinary-MP4 sample tables in JavaScript and construct small fMP4 headers around the unchanged compressed samples. This differs from R09, which only forwards media that is already fragmented. ",
+    "tested_profile": "Source/current-owner first-pass audit: A small JavaScript ordinary-MP4-to-MSE adapter. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/cheap-mp4-probe.js:32-61",
+      "web/split-mp4.js:1-24"
+    ],
+    "observed_gap": "The existing JS parser is bounded metadata admission and the splitter accepts already-fragmented output; neither constructs ordinary-MP4 sample tables. The historical adapter loses the first B-frame/edit boundary relative to direct playback.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Recover or implement only the narrow adapter and repair the documented first-frame edit/preroll mismatch before testing startup; use malformed box size as adverse input.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "The existing JS parser is bounded metadata admission and the splitter accepts already-fragmented output; neither constructs ordinary-MP4 sample tables. The historical adapter loses the first B-frame/edit boundary relative to direct playback."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R046.a-small-javascript-ordinary-mp4-to-mse-adapter.md",
+        "sha256": "32aa7f68c76f6d665fb4f5c93f25653fff577697b4427d7235bacd4266ecf550",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The existing JS parser is bounded metadata admission and the splitter accepts already-fragmented output; neither constructs ordinary-MP4 sample tables. The historical adapter loses the first B-frame/edit boundary relative to direct playback.",
+    "next_test": "Recover or implement only the narrow adapter and repair the documented first-frame edit/preroll mismatch before testing startup; use malformed box size as adverse input.",
+    "reopen_condition": "Reopen when a narrow sample-table adapter with a principled priming/edit oracle is available; do not build a general demuxer.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+    "hypothesis": "New input-profile feasibility study \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R10, R11. Reference primitives: S7, S3, E1. Question. Do ALAC or ordinary TrueHD stereo provide a genuinely necessary, sample-preserving FLAC adaptation case without selecting a different fixed decoder? Mechanism. Use the normal decoder of an integer-lossless source, encode its established integer output as FLAC, and packet-copy compatible video. Start with ALAC; generated TrueHD is a separate second profile, not an Atmos/DTS-HD claim. ",
+    "tested_profile": "Source/current-owner first-pass audit: Try integer-lossless source codecs before changing lossy decoders. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "scripts/build-audio-adaptation.py:33-33",
+      "src/internal/selection.ts:7-16"
+    ],
+    "observed_gap": "The maintained build enables PCM/FLAC/DCA decoders, not ALAC or TrueHD. Historical host exactness is useful but is not a matching Wasm artifact or current browser necessity test.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: First query unchanged direct ALAC stereo playback on one fixture; only if rejected add ALAC to a separate experimental decoder build and compare exact PCM. TrueHD remains separate.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "The maintained build enables PCM/FLAC/DCA decoders, not ALAC or TrueHD. Historical host exactness is useful but is not a matching Wasm artifact or current browser necessity test."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders.md",
+        "sha256": "5be836961ee634cc0d351a05709656791a0376ca1c21ac11e3ed808188391527",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained build enables PCM/FLAC/DCA decoders, not ALAC or TrueHD. Historical host exactness is useful but is not a matching Wasm artifact or current browser necessity test.",
+    "next_test": "First query unchanged direct ALAC stereo playback on one fixture; only if rejected add ALAC to a separate experimental decoder build and compare exact PCM. TrueHD remains separate.",
+    "reopen_condition": "Reopen after a necessary source profile and a matching narrowly expanded build exist.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R058.change-video-codec-while-retaining-the-audio-presentation",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "Follow-on transition hypothesis \u00b7 P2 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox MSE pilot; exact codecs and container pair must pass availability checks. Related cards: R43, R32. Proposed mechanism. Extend the successful resolution-only switch to a genuine codec change, initially H.264 in fMP4 to VP9 in WebM and back. Keep one media element, the same MediaSource and the same audio SourceBuffer. This tests whether a codec boundary really requires replacing the whole playback owner. What is new. R43 changed dimensions inside H.264. R32 mixed video and audio containers concurrently. Neither establishes that a single video SourceBuffer can cross codec/container boundaries correctly while audio remains active.",
+    "tested_profile": "Source/current-owner first-pass audit: Change video codec while retaining the audio presentation. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/native-remux-player.js:35-42",
+      "web/native-remux-player.js:90-100",
+      "native/remux/remux.c:463-470"
+    ],
+    "observed_gap": "Current restart recreates MediaSource and native packet copying rejects changed configuration. No video-only epoch commit/rollback path exists; the historical changeType demonstration does not supply that owner.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Create a research two-epoch H264/VP9 transition harness preserving one AAC buffer; include unsupported destination rollback and backward seek.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Current restart recreates MediaSource and native packet copying rejects changed configuration. No video-only epoch commit/rollback path exists; the historical changeType demonstration does not supply that owner."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R058.change-video-codec-while-retaining-the-audio-presentation.md",
+        "sha256": "9e42593b14005b55b3d218d5c7752eca5feafabdc31460109e104c0ba8c54c0a",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current restart recreates MediaSource and native packet copying rejects changed configuration. No video-only epoch commit/rollback path exists; the historical changeType demonstration does not supply that owner.",
+    "next_test": "Create a research two-epoch H264/VP9 transition harness preserving one AAC buffer; include unsupported destination rollback and backward seek.",
+    "reopen_condition": "Reopen when bounded epoch ownership can be represented without removing changed-configuration guards.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "New local-file packaging route \u00b7 P1 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox Blob/File and direct-video pilot; local, finite, unencrypted MP4 only. Related cards: R46. Proposed mechanism. For a local MP4 whose requested audio cannot be selected through the browser track API, expose a virtual file containing only the desired track declarations while reusing the original media bytes. Begin by replacing unselected trak boxes with equally sized free boxes in a bounded copy of moov, retaining its size and position. Compose prefix + edited moov + suffix from Blob slices. What is new. R46 constructed new fragmented MP4 sample tables for MSE. This route preserves the ordinary MP4 sample layout and uses direct playback; it is a targeted metadata view, not an alternative general demuxer or a remote authenticated proxy.",
+    "tested_profile": "Source/current-owner first-pass audit: Construct a selected-track MP4 view without remuxing samples. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/cheap-mp4-probe.js:32-44",
+      "src/internal/native-player.ts:236-241"
+    ],
+    "observed_gap": "Direct local playback already consumes a File Blob, so an equal-size metadata view could avoid remux for explicit alternate audio. Existing cheap inspection rejects extra tracks and does not edit moov; this is a concrete bounded new capability.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Build one isolated equal-size trak-to-free view for the existing two-audio MP4; independently compare mdat/selected packet identity and tone after seek, with tref rejection.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Direct local playback already consumes a File Blob, so an equal-size metadata view could avoid remux for explicit alternate audio. Existing cheap inspection rejects extra tracks and does not edit moov; this is a concrete bounded new capability."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R059.construct-a-selected-track-mp4-view-without-remuxing-samples.md",
+        "sha256": "99f5d6f45840629da20c9fdfdb9999387d5cd49258ba2c8d3ca19339fed73cde",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Direct local playback already consumes a File Blob, so an equal-size metadata view could avoid remux for explicit alternate audio. Existing cheap inspection rejects extra tracks and does not edit moov; this is a concrete bounded new capability.",
+    "next_test": "Build one isolated equal-size trak-to-free view for the existing two-audio MP4; independently compare mdat/selected packet identity and tone after seek, with tref rejection.",
+    "reopen_condition": "Reopen only for local unencrypted independent tracks; remote authority and arbitrary track references are outside this slice.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R060.extract-in-band-closed-captions-from-compressed-video-headers",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "New subtitle-component route \u00b7 P1 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox packet-parser/caption pilot if a trustworthy caption fixture or pinned reference parser is available; renderer integration remains local. Related cards: R19, R41, R48. Proposed mechanism. Extract A/53 caption payloads from H.264 SEI as compressed video passes through the demux path. Feed a bounded, explicit CEA-608 decoder and suitable cue/overlay renderer, while the unchanged video is played by the browser. Captions alone should not force software video decoding. What is new. Earlier cards covered separate ASS, PGS and simple SRT tracks. These captions are carried inside compressed video metadata and require a stateful caption decoder, not merely reading another subtitle track.",
+    "tested_profile": "Source/current-owner first-pass audit: Extract in-band closed captions from compressed video headers. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "src/internal/selection.ts:18-27",
+      "src/internal/native-ass.ts:71-79",
+      "native/remux/remux.c:234-248"
+    ],
+    "observed_gap": "Current subtitle admission represents separate tracks, and NativeASS consumes external ASS. There is no inspected A53 extraction plus stateful CEA608 owner; historical source explicitly lacked a trusted in-band fixture.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Obtain one independently validated caption-bearing H264 sample and decoder oracle, then audit extraction preserving original NAL bytes and active caption state after seek.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Current subtitle admission represents separate tracks, and NativeASS consumes external ASS. There is no inspected A53 extraction plus stateful CEA608 owner; historical source explicitly lacked a trusted in-band fixture."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R060.extract-in-band-closed-captions-from-compressed-video-headers.md",
+        "sha256": "78e4f1108f07c7d844c2e443e66432b5a8dc208645ebbcdebd405feb9411acc7",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current subtitle admission represents separate tracks, and NativeASS consumes external ASS. There is no inspected A53 extraction plus stateful CEA608 owner; historical source explicitly lacked a trusted in-band fixture.",
+    "next_test": "Obtain one independently validated caption-bearing H264 sample and decoder oracle, then audit extraction preserving original NAL bytes and active caption state after seek.",
+    "reopen_condition": "Reopen with trustworthy caption events/render references and a bounded decoder component; this is setup, not a demonstrated caption regression.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R065.isolate-a-selected-program-from-multi-program-transport-streams",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "New source-selection/remux profile \u00b7 P2 \u00b7 Risk: Medium \u00b7 PROPOSED / NOT TESTED First environment: Host FFmpeg construction plus sandbox MSE destination pilot; no live/network qualification. Related cards: R07. Proposed mechanism. Treat a requested TS program as the playback unit. If that program contains browser-compatible H.264/AAC, select and packet-copy only its streams to the known MSE packaging path instead of letting unrelated programs influence compatibility or loading extra decoders. What is new. Earlier TS cases contained one presentation, and alternate-audio cases addressed tracks within it. A program has its own stream group and identity; treating every stream in the transport as part of one requested presentation is the new problem to test.",
+    "tested_profile": "Source/current-owner first-pass audit: Isolate a selected program from multi-program transport streams. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "src/internal/selection.ts:3-4",
+      "src/internal/selection.ts:32-40",
+      "native/remux/remux.c:234-248"
+    ],
+    "observed_gap": "Track metadata exposes stream IDs but no program/PID mapping. Existing TS AAC normalization is useful reusable setup, yet a requested program cannot currently be represented as a stable playback selection.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Add research-only program mapping for one two-program TS, select the H264/AAC program and compare packets after reversing PMT declaration order.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Track metadata exposes stream IDs but no program/PID mapping. Existing TS AAC normalization is useful reusable setup, yet a requested program cannot currently be represented as a stable playback selection."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R065.isolate-a-selected-program-from-multi-program-transport-streams.md",
+        "sha256": "964fe941527b85178b036bd628dc56c15102d56c1f2ad1ceb6cf8bc63cd721e5",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Track metadata exposes stream IDs but no program/PID mapping. Existing TS AAC normalization is useful reusable setup, yet a requested program cannot currently be represented as a stable playback selection.",
+    "next_test": "Add research-only program mapping for one two-program TS, select the H264/AAC program and compare packets after reversing PMT declaration order.",
+    "reopen_condition": "Reopen once program identity is surfaced; an unrelated unsupported program must not influence selected-program admission.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+    "hypothesis": "Question. Can the same destination accept configuration epochs through media samples rather than a new initialization segment each time? What differs from earlier work. Extends R43/R58 but changes the configuration carriage: test whether an in-band epoch removes extra initialization-segment work. Input scope. Initially H.264 with one profile/bit depth and independently decodable resolution-change boundaries; declared level must remain truthful. Mechanism to test. Use legal avc3 parameter-set carriage at random-access boundaries, preserving coded pictures while varying SPS/PPS configuration. ",
+    "tested_profile": "Source/current-owner first-pass audit: In-band video configuration changes with avc3, and qualified hev1. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/remux-packaging.js:3-11",
+      "native/remux/remux.c:463-470"
+    ],
+    "observed_gap": "Current packaging emits AVC avc1 contracts and rejects new extradata; no configuration-epoch path exists. Historical avc3 media-only dimension transitions are plausible but do not make the maintained guard redundant.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Compare one avc1/new-init reference with legal avc3 repeated SPS/PPS at a RAP, seek both sides and remove epoch-B SPS/PPS as the adverse control.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Current packaging emits AVC avc1 contracts and rejects new extradata; no configuration-epoch path exists. Historical avc3 media-only dimension transitions are plausible but do not make the maintained guard redundant."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1.md",
+        "sha256": "3fbf1656140af39bbc83bb4ac31a5769005fd68d283a8f20726da6ecdc034ea5",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R88-R101-research-backlog.md",
+        "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current packaging emits AVC avc1 contracts and rejects new extradata; no configuration-epoch path exists. Historical avc3 media-only dimension transitions are plausible but do not make the maintained guard redundant.",
+    "next_test": "Compare one avc1/new-init reference with legal avc3 repeated SPS/PPS at a RAP, seek both sides and remove epoch-B SPS/PPS as the adverse control.",
+    "reopen_condition": "Reopen with an isolated legal epoch producer; HEVC remains a separate destination-specific experiment.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+    "hypothesis": "Question. Are some rejected or inefficient pipelines a framing mismatch rather than an unsupported codec? What differs from earlier work. Distinct from temporal-layer removal: preserve every coded dependency while changing packet grouping or superframe framing. Input scope. VP9 streams containing hidden reference frames and superframes; fixed codec profile first. Mechanism to test. Inspect codec frame boundaries and use lossless superframe split/merge operations where the target container or codec API requires them. ",
+    "tested_profile": "Source/current-owner first-pass audit: Normalize VP9 codec units for the actual destination. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "web/video-codec-config.js:7-24",
+      "web/retained-decoder-worker.js:112-145"
+    ],
+    "observed_gap": "Current VP9 code derives configuration from key headers and submits packet bytes directly; it does not split superframes. Historical generated fixtures contained no hidden-frame/superframe feature, so repeating them cannot decide this card.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Provision one tiny pinned superframe/hidden-reference sample; verify constituent frames, shown output and timestamps before a split/merge destination comparison.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Current VP9 code derives configuration from key headers and submits packet bytes directly; it does not split superframes. Historical generated fixtures contained no hidden-frame/superframe feature, so repeating them cannot decide this card."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R092.normalize-vp9-codec-units-for-the-actual-destination.md",
+        "sha256": "7ca8bf9420a83e9fdfb60fbdbcf7f058558f5e8d8d4f86a159d8cc19c438ccb0",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R88-R101-research-backlog.md",
+        "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current VP9 code derives configuration from key headers and submits packet bytes directly; it does not split superframes. Historical generated fixtures contained no hidden-frame/superframe feature, so repeating them cannot decide this card.",
+    "next_test": "Provision one tiny pinned superframe/hidden-reference sample; verify constituent frames, shown output and timestamps before a split/merge destination comparison.",
+    "reopen_condition": "Reopen when the feature-bearing fixture and independent ordered decode oracle exist; prior opaque-origin WebCodecs limits are not asserted for this checkout.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R110.choose-a-destination-aware-lacing-or-unlacing-representation",
+    "decision": "INCONCLUSIVE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+    "hypothesis": "Type: Container-specific routing. Priority: P2. Question. Can the same coded audio use compact native-file packaging or a minimal MSE-compatible rewrite, depending on its parser? What differs from earlier work. R93 repacketized codec frames inside Opus packets. Lacing groups already distinct codec packets only at the container level. Mechanism. Compare bounded Matroska/WebM audio lacing for a direct-file route against an unlacer that emits separate blocks for an MSE route without changing codec packets. Initial source profile. Small contiguous same-track audio packets with known durations. No lacing across discontinuities or configuration changes. Source basis. Matroska defines lacing. The reviewed Chromium main WebMClusterParser explicitly rejects it, so MSE lacing is not proposed as a supported fast path. Direct-file behavior remains a runtime probe. [S10, S11]",
+    "tested_profile": "Source/current-owner first-pass audit: Choose a destination-aware lacing or unlacing representation. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "native/remux/remux.c:375-406",
+      "web/remux-packaging.js:3-11"
+    ],
+    "observed_gap": "The maintained FFmpeg demux/remux boundary already reconstructs WebM output, while original direct playback preserves source packaging. Whether its emitted blocks already satisfy this exact unlacing mechanism is not established from these owners alone.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Inspect one known laced Opus file through existing remux, compare recovered packet boundaries and trim metadata, then append output with a malformed lace control.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "The maintained FFmpeg demux/remux boundary already reconstructs WebM output, while original direct playback preserves source packaging. Whether its emitted blocks already satisfy this exact unlacing mechanism is not established from these owners alone."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R110.choose-a-destination-aware-lacing-or-unlacing-representation.md",
+        "sha256": "1bbe9108a14dcb4277de6c2d6c3c1157afda4d518ca0b0d9ff22fe427b6085fc",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R102-R115-research-backlog.md",
+        "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained FFmpeg demux/remux boundary already reconstructs WebM output, while original direct playback preserves source packaging. Whether its emitted blocks already satisfy this exact unlacing mechanism is not established from these owners alone.",
+    "next_test": "Inspect one known laced Opus file through existing remux, compare recovered packet boundaries and trim metadata, then append output with a malformed lace control.",
+    "reopen_condition": "Reopen on an actual laced input; do not infer MSE support from direct-file playback or claim a new unlacer is needed before inspecting output.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R115.play-an-ongoing-fmp4-response-through-one-native-url",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+    "hypothesis": "Type: Progressive native-source experiment. Priority: P1. Question. Will Chrome start and continue useful playback while a valid fragmented MP4 source is still arriving, with no manifest or application append loop? What differs from earlier work. R90 used a complete local fragmented file; R88 used a playlist; R04 appended through MSE. This tests native playback before one progressively delivered HTTP media response has finished. Mechanism. Serve initialization followed by valid moof/mdat fragments progressively from one HTTP response and let the media element own ingestion. Initial source profile. A controlled finite-but-progressively-generated stream first; video-only then A/V; valid codec configuration and known fragments. Endless-live and reconnection semantics are separate.",
+    "tested_profile": "Source/current-owner first-pass audit: Play an ongoing fMP4 response through one native URL. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "src/internal/native-player.ts:243-256"
+    ],
+    "observed_gap": "Uncontrolled permitted HTTP file URLs already reach the native element. That owner can exercise progressive finite fMP4 without a new playback backend; earlier complete-Blob runs do not test response-open output.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Reuse the server with one fMP4 response held open after its first fragment; require first frame and audio before EOF, then delayed-fragment resume and clean closure against identical MSE bytes.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "Uncontrolled permitted HTTP file URLs already reach the native element. That owner can exercise progressive finite fMP4 without a new playback backend; earlier complete-Blob runs do not test response-open output."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R115.play-an-ongoing-fmp4-response-through-one-native-url.md",
+        "sha256": "1ea8b63953f0b951260cd9db35f3cd0fff326ba491185bfc9da7483fde85b10a",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R102-R115-research-backlog.md",
+        "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Uncontrolled permitted HTTP file URLs already reach the native element. That owner can exercise progressive finite fMP4 without a new playback backend; earlier complete-Blob runs do not test response-open output.",
+    "next_test": "Reuse the server with one fMP4 response held open after its first fragment; require first frame and audio before EOF, then delayed-fragment resume and clean closure against identical MSE bytes.",
+    "reopen_condition": "Reopen for a controlled stream-release test; custom headers/authorization and seeking remain separate contracts.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R002.promote-useful-startup-work-instead-of-reopening",
+    "decision": "ALREADY_IMPLEMENTED",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+    "hypothesis": "First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Let one candidate move from prepared to presented to accepted without rebuilding the same media element or repeating demux startup. Gather only the facts needed for the current request before opening; defer optional metadata and fonts until needed. Source basis. Browser acceptance and Demuxe feature admission are distinct. Chromium direct demuxing constructs supported streams and can reject individual stream configurations, so a first video image alone cannot prove required audio. [C1, D1] First agent experiment. Trace open-to-first-frame as source validation, inspection, runtime loading, candidate preparation, play request and acceptance. Compare the current path with retained-candidate promotion on ordinary MP4, unknown-audio MKV, paused open and missing-audio controls.",
+    "tested_profile": "Source/current-owner first-pass audit: Promote useful startup work instead of reopening. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "src/unified-player.ts:421-427",
+      "src/unified-player.ts:668-674",
+      "src/internal/native-player.ts:147-157"
+    ],
+    "observed_gap": "The accepted prepared backend is retained and later play invokes the same session backend, followed by output verification. This directly addresses the retained-candidate portion; optional metadata deferral and cross-backend sharing are not established.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: No repeat startup benchmark; reopen only with an observed redundant reconstruction in a different admitted preparation path.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "The accepted prepared backend is retained and later play invokes the same session backend, followed by output verification. This directly addresses the retained-candidate portion; optional metadata deferral and cross-backend sharing are not established."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R002.promote-useful-startup-work-instead-of-reopening.md",
+        "sha256": "08dc1300b3d81340a01d81f9ffbfd516a67a17f00479963e71efeb0ecc330ffb",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The accepted prepared backend is retained and later play invokes the same session backend, followed by output verification. This directly addresses the retained-candidate portion; optional metadata deferral and cross-backend sharing are not established.",
+    "next_test": "No repeat startup benchmark; reopen only with an observed redundant reconstruction in a different admitted preparation path.",
+    "reopen_condition": "Reopen if instrumentation shows the same accepted backend/surface is destroyed and rebuilt before first permitted playback.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+    "hypothesis": "Delivery \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Host fixture server + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Use bounded adjacent-read coalescing and metadata/keyframe-aware prefetch rather than one network request per small AVIO read. Maintain separate budgets for startup metadata, active playback and speculative seek lookahead. Source basis. FFmpeg exposes probe and I/O buffering controls; increasing probe coverage may increase startup work. Streams defines consumer-driven backpressure. These do not choose Demuxe\u2019s network chunk size for it. [F1, S1] First agent experiment. Compare fixed small chunks with adaptive coalescing on front-index MP4, tail-index MP4, MKV cues and interrupted seek scrubbing. Use the same range server with controlled latency; record received and abandoned bytes separately.",
+    "tested_profile": "Source/current-owner first-pass audit: Coalesce range reads around useful media boundaries. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "current_code_paths": [
+      "web/range-reader.js:5-11",
+      "web/range-reader.js:24-42",
+      "web/range-reader.js:79-103"
+    ],
+    "observed_gap": "Reads already use cached 256KiB windows anchored at requested offsets, avoiding one request per AVIO call. Adaptive metadata/keyframe-aware sizing is absent; value requires a controlled latency trace against this actual baseline, not a deliberately tiny reader.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Replay one tail-moov and distant-seek trace with current windows versus one bounded adaptive window policy; count abandoned and useful bytes and include ETag replacement.",
+      "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+      "outcome": "Reads already use cached 256KiB windows anchored at requested offsets, avoiding one request per AVIO call. Adaptive metadata/keyframe-aware sizing is absent; value requires a controlled latency trace against this actual baseline, not a deliberately tiny reader."
+    },
+    "measurement": {
+      "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R003.coalesce-range-reads-around-useful-media-boundaries.md",
+        "sha256": "611e5a6dec2624e69b7c2ba96a31f3e94bd107ca2e689f93b69079b04275e774",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Reads already use cached 256KiB windows anchored at requested offsets, avoiding one request per AVIO call. Adaptive metadata/keyframe-aware sizing is absent; value requires a controlled latency trace against this actual baseline, not a deliberately tiny reader.",
+    "next_test": "Replay one tail-moov and distant-seek trace with current windows versus one bounded adaptive window policy; count abandoned and useful bytes and include ETag replacement.",
+    "reopen_condition": "Reopen for a latency-controlled read trace showing excess requests or wasted window bytes within unchanged byte caps.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+    "hypothesis": "Caching \u00b7 New optimization hypothesis \u00b7 P2 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Cache bounded already-generated fragments and initialization data for repeated seeks/replays. Key by immutable source identity, selected tracks, decoder/encoder profile, timeline origin and exact runtime recipe; do not reuse only by URL and time. Source basis. FFmpeg exposes fragmented output, while MSE can reuse valid media segments in a reconstructed presentation. The cache policy and correctness key are proposed Demuxe work. [F1, M1] First agent experiment. Replay a recently converted interval, switch away/back to the same audio, and replace a source at the same URL. Compare generated work, seek delay and total retained bytes against the uncached path.",
+    "tested_profile": "Source/current-owner first-pass audit: Cache prepared media by timeline and transformation recipe. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "current_code_paths": [
+      "web/native-remux-player.js:35-40",
+      "web/native-remux-player.js:266-286"
+    ],
+    "observed_gap": "Existing buffered seeking reuses live MSE ranges with RAP/owner checks, but restart clears segments and workers. A prepared-fragment replay cache would need a new immutable recipe/source key and byte eviction ownership.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Specify a single-source two-interval research cache keyed by selected tracks, runtime recipe and source identity; prove a changed ETag miss before any performance comparison.",
+      "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+      "outcome": "Existing buffered seeking reuses live MSE ranges with RAP/owner checks, but restart clears segments and workers. A prepared-fragment replay cache would need a new immutable recipe/source key and byte eviction ownership."
+    },
+    "measurement": {
+      "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R018.cache-prepared-media-by-timeline-and-transformation-recipe.md",
+        "sha256": "30b347ac337802e57d478b820c58f2c4973b6a92e56cdd357b6e35bf8008bc78",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Existing buffered seeking reuses live MSE ranges with RAP/owner checks, but restart clears segments and workers. A prepared-fragment replay cache would need a new immutable recipe/source key and byte eviction ownership.",
+    "next_test": "Specify a single-source two-interval research cache keyed by selected tracks, runtime recipe and source identity; prove a changed ETag miss before any performance comparison.",
+    "reopen_condition": "Reopen with a bounded ownership/key design and demonstrated replay beyond currently buffered ranges.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+    "hypothesis": "Subtitles \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Existing NativeASS + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Cache unchanged alpha/color tiles and reuse surfaces instead of expanding and allocating every tile on each bitmap update. Add safe static-cue scheduling while retaining continuous rendering for unknown/animated ASS constructs. Source basis. The current NativeASS source expands tile alpha to RGBA, creates OffscreenCanvas tiles and checks media time through requestAnimationFrame. It already handles an unchanged response; the proposal targets remaining allocation/composition work. [D2] First agent experiment. Compare static dialogue, karaoke, transforms and paused resize. Record render RPCs, allocation/bitmap bytes and UI work, not only total CPU. Key invalidation by track, fonts, source geometry and render revision.",
+    "tested_profile": "Source/current-owner first-pass audit: Cache subtitle tiles and schedule only useful redraws. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent rendering or browser-owned reference appropriate to the same contract, including hidden state, timing, ordering and clear events.",
+    "current_code_paths": [
+      "src/internal/native-ass.ts:81-111"
+    ],
+    "observed_gap": "Unchanged libass responses already skip rasterization; changed responses allocate ImageData and OffscreenCanvas for every tile. Exact tile reuse is a narrower observable gap than inventing an ASS next-change parser.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Instrument existing tile updates for static text and karaoke; trial one bounded exact tile cache keyed by bytes/color/geometry and render revision, comparing pixels after paused resize.",
+      "negative_control": "Seek into an active cue, change fonts/layout/source, or omit a required style/control. No silent simplification or stale overlay.",
+      "outcome": "Unchanged libass responses already skip rasterization; changed responses allocate ImageData and OffscreenCanvas for every tile. Exact tile reuse is a narrower observable gap than inventing an ASS next-change parser."
+    },
+    "measurement": {
+      "primary_metric": "Required caption capability or total render/extraction cost and retained cue/atlas memory.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md",
+        "sha256": "175b1af5d3037c986f6a586baa8e359b220f40cad38529037be7ad214e4e2957",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Unchanged libass responses already skip rasterization; changed responses allocate ImageData and OffscreenCanvas for every tile. Exact tile reuse is a narrower observable gap than inventing an ASS next-change parser.",
+    "next_test": "Instrument existing tile updates for static text and karaoke; trial one bounded exact tile cache keyed by bytes/color/geometry and render revision, comparing pixels after paused resize.",
+    "reopen_condition": "Reopen when changed responses repeat identical tiles enough to pay for keys; preserve continuous cadence for unknown animation.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R026.replace-polling-chains-with-bounded-credits-and-deadlines",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+    "hypothesis": "Scheduling \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Coordinate source, mux, decoder and presenter through bounded credits, high/low watermarks and deadline wakeups. Coalesce diagnostics separately. Distinguish intentional backpressure from an actually blocked decoder. Source basis. Streams provides backpressure; WebCodecs exposes decode queues and output lifecycle. Chrome worklet guidance keeps heavy processing away from the audio callback. [S1, W1, A2] First agent experiment. Count wakeups/messages while paused, buffered, playing and under delayed output. Replace one redundant timer boundary at a time. Verify cancellation always wakes waiters and codec reordering cannot be mistaken for a deadlock.",
+    "tested_profile": "Source/current-owner first-pass audit: Replace polling chains with bounded credits and deadlines. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:11-12",
+      "web/native-remux-player.js:235-243",
+      "web/retained-decoder-worker.js:55-80"
+    ],
+    "observed_gap": "Remux uses a 50ms pump interval despite message/update-driven work; decoder already has dequeue/wait wakeups. There is a concrete one-owner timer boundary to measure, not evidence for replacing all scheduling.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Count remux pump calls while paused/full and after delayed updateend; replace only redundant periodic wakeups with event plus deadline scheduling, then cancel a blocked read.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Remux uses a 50ms pump interval despite message/update-driven work; decoder already has dequeue/wait wakeups. There is a concrete one-owner timer boundary to measure, not evidence for replacing all scheduling."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R026.replace-polling-chains-with-bounded-credits-and-deadlines.md",
+        "sha256": "21618626a57687cbdc3bf75bf086def946f4b1bead0dedf45bd20901f75ca3eb",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Remux uses a 50ms pump interval despite message/update-driven work; decoder already has dequeue/wait wakeups. There is a concrete one-owner timer boundary to measure, not evidence for replacing all scheduling.",
+    "next_test": "Count remux pump calls while paused/full and after delayed updateend; replace only redundant periodic wakeups with event plus deadline scheduling, then cancel a blocked read.",
+    "reopen_condition": "Reopen if idle wakeups occur with no useful producer work; keep watchdogs and bounded pull ownership.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R040.coalesce-scrub-requests-and-commit-the-final-exact-seek",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+    "hypothesis": "Follow-on interaction optimization \u00b7 P2 \u00b7 extends R03, R18 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. During an explicit UI drag, service at most one in-flight preview seek and replace its pending successor with the newest target. On release, perform the final precise seek and restore the captured play/pause intent. New question versus prior work. The earlier work shortened one buffered seek. This reduces obsolete repeated seek work during a burst, without changing ordinary programmatic exact-seek behavior. Source primitive. HTML defines media seeking and precise currentTime updates. The coalescer is an application policy and does not require fastSeek, which must not be assumed available. [S9]",
+    "tested_profile": "Source/current-owner first-pass audit: Coalesce scrub requests and commit the final exact seek. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "src/player/index.ts:391-392"
+    ],
+    "observed_gap": "The maintained slider input updates UI only; change commits a single exact seek. The proposed intermediate preview coalescer has no repeated backend seek work to remove in this UI profile.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: No new adapter for the present slider; if live backend previews are added, replay reversal and release-during-pending gestures with exact final target.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "The maintained slider input updates UI only; change commits a single exact seek. The proposed intermediate preview coalescer has no repeated backend seek work to remove in this UI profile."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R040.coalesce-scrub-requests-and-commit-the-final-exact-seek.md",
+        "sha256": "5e2929827b29048fa791dfca8c03459d7b98d5acb64568dc0578584b69ee5653",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained slider input updates UI only; change commits a single exact seek. The proposed intermediate preview coalescer has no repeated backend seek work to remove in this UI profile.",
+    "next_test": "No new adapter for the present slider; if live backend previews are added, replay reversal and release-during-pending gestures with exact final target.",
+    "reopen_condition": "Reopen when explicit preview seeks are introduced or an actual UI trace exhibits obsolete repeated backend work.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R047.assemble-output-as-headers-plus-original-payload-views",
+    "decision": "ALREADY_IMPLEMENTED",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+    "hypothesis": "New copy-elimination experiment \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R34, R42, R46. Reference primitives: S1, S10, L3. Question. Can new fragment headers and existing compressed spans reach MSE without first flattening the whole fragment into another JavaScript buffer? Mechanism. Represent output as a bounded ordered list of header bytes and views onto owned immutable source spans. Feed those bytes in precisely the same logical order; batch adjacent spans so eliminating copies does not create one append per packet. ",
+    "tested_profile": "Source/current-owner first-pass audit: Assemble output as headers plus original payload views. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/native-remux-worker.js:4-6",
+      "web/native-remux-worker.js:16-16"
+    ],
+    "observed_gap": "The current dirty worker reuses a sole full owned ArrayBuffer and gathers all other cases. This is only the previously adopted narrow owned-buffer slice, not general scatter/gather or elimination of native mux copies.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Keep broad scatter/gather deferred unless multiple-piece gather pressure is measured; compare extra append calls and backing retention before adding views.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "The current dirty worker reuses a sole full owned ArrayBuffer and gathers all other cases. This is only the previously adopted narrow owned-buffer slice, not general scatter/gather or elimination of native mux copies."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R047.assemble-output-as-headers-plus-original-payload-views.md",
+        "sha256": "d641fee6000481539a95cb26f2d171c9970361778aa141658e7420847e506507",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The current dirty worker reuses a sole full owned ArrayBuffer and gathers all other cases. This is only the previously adopted narrow owned-buffer slice, not general scatter/gather or elimination of native mux copies.",
+    "next_test": "Keep broad scatter/gather deferred unless multiple-piece gather pressure is measured; compare extra append calls and backing retention before adding views.",
+    "reopen_condition": "Reopen for a demonstrated multi-piece bottleneck not covered by sole-buffer reuse; never transfer shared heap or oversized source backing.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+    "hypothesis": "New buffer-policy experiment \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R26, R34, R39. Reference primitives: S1, S4, L3. Question. Can rate-aware buffer targets reduce starvation at fast playback and wasted preparation at slow playback? Mechanism. Set a positive-rate media target from a bounded wall-time reserve: media seconds \u2248 playbackRate \u00d7 desired wall seconds. Apply hard byte caps and hysteresis, and use the shortest contiguous usable track horizon. Keep the initial-play threshold separate. ",
+    "tested_profile": "Source/current-owner first-pass audit: Size lookahead in wall-clock time, not fixed media seconds. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:235-243",
+      "src/internal/native-player.ts:316-316"
+    ],
+    "observed_gap": "Producer lookahead uses fixed five media seconds and 12MiB, while playback rate is adjustable. Slow playback can therefore retain more wall-time work; historical source warns producer-limited fast playback may not improve.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Run one bounded 0.5x stop trace and one 4x rate jump with fixed versus rate-aware lookahead, keeping minimum reserve, 12MiB cap and output identical.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Producer lookahead uses fixed five media seconds and 12MiB, while playback rate is adjustable. Slow playback can therefore retain more wall-time work; historical source warns producer-limited fast playback may not improve."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds.md",
+        "sha256": "77608048d35576b1b0aca652f751f183f86728066c92dc896a22343b32e72f66",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Producer lookahead uses fixed five media seconds and 12MiB, while playback rate is adjustable. Slow playback can therefore retain more wall-time work; historical source warns producer-limited fast playback may not improve.",
+    "next_test": "Run one bounded 0.5x stop trace and one 4x rate jump with fixed versus rate-aware lookahead, keeping minimum reserve, 12MiB cap and output identical.",
+    "reopen_condition": "Reopen with rate-dependent discarded preparation or starvation evidence; do not relax byte or audio continuity guards.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R066.communicate-the-requested-start-position-before-first-data-preparation",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "Focused startup optimization \u00b7 P1 \u00b7 Risk: Medium \u00b7 PROPOSED / NOT TESTED First environment: Sandbox direct Blob-video pilot; real HTTP-byte impact requires the local environment. Related cards: R02, R44. Proposed mechanism. For resume/chapter playback, let the Native candidate know the desired position before preparing initial data at time zero. Compare assigning currentTime while HAVE_NOTHING against waiting for loadeddata and then seeking. Retain one candidate rather than a throwaway player. What is new. R44 restricted the media supplied to MSE; this uses the direct media element\u2019s own early-start mechanism. It may avoid a redundant initial presentation and callback cycle without inspecting or repackaging every packet.",
+    "tested_profile": "Source/current-owner first-pass audit: Communicate the requested start position before first-data preparation. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "current_code_paths": [
+      "src/internal/native-player.ts:141-144",
+      "src/unified-player.ts:421-422"
+    ],
+    "observed_gap": "Direct load awaits loadeddata and candidate setup settles at zero before seeking a nonzero target. The desired target is available in caller scope but is not propagated to initial native load.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Pass a research target only to direct source initialization; compare earliest correct frame and actual range reads on one nonzero resume plus zero-start and immediate-replacement controls.",
+      "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+      "outcome": "Direct load awaits loadeddata and candidate setup settles at zero before seeking a nonzero target. The desired target is available in caller scope but is not propagated to initial native load."
+    },
+    "measurement": {
+      "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R066.communicate-the-requested-start-position-before-first-data-preparation.md",
+        "sha256": "f309222caf305ca7b211f1826c9b95e763a87162df8db6700ddf190294c07424",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Direct load awaits loadeddata and candidate setup settles at zero before seeking a nonzero target. The desired target is available in caller scope but is not propagated to initial native load.",
+    "next_test": "Pass a research target only to direct source initialization; compare earliest correct frame and actual range reads on one nonzero resume plus zero-start and immediate-replacement controls.",
+    "reopen_condition": "Reopen for an authorized nonzero-start workload; the historical Blob timing difference alone is not a useful network saving.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+    "hypothesis": "Reconfiguration-avoidance hypothesis \u00b7 P2 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox decision/sequence checks; a meaningful production saving requires local reconfiguration instrumentation. Related cards: R36, R43, R27. Proposed mechanism. Use a strict decoder-configuration fingerprint to recognize when a new wrapper or initialization segment does not require replacing an entire playback backend. Maintain a DIFFERENT source/track/timeline identity and still append required initialization data. Begin with exact codec-extra-data equality, not speculative semantic rewriting of parameter sets. What is new. R27 shared immutable compiled code, while R43 crossed a real video configuration change. This asks whether harmless wrapper-level differences or object identity cause avoidable application reconfiguration when the complete codec contract is unchanged.",
+    "tested_profile": "Source/current-owner first-pass audit: Separate decoder compatibility from per-source initialization identity. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "native/vd_browser.c:100-107",
+      "native/vd_browser.c:188-191",
+      "web/retained-decoder-worker.js:108-109"
+    ],
+    "observed_gap": "Current configure-after-reset accompanies software flush, replay/keyframe/recovery invalidation and decoder close. A same-byte fingerprint cannot remove that semantic reset; changed extradata already rejects/falls back.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Only instrument a separately observed wrapper-only configure boundary if one appears; do not skip reset on codec-byte equality.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Current configure-after-reset accompanies software flush, replay/keyframe/recovery invalidation and decoder close. A same-byte fingerprint cannot remove that semantic reset; changed extradata already rejects/falls back."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R069.separate-decoder-compatibility-from-per-source-initialization-identity.md",
+        "sha256": "519b8f8d6aa1cc528686a5c76cffb87c0b6ed131d68533c88753794c67365794",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current configure-after-reset accompanies software flush, replay/keyframe/recovery invalidation and decoder close. A same-byte fingerprint cannot remove that semantic reset; changed extradata already rejects/falls back.",
+    "next_test": "Only instrument a separately observed wrapper-only configure boundary if one appears; do not skip reset on codec-byte equality.",
+    "reopen_condition": "Reopen when an application reconfigure with unchanged state semantics is actually observed outside seek/reset.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+    "hypothesis": "Question. Can the browser retain already-owned encoded storage rather than allocating another packet copy? What differs from earlier work. Beyond R42 worker buffer recycling: target the chunk-constructor data copy rather than only postMessage ownership. Input scope. Standalone owned transferable ArrayBuffers containing complete valid codec units. Mechanism to test. Construct EncodedVideoChunk or EncodedAudioChunk with its data ArrayBuffer in the constructor transfer list, then decode normally. ",
+    "tested_profile": "Source/current-owner first-pass audit: Transfer owned packet storage into WebCodecs chunks. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:127-145"
+    ],
+    "observed_gap": "Normal packet input aliases shared Wasm memory and cannot be transferred; fallback slices and prefixed key packets own standalone arrays. Those branches currently still construct chunks without transfer, leaving a narrow second-copy opportunity.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Feature-test constructor detachment then use transfer only for full owned buffers in a research worker; compare chunk bytes and decoded timestamps with shared-heap and oversized-subview rejection controls.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Normal packet input aliases shared Wasm memory and cannot be transferred; fallback slices and prefixed key packets own standalone arrays. Those branches currently still construct chunks without transfer, leaving a narrow second-copy opportunity."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R100.transfer-owned-packet-storage-into-webcodecs-chunks.md",
+        "sha256": "b30c0b46f035f6b4e83eb7651bf269470d9eacdffa239dcd8e0119eaf6b95557",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R88-R101-research-backlog.md",
+        "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Normal packet input aliases shared Wasm memory and cannot be transferred; fallback slices and prefixed key packets own standalone arrays. Those branches currently still construct chunks without transfer, leaving a narrow second-copy opportunity.",
+    "next_test": "Feature-test constructor detachment then use transfer only for full owned buffers in a research worker; compare chunk bytes and decoded timestamps with shared-heap and oversized-subview rejection controls.",
+    "reopen_condition": "Reopen for actual owned-packet frequency and complete decode evidence; shared heap remains ineligible.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R118.mse-append-window-clipping-report-paragraph-label.report-frontier",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "R118: append-window filtering accepted all source bytes but retained only coded frames in the requested window. The final range was approximately [1.066666,2.899999]. This is useful for in-browser trimming, but it does not save transport bytes: Chrome still receives/parses the supplied media.",
+    "tested_profile": "Source/current-owner first-pass audit: MSE append-window clipping [report paragraph label]. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:95-100",
+      "web/native-remux-player.js:205-219"
+    ],
+    "observed_gap": "Ordinary playback uses segments and RAP-aware eviction, with no requested clip contract. Append-window clipping does not avoid transport/parsing work and would drop required coded output if added as a general optimization.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: When trimming is explicitly requested, compare append-window output boundaries against an independent clip oracle and count unchanged received bytes.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Ordinary playback uses segments and RAP-aware eviction, with no requested clip contract. Append-window clipping does not avoid transport/parsing work and would drop required coded output if added as a general optimization."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R118.mse-append-window-clipping-report-paragraph-label.report-frontier.md",
+        "sha256": "1e6e655ceb2e79fc86a37775c632f6b3de429c0dc4dd74b70761d6a2141ffe68",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R116-R131-report.md",
+        "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Ordinary playback uses segments and RAP-aware eviction, with no requested clip contract. Append-window clipping does not avoid transport/parsing work and would drop required coded output if added as a general optimization.",
+    "next_test": "When trimming is explicitly requested, compare append-window output boundaries against an independent clip oracle and count unchanged received bytes.",
+    "reopen_condition": "Reopen only for an explicit bounded trim/output-window feature; do not claim network savings.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R119.canonicalize-equivalent-decoder-configurations",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Normalize a constrained H.264 parameter-set representation only when slice instructions and reconstructed pictures remain equivalent. Verify configuration transitions and seeks; profile relabeling is not tool conversion.",
+    "tested_profile": "Source/current-owner first-pass audit: Canonicalize equivalent decoder configurations. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/video-codec-config.js:26-45",
+      "native/vd_browser.c:100-107"
+    ],
+    "observed_gap": "The codec adapter reads AVC configuration/prefixes but does not prove parameter-set semantic equivalence. Exact extradata comparison conservatively guards changed decode state; safe canonicalization requires bitstream analysis beyond this parser.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Define one constrained parameter-set equivalence transform with independently decoded pictures and unchanged slice references; include same-ID changed-SPS rejection.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "The codec adapter reads AVC configuration/prefixes but does not prove parameter-set semantic equivalence. Exact extradata comparison conservatively guards changed decode state; safe canonicalization requires bitstream analysis beyond this parser."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R119.canonicalize-equivalent-decoder-configurations.md",
+        "sha256": "0c88020f30d460a3c49781e56166118afcc9b3c09def48e2f91a29d020977917",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The codec adapter reads AVC configuration/prefixes but does not prove parameter-set semantic equivalence. Exact extradata comparison conservatively guards changed decode state; safe canonicalization requires bitstream analysis beyond this parser.",
+    "next_test": "Define one constrained parameter-set equivalence transform with independently decoded pictures and unchanged slice references; include same-ID changed-SPS rejection.",
+    "reopen_condition": "Reopen with a demonstrated redundant equivalent representation and a bounded semantic proof/oracle; profile relabeling is not conversion.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R119.mse-future-range-replacement-report-paragraph-label.report-frontier",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "R119: after appending the red\u2192blue source, the future [2,4] range was removed and an independent green clip was appended at offset 2. The same SourceBuffer then showed red at 1.5 s and green at 2.5/3.5 s. This demonstrates bounded in-place future replacement without reconstructing the MediaSource.",
+    "tested_profile": "Source/current-owner first-pass audit: MSE future-range replacement [report paragraph label]. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:205-219",
+      "web/native-remux-player.js:35-42"
+    ],
+    "observed_gap": "Existing SourceBuffer removal is old-range eviction, not transactional future content replacement. There is no replacement epoch/rollback owner; source replacement currently starts a fresh generation.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Specify one same-source explicit future-edit transaction at a RAP, remove only unpresented range and append a distinct clip, with cancellation before commit.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Existing SourceBuffer removal is old-range eviction, not transactional future content replacement. There is no replacement epoch/rollback owner; source replacement currently starts a fresh generation."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R119.mse-future-range-replacement-report-paragraph-label.report-frontier.md",
+        "sha256": "272d0c66e945256da687cf921a9e2eb1afeba0a4c2d548873a958f485ec5bcfa",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R116-R131-report.md",
+        "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Existing SourceBuffer removal is old-range eviction, not transactional future content replacement. There is no replacement epoch/rollback owner; source replacement currently starts a fresh generation.",
+    "next_test": "Specify one same-source explicit future-edit transaction at a RAP, remove only unpresented range and append a distinct clip, with cancellation before commit.",
+    "reopen_condition": "Reopen when future replacement is a requested feature and epoch ownership is available; retain current generation isolation.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R122.retime-existing-frames-without-creating-new-pictures.report-frontier",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "The three-frame all-intra MP4 was changed from one-second to two-second sample durations by modifying timing tables and container durations only. The mdat is byte-identical. Chrome reports 6.0 s, shows red/green/blue for two seconds each, and reports only 3 total decoded video frames. This is a useful complement to R96: sparse/held presentations do not necessarily require a new video encode when the existing compressed samples already correspond to the desired visual states. R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 \u2192 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
+    "tested_profile": "Source/current-owner first-pass audit: Retime existing frames without creating new pictures. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "native/remux/remux.c:386-406"
+    ],
+    "observed_gap": "Packet remux preserves source timebases and frame-rate declarations; ordinary playback requests original timing. Retiming existing pictures is an altered-output contract, not a transparent optimization for this campaign profile.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For an explicitly requested sparse/held presentation, change only sample timing in a three-frame fixture and compare payloads, frame count and duration.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Packet remux preserves source timebases and frame-rate declarations; ordinary playback requests original timing. Retiming existing pictures is an altered-output contract, not a transparent optimization for this campaign profile."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md",
+        "sha256": "eb65595dc231463da1d390ffc8ca84c335775f5478896f3b866f8cf45c58825f",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R116-R131-report.md",
+        "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Packet remux preserves source timebases and frame-rate declarations; ordinary playback requests original timing. Retiming existing pictures is an altered-output contract, not a transparent optimization for this campaign profile.",
+    "next_test": "For an explicitly requested sparse/held presentation, change only sample timing in a three-frame fixture and compare payloads, frame count and duration.",
+    "reopen_condition": "Reopen with requested retiming semantics and audio/subtitle treatment; do not apply to ordinary playback.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R124.copy-a-frame-once-to-free-the-decoder",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Copy only selected long-lived retained outputs into owned storage, releasing scarce decoder surfaces promptly. Compare with direct references under the same useful-frame budget; include conversion and copy costs.",
+    "tested_profile": "Source/current-owner first-pass audit: Copy a frame once to free the decoder. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/retained-engine-worker.js:5-26",
+      "web/retained-decoder-worker.js:174-181"
+    ],
+    "observed_gap": "The retained presenter keeps a held VideoFrame for redraw until replacement; that can hold a decoder surface. Bounded queue sizes alone do not establish surface pressure or justify copying every frame.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Count held-frame lifetime during pause and a long display interval; compare copying only that held output to owned storage against direct retention, including copy/conversion cost and redraw pixels.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "The retained presenter keeps a held VideoFrame for redraw until replacement; that can hold a decoder surface. Bounded queue sizes alone do not establish surface pressure or justify copying every frame."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R124.copy-a-frame-once-to-free-the-decoder.md",
+        "sha256": "8f41b8173c3cf5cf91c953689ad813243fdd49fd731b01a89df07b34fc717f7e",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The retained presenter keeps a held VideoFrame for redraw until replacement; that can hold a decoder surface. Bounded queue sizes alone do not establish surface pressure or justify copying every frame.",
+    "next_test": "Count held-frame lifetime during pause and a long display interval; compare copying only that held output to owned storage against direct retention, including copy/conversion cost and redraw pixels.",
+    "reopen_condition": "Reopen when selected long-lived frames cause measurable decoder-surface pressure; ordinary short-lived transfer remains unchanged.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "R124: RFC 9559 defines negative DiscardPadding as beginning padding. However, naively adding -5 ms to the first Opus block on top of the file's existing Opus CodecDelay/pre-skip state did not compose as an extra 240-sample crop: output became 96,072 samples instead of 96,000. The encoded packets remained identical. Do not treat arbitrary negative DiscardPadding insertion as a standalone head-trim operation without reconciling the codec's existing delay model.",
+    "tested_profile": "Source/current-owner first-pass audit: WebM negative DiscardPadding head-crop composition [report paragraph label]. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "native/remux/remux.c:379-384",
+      "native/remux/remux.c:389-400"
+    ],
+    "observed_gap": "The maintained mux preserves codec initial padding and compensates coded WebM interleaving; arbitrary extra negative DiscardPadding would compose with existing delay. The cited historical 96072-sample counterexample rejects the naive standalone crop variant, not all legal head cropping.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Only revisit with an explicit trim request and a model combining CodecDelay, pre-skip and DiscardPadding; compare exact head/tail samples.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "The maintained mux preserves codec initial padding and compensates coded WebM interleaving; arbitrary extra negative DiscardPadding would compose with existing delay. The cited historical 96072-sample counterexample rejects the naive standalone crop variant, not all legal head cropping."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier.md",
+        "sha256": "6283de3050b9310925c560a2946b6e97dae34649a0d14014a1dfad1bbeb3007b",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R116-R131-report.md",
+        "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained mux preserves codec initial padding and compensates coded WebM interleaving; arbitrary extra negative DiscardPadding would compose with existing delay. The cited historical 96072-sample counterexample rejects the naive standalone crop variant, not all legal head cropping.",
+    "next_test": "Only revisit with an explicit trim request and a model combining CodecDelay, pre-skip and DiscardPadding; compare exact head/tail samples.",
+    "reopen_condition": "Reopen for a specified composed trim model; do not delete existing codec delay or infer correctness from nominal duration.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R125.buffer-according-to-predicted-decode-work",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Use parser-visible structure and measured decode times to schedule preparation before difficult regions under fixed byte/memory budgets. Test prediction overhead and actual presentation deadlines rather than compressed-size proxies alone.",
+    "tested_profile": "Source/current-owner first-pass audit: Buffer according to predicted decode work. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:235-243",
+      "web/retained-decoder-worker.js:125-145"
+    ],
+    "observed_gap": "Current native buffering sees media horizons and byte bounds; opaque native decoder work is not predicted. WebCodecs queue counts also lack a parser-visible per-region complexity estimator. The proposal needs a new estimator plus calibration before changing scheduling.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Capture one difficult-region trace with parser features and actual decode deadlines, estimate predictive value offline within fixed byte budgets before a controller change.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Current native buffering sees media horizons and byte bounds; opaque native decoder work is not predicted. WebCodecs queue counts also lack a parser-visible per-region complexity estimator. The proposal needs a new estimator plus calibration before changing scheduling."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R125.buffer-according-to-predicted-decode-work.md",
+        "sha256": "e22d97b19c666d1f6d78ebb464d0c16973d904067e06d6dcfaeee5a3389b8bf9",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current native buffering sees media horizons and byte bounds; opaque native decoder work is not predicted. WebCodecs queue counts also lack a parser-visible per-region complexity estimator. The proposal needs a new estimator plus calibration before changing scheduling.",
+    "next_test": "Capture one difficult-region trace with parser features and actual decode deadlines, estimate predictive value offline within fixed byte budgets before a controller change.",
+    "reopen_condition": "Reopen with a cheap predictor outperforming existing horizons and charged prediction overhead; compressed size alone is insufficient.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R125.webm-defaultduration-parser-holdback-report-paragraph-label.report-frontier",
+    "decision": "INCONCLUSIVE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "R125: removing only the 8-byte DefaultDuration element from an otherwise identical three-frame VP8 WebM changes Chrome's behavior under a partial MSE append. With the default, one block immediately produced [0,0.1] buffered and one presented frame. Without it, the exact first block produced no buffered range and no frame until more timestamp information exists. This generalizes R112: parser timing information can affect output availability without changing codec data or delivery timing.",
+    "tested_profile": "Source/current-owner first-pass audit: WebM DefaultDuration parser holdback [report paragraph label]. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "native/remux/remux.c:389-406"
+    ],
+    "observed_gap": "Current WebM mux forwards avg_frame_rate/r_frame_rate and uses persistent FFmpeg mux output, but this source audit does not establish whether emitted DefaultDuration is present or whether partial appends stall. The report is a metadata holdback observation, distinct from R125 decode-work prediction.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Inspect one emitted VP8 WebM header and first-block append; remove only DefaultDuration as adverse control while keeping payload/release schedule identical.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Current WebM mux forwards avg_frame_rate/r_frame_rate and uses persistent FFmpeg mux output, but this source audit does not establish whether emitted DefaultDuration is present or whether partial appends stall. The report is a metadata holdback observation, distinct from R125 decode-work prediction."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R125.webm-defaultduration-parser-holdback-report-paragraph-label.report-frontier.md",
+        "sha256": "75b516edd072e5933c952ac0cff64b31247b5bd4302f644849e2c7f0ba939bd4",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R116-R131-report.md",
+        "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current WebM mux forwards avg_frame_rate/r_frame_rate and uses persistent FFmpeg mux output, but this source audit does not establish whether emitted DefaultDuration is present or whether partial appends stall. The report is a metadata holdback observation, distinct from R125 decode-work prediction.",
+    "next_test": "Inspect one emitted VP8 WebM header and first-block append; remove only DefaultDuration as adverse control while keeping payload/release schedule identical.",
+    "reopen_condition": "Reopen if current output lacks trustworthy timing metadata and actual first-block output waits; avoid inferring benefit from metadata size.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R126.find-where-hardware-decoding-loses-on-short-jobs",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Compare complete thumbnail, short-preview and sustained-playback jobs across qualified decoder implementations, including configuration, output extraction and cleanup. Acceleration preferences are not hardware proof.",
+    "tested_profile": "Source/current-owner first-pass audit: Find where hardware decoding loses on short jobs. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:19-40",
+      "web/retained-decoder-worker.js:94-107"
+    ],
+    "observed_gap": "WebCodecs support/configuration and retained output are present, but there is no same-contract thumbnail/preview job harness comparing qualified implementations and actual acceleration. Preference fields are not hardware evidence.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_b/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Define one complete short decode-to-output job with config/extraction/cleanup for existing browser and software paths; first prove identical output, then compare a few job lengths.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "WebCodecs support/configuration and retained output are present, but there is no same-contract thumbnail/preview job harness comparing qualified implementations and actual acceleration. Preference fields are not hardware evidence."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_b/audits/R126.find-where-hardware-decoding-loses-on-short-jobs.md",
+        "sha256": "8f4cde4beb5da272c58655adff1e7e19f8bc729747607062d7914611ae43c232",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "WebCodecs support/configuration and retained output are present, but there is no same-contract thumbnail/preview job harness comparing qualified implementations and actual acceleration. Preference fields are not hardware evidence.",
+    "next_test": "Define one complete short decode-to-output job with config/extraction/cleanup for existing browser and software paths; first prove identical output, then compare a few job lengths.",
+    "reopen_condition": "Reopen when matching runnable implementations and a short-job oracle exist; no physical energy or hardware claim follows from browser route selection.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  }
+]

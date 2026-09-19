@@ -1,0 +1,62 @@
+git status --short
+python3 scripts/build-audio-adaptation.py --output build/local-screening/adaptation-reference --sdk /Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14 --archive build/local-screening/inputs/ffmpeg.tar.gz
+python3 /Volumes/seed2/Projects/demuxe/experiments/optimization-integration/fixtures.py
+# Fresh manifests were saved here as fixture-manifest.json and additional-fixtures.json; the two changed historical manifests were restored from the initially clean HEAD.
+python3 scripts/verify-audio-adaptation-build.py /Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/engine-1789826284257134000
+DEMUXE_REMUX_FFMPEG_DIR="$PWD/build/local-screening/adaptation-reference/ffmpeg" DEMUXE_SDK=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14 WEBMPV_EM_CONFIG="$PWD/build/local-screening/adaptation-reference/emscripten.config" bash scripts/build-remux.sh
+CASES=b0-start0-mismatch0,b0-start2-mismatch1,b2-start0-mismatch0,b2-start2-mismatch1,audio-offset,multi-audio RESULT_ROOT=results/local-screening/runs/adaptation-reference node tests/audio-adaptation.mjs
+CASES=bounded-local-gain,authenticated-range,destroy-blocked-read,incorrect-range,reject-pcm32,reject-float,reject-surround RESULT_ROOT=results/local-screening/runs/adaptation-reference node tests/audio-adaptation-lifecycle.mjs
+python3 scripts/local-screening-profile.py
+ENGINE_BUILD=build/local-screening/adaptation-profile CASES=b0-start0-mismatch0,b2-start2-mismatch1,multi-audio RESULT_ROOT=results/local-screening/runs/r74-profile node tests/audio-adaptation.mjs
+ffmpeg -v error -nostdin -n -i fixtures/example.mp4 -map 0:v:0 -map 0:a:0 -c copy -movflags empty_moov+frag_keyframe+default_base_moof build/local-screening/fragmented.mp4
+RESULT_ROOT=results/local-screening/runs/opportunities-01 node tests/local-screening-runtime.mjs
+RESULT_ROOT=results/local-screening/runs/opportunities-02 node tests/local-screening-runtime.mjs
+node --test tests/local-screening-r47.mjs
+CASES=remux-work REMUX_WORKER=build/local-screening/r47-single-owned/native-remux-worker.js RESULT_ROOT=results/local-screening/runs/r47-candidate-01 node tests/local-screening-runtime.mjs
+CASES=remux-work RESULT_ROOT=results/local-screening/runs/r47-reference-03 node tests/local-screening-runtime.mjs
+REMUX_WORKER=build/local-screening/r47-single-owned/native-remux-worker.js CASES=b0-start0-mismatch0,b2-start2-mismatch1,audio-offset,multi-audio RESULT_ROOT=results/local-screening/runs/r47-correctness node tests/audio-adaptation.mjs
+CASES=changed-identity,stale-generation RESULT_ROOT=results/local-screening/runs/baseline-authority node tests/audio-adaptation-lifecycle.mjs
+REMUX_WORKER=build/local-screening/r47-single-owned/native-remux-worker.js RESULT_ROOT=results/local-screening/runs/r47-lifecycle node tests/audio-adaptation-lifecycle.mjs
+RESULT_ROOT=results/local-screening/runs/module-01 node tests/local-screening-module.mjs
+RESULT_ROOT=results/local-screening/runs/module-reads-02 node tests/local-screening-module.mjs
+REMUX_WORKER=build/local-screening/r47-single-owned/native-remux-worker.js RESULT_ROOT=results/local-screening/runs/r47-endurance-01 node tests/local-screening-endurance.mjs
+npm run check:licenses
+git diff --check
+# Exact wrong-output generation command and hashes: wrong-output-control.json.
+# Exact native links/toolchain/input hashes: adaptation manifest and runtime-manifest.json.
+# Earlier failed harness variants/results are preserved; later source edits are described in full-queue-audit.md.
+
+# Real-media and integrated closeout
+CASES=remux-work FIXTURE=build/local-screening/media/bbb-060.mp4 RESULT_ROOT=results/local-screening/runs/r47-bbb060-reference node tests/local-screening-runtime.mjs
+CASES=remux-work FIXTURE=build/local-screening/media/bbb-key-060.mp4 RESULT_ROOT=results/local-screening/runs/r47-bbbkey060-reference node tests/local-screening-runtime.mjs
+CASES=remux-work FIXTURE=build/local-screening/media/bbb-key-060.mp4 REMUX_WORKER=build/local-screening/r47-single-owned/native-remux-worker.js RESULT_ROOT=results/local-screening/runs/r47-bbbkey060-candidate node tests/local-screening-runtime.mjs
+CASES=direct-control FIXTURE=build/local-screening/media/bbb-060.mp4 RESULT_ROOT=results/local-screening/runs/bbb060-direct-control node tests/local-screening-runtime.mjs
+npm run build
+node --test tests/local-screening-r47.mjs tests/remux-buffering.mjs tests/remux-packaging-contracts.mjs tests/repair-evidence-contracts.mjs tests/runtime-capability-contracts.mjs tests/file-reader.mjs tests/plan-admission.mjs tests/seek-boundary-contracts.mjs
+CASES=bounded-local-gain,changed-identity,stale-generation RESULT_ROOT=results/local-screening/runs/integrated-default node tests/audio-adaptation-lifecycle.mjs
+git diff --check
+
+# Follow-up: broaden attribution and resolve diagnostics
+RESULT_ROOT=results/local-screening/runs/module-separated-01 node tests/local-screening-module.mjs
+MODULE_REUSE=1 RESULT_ROOT=results/local-screening/runs/module-reuse-01 node tests/local-screening-module.mjs
+# Caption boundary -01 and -02 used the draft subsequently folded into runtime's caption-boundary case.
+# Preroll diagnostic exact source/link command/artifact hashes are in runs/preroll-diagnostic-01/diagnostic-manifest.json.
+CASES=remux-work FIXTURE=build/local-screening/media/bbb-060.mp4 ENGINE_BUILD=build/local-screening/preroll-diagnostic RESULT_ROOT=results/local-screening/runs/preroll-diagnostic-01 node tests/local-screening-runtime.mjs
+CASES=long-pcm ENGINE_BUILD=build/local-screening/adaptation-profile RESULT_ROOT=results/local-screening/runs/r74-long-profile node tests/audio-adaptation.mjs
+CASES=long-pcm ENGINE_BUILD=build/local-screening/adaptation-profile RESULT_ROOT=results/local-screening/runs/r74-long-profile-serial node tests/audio-adaptation.mjs
+python3 scripts/local-screening-packed.py
+CASES=b0-start0-mismatch0,b2-start2-mismatch1,audio-offset,multi-audio,long-pcm ENGINE_BUILD=build/local-screening/adaptation-packed RESULT_ROOT=results/local-screening/runs/r74-packed-correctness node tests/audio-adaptation.mjs
+ENGINE_BUILD=build/local-screening/adaptation-packed RESULT_ROOT=results/local-screening/runs/r74-packed-lifecycle node tests/audio-adaptation-lifecycle.mjs
+python3 scripts/local-screening-packed.py --control overwrite
+python3 scripts/local-screening-packed.py --control precision
+CASES=b0-start0-mismatch0,multi-audio ENGINE_BUILD=build/local-screening/adaptation-packed-overwrite RESULT_ROOT=results/local-screening/runs/r74-packed-ownership node tests/audio-adaptation.mjs
+EXPECT_PRECISION_REJECTION=1 CASES=b0-start0-mismatch0 ENGINE_BUILD=build/local-screening/adaptation-packed-precision RESULT_ROOT=results/local-screening/runs/r74-packed-precision node tests/audio-adaptation.mjs
+RESULT_ROOT=results/local-screening/runs/r74-packed-cost-01 node tests/local-screening-packed-cost.mjs
+python3 scripts/local-screening-cost-summary.py results/local-screening/runs/r74-packed-cost-01/result.json
+python3 scripts/local-screening-module-pairs.py
+MAINTAINED_BASELINE=1 RESULT_ROOT=results/local-screening/runs/module-maintained-pairs-01 python3 scripts/local-screening-module-pairs.py
+MODULE_REUSE=1 MODULE_CONTROLS=1 RESULT_ROOT=results/local-screening/runs/module-authority-02 node tests/local-screening-module.mjs
+CASES=caption-boundary RESULT_ROOT=results/local-screening/runs/caption-boundary-integrated node tests/local-screening-runtime.mjs
+npm run build
+node --test tests/local-screening-r47.mjs
+git diff --check

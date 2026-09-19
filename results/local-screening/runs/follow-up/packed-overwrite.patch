@@ -1,0 +1,28 @@
+--- profile/flac.h
++++ packed/flac.h
+@@ -107,6 +107,17 @@
+   if(f->nb_samples<=0||f->nb_samples>65536)return reject("Decoded audio frame budget exceeded");
+   int bytes=av_get_bytes_per_sample(f->format),planar=av_sample_fmt_is_planar(f->format);
+   double screen_begin=emscripten_get_now();
++  if(adapt_enabled==1&&!planar){
++   // Validate the complete S24 frame before publishing any samples to the FIFO.
++   if(bytes==4)for(int i=0;i<f->nb_samples*channels;i++){
++    int32_t value;memcpy(&value,f->extended_data[0]+i*4,4);
++    if(value&255)return reject("Decoded samples exceed established 24-bit precision");
++   }
++   if(av_audio_fifo_size(adapt_fifo)+f->nb_samples>131072)return reject("Audio FIFO budget exceeded");
++   r=av_audio_fifo_write(adapt_fifo,(void**)f->extended_data,f->nb_samples);
++   if(r!=f->nb_samples)return r<0?r:AVERROR_BUG;
++   memset(f->extended_data[0],0,f->nb_samples*channels*bytes);
++  }else{
+   AVFrame *converted=av_frame_alloc();if(!converted)return AVERROR(ENOMEM);
+   converted->nb_samples=f->nb_samples;converted->format=adapt_encoder->sample_fmt;
+   av_channel_layout_copy(&converted->ch_layout,&adapt_encoder->ch_layout);
+@@ -123,6 +134,7 @@
+   }
+   if(av_audio_fifo_size(adapt_fifo)+f->nb_samples>131072){av_frame_free(&converted);return reject("Audio FIFO budget exceeded");}
+   r=av_audio_fifo_write(adapt_fifo,(void**)converted->extended_data,f->nb_samples);av_frame_free(&converted);if(r!=f->nb_samples)return r<0?r:AVERROR_BUG;
++  }
+   screen_staging_ms+=emscripten_get_now()-screen_begin;screen_staging_bytes+=(int64_t)f->nb_samples*channels*bytes;screen_staging_frames++;
+   adapt_decoded_samples+=f->nb_samples;adapt_audio_frames++;av_frame_unref(f);
+   r=adaptation_encode(0);if(r<0)return r;

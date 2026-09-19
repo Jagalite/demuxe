@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: Apache-2.0
+import http from 'node:http';
+import {chromium} from 'playwright';
+import {readFile,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const out='results/top100/hls',bytes=await readFile(out+'/prepared.mp4'),boxes=[];
+for(let p=0;p<bytes.length;){const n=bytes.readUInt32BE(p),type=bytes.toString('ascii',p+4,p+8);assert.ok(n>=8&&p+n<=bytes.length);boxes.push({offset:p,size:n,type});p+=n;}
+const fragments=boxes.filter(b=>b.type==='moof').map(b=>{const next=boxes.find(x=>x.offset===b.offset+b.size);assert.equal(next.type,'mdat');return {offset:b.offset,size:b.size+next.size};});assert.ok(fragments.length>=2);
+const init=fragments[0].offset;const playlist=bad=>'#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:2\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXT-X-MAP:URI="clip.mp4",BYTERANGE="'+init+'@0"\n'+fragments.map(f=>'#EXTINF:1.041667,\n#EXT-X-BYTERANGE:'+f.size+'@'+(f.offset+(bad?3:0))+'\nclip.mp4\n').join('')+'#EXT-X-ENDLIST\n';
+const result={scope:'Native HTML media URL destinations with no HLS library. Real rendered color/audio; no hardware/energy or route admission claim.',fragments,requests:[],cases:[]};let responseCompletedAt=null;
+const server=http.createServer((req,res)=>{
+ result.requests.push({url:req.url,range:req.headers.range??null,time:Date.now()});res.setHeader('Access-Control-Allow-Origin','*');
+ if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Native delivery probe</title>');return;}
+ if(req.url.startsWith('/playlist')){res.setHeader('Content-Type','application/vnd.apple.mpegurl');res.end(playlist(req.url.includes('bad')));return;}
+ if(req.url==='/slow.mp4'||req.url==='/slow-known.mp4'){res.setHeader('Content-Type','video/mp4');if(req.url==='/slow-known.mp4')res.setHeader('Content-Length',bytes.length);res.write(bytes.subarray(0,fragments[0].offset+fragments[0].size));const timer=setTimeout(()=>{responseCompletedAt=Date.now();res.end(bytes.subarray(fragments[0].offset+fragments[0].size));},3500);res.on('close',()=>clearTimeout(timer));return;}
+ if(req.url==='/clip.mp4'){let start=0,end=bytes.length-1;const match=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);res.setHeader('Content-Type','video/mp4');res.setHeader('Accept-Ranges','bytes');if(match){start=+match[1];end=match[2]?Math.min(+match[2],end):end;if(start>end){res.writeHead(416).end();return;}res.statusCode=206;res.setHeader('Content-Range',`bytes ${start}-${end}/${bytes.length}`);}res.setHeader('Content-Length',end-start+1);res.end(bytes.subarray(start,end+1));return;}
+ res.writeHead(404).end();
+});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
+try{
+ browser=await chromium.launch({channel:'chrome',headless:true});result.browser=browser.version();const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);
+ for(const [name,path] of [['hls','/playlist.m3u8'],['hls-bad-boundary','/playlist-bad.m3u8']]){
+  const run=await page.evaluate(async({name,path})=>{
+   const v=document.createElement('video');v.width=160;v.height=96;document.body.append(v);const context=new AudioContext({sampleRate:48000});await context.resume();const source=context.createMediaElementSource(v),analyser=context.createAnalyser();analyser.fftSize=4096;source.connect(analyser);analyser.connect(context.destination);const canvas=document.createElement('canvas');canvas.width=160;canvas.height=96;const ctx=canvas.getContext('2d');let firstAVAt=null,av=0,ended=false,failed=null,seeked=false;const states=[];
+   v.onended=()=>ended=true;v.onerror=()=>failed=v.error?.message||'media error';let blobURL,pump;if(name==='mse-open-response'){const ms=new MediaSource();blobURL=URL.createObjectURL(ms);v.src=blobURL;pump=(async()=>{await new Promise(r=>ms.addEventListener('sourceopen',r,{once:true}));const sb=ms.addSourceBuffer('video/mp4; codecs=\"avc1.64000a,mp4a.40.2\"');const reader=(await fetch(path)).body.getReader();for(;;){const {value,done}=await reader.read();if(done)break;const appended=new Promise((resolve,reject)=>{sb.addEventListener('updateend',resolve,{once:true});sb.addEventListener('error',()=>reject(Error('append error')),{once:true});});sb.appendBuffer(value);await appended;}ms.endOfStream();})().catch(e=>failed=String(e));}else v.src=path;v.play().catch(e=>failed=String(e));const deadline=performance.now()+12000;
+   while(performance.now()<deadline&&!failed&&!ended){
+    if(v.readyState>=2){ctx.drawImage(v,0,0);const pixel=ctx.getImageData(80,48,1,1).data;const spec=new Float32Array(analyser.frequencyBinCount);analyser.getFloatFrequencyData(spec);let best=1;for(let i=2;i<spec.length;i++)if(spec[i]>spec[best])best=i;const yes=pixel[0]>180&&pixel[1]<60&&Math.abs(best*context.sampleRate/analyser.fftSize-440)<20&&spec[best]>-70;if(yes){firstAVAt??=Date.now();av++;}if(name==='hls'&&av>=5&&!seeked){v.currentTime=1.25;seeked=true;}}
+    states.push({at:Date.now(),time:v.currentTime,ready:v.readyState});await new Promise(r=>setTimeout(r,20));
+   }
+   if(pump)await pump;if(blobURL)URL.revokeObjectURL(blobURL);v.pause();v.removeAttribute('src');v.load();v.remove();source.disconnect();analyser.disconnect();await context.close();return {name,firstAVAt,av,ended,failed,seeked,states,cleanup:true};
+  },{name,path});if(name.includes('fmp4')||name==='mse-open-response'){run.responseCompletedAt=responseCompletedAt;run.outputBeforeResponseEOF=run.firstAVAt!==null&&run.firstAVAt<responseCompletedAt;}result.cases.push(run);
+ }
+ result.hlsPursue=result.cases[0].av>=5&&result.cases[0].ended&&result.cases[0].seeked;result.badHlsRejected=result.cases[1].av===0;assert.ok(result.hlsPursue&&result.badHlsRejected);result.completed=true;
+}catch(e){result.error=String(e.stack);process.exitCode=1;}
+finally{await browser?.close();await new Promise(r=>server.close(r));await writeFile(out+(process.env.LONG_FIXTURE?'/native-delivery-long.json':'/native-delivery.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({...result,cases:result.cases.map(({states,...c})=>c)},null,2));}

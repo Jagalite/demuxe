@@ -1,0 +1,119 @@
+{
+  "scope": "Existing fresh engine instances; explicit compileStreaming then Instance. Compilation includes response body consumption and browser caching; no manual module cache or claimed candidate gain.",
+  "workerSHA256": "aa45084a12badc30314c477fc18f1fe514346aaa553a56c0d4c722c178840b43",
+  "cases": [
+    {
+      "name": "cold",
+      "observations": [
+        {
+          "operation": "probe",
+          "fetchHeadersMs": 35.41500002145767,
+          "compileAndBodyMs": 23.019999980926514,
+          "instantiateMs": 3.300000011920929
+        },
+        {
+          "operation": "init",
+          "fetchHeadersMs": 3.5899999737739563,
+          "compileAndBodyMs": 15.9200000166893,
+          "instantiateMs": 3.25
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 7
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "repeat-1",
+      "observations": [
+        {
+          "operation": "probe",
+          "fetchHeadersMs": 3.349999964237213,
+          "compileAndBodyMs": 11.370000004768372,
+          "instantiateMs": 3.25
+        },
+        {
+          "operation": "init",
+          "fetchHeadersMs": 2.424999952316284,
+          "compileAndBodyMs": 9.455000042915344,
+          "instantiateMs": 2.834999978542328
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 10
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "repeat-2",
+      "observations": [
+        {
+          "operation": "probe",
+          "fetchHeadersMs": 4.530000030994415,
+          "compileAndBodyMs": 13.669999957084656,
+          "instantiateMs": 3.8700000047683716
+        },
+        {
+          "operation": "init",
+          "fetchHeadersMs": 2.8950000405311584,
+          "compileAndBodyMs": 8.85999995470047,
+          "instantiateMs": 2.9300000071525574
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 10
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "concurrent",
+      "observations": [
+        {
+          "operation": "probe",
+          "fetchHeadersMs": 3.324999988079071,
+          "compileAndBodyMs": 19.09500002861023,
+          "instantiateMs": 3.494999945163727
+        },
+        {
+          "operation": "probe",
+          "fetchHeadersMs": 3.300000011920929,
+          "compileAndBodyMs": 23.27999997138977,
+          "instantiateMs": 1.9800000190734863
+        },
+        {
+          "operation": "init",
+          "fetchHeadersMs": 2.7949999570846558,
+          "compileAndBodyMs": 13.740000009536743,
+          "instantiateMs": 3.25
+        },
+        {
+          "operation": "init",
+          "fetchHeadersMs": 3.034999966621399,
+          "compileAndBodyMs": 13.97000002861023,
+          "instantiateMs": 3.074999988079071
+        }
+      ],
+      "output": [
+        {
+          "plan": "native-remux",
+          "frames": 5
+        },
+        {
+          "plan": "native-remux",
+          "frames": 5
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "browser": "152.0.7977.83"
+}

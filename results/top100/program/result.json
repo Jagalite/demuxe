@@ -1,0 +1,77 @@
+{
+  "scope": "Restricted single-packet PAT/PMT MPEG-TS selector; preserves selected elementary packets and PCR. No dynamic table versions or scrambled transport.",
+  "command": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "color=red:s=160x96:r=12:d=2",
+    "-f",
+    "lavfi",
+    "-i",
+    "sine=frequency=440:sample_rate=48000:duration=2",
+    "-f",
+    "lavfi",
+    "-i",
+    "color=lime:s=160x96:r=12:d=2",
+    "-f",
+    "lavfi",
+    "-i",
+    "sine=frequency=880:sample_rate=48000:duration=2",
+    "-map",
+    "0:v",
+    "-map",
+    "1:a",
+    "-map",
+    "2:v",
+    "-map",
+    "3:a",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "ultrafast",
+    "-g",
+    "12",
+    "-c:a",
+    "aac",
+    "-program",
+    "program_num=101:st=0:st=1",
+    "-program",
+    "program_num=202:st=2:st=3",
+    "-f",
+    "mpegts",
+    "/Volumes/seed2/Projects/demuxe/results/top100/program/multi.ts"
+  ],
+  "sourceBytes": 57528,
+  "rows": [
+    {
+      "name": "normal",
+      "bytes": 29516,
+      "pids": [
+        0,
+        258,
+        259,
+        4097
+      ],
+      "packetIdentityAndTimingExact": true,
+      "packets": 119
+    },
+    {
+      "name": "reversed",
+      "bytes": 29516,
+      "pids": [
+        0,
+        258,
+        259,
+        4097
+      ],
+      "packetIdentityAndTimingExact": true,
+      "packets": 119
+    }
+  ],
+  "absentProgramRejected": true,
+  "passed": true
+}

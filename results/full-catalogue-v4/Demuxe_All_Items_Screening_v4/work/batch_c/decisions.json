@@ -1,0 +1,2023 @@
+[
+  {
+    "key": "R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "R126 changes bytestream format while keeping VP9: WebM/VP9 \u2192 MP4/VP9. Both MIME types are accepted, changeType() succeeds, and one SourceBuffer presents green then blue over ~4 s.",
+    "tested_profile": "Source/current-code review of Same-codec bytestream change in one SourceBuffer [report paragraph label]; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "One VP9 SourceBuffer changes WebM to MP4 bytestream with continuing ordered pictures, audio if requested, and unchanged timeline; replacement/cancel cannot publish old epochs.",
+    "current_code_paths": [
+      "web/native-remux-player.js:40-100",
+      "web/native-remux-worker.js:27-39"
+    ],
+    "observed_gap": "The source demonstrates WebM/VP9 to MP4/VP9 changeType within one SourceBuffer, but current negotiation selects one packaging for a generation; it does not expose a same-source bytestream transition. A switching contract and transition owner are prerequisites, rather than an absent report or failed browser API.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Define one explicit VP9 bytestream transition using the current generation owner, then append two short independently valid epochs with a rejected incompatible-init control.",
+      "negative_control": "Proposed only: An accepted changeType with missing second-epoch pictures or altered timestamps disproves continuing playback.",
+      "outcome": "The source demonstrates WebM/VP9 to MP4/VP9 changeType within one SourceBuffer, but current negotiation selects one packaging for a generation; it does not expose a same-source bytestream transition. A switching contract and transition owner are prerequisites, rather than an absent report or failed browser API."
+    },
+    "measurement": {
+      "primary_metric": "Correct second-epoch playback and transition interruption, not MIME acceptance.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier.md",
+        "sha256": "b1322f1988e3a6713b0055b0e57dfd5f09887cffbb5532af189f8a8b6a7393c0",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The source demonstrates WebM/VP9 to MP4/VP9 changeType within one SourceBuffer, but current negotiation selects one packaging for a generation; it does not expose a same-source bytestream transition. A switching contract and transition owner are prerequisites, rather than an absent report or failed browser API.",
+    "next_test": "Define one explicit VP9 bytestream transition using the current generation owner, then append two short independently valid epochs with a rejected incompatible-init control.",
+    "reopen_condition": "Define one explicit VP9 bytestream transition using the current generation owner, then append two short independently valid epochs with a rejected incompatible-init control.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+    "hypothesis": "The two 60-second fMP4 files use the same codec/source construction; one contains a global sidx, the other uses skip_sidx. Without sidx, Chromium sequentially requested essentially the entire 3,362,971-byte resource before metadata became ready. With sidx, the total through the same metadata+seek operation was 1,069,611 bytes, a 68.2% reduction. This is a synthetic local Range server and one Chrome build; response cap, latency and server behavior can change the exact savings. But the qualitative result is strong: the index allows materially more selective access.",
+    "tested_profile": "Source/current-code review of global MP4 sidx materially changes remote access; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Same fMP4 coded samples, timestamps and requested tracks, authorized remote identity, cold metadata plus exact target seek.",
+    "current_code_paths": [
+      "src/internal/native-player.ts:245-256",
+      "web/range-reader.js:79-114"
+    ],
+    "observed_gap": "The recovered report removes the old source gate. Native direct delegates remote access to the media loader, so global sidx can affect actual transferred bytes; controlled-fetch remux is a separate route. Current RangeReader validates identities but cannot give a browser-native loader an index absent from the file.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Use the existing local HTTP harness for one same-payload indexed/nonindexed fMP4 pair and one seek; record metadata-ready and total seek bytes, first target picture, ETag change rejection on the controlled route separately.",
+      "negative_control": "Proposed only: Equal or larger cold-plus-seek bytes with correct target presentation on the indexed source defeats the claimed value for that response-cap profile.",
+      "outcome": "The recovered report removes the old source gate. Native direct delegates remote access to the media loader, so global sidx can affect actual transferred bytes; controlled-fetch remux is a separate route. Current RangeReader validates identities but cannot give a browser-native loader an index absent from the file."
+    },
+    "measurement": {
+      "primary_metric": "Total transferred bytes through metadata and one target seek, including cold index acquisition.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R131.global-mp4-sidx-materially-changes-remote-access.report-frontier.md",
+        "sha256": "63f5b818b8966748a1ad1ad8c00608897c0ecc238ff6dd02c57cf4f58dd974e2",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The recovered report removes the old source gate. Native direct delegates remote access to the media loader, so global sidx can affect actual transferred bytes; controlled-fetch remux is a separate route. Current RangeReader validates identities but cannot give a browser-native loader an index absent from the file.",
+    "next_test": "Use the existing local HTTP harness for one same-payload indexed/nonindexed fMP4 pair and one seek; record metadata-ready and total seek bytes, first target picture, ETag change rejection on the controlled route separately.",
+    "reopen_condition": "Use the existing local HTTP harness for one same-payload indexed/nonindexed fMP4 pair and one seek; record metadata-ready and total seek bytes, first target picture, ETag change rejection on the controlled route separately.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R135.microfragment-size-versus-startup-bytes.report-continuity",
+    "decision": "ALREADY_IMPLEMENTED",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+    "hypothesis": "The first complete 2-second fragment required 182,325 B including init; the first complete 500-ms fragment required 47,919 B. Both presented H.264 frames in Chrome. The smaller fragment therefore reduced the first complete playable region by 73.7% in this fixture. This is a byte-to-first-region result, not a universal startup-latency win. Smaller fragments increase box/append frequency and may worsen overhead elsewhere. R132 also shows that a streaming partial-mdat strategy can weaken the need to choose very small physical fragments.",
+    "tested_profile": "Source/current-code review of microfragment size versus startup bytes; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Same native packet-copy tracks/configuration/PTS/DTS and playable random-access dependencies under current 0.5-second fragmentation.",
+    "current_code_paths": [
+      "native/remux/remux.c:113-114",
+      "native/remux/remux.c:499-517"
+    ],
+    "observed_gap": "Current maintained native mux defaults its first fragment to 0.5 s and subsequent fragments to 0.5 s, with actual packet-boundary constraints. The report compares 2 s with 500 ms; adopting that exact interval is not a new missing change here. This does not assert every output fragment has exact 500 ms duration.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen only for a workload where measured first playable bytes remain dominated by current fragment completion; compare a single smaller bound without changing random-access requirements.",
+      "negative_control": "Proposed only: A measured two-second default in the actual served artifact would invalidate this source-level already-present disposition.",
+      "outcome": "Current maintained native mux defaults its first fragment to 0.5 s and subsequent fragments to 0.5 s, with actual packet-boundary constraints. The report compares 2 s with 500 ms; adopting that exact interval is not a new missing change here. This does not assert every output fragment has exact 500 ms duration."
+    },
+    "measurement": {
+      "primary_metric": "First complete playable bytes and first-frame latency, accounting for append frequency.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R135.microfragment-size-versus-startup-bytes.report-continuity.md",
+        "sha256": "7be1489271c9fa0ac6d9521886c91736c783d20cf3d07bca90be2089bc64b748",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current maintained native mux defaults its first fragment to 0.5 s and subsequent fragments to 0.5 s, with actual packet-boundary constraints. The report compares 2 s with 500 ms; adopting that exact interval is not a new missing change here. This does not assert every output fragment has exact 500 ms duration.",
+    "next_test": "Reopen only for a workload where measured first playable bytes remain dominated by current fragment completion; compare a single smaller bound without changing random-access requirements.",
+    "reopen_condition": "Reopen only for a workload where measured first playable bytes remain dominated by current fragment completion; compare a single smaller bound without changing random-access requirements.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R140.cue-less-webm-native-seek.report-continuity",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+    "hypothesis": "The fixture is WebM produced in live mode with no Cues and no finite duration advertised initially. A synthetic HTTPS media response honored browser Range headers but capped each response at 64 KiB. This exercises the media loader's byte-range behavior without making claims about TLS, real-network latency, caches, or proxies. Chrome initially reported duration=Infinity. Setting currentTime=6 generated seeking/seeked; after playback, the first video frame callback was exactly 6.000 s and frames continued normally. The cost is the important result: Chrome issued sequential Range requests from byte 0 through the end. The run served 1,334,098 B of a 1,334,098 B file (100.0%). Once the scan reached the end, duration became ~7.967 s.",
+    "tested_profile": "Source/current-code review of cue-less WebM native seek; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Cue-less WebM seek reaches the requested frame and all requested tracks without claiming sparse access from functional seek alone.",
+    "current_code_paths": [
+      "src/internal/native-player.ts:245-256",
+      "web/range-reader.js:24-42"
+    ],
+    "observed_gap": "For the stated sparse remote-seek goal, the full report already describes an entire-resource scan despite correct target pictures. Direct loading still delegates indexing to the browser and the reader cannot invent missing Cues. This is a source-level rejection of using indexless seek as a sparse strategy, not a newly executed negative experiment.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen with an indexed source or independently evidenced browser behavior that avoids scanning; measure all bytes from cold metadata acquisition through the same seek.",
+      "negative_control": "Proposed only: A correct target reached after sparse cold transfer without a hidden prior cache would falsify the scan-based stopping reason.",
+      "outcome": "For the stated sparse remote-seek goal, the full report already describes an entire-resource scan despite correct target pictures. Direct loading still delegates indexing to the browser and the reader cannot invent missing Cues. This is a source-level rejection of using indexless seek as a sparse strategy, not a newly executed negative experiment."
+    },
+    "measurement": {
+      "primary_metric": "All response-body bytes from cold load through target frame.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R140.cue-less-webm-native-seek.report-continuity.md",
+        "sha256": "e9f29bf494569daa93f3bdbda9a45ea4f843c64fae05d73883661a2eb846d957",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "For the stated sparse remote-seek goal, the full report already describes an entire-resource scan despite correct target pictures. Direct loading still delegates indexing to the browser and the reader cannot invent missing Cues. This is a source-level rejection of using indexless seek as a sparse strategy, not a newly executed negative experiment.",
+    "next_test": "Reopen with an indexed source or independently evidenced browser behavior that avoids scanning; measure all bytes from cold metadata acquisition through the same seek.",
+    "reopen_condition": "Reopen with an indexed source or independently evidenced browser behavior that avoids scanning; measure all bytes from cold metadata acquisition through the same seek.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R144.compile-simple-ass-animations-into-reusable-timeline-programs",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Reuse stable glyph masks with a compiled time-dependent fade/clip program for a supported ASS subset. Match libass ordering, rounding and blending across seeks; unsupported effects continue through the maintained renderer.",
+    "tested_profile": "Source/current-code review of Compile simple ASS animations into reusable timeline programs; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Supported ASS fade/clip subset matches libass glyph masks, blend ordering and rounding with identical fonts/layout at seeks.",
+    "current_code_paths": [
+      "src/internal/native-ass.ts:89-108",
+      "web/native-ass-worker.js:20-21"
+    ],
+    "observed_gap": "Native ASS renders through libass and skips unchanged bitmap replies. Compiled fade/clip programs require a new admitted ASS parser/subset and exact blend/ordering oracle; unchanged-image suppression does not implement animation programs.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Select one fade-only cue and document mask reuse and libass rounding at three times plus a seek before creating any compiler.",
+      "negative_control": "Proposed only: Pixel disagreement at the fade boundary, changed font/layout, or unsupported transform accepted as supported rejects the subset.",
+      "outcome": "Native ASS renders through libass and skips unchanged bitmap replies. Compiled fade/clip programs require a new admitted ASS parser/subset and exact blend/ordering oracle; unchanged-image suppression does not implement animation programs."
+    },
+    "measurement": {
+      "primary_metric": "Total animation rendering work and retained mask bytes.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R144.compile-simple-ass-animations-into-reusable-timeline-programs.md",
+        "sha256": "44acab213b915b3d2a029ac71ddd58f30c67d3aea803f5b96160d72b3f8c5b54",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Native ASS renders through libass and skips unchanged bitmap replies. Compiled fade/clip programs require a new admitted ASS parser/subset and exact blend/ordering oracle; unchanged-image suppression does not implement animation programs.",
+    "next_test": "Select one fade-only cue and document mask reuse and libass rounding at three times plus a seek before creating any compiler.",
+    "reopen_condition": "Select one fade-only cue and document mask reuse and libass rounding at three times plus a seek before creating any compiler.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R144.evict-through-a-paused-current-position.report-continuity",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+    "hypothesis": "Playback paused at 1.760563 s. A small canvas was used only as an oracle to fingerprint the displayed image before and after SourceBuffer.remove(0, 2.0). - currentTime stayed at 1.760563 s; - the buffered range began at 2.066666 s, so compressed media no longer covered currentTime; - the displayed-image signature was identical; - readyState remained 4 and there was no media error. Implication. Chrome retains the presently displayed decoded image beyond removal of its compressed backing range. This may let a player reclaim compressed MSE bytes more aggressively while paused. Limit. It does not prove the browser retains enough decoder state to resume from that removed point or seek back without re-appending media. It also says nothing about decoder-surface memory reclamation.",
+    "tested_profile": "Source/current-code review of evict through a paused current position; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Paused displayed frame remains correct and resumed audio/video can recover exact timing after current-region eviction.",
+    "current_code_paths": [
+      "web/native-remux-player.js:200-219",
+      "web/native-remux-player.js:289-300"
+    ],
+    "observed_gap": "Current eviction deliberately retains three seconds and RAP dependencies. The report proves only persistence of the paused displayed image after removal, explicitly not decoder resume. Removing current-position compressed coverage cannot meet ordinary pause/resume and seek semantics from this evidence.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen for an explicit long-pause memory contract with a bounded reappend plan; compare paused display and resumed A/V after removal at one non-RAP position.",
+      "negative_control": "Proposed only: Frozen image success followed by stalled or wrong resumed A/V is a decisive rejection; memory cannot be inferred from buffered seconds.",
+      "outcome": "Current eviction deliberately retains three seconds and RAP dependencies. The report proves only persistence of the paused displayed image after removal, explicitly not decoder resume. Removing current-position compressed coverage cannot meet ordinary pause/resume and seek semantics from this evidence."
+    },
+    "measurement": {
+      "primary_metric": "Reclaimable compressed bytes including any required reappend work; not decoded-surface memory.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R144.evict-through-a-paused-current-position.report-continuity.md",
+        "sha256": "e95b73673274fa517e3bcdced39e042b1e0446305690c7e21e3b355ab2be72ee",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current eviction deliberately retains three seconds and RAP dependencies. The report proves only persistence of the paused displayed image after removal, explicitly not decoder resume. Removing current-position compressed coverage cannot meet ordinary pause/resume and seek semantics from this evidence.",
+    "next_test": "Reopen for an explicit long-pause memory contract with a bounded reappend plan; compare paused display and resumed A/V after removal at one non-RAP position.",
+    "reopen_condition": "Reopen for an explicit long-pause memory contract with a bounded reappend plan; compare paused display and resumed A/V after removal at one non-RAP position.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R162.compile-a-qualified-mux-configuration-into-a-small-patch-program",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Specialize a validated stable fMP4 layout into trusted patch operations for changing lengths, counts, timing and offsets. Independently parse output and reject specialization-boundary changes.",
+    "tested_profile": "Source/current-code review of Compile a qualified mux configuration into a small patch program; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Stable fMP4 specialization preserves packet bytes, configuration, counts, offsets and PTS/DTS and rejects changed layouts.",
+    "current_code_paths": [
+      "native/remux/remux.c:373-416",
+      "native/remux/remux.c:499-517"
+    ],
+    "observed_gap": "Maintained output is FFmpeg-authored fMP4 with copied codec parameters and explicit interleaving. There is no validated stable-layout patch program or immutable sample recipe owner. Introducing a specialized writer is E3 until a concrete writer cost and restricted layout are identified.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Capture one current fragment and specify lengths, tfdt, counts and offset patch fields; compare independently parsed output and mutate one offset before proposing a runtime writer.",
+      "negative_control": "Proposed only: Any specialization-boundary change silently accepted or a wrong data offset passing the oracle rejects the patch program.",
+      "outcome": "Maintained output is FFmpeg-authored fMP4 with copied codec parameters and explicit interleaving. There is no validated stable-layout patch program or immutable sample recipe owner. Introducing a specialized writer is E3 until a concrete writer cost and restricted layout are identified."
+    },
+    "measurement": {
+      "primary_metric": "Actual mux construction time plus patch validation and byte assembly cost.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R162.compile-a-qualified-mux-configuration-into-a-small-patch-program.md",
+        "sha256": "ccdbd0b543858b2f716c763719fb4db63c90b5f1c7289b0f248a67e193abc312",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Maintained output is FFmpeg-authored fMP4 with copied codec parameters and explicit interleaving. There is no validated stable-layout patch program or immutable sample recipe owner. Introducing a specialized writer is E3 until a concrete writer cost and restricted layout are identified.",
+    "next_test": "Capture one current fragment and specify lengths, tfdt, counts and offset patch fields; compare independently parsed output and mutate one offset before proposing a runtime writer.",
+    "reopen_condition": "Capture one current fragment and specify lengths, tfdt, counts and offset patch fields; compare independently parsed output and mutate one offset before proposing a runtime writer.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R169.make-custom-presentation-aware-of-display-cadence",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Schedule original decoded frames using source timestamps, one master clock and observed display opportunities without interpolation or silent speed changes. Verify actual presentation, not callback counts alone.",
+    "tested_profile": "Source/current-code review of Make custom presentation aware of display cadence; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Original source frames and source speed under one master clock; presentation opportunity may schedule but not interpolate or silently drop required output.",
+    "current_code_paths": [
+      "web/retained-engine-worker.js:18-50",
+      "src/internal/wasm-player.ts:111-116"
+    ],
+    "observed_gap": "Retained presentation uses engine-selected source PTS and deadlines but schedules via setTimeout; there is no observed display-opportunity feedback in that owner. A narrow cadence observer is possible without replacing the master clock.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Instrument one retained playback at mismatched source/display cadence, keeping engine deadlines; compare actual displayed frame identities with scheduled identities and pause/seek cancellation.",
+      "negative_control": "Proposed only: More callbacks without improved actual presentation, changed playback speed, or duplicate controller corrections rejects the scheduling change.",
+      "outcome": "Retained presentation uses engine-selected source PTS and deadlines but schedules via setTimeout; there is no observed display-opportunity feedback in that owner. A narrow cadence observer is possible without replacing the master clock."
+    },
+    "measurement": {
+      "primary_metric": "Presented frame identity/cadence and lateness relative to engine-selected deadline.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R169.make-custom-presentation-aware-of-display-cadence.md",
+        "sha256": "378f37466379a788724cd60a2afbc372e02ebcc7acad8c50692c2c2525f6eb82",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Retained presentation uses engine-selected source PTS and deadlines but schedules via setTimeout; there is no observed display-opportunity feedback in that owner. A narrow cadence observer is possible without replacing the master clock.",
+    "next_test": "Instrument one retained playback at mismatched source/display cadence, keeping engine deadlines; compare actual displayed frame identities with scheduled identities and pause/seek cancellation.",
+    "reopen_condition": "Instrument one retained playback at mismatched source/display cadence, keeping engine deadlines; compare actual displayed frame identities with scheduled identities and pause/seek cancellation.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R170.separate-audio-clock-drift-from-an-audio-latency-jump",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Distinguish timing slope drift from delay offsets in a qualified split-clock route; test controlled disturbances and bounded correction without competing synchronization controllers.",
+    "tested_profile": "Source/current-code review of Separate audio-clock drift from an audio-latency jump; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Separate timing slope from latency offset without changed sample count, competing controllers or unstable A/V correction.",
+    "current_code_paths": [
+      "src/internal/wasm-player.ts:111-116",
+      "web/audio-worklet.js:28-42"
+    ],
+    "observed_gap": "Current audio timing forwards a reported latency estimate and consumed media-frame count. It has neither an independent output-clock witness nor an identified drift-versus-offset estimator. Replacing mpv synchronization from those estimates alone risks competing controllers.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: First define a controlled latency step versus slope disturbance and an independent timing witness; inspect the existing native audio controller before one estimator-only replay.",
+      "negative_control": "Proposed only: Treating a pure delay step as lasting drift or changing media sample count to chase it disproves the estimator contract.",
+      "outcome": "Current audio timing forwards a reported latency estimate and consumed media-frame count. It has neither an independent output-clock witness nor an identified drift-versus-offset estimator. Replacing mpv synchronization from those estimates alone risks competing controllers."
+    },
+    "measurement": {
+      "primary_metric": "Estimator classification and bounded A/V timing error under step versus slope disturbance.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R170.separate-audio-clock-drift-from-an-audio-latency-jump.md",
+        "sha256": "974cc2b878f62d49a252c3af141c520e53114aff3b6c4b9c12f61f06d19f0b5e",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current audio timing forwards a reported latency estimate and consumed media-frame count. It has neither an independent output-clock witness nor an identified drift-versus-offset estimator. Replacing mpv synchronization from those estimates alone risks competing controllers.",
+    "next_test": "First define a controlled latency step versus slope disturbance and an independent timing witness; inspect the existing native audio controller before one estimator-only replay.",
+    "reopen_condition": "First define a controlled latency step versus slope disturbance and an independent timing witness; inspect the existing native audio controller before one estimator-only replay.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R188.schedule-verified-playable-data",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+    "hypothesis": "A real 12-second fragmented MP4 was divided into 16 KiB hash-verified pieces. The fixture contains twelve one-second fragments; init/fragment byte ranges were mapped to the pieces they require. One early useful piece was deliberately corrupted on its first delivery and rejected by SHA-256 verification. The first three verified fragments form a real prefix that decodes 90 frames. The measured 4.11\u00d7 3-second figure is specific to this deterministic ordering and failed-piece scenario; the durable result is that downloaded byte count and verified decodable media are different scheduling objectives.",
+    "tested_profile": "Source/current-code review of schedule verified playable data; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "A playable region requires all authorized hash-verified init/media dependency pieces; corruption or canceled ownership never publishes.",
+    "current_code_paths": [
+      "web/range-reader.js:17-43",
+      "web/native-remux-source-worker.js:18-23"
+    ],
+    "observed_gap": "The source validates scheduling hash-verified pieces by decodable coverage. Current source requests are synchronous demanded ranges with ETag authority, not a piece swarm or a fragment-to-piece dependency map. There is no present piece scheduler to reorder.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Specify one authorized verified-piece adapter and one init-plus-fragment piece map; replay existing demanded ranges against a corrupt-piece control before player integration.",
+      "negative_control": "Proposed only: Publishing any region requiring an unverified or corrupt piece rejects the adapter regardless of downloaded byte count.",
+      "outcome": "The source validates scheduling hash-verified pieces by decodable coverage. Current source requests are synchronous demanded ranges with ETag authority, not a piece swarm or a fragment-to-piece dependency map. There is no present piece scheduler to reorder."
+    },
+    "measurement": {
+      "primary_metric": "Delivery ticks or bytes until verified decodable prefix, including verification work.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R188.schedule-verified-playable-data.md",
+        "sha256": "194960151c926f3638a8911eb075add1071a2b9f2bd798c6a4849f87c04cb1a9",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The source validates scheduling hash-verified pieces by decodable coverage. Current source requests are synchronous demanded ranges with ETag authority, not a piece swarm or a fragment-to-piece dependency map. There is no present piece scheduler to reorder.",
+    "next_test": "Specify one authorized verified-piece adapter and one init-plus-fragment piece map; replay existing demanded ranges against a corrupt-piece control before player integration.",
+    "reopen_condition": "Specify one authorized verified-piece adapter and one init-plus-fragment piece map; replay existing demanded ranges against a corrupt-piece control before player integration.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R189.sparse-track-future-time-bounds",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+    "hypothesis": "The mux model contains continuous 30 fps video, 20 ms audio, and sparse timed metadata at 45 and 90 seconds. Before the sparse parser has materialized its next packet: - strict interleave can prove 0 dense packets safe; - a 10-second max-delta-style escape can emit 800 packets; - a validated source-index statement that the next sparse DTS is >=45 s safely emits 3,600 packets, through 44.98 s. The bound-aware output is an exact prefix of the final canonical mux order. A deliberately false >=60 s bound crosses the real 45-second event and fails the prefix oracle. The key requirement is epistemic, not timeout-based: the bound must come from a validated source/sample index, be scoped to the source/timeline epoch, and be invalidated on seeks/discontinuities.",
+    "tested_profile": "Source/current-code review of sparse-track future-time bounds; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Canonical mux ordering includes requested sparse metadata; future-DTS proof is valid only for source/timeline epoch.",
+    "current_code_paths": [
+      "native/remux/remux.c:387-400",
+      "native/remux/remux.c:499-517"
+    ],
+    "observed_gap": "Native output selects only video and audio; the source model requires a selected sparse timed-metadata track blocking canonical interleave. That specific third-track bottleneck is absent from the scoped native mux. Do not remove requested sparse tracks to manufacture eligibility in another route.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen only when a maintained mux carries a sparse requested track and blocks on unknown future DTS; derive a source-epoch bound and inject a false bound.",
+      "negative_control": "Proposed only: A selected sparse track demonstrably blocking this owner would invalidate the absence-of-opportunity conclusion.",
+      "outcome": "Native output selects only video and audio; the source model requires a selected sparse timed-metadata track blocking canonical interleave. That specific third-track bottleneck is absent from the scoped native mux. Do not remove requested sparse tracks to manufacture eligibility in another route."
+    },
+    "measurement": {
+      "primary_metric": "Dense packets safely emitted before next sparse event without timeout speculation.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R189.sparse-track-future-time-bounds.md",
+        "sha256": "3f26bbd9959a6e3d68e0f688299b354e6934a92a897240b5ee32e62427888810",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Native output selects only video and audio; the source model requires a selected sparse timed-metadata track blocking canonical interleave. That specific third-track bottleneck is absent from the scoped native mux. Do not remove requested sparse tracks to manufacture eligibility in another route.",
+    "next_test": "Reopen only when a maintained mux carries a sparse requested track and blocks on unknown future DTS; derive a source-epoch bound and inject a false bound.",
+    "reopen_condition": "Reopen only when a maintained mux carries a sparse requested track and blocks on unknown future DTS; derive a source-epoch bound and inject a false bound.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R200.content-addressed-reuse-across-different-files",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+    "hypothesis": "A 30-frame closed H.264 group was encoded once and stream-concatenated between different pre/post groups to create two different 90-frame files. The exact shared coded byte sequence appears at byte offsets 17051 and 1420. Frames 30\u201359 extracted from both complete files match the independent shared-group decode exactly and match each other exactly. The cache identity also changes when color metadata, dependency-boundary identity or decoder configuration changes. This supports caching verified immutable work for closed dependency groups across authorized files while keeping current-file timestamps/timeline semantics outside the cached object. It does not justify sharing mutable live decoder state.",
+    "tested_profile": "Source/current-code review of content-addressed reuse across different files; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Cross-file reusable closed group is immutable and keyed by authorized coded data, codec config, color and closure; file timestamps remain outside cache.",
+    "current_code_paths": [
+      "web/range-reader.js:5-16",
+      "native/vd_browser.c:175-183"
+    ],
+    "observed_gap": "Range caching is per-source reader and decoder replay retention is mutable state tied to delivered pictures. Neither is a content-addressed closed-GOP cache across files. Coded bytes alone do not supply authorization, configuration, color and dependency identity.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Document an immutable closed-GOP cache key and compare one shared group across two authorized sources, changing color/configuration identity as adverse control.",
+      "negative_control": "Proposed only: Sharing when configuration or dependency boundary changes, or carrying old-file timestamps into new playback, rejects the cache key.",
+      "outcome": "Range caching is per-source reader and decoder replay retention is mutable state tied to delivered pictures. Neither is a content-addressed closed-GOP cache across files. Coded bytes alone do not supply authorization, configuration, color and dependency identity."
+    },
+    "measurement": {
+      "primary_metric": "Net reused decode/preparation work after hashing, lookup and retained cache bytes.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R200.content-addressed-reuse-across-different-files.md",
+        "sha256": "30b71677c3efba8b6460534fd8a7a51b8dd9f8e522701cf84978c23a92e954bb",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Range caching is per-source reader and decoder replay retention is mutable state tied to delivered pictures. Neither is a content-addressed closed-GOP cache across files. Coded bytes alone do not supply authorization, configuration, color and dependency identity.",
+    "next_test": "Document an immutable closed-GOP cache key and compare one shared group across two authorized sources, changing color/configuration identity as adverse control.",
+    "reopen_condition": "Document an immutable closed-GOP cache key and compare one shared group across two authorized sources, changing color/configuration identity as adverse control.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+    "hypothesis": "WebGL2/float blending compared two complete 1024\u00d7576 RGBA textures by drawing one point per pixel into three 1\u00d71 reductions: mismatch count, maximum channel error, and first mismatch position. With 37 injected fault pixels, the graphics result exactly matched the CPU oracle: count 37, maximum error 236, first index 12345. The no-difference control also passed. Only 12 bytes of result data were read back instead of a 2,359,296-byte full frame. But SwiftShader took ~411.2 ms versus ~4.1 ms for the JS CPU oracle, so this is a readback/observer mechanism\u2014not a performance win in this environment. Physical-GPU qualification remains open.",
+    "tested_profile": "Source/current-code review of Compare whole frames on the graphics side and read back only the witness; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Whole-frame comparison witness must exactly match independent CPU count, max error and first mismatch on identical textures.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:8-27",
+      "web/retained-engine-worker.js:30-32"
+    ],
+    "observed_gap": "The reported graphics reduction is an observer with worse software-GPU runtime, not a playback optimization. Current YUV presentation has no complete-frame equality readback per frame; retained pixel checks are bounded 64x64 diagnostics. There is no large recurring readback here for this replacement.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen for an actual whole-frame comparison workload with a physical GPU and compare exact witnesses against CPU pixels including injected faults.",
+      "negative_control": "Proposed only: A recurring full-frame diagnostic readback in the selected owner or a validated cheaper witness changes this scope decision.",
+      "outcome": "The reported graphics reduction is an observer with worse software-GPU runtime, not a playback optimization. Current YUV presentation has no complete-frame equality readback per frame; retained pixel checks are bounded 64x64 diagnostics. There is no large recurring readback here for this replacement."
+    },
+    "measurement": {
+      "primary_metric": "Observer work plus readback bytes on the actual graphics backend.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md",
+        "sha256": "288a7e08579bdf71d930d18adff9f4cf13deef684a3dd638abac322e58cc4d35",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The reported graphics reduction is an observer with worse software-GPU runtime, not a playback optimization. Current YUV presentation has no complete-frame equality readback per frame; retained pixel checks are bounded 64x64 diagnostics. There is no large recurring readback here for this replacement.",
+    "next_test": "Reopen for an actual whole-frame comparison workload with a physical GPU and compare exact witnesses against CPU pixels including injected faults.",
+    "reopen_condition": "Reopen for an actual whole-frame comparison workload with a physical GPU and compare exact witnesses against CPU pixels including injected faults.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R215.upload-operation-selected-by-existing-layout",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+    "hypothesis": "A bounded layout model compared decoder rows against the constraints of a direct texture write and a 256-byte-aligned staging copy. Four layouts were legal for the direct path; an offset-misaligned control was rejected. Every staging reconstruction produced the identical visible RGBA bytes. The useful observation is structural: an uploader need not blindly normalize every row into a 256-byte staging layout when the destination operation admits the decoder's existing stride. Physical upload cost remains unmeasured here.",
+    "tested_profile": "Source/current-code review of upload operation selected by existing layout; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Direct existing-stride GL upload yields identical visible pixels and color with legal offsets, per-plane widths, and reset pixel-store state.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:29-38",
+      "web/yuv-presenter.js:60-66"
+    ],
+    "observed_gap": "YUV presenter packs every plane row into tight staging before GL upload. The report uses WebGPU operation constraints, whereas current owner is WebGL2; its 256-byte alignment example is not directly transferable. The broader layout-selected upload mechanism has a concrete copy boundary worth a GL-specific screen.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Test one WebGL2 UNPACK_ROW_LENGTH-compatible positive stride against current packed upload using an independent pixel capture; retain packing for negative or unrepresentable strides and reset pixel-store state.",
+      "negative_control": "Proposed only: Visible mismatch, stale row-length state on a second frame, or unsupported shared heap upload rejects the direct-stride branch.",
+      "outcome": "YUV presenter packs every plane row into tight staging before GL upload. The report uses WebGPU operation constraints, whereas current owner is WebGL2; its 256-byte alignment example is not directly transferable. The broader layout-selected upload mechanism has a concrete copy boundary worth a GL-specific screen."
+    },
+    "measurement": {
+      "primary_metric": "Eliminated planeCopyBytes plus actual total upload/draw cost.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R215.upload-operation-selected-by-existing-layout.md",
+        "sha256": "85031b9357eee96152b1b56750990262903fca6f2834ec2db236b5998361c138",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "YUV presenter packs every plane row into tight staging before GL upload. The report uses WebGPU operation constraints, whereas current owner is WebGL2; its 256-byte alignment example is not directly transferable. The broader layout-selected upload mechanism has a concrete copy boundary worth a GL-specific screen.",
+    "next_test": "Test one WebGL2 UNPACK_ROW_LENGTH-compatible positive stride against current packed upload using an independent pixel capture; retain packing for negative or unrepresentable strides and reset pixel-store state.",
+    "reopen_condition": "Test one WebGL2 UNPACK_ROW_LENGTH-compatible positive stride against current packed upload using an independent pixel capture; retain packing for negative or unrepresentable strides and reset pixel-store state.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R216.one-request-for-distant-byte-ranges",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+    "hypothesis": "Three independently decodable 0.6-second H.264/AAC MP4 clips were embedded far apart in a 375,274-byte resource. Their useful bytes total 31,212 bytes. - Three ordinary range requests: 31,212 response-body bytes, 3 requests. - One contiguous request spanning all regions: 260,586 bytes, including 229,374 bytes of gaps. - One multipart/byteranges request: 31,577 bytes in the host test, only 365 bytes of multipart overhead, 1 request. The independent multipart parser recovered the three requested byte regions exactly, and each extracted MP4 contained both H.264 video and AAC audio and decoded successfully. Chromium itself also issued the multi-range fetch and received HTTP 206 multipart/byteranges (~31.5 KB). A separate slow-response test aborted with AbortError; the server observed the disconnect after only 49,152 of 7,505,480 bytes had been sent.",
+    "tested_profile": "Source/current-code review of one request for distant byte ranges; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Multipart fetch recovers exactly requested disjoint ranges with strong source identity, bounded parser and canceled consumers.",
+    "current_code_paths": [
+      "web/range-reader.js:17-20",
+      "web/range-reader.js:79-114"
+    ],
+    "observed_gap": "RangeReader is explicitly single-flight and demands one contiguous range with strict Content-Range validation. Multipart transport would require both multi-range demand discovery and a new bounded MIME parser/capability contract; simply weakening current response checks is invalid.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Design one bounded three-region multipart decoder with exact per-part ranges and source ETag; use malformed overlapping-part and cancellation controls before coupling it to the reader.",
+      "negative_control": "Proposed only: Accepting missing, extra, overlapping or changed-identity parts rejects the parser even if total response bytes look smaller.",
+      "outcome": "RangeReader is explicitly single-flight and demands one contiguous range with strict Content-Range validation. Multipart transport would require both multi-range demand discovery and a new bounded MIME parser/capability contract; simply weakening current response checks is invalid."
+    },
+    "measurement": {
+      "primary_metric": "Total response-body bytes and completed request latency including MIME overhead.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R216.one-request-for-distant-byte-ranges.md",
+        "sha256": "db59aec69bebab98241042bf4945bf3ed1940c3b6156e423bde49c4239285976",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "RangeReader is explicitly single-flight and demands one contiguous range with strict Content-Range validation. Multipart transport would require both multi-range demand discovery and a new bounded MIME parser/capability contract; simply weakening current response checks is invalid.",
+    "next_test": "Design one bounded three-region multipart decoder with exact per-part ranges and source ETag; use malformed overlapping-part and cancellation controls before coupling it to the reader.",
+    "reopen_condition": "Design one bounded three-region multipart decoder with exact per-part ranges and source ETag; use malformed overlapping-part and cancellation controls before coupling it to the reader.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R220.scoped-transport-clock-normalization",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+    "hypothesis": "The model uses a 33-bit 90 kHz modulus and permits automatic epoch selection only when exactly one candidate timestamp lies inside a bounded \u00b12-second continuity/reordering window. Explicit discontinuities reset the scope. It passed forward rollover, a late reordered packet straddling rollover, explicit discontinuity, ordinary monotonic timing, and an A/V pair whose 45,000-tick (0.5 s) offset remained unchanged. An unmarked large discontinuity and a roughly half-modulus jump were refused rather than silently normalized. This validates the policy model. It is not yet wired into a real MPEG-TS parser.",
+    "tested_profile": "Source/current-code review of scoped transport-clock normalization; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "33-bit TS rollover normalization retains original A/V offset and reordering; ambiguous epoch or unmarked discontinuity rejects.",
+    "current_code_paths": [
+      "native/remux/remux.c:129-157",
+      "native/remux/remux.c:279-289"
+    ],
+    "observed_gap": "Current TS timeline work runs after FFmpeg demux, with AVC/AAC restrictions and specific timestamp repair. The report is a raw 33-bit policy model, not a live parser integration; post-demux timestamps may already be unwrapped. A second normalizer needs identified provenance before insertion.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Trace raw-versus-demuxed timestamps for a single rollover plus discontinuity fixture and locate one authoritative epoch owner before trying the bounded \u00b12 s policy.",
+      "negative_control": "Proposed only: A preserved 0.5 s A/V offset changing, or double-unwrapping already normalized timestamps, rejects integration.",
+      "outcome": "Current TS timeline work runs after FFmpeg demux, with AVC/AAC restrictions and specific timestamp repair. The report is a raw 33-bit policy model, not a live parser integration; post-demux timestamps may already be unwrapped. A second normalizer needs identified provenance before insertion."
+    },
+    "measurement": {
+      "primary_metric": "Correct scoped timestamp sequence and ambiguity rejection before timing.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R220.scoped-transport-clock-normalization.md",
+        "sha256": "0af88745f1daa81c947d0a7557ce17b9a540b8a76a9bea13b12a5db7bb10690c",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current TS timeline work runs after FFmpeg demux, with AVC/AAC restrictions and specific timestamp repair. The report is a raw 33-bit policy model, not a live parser integration; post-demux timestamps may already be unwrapped. A second normalizer needs identified provenance before insertion.",
+    "next_test": "Trace raw-versus-demuxed timestamps for a single rollover plus discontinuity fixture and locate one authoritative epoch owner before trying the bounded \u00b12 s policy.",
+    "reopen_condition": "Trace raw-versus-demuxed timestamps for a single rollover plus discontinuity fixture and locate one authoritative epoch owner before trying the bounded \u00b12 s policy.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R221.gpu-intermediate-lifetime-planning",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+    "hypothesis": "A fixed graph models color processing, two effects, subtitle composition and a delayed preview consumer. The lifetime allocator only reuses a compatible texture after the previous logical resource's final consumer. All tested schedules were conflict-free. A symbolic execution verified that the delayed preview still read the exact effect1 value after unrelated texture reuse, and both final outputs matched the dedicated-resource model. Planned allocation reductions versus one dedicated resource per logical intermediate were: - one frame + delayed preview: 24.7%; - three frames in flight: 50.2%; - preview cancellation: 25.0%; - resolution change: 25.5%. These are planner/resource-count results. They must not be presented as physical GPU-memory savings until tested on a real GPU implementation.",
+    "tested_profile": "Source/current-code review of GPU intermediate lifetime planning; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Compatible GPU texture storage is reused only after the final consumer, including delayed preview and resolution transitions.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:26-27",
+      "web/yuv-presenter.js:44-69"
+    ],
+    "observed_gap": "The scoped presenter owns three YUV textures and one overlay, not the effect graph with multiple transient intermediates and delayed preview consumers in the report. Existing textures have distinct simultaneous roles; allocating by symbolic liveness cannot save the reported graph memory here.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen when a real multi-pass GPU graph exists; capture last-consumer fences for one intermediate and a delayed preview before considering compatible reuse.",
+      "negative_control": "Proposed only: An actual unused transient texture allocation with a provable nonoverlapping lifetime would change the current no-graph opportunity assessment.",
+      "outcome": "The scoped presenter owns three YUV textures and one overlay, not the effect graph with multiple transient intermediates and delayed preview consumers in the report. Existing textures have distinct simultaneous roles; allocating by symbolic liveness cannot save the reported graph memory here."
+    },
+    "measurement": {
+      "primary_metric": "Unique simultaneously live compatible allocations; physical GPU memory must be observed separately.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R221.gpu-intermediate-lifetime-planning.md",
+        "sha256": "fb47f254f83b7fdc35a337f19b3961285dc524b2d49f5d0866439f138e7526ad",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The scoped presenter owns three YUV textures and one overlay, not the effect graph with multiple transient intermediates and delayed preview consumers in the report. Existing textures have distinct simultaneous roles; allocating by symbolic liveness cannot save the reported graph memory here.",
+    "next_test": "Reopen when a real multi-pass GPU graph exists; capture last-consumer fences for one intermediate and a delayed preview before considering compatible reuse.",
+    "reopen_condition": "Reopen when a real multi-pass GPU graph exists; capture last-consumer fences for one intermediate and a delayed preview before considering compatible reuse.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R222.independently-checkable-remux-construction-record",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+    "hypothesis": "A normal H.264/AAC MP4 with B-frames was packet-copy remuxed to fragmented MP4. The construction record contains source/output identities, stream configuration hashes, source/output packet positions, payload hashes, DTS/PTS/duration mappings, composition offsets and top-level fragment structure. - 232/232 packet payloads correspond exactly (90 video + 142 audio); - H.264 and AAC configuration hashes match; - video composition offsets are preserved; - the output contains three moof fragments; - Chromium plays 90 frames and reaches EOF without a media error. 1. wrong source byte offset \u2192 packet_offset_mismatch; 2. swapped sample hashes \u2192 payload_hash_mismatch; 3. wrong composition/timing field \u2192 output_timing_mismatch; 4. changed codec configuration \u2192 codec_config_mismatch; 5. stale source identity \u2192 source_identity_mismatch.",
+    "tested_profile": "Source/current-code review of independently checkable remux construction record; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Independent remux record binds source/output identity, packet offsets/hashes/config and relative timing; five malformed records must reject.",
+    "current_code_paths": [
+      "tests/audio-adaptation.mjs:54-61",
+      "tests/local-screening-runtime.mjs:58-60",
+      "native/remux/remux.c:387-400"
+    ],
+    "observed_gap": "Existing test source already compares packet payload hashes and relative timing, but does not show a reusable construction record binding source offsets, output offsets, config and identities with all five report mutations. This is a bounded oracle extension, not a mux speedup or executed validation.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Extend one retained small capture with source/output packet positions and config hashes; independently reject wrong offset, swapped payload, timing, config and stale source identity records.",
+      "negative_control": "Proposed only: Any mutated record accepted, or a record verified only against its own producer metadata, defeats independent auditability.",
+      "outcome": "Existing test source already compares packet payload hashes and relative timing, but does not show a reusable construction record binding source offsets, output offsets, config and identities with all five report mutations. This is a bounded oracle extension, not a mux speedup or executed validation."
+    },
+    "measurement": {
+      "primary_metric": "Correct rejection coverage and observer cost, not playback speed.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R222.independently-checkable-remux-construction-record.md",
+        "sha256": "fe6f1b691f5ec651c5af79cb9e0ba9ed291fc07e55d91e7769207a7fc0e7f461",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Existing test source already compares packet payload hashes and relative timing, but does not show a reusable construction record binding source offsets, output offsets, config and identities with all five report mutations. This is a bounded oracle extension, not a mux speedup or executed validation.",
+    "next_test": "Extend one retained small capture with source/output packet positions and config hashes; independently reject wrong offset, swapped payload, timing, config and stale source identity records.",
+    "reopen_condition": "Extend one retained small capture with source/output packet positions and config hashes; independently reject wrong offset, swapped payload, timing, config and stale source identity records.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+    "hypothesis": "The source transport contains one H.264 stream and two AAC tracks. Rebuilding the TS with only video + first audio preserves all 150 video packet payload hashes and all 236 selected-audio payload hashes. The unused 236 AAC packets are absent. Transport size falls from 345,920 to 281,248 bytes, a 18.7% reduction. This validates a payload-preserving track-pruning route; the TS container itself must still be rebuilt because PAT/PMT/PID/PCR/continuity semantics belong to the output transport.",
+    "tested_profile": "Source/current-code review of MPEG-TS track elimination with payload preservation; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "TS selected-track pruning preserves all selected AV packet payloads and timestamps plus coherent PAT/PMT/PID/PCR/continuity.",
+    "current_code_paths": [
+      "native/remux/remux.c:373-400",
+      "web/native-remux-worker.js:27-36"
+    ],
+    "observed_gap": "Current mux outputs MP4/WebM and filters selected AV streams; it does not emit MPEG-TS. The reported selected-track payload preservation is relevant but transport PAT/PMT/PCR/continuity reconstruction is a distinct missing output route.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: First identify an explicit TS consumer and scope one host packet-preservation construction against original selected packet hashes, with broken continuity/PMT as control.",
+      "negative_control": "Proposed only: Dropping required audio or malformed transport signaling rejects the result despite smaller bytes.",
+      "outcome": "Current mux outputs MP4/WebM and filters selected AV streams; it does not emit MPEG-TS. The reported selected-track payload preservation is relevant but transport PAT/PMT/PCR/continuity reconstruction is a distinct missing output route."
+    },
+    "measurement": {
+      "primary_metric": "Output transport bytes with identical required tracks and valid decode.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity.md",
+        "sha256": "55c8284c1f112786cf71f6cfce14241ca0444ac14ee017c4c3ca527a078320d3",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current mux outputs MP4/WebM and filters selected AV streams; it does not emit MPEG-TS. The reported selected-track payload preservation is relevant but transport PAT/PMT/PCR/continuity reconstruction is a distinct missing output route.",
+    "next_test": "First identify an explicit TS consumer and scope one host packet-preservation construction against original selected packet hashes, with broken continuity/PMT as control.",
+    "reopen_condition": "First identify an explicit TS consumer and scope one host packet-preservation construction against original selected packet hashes, with broken continuity/PMT as control.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R230.exact-mp3-seek-closure.report-continuity",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+    "hypothesis": "At target packet 220, beginning with no earlier MP3 frames or only one earlier frame does not reproduce the continuous decoder PCM. With two prior MP3 frames / 48 ms, every remaining decoded float sample is identical to the continuous decode. This is fixture/profile evidence, not a universal two-frame MP3 theorem. It shows the useful design: seek admission should be expressed as a coded dependency/recovery window and measured against an exact oracle.",
+    "tested_profile": "Source/current-code review of exact MP3 seek closure; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "MP3 target PCM suffix matches the continuous decoder including delay/priming; preroll is profile-specific, not fixed universally.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:28-38",
+      "native/vd_browser.c:91-100"
+    ],
+    "observed_gap": "Native adaptation admits restricted integer PCM/FLAC/DTS profiles, not an MP3 exact-seek closure feature; browser video recovery does not provide an audio reservoir bound. A two-frame MP3 closure cannot be generalized from the single report fixture.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Find the maintained software MP3 seek owner and compare one existing MP3 target against continuous decoded PCM with 0/1/2-frame preroll, including encoder delay handling.",
+      "negative_control": "Proposed only: Any PCM suffix mismatch or omitted priming sample rejects the claimed closure; a fixed two-frame rule is not admitted from this report.",
+      "outcome": "Native adaptation admits restricted integer PCM/FLAC/DTS profiles, not an MP3 exact-seek closure feature; browser video recovery does not provide an audio reservoir bound. A two-frame MP3 closure cannot be generalized from the single report fixture."
+    },
+    "measurement": {
+      "primary_metric": "Minimum validated coded dependency window for an exact PCM target.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R230.exact-mp3-seek-closure.report-continuity.md",
+        "sha256": "2d3b1067be3403187dbb84a55514c6b441188c2156a8f8a0ecbd8b5fb25b74ba",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Native adaptation admits restricted integer PCM/FLAC/DTS profiles, not an MP3 exact-seek closure feature; browser video recovery does not provide an audio reservoir bound. A two-frame MP3 closure cannot be generalized from the single report fixture.",
+    "next_test": "Find the maintained software MP3 seek owner and compare one existing MP3 target against continuous decoded PCM with 0/1/2-frame preroll, including encoder delay handling.",
+    "reopen_condition": "Find the maintained software MP3 seek owner and compare one existing MP3 target against continuous decoded PCM with 0/1/2-frame preroll, including encoder delay handling.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R233.make-independently-resampled-audio-chunks-join-exactly",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Address jobs by absolute output-sample intervals and provide the finite filter's input halo and global phase. Compare irregularly partitioned execution with the same continuous resampler including edges, delays and sample counts.",
+    "tested_profile": "Source/current-code review of Make independently resampled audio chunks join exactly; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Partitioned audio jobs match the same continuous resampler sample count, phase, edge delay and required numerical output using absolute output intervals.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:4-4",
+      "native/adaptation/flac.h:98-121",
+      "web/audio-worklet.js:28-42"
+    ],
+    "observed_gap": "The maintained local adaptation path explicitly performs no resampling and retains continuous FIFO state. Independent absolute-output-index jobs would require a separate admitted resampler/job interface; the rational toy report does not describe libswresample state equivalence.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
+      "negative_control": "Proposed only: Length mismatch or any required numerical-contract violation at a chunk boundary rejects the job mapping.",
+      "outcome": "The maintained local adaptation path explicitly performs no resampling and retains continuous FIFO state. Independent absolute-output-index jobs would require a separate admitted resampler/job interface; the rational toy report does not describe libswresample state equivalence."
+    },
+    "measurement": {
+      "primary_metric": "Correct boundary samples and total job work including halo reads.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R233.make-independently-resampled-audio-chunks-join-exactly.md",
+        "sha256": "a6136a5e1fbb130bfcd3a2ce46b7ac15924e3738ae5dd9939c63b6a846b1df26",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The maintained local adaptation path explicitly performs no resampling and retains continuous FIFO state. Independent absolute-output-index jobs would require a separate admitted resampler/job interface; the rational toy report does not describe libswresample state equivalence.",
+    "next_test": "Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
+    "reopen_condition": "Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R237.propagate-the-visible-region-backward-through-the-effects-pipeline",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Map a requested viewport backward through fixed filters, adding exact sampling halos, so only needed intermediate regions are processed. Full-region fallback is required for unknown/global/temporal effects.",
+    "tested_profile": "Source/current-code review of Propagate the visible region backward through the effects pipeline; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "ROI through a fixed filter graph preserves every visible pixel using exact halos; unknown/global/temporal effects use full-region path.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:29-43"
+    ],
+    "observed_gap": "Current presenter crops during final texture sampling after full-plane upload. It does not expose a graph of filter footprints or effect-intermediate regions. Backward ROI through filters requires graph semantics, not only changing viewport dimensions.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Specify a single fixed blur-plus-crop supported graph and compare ROI output with full output, deliberately omitting halo once; retain full-frame fallback for unknown/temporal effects.",
+      "negative_control": "Proposed only: Any changed visible border pixel or global effect admitted as local rejects ROI propagation.",
+      "outcome": "Current presenter crops during final texture sampling after full-plane upload. It does not expose a graph of filter footprints or effect-intermediate regions. Backward ROI through filters requires graph semantics, not only changing viewport dimensions."
+    },
+    "measurement": {
+      "primary_metric": "Processed intermediate pixels plus dependency propagation and copy costs.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R237.propagate-the-visible-region-backward-through-the-effects-pipeline.md",
+        "sha256": "8f90c2cce949bac13194916bcdbcf6429787b7651baaba1b8426c9ac97c47830",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current presenter crops during final texture sampling after full-plane upload. It does not expose a graph of filter footprints or effect-intermediate regions. Backward ROI through filters requires graph semantics, not only changing viewport dimensions.",
+    "next_test": "Specify a single fixed blur-plus-crop supported graph and compare ROI output with full output, deliberately omitting halo once; retain full-frame fallback for unknown/temporal effects.",
+    "reopen_condition": "Specify a single fixed blur-plus-crop supported graph and compare ROI output with full output, deliberately omitting halo once; retain full-frame fallback for unknown/temporal effects.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "For already-requested fixed mixing and compatible linear resampling, compare mixing first with resampling every input channel. Audit libswresample's existing operation ordering; preserve delay, samples and numerical contract.",
+    "tested_profile": "Source/current-code review of Let channel reduction cross the resampler boundary; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Only already-requested fixed linear mixing and compatible resampling may commute; preserve layout contract, delay, samples and rounding.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:28-38",
+      "native/adaptation/flac.h:98-121"
+    ],
+    "observed_gap": "The audited native adaptation contract preserves channel layout and sample rate; there is neither requested channel reduction nor resampling to reorder. Adding downmixing would change output semantics rather than optimize this profile. Software filter routes require their own libswresample audit.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+      "negative_control": "Proposed only: Evidence that this admitted path already performs both operations, or an explicit new requested mixing contract, changes applicability.",
+      "outcome": "The audited native adaptation contract preserves channel layout and sample rate; there is neither requested channel reduction nor resampling to reorder. Adding downmixing would change output semantics rather than optimize this profile. Software filter routes require their own libswresample audit."
+    },
+    "measurement": {
+      "primary_metric": "Actual resampler channel work after checking current library ordering.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R238.let-channel-reduction-cross-the-resampler-boundary.md",
+        "sha256": "785203d1b7a1d69aa674ef6045ae9a1d1bbe37b8713c278c70e7c470c359eb85",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The audited native adaptation contract preserves channel layout and sample rate; there is neither requested channel reduction nor resampling to reorder. Adding downmixing would change output semantics rather than optimize this profile. Software filter routes require their own libswresample audit.",
+    "next_test": "Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+    "reopen_condition": "Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R239.wait-for-the-required-pictures-without-draining-the-decoder",
+    "decision": "ALREADY_IMPLEMENTED",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Resolve application completion from required output identities while preserving continuing decode state across ordinary batches. Audit unnecessary flushes first; account for delayed output, bounded further submission and true EOF drains.",
+    "tested_profile": "Source/current-code review of Wait for the required pictures without draining the decoder; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Ordinary decoder batches retain state and output required identities; delayed pictures, bounded outstanding work and true EOF drains remain.",
+    "current_code_paths": [
+      "native/vd_browser.c:91-100",
+      "web/browser-decoder-worker.js:76-112",
+      "web/retained-decoder-worker.js:131-149"
+    ],
+    "observed_gap": "The browser decoder bridge submits ordinary packets without flush and requests operation 3 only for null-packet drain. Both workers flush at that drain operation. Thus the proposed removal of ordinary-batch drains is already satisfied at this owner; output watchdog and true EOF drain remain required.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen only with a caller trace showing null-packet drain at an ordinary non-EOF application batch boundary; preserve delayed output and source-generation rejection in any correction.",
+      "negative_control": "Proposed only: An ordinary-batch request(3) trace would falsify the current source-level no-extra-drain finding.",
+      "outcome": "The browser decoder bridge submits ordinary packets without flush and requests operation 3 only for null-packet drain. Both workers flush at that drain operation. Thus the proposed removal of ordinary-batch drains is already satisfied at this owner; output watchdog and true EOF drain remain required."
+    },
+    "measurement": {
+      "primary_metric": "Unnecessary ordinary-batch flush count and operation completion latency.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R239.wait-for-the-required-pictures-without-draining-the-decoder.md",
+        "sha256": "9c25ad121ee2cfd4a2bc77d1cbb9f629827a548d96ff0158faaca4cd112a4e50",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The browser decoder bridge submits ordinary packets without flush and requests operation 3 only for null-packet drain. Both workers flush at that drain operation. Thus the proposed removal of ordinary-batch drains is already satisfied at this owner; output watchdog and true EOF drain remain required.",
+    "next_test": "Reopen only with a caller trace showing null-packet drain at an ordinary non-EOF application batch boundary; preserve delayed output and source-generation rejection in any correction.",
+    "reopen_condition": "Reopen only with a caller trace showing null-packet drain at an ordinary non-EOF application batch boundary; preserve delayed output and source-generation rejection in any correction.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Represent validated zero intervals symbolically while preserving output clock and every nonzero filter tail. Materialize for unsupported, nonlinear or noise-producing stages; compare with existing silence optimizations.",
+    "tested_profile": "Source/current-code review of Carry exact silence through the pipeline without allocating its samples; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Symbolic silence represents validated zero media samples at exact clock intervals and preserves every filter tail; materialize at unsupported stages.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:98-123",
+      "web/audio-worklet.js:16-42"
+    ],
+    "observed_gap": "Adaptation owns actual PCM frames/FIFO and the AudioWorklet consumes a sample ring. Underrun zeros are not a validated symbolic silence interval. A symbolic representation would span codec/filter/clock boundaries and needs proof that tails and noise-producing stages are absent.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Define one zero-span producer after all stateful filters, with exact sample start/count and ring materialization; compare a nonzero FIR tail crossing the boundary as adverse control.",
+      "negative_control": "Proposed only: Treating an underrun as media silence or dropping any nonzero tail rejects the representation.",
+      "outcome": "Adaptation owns actual PCM frames/FIFO and the AudioWorklet consumes a sample ring. Underrun zeros are not a validated symbolic silence interval. A symbolic representation would span codec/filter/clock boundaries and needs proof that tails and noise-producing stages are absent."
+    },
+    "measurement": {
+      "primary_metric": "Avoided sample allocation/processing including zero-span materialization.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples.md",
+        "sha256": "d70f3d24e3e9b9cacee4bf4fcb512e92b817088b8a532c696d580131f76d7765",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Adaptation owns actual PCM frames/FIFO and the AudioWorklet consumes a sample ring. Underrun zeros are not a validated symbolic silence interval. A symbolic representation would span codec/filter/clock boundaries and needs proof that tails and noise-producing stages are absent.",
+    "next_test": "Define one zero-span producer after all stateful filters, with exact sample start/count and ring materialization; compare a nonzero FIR tail crossing the boundary as adverse control.",
+    "reopen_condition": "Define one zero-span producer after all stateful filters, with exact sample start/count and ring materialization; compare a nonzero FIR tail crossing the boundary as adverse control.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R243.remove-nonessential-h-264-sei.report-c",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+    "hypothesis": "The x264 source contains one type-6 SEI NAL. Removing type 6 leaves 90/90 VCL hashes, complete decoded-frame hashes and packet timing unchanged. The file shrinks from 116,070 to 115,381 bytes (689 bytes). Chromium presents all 90 frames with zero drops. This does not authorize indiscriminate SEI stripping. HDR/mastering data, timing, orientation and any other requested semantics must remain part of admission.",
+    "tested_profile": "Source/current-code review of remove nonessential H.264 SEI; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Only positively identified nonessential H264 annotation may be removed; VCL, timing, color, mastering and requested SEI semantics remain exact.",
+    "current_code_paths": [
+      "native/remux/remux.c:22-22",
+      "native/remux/remux.c:387-400",
+      "native/remux/remux.c:499-517"
+    ],
+    "observed_gap": "Native packet copy preserves codec parameter side data and packets. The report saves only a known x264 nonessential SEI in a controlled fixture, not arbitrary type-6 semantics. No admitted metadata-discard contract exists; broad SEI stripping would violate requested color/timing/orientation semantics.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen only for a positively identified redundant encoder annotation subtype and useful transfer cost; compare VCL, decoded output, timing and retained HDR/timing metadata.",
+      "negative_control": "Proposed only: Required SEI removed or unchanged decoder images used to conceal metadata loss rejects the branch.",
+      "outcome": "Native packet copy preserves codec parameter side data and packets. The report saves only a known x264 nonessential SEI in a controlled fixture, not arbitrary type-6 semantics. No admitted metadata-discard contract exists; broad SEI stripping would violate requested color/timing/orientation semantics."
+    },
+    "measurement": {
+      "primary_metric": "Removed bytes and complete packet-processing cost on explicitly eligible metadata.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R243.remove-nonessential-h-264-sei.report-c.md",
+        "sha256": "b8f98165f25e36f2873bf9b6df37b32f41c0f1a231d4cf2364e204d4733fa244",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Native packet copy preserves codec parameter side data and packets. The report saves only a known x264 nonessential SEI in a controlled fixture, not arbitrary type-6 semantics. No admitted metadata-discard contract exists; broad SEI stripping would violate requested color/timing/orientation semantics.",
+    "next_test": "Reopen only for a positively identified redundant encoder annotation subtype and useful transfer cost; compare VCL, decoded output, timing and retained HDR/timing metadata.",
+    "reopen_condition": "Reopen only for a positively identified redundant encoder annotation subtype and useful transfer cost; compare VCL, decoded output, timing and retained HDR/timing metadata.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R264.exact-incremental-image-statistics",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+    "hypothesis": "A 2048\u00d72048 8-bit image was partitioned into 64\u00d764 tiles. Each tile owns an exact 256-bin histogram. Global state is updated by subtracting the old tile histogram and adding the new one. Result. Incremental global histograms matched a full-image recomputation after every edit. Final pixel count, sum, mean, percentiles, min, and max all derive from the exact global histogram. Timing was 0.0115s incremental versus 0.725s for full recomputation over the same 80 edits, a 63.2\u00d7 corpus-level improvement. The no-subtraction negative control drifted immediately. Boundary. 8-bit scalar histogram only. HDR/float statistics need explicit binning/exact-sum/NaN policy, and GPU readback cost is outside this probe.",
+    "tested_profile": "Source/current-code review of exact incremental image statistics; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Persistent 8-bit scalar-image histogram updates subtract old tiles and add new tiles, preserving full-image exact statistics after each edit.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:29-58",
+      "web/retained-engine-worker.js:30-32"
+    ],
+    "observed_gap": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+      "negative_control": "Proposed only: An HDR/float contract or unseen edits outside declared tiles invalidates the integer histogram update scheme.",
+      "outcome": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload."
+    },
+    "measurement": {
+      "primary_metric": "Incremental update work versus full recomputation for actual sparse edits.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R264.exact-incremental-image-statistics.md",
+        "sha256": "5592a698f709a61b4a1e4531fdd489bbfdba08469ba8cccf264dd36904374669",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload.",
+    "next_test": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+    "reopen_condition": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R265.sparse-correction-for-cached-linear-audio-filtering",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+    "hypothesis": "A 1,200,000-sample integer signal was filtered with a 129-tap FIR. A 6,000-sample edit produced \u0394x; only h\u0394x was recomputed and added to the cached output. Result. The patched output is exactly equal to a full recomputation. The correction support is 6,128 samples, including the FIR tail; omitting that tail fails the oracle. Median patch time was 1.061 ms versus 90.474 ms full, or 85.3\u00d7 in this sparse-edit corpus. Boundary. This identity is for linear time-invariant filtering. Nonlinear/stateful effects, adaptive filters, compressors, limiters, reverbs with external state, format changes, and resampling need separate dependency/state analysis.",
+    "tested_profile": "Source/current-code review of sparse correction for cached linear audio filtering; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Sparse edit correction for fixed LTI FIR includes complete convolution support/tail and exactly matches full recomputed output.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:98-123",
+      "src/internal/wasm-player.ts:266-266"
+    ],
+    "observed_gap": "The reported mechanism accelerates sparse edits to cached LTI FIR output. Current audited playback adaptation streams frames through FIFO, not an editable audio document with cached filter output. Streaming decode cannot claim the sparse-edit saving.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen for an explicit offline editing consumer with immutable filter coefficients and retained source/output cache; compare one edit plus full filter tail against full recomputation.",
+      "negative_control": "Proposed only: Stateful/nonlinear filtering, omitted tail or changed coefficients invalidates additive sparse correction.",
+      "outcome": "The reported mechanism accelerates sparse edits to cached LTI FIR output. Current audited playback adaptation streams frames through FIFO, not an editable audio document with cached filter output. Streaming decode cannot claim the sparse-edit saving."
+    },
+    "measurement": {
+      "primary_metric": "Corrected support length and total cache/update work for an actual editing consumer.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R265.sparse-correction-for-cached-linear-audio-filtering.md",
+        "sha256": "887c4144c7735fcec23ed81752ee650346a9b4d3722fa80acb7db2365926b0ce",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The reported mechanism accelerates sparse edits to cached LTI FIR output. Current audited playback adaptation streams frames through FIFO, not an editable audio document with cached filter output. Streaming decode cannot claim the sparse-edit saving.",
+    "next_test": "Reopen for an explicit offline editing consumer with immutable filter coefficients and retained source/output cache; compare one edit plus full filter tail against full recomputation.",
+    "reopen_condition": "Reopen for an explicit offline editing consumer with immutable filter coefficients and retained source/output cache; compare one edit plus full filter tail against full recomputation.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R267.deadline-slack-before-optimization",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+    "hypothesis": "A deterministic three-stage media pipeline model assigns explicit source-read, processing, and append boundaries before each presentation deadline. One middle segment receives a controlled delay at one stage at a time; binary search finds the last delay that does not miss a presentation deadline. Result. Measured safe slack is ~270 ms at read, ~138 ms at process, and ~37 ms at append. The method identifies append as the tightest stage; pushing append past that threshold produces a miss while baseline does not. Boundary. This validates the measurement method, not Demuxe's real scheduler. Production qualification requires real timestamps for read/demux/transform/append/presentation, queue depth, browser scheduling, and playback deadlines.",
+    "tested_profile": "Source/current-code review of deadline slack before optimization; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Injected stage delay leaves media bytes/timestamps unchanged and is attributed to one read/process/append boundary with actual presentation witness.",
+    "current_code_paths": [
+      "web/native-remux-player.js:144-150",
+      "web/native-remux-player.js:200-225",
+      "web/native-remux-worker.js:40-44"
+    ],
+    "observed_gap": "Current worker and append ownership boundaries are identifiable, but existing remuxMs and queue counters are not stage-specific deadline slack. The source proves only a model. A bounded observation experiment can distinguish scheduling constraints before pursuing more batching changes.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: At one low-buffer refill inject a separately controlled small read, processing or append delay, preserving original bytes; record target-frame deadline and queue state, then stop at first classified miss.",
+      "negative_control": "Proposed only: Baseline misses, observer-induced load or delay leaking across stages makes the slack attribution inconclusive rather than proving append is tightest.",
+      "outcome": "Current worker and append ownership boundaries are identifiable, but existing remuxMs and queue counters are not stage-specific deadline slack. The source proves only a model. A bounded observation experiment can distinguish scheduling constraints before pursuing more batching changes."
+    },
+    "measurement": {
+      "primary_metric": "Maximum bounded delay before target presentation misses, with baseline queue state.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R267.deadline-slack-before-optimization.md",
+        "sha256": "4949b1f72f871a9649603d2cbb70629a849f87744418ab2a9474c8b3b878e426",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current worker and append ownership boundaries are identifiable, but existing remuxMs and queue counters are not stage-specific deadline slack. The source proves only a model. A bounded observation experiment can distinguish scheduling constraints before pursuing more batching changes.",
+    "next_test": "At one low-buffer refill inject a separately controlled small read, processing or append delay, preserving original bytes; record target-frame deadline and queue state, then stop at first classified miss.",
+    "reopen_condition": "At one low-buffer refill inject a separately controlled small read, processing or append delay, preserving original bytes; record target-frame deadline and queue state, then stop at first classified miss.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R296.generate-seek-fragments-without-replaying-a-mux-session",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+    "hypothesis": "Type: Packet-copy mux architecture. First owner: Indexed-source construction harness, then browser integration. Related: R109, R162, R222. Hypothesis. Construct an output fragment from explicit immutable inputs: source identity, track configuration, source sample interval, output timeline mapping, fragment identity, and the required sample bytes. A seek should not require replaying unrelated earlier samples merely to rebuild a writer's mutable counters. Source basis. The ISO BMFF MSE byte-stream specification defines initialization segments, fragment-relative sample addressing, track-fragment decode times, and the requirement that referenced samples be present. MP4Box.js demonstrates fragment construction from sample descriptions, while also relying on session values such as a sequence counter and first decode time. Those values would need to become explicit inputs in this experiment. [S3, S4]",
+    "tested_profile": "Source/current-code review of Generate seek fragments without replaying a mux session; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Explicit immutable seek fragment recipe preserves payloads/config/PTS/DTS/trimming and only valid random-access entry points, regardless of construction order.",
+    "current_code_paths": [
+      "native/remux/remux.c:360-416",
+      "web/native-remux-player.js:289-300"
+    ],
+    "observed_gap": "Current seeks use FFmpeg indexed av_seek_frame then reconstruct output state; the report pure constructor reassembles already-existing immutable moof recipes. There is no current sample-addressable construction recipe service, and its microbenchmark omits cold indexing and source costs.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+      "negative_control": "Proposed only: No material session reconstruction work, higher cold index cost, or non-RAP acceptance defeats the replacement justification.",
+      "outcome": "Current seeks use FFmpeg indexed av_seek_frame then reconstruct output state; the report pure constructor reassembles already-existing immutable moof recipes. There is no current sample-addressable construction recipe service, and its microbenchmark omits cold indexing and source costs."
+    },
+    "measurement": {
+      "primary_metric": "Cold plus repeated-seek reconstruction cost including index and source work.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R296.generate-seek-fragments-without-replaying-a-mux-session.md",
+        "sha256": "7f26409da7a7e38a8f63ab5a8f719afc008ab3b491e36e0ff737089d95ffaf76",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "Current seeks use FFmpeg indexed av_seek_frame then reconstruct output state; the report pure constructor reassembles already-existing immutable moof recipes. There is no current sample-addressable construction recipe service, and its microbenchmark omits cold indexing and source costs.",
+    "next_test": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+    "reopen_condition": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R297.query-mp4-timing-tables-without-expanding-every-sample-record",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+    "hypothesis": "Type: Metadata representation/query optimization. First owner: Parser/index component. Related: R45, R75; distinct from compressing a derived sparse keyframe index. Hypothesis. Keep source metadata in its original run structure and generate detailed per-sample records only for an active window. Build compact cumulative indexes over timing and chunk runs to support random queries. Source basis. MP4Box.js stores stts timing as sample counts and duration deltas and provides an unpack operation that assigns timestamps to individual sample records. This is a concrete representation contrast, not evidence that Demuxe uses that exact expansion. [S5] For a run beginning at sample ordinal s with decode time t and constant delta d, an ordinal s+j has decode time t+jd. A cumulative run index can locate the relevant run without materializing a timestamp for every sample.",
+    "tested_profile": "Source/current-code review of Query MP4 timing tables without expanding every sample record; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Compact MP4 timing queries preserve every offset/size/time/config/sync flag over admitted tables; reordered pictures require an explicit separate gate.",
+    "current_code_paths": [
+      "web/cheap-mp4-probe.js:32-59",
+      "native/remux/remux.c:197-200"
+    ],
+    "observed_gap": "The cheap JS probe reads bounded track metadata rather than expanding all timing samples. Real demux indexing resides inside FFmpeg with a 4 MiB index cap. The reported million-sample run index is a new parser representation and is not evidence that the current owner expands 22 MB of JS objects.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+      "negative_control": "Proposed only: No material expansion in the real parser, or unacceptable lookup regression, rejects replacement regardless of synthetic compression ratio.",
+      "outcome": "The cheap JS probe reads bounded track metadata rather than expanding all timing samples. Real demux indexing resides inside FFmpeg with a 4 MiB index cap. The reported million-sample run index is a new parser representation and is not evidence that the current owner expands 22 MB of JS objects."
+    },
+    "measurement": {
+      "primary_metric": "Actual metadata live bytes, startup and random query cost against current parser.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R297.query-mp4-timing-tables-without-expanding-every-sample-record.md",
+        "sha256": "cfe9bb41179ffe457c677bf9cda977f531dbf38c8dbd0bd05059d0d96bdbdf5a",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "The cheap JS probe reads bounded track metadata rather than expanding all timing samples. Real demux indexing resides inside FFmpeg with a 4 MiB index cap. The reported million-sample run index is a new parser representation and is not evidence that the current owner expands 22 MB of JS objects.",
+    "next_test": "Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+    "reopen_condition": "Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R298.copy-surviving-packets-to-release-oversized-backing-buffers",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+    "hypothesis": "Type: Encoded-buffer ownership/memory optimization. First owner: JavaScript source/demux buffer component. Related: R42, R47, R124; targets encoded allocations rather than decoder surfaces. Hypothesis. Retaining a tiny packet view can retain a much larger source allocation. After most consumers finish, copy the small remaining live regions into compact owned storage and drop the obsolete views and allocation references. Source basis. ECMAScript defines TypedArray.prototype.subarray() as a new typed array referencing the same ArrayBuffer. The proposed retained-memory consequence follows from that shared ownership; the specification does not promise immediate physical-memory reclamation after references disappear. [S6]",
+    "tested_profile": "Source/current-code review of Copy surviving packets to release oversized backing buffers; current native/remux or explicitly named maintained owner only. No new execution.",
+    "requested_output_contract": "Compaction migrates all internal live immutable packet handles without invalidating external/duplicate/delayed consumers or changing packet identity.",
+    "current_code_paths": [
+      "web/range-reader.js:24-42",
+      "web/native-remux-source-worker.js:20-23",
+      "web/browser-decoder-worker.js:79-83"
+    ],
+    "observed_gap": "RangeReader returns views into bounded cache blocks, but the native source worker immediately copies them to its mailbox; encoded browser packets are copied out of Wasm before submission. No long-lived sparse JS packet handles retaining 16 MiB source slabs were found in these owners. Range cache itself retains intentional bounded reusable blocks.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Read current checkout owner at the cited lines; compare the unchanged implementation with the narrowly defined source mechanism. Existing dirty work is preserved."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Full cited definition and related-report sections read, then current owner reviewed; no scripts from reports executed.",
+      "positive_control": "Proposed only: Reopen only with a concrete retained packet-view owner whose unique backing bytes exceed useful bytes after other consumers finish; compare one compacted slab with delayed and duplicate consumers.",
+      "negative_control": "Proposed only: A proven persistent sparse view chain outside the reader budget falsifies the scoped absence; Wasm heap size is not reclaimed-buffer evidence.",
+      "outcome": "RangeReader returns views into bounded cache blocks, but the native source worker immediately copies them to its mailbox; encoded browser packets are copied out of Wasm before submission. No long-lived sparse JS packet handles retaining 16 MiB source slabs were found in these owners. Range cache itself retains intentional bounded reusable blocks."
+    },
+    "measurement": {
+      "primary_metric": "Unique retained backing bytes versus useful packet bytes, copy volume and session cost.",
+      "worthwhile_change": "A concrete removed cost or capability under this exact contract, sufficient to justify the next bounded experiment; no global percentage gate.",
+      "paired_runs": null,
+      "result": "No new quantitative measurement; historical report values remain reported evidence only.",
+      "uncertainty": "Source applicability does not establish runtime correctness, speed, physical energy or release readiness.",
+      "excluded_costs": [
+        "No browser/component execution performed in this audit."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_c/audits/R298.copy-surviving-packets-to-release-oversized-backing-buffers.md",
+        "sha256": "33f63888c32472e9e20b6ca5ac359813691e59b5ae36c6358db16d383b55d4e0",
+        "note": "Individual full-section source/current-owner audit with scoped disposition and falsifier."
+      }
+    ],
+    "reason": "RangeReader returns views into bounded cache blocks, but the native source worker immediately copies them to its mailbox; encoded browser packets are copied out of Wasm before submission. No long-lived sparse JS packet handles retaining 16 MiB source slabs were found in these owners. Range cache itself retains intentional bounded reusable blocks.",
+    "next_test": "Reopen only with a concrete retained packet-view owner whose unique backing bytes exceed useful bytes after other consumers finish; compare one compacted slab with delayed and duplicate consumers.",
+    "reopen_condition": "Reopen only with a concrete retained packet-view owner whose unique backing bytes exceed useful bytes after other consumers finish; compare one compacted slab with delayed and duplicate consumers.",
+    "limits": [
+      "First-pass SOURCE_REVIEW only; historical report executions were read, not independently rerun.",
+      "No missing raw evidence archive is treated as a missing definition.",
+      "No production change, build, timing run, qualification or default routing change."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  }
+]

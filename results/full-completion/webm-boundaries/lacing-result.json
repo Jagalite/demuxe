@@ -1,0 +1,33 @@
+{
+  "scope": "Valid same-payload/same-PTS Opus WebM unlaced, paired Xiph lacing, and one retained lace group. Exact destination predicate, not generic reducer or production adaptation.",
+  "cases": [
+    {
+      "name": "opus-unlaced",
+      "tones": 99,
+      "eof": true,
+      "cleanup": true
+    },
+    {
+      "name": "opus-laced",
+      "tones": 0,
+      "error": "Error: updateend error",
+      "mediaError": {
+        "code": 3,
+        "message": "PipelineStatus::CHUNK_DEMUXER_ERROR_APPEND_FAILED: Lacing 1 is not supported yet."
+      },
+      "cleanup": true
+    },
+    {
+      "name": "opus-one-lace",
+      "tones": 0,
+      "error": "Error: updateend error",
+      "mediaError": {
+        "code": 3,
+        "message": "PipelineStatus::CHUNK_DEMUXER_ERROR_APPEND_FAILED: Lacing 1 is not supported yet."
+      },
+      "cleanup": true
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "passed": true
+}

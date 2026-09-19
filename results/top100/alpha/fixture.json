@@ -1,0 +1,39 @@
+{
+  "frames": 3,
+  "hostRGBAExact": true,
+  "packetPairSHA256": [
+    "8fa88889d340610164207635d6a28eb100d9185374a8ebab3d4b8a98babc9d31",
+    "6f8e6ee748f5af406bf9fe608dc00f1ad775393a7a9757764f54b40365509738",
+    "61a6ac048c6bb7d637ff0b5683cebe5a739217ea49bfd7b2409e3fc0da0c57bf"
+  ],
+  "command": [
+    "ffmpeg",
+    "-y",
+    "-v",
+    "error",
+    "-f",
+    "rawvideo",
+    "-pixel_format",
+    "rgba",
+    "-video_size",
+    "32x32",
+    "-framerate",
+    "3",
+    "-i",
+    "/Volumes/seed2/Projects/demuxe/results/top100/alpha/source.rgba",
+    "-vf",
+    "format=yuva420p",
+    "-c:v",
+    "libvpx",
+    "-auto-alt-ref",
+    "0",
+    "-g",
+    "1",
+    "-crf",
+    "4",
+    "-b:v",
+    "1M",
+    "/Volumes/seed2/Projects/demuxe/results/top100/alpha/reference.webm"
+  ],
+  "scope": "Mux-only reconstruction from suitable VP8 color/alpha pair extracted from known-good encoder output; source preparation separate."
+}

@@ -1,0 +1,1426 @@
+{
+  "scope": "Current-path work counts and caption semantics; instrumented times are diagnostic only",
+  "cases": [
+    {
+      "name": "remux-work",
+      "fixture": "build/local-screening/media/bbb-key-060.mp4",
+      "fixtureSHA256": "92909e9a1ba0642613f7d5a59aa9c137943d2472b1ad23559d0d0db7f4901da8",
+      "diagnostics": {
+        "mode": "native",
+        "plan": {
+          "id": "native-remux",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "packet-copy",
+          "qualification": "existing",
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "planAdmission": [
+          {
+            "id": "native-direct",
+            "mode": "native",
+            "eligible": false,
+            "code": "SOURCE_UNSUPPORTED",
+            "reason": "This source policy requires controlled remux transport"
+          },
+          {
+            "id": "native-remux",
+            "mode": "native",
+            "eligible": true
+          },
+          {
+            "id": "native-direct-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-remux-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-flac",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "id": "native-flac-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-direct-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation"
+          },
+          {
+            "id": "native-direct-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-remux-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation"
+          },
+          {
+            "id": "native-remux-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-flac-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation"
+          },
+          {
+            "id": "native-flac-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-opus",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "id": "native-opus-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "eligible": true
+          },
+          {
+            "id": "hybrid-audio-filter",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "mpv scalar filter stage does not match the request"
+          },
+          {
+            "id": "hybrid-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "hybrid-audio-filter-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software-gain",
+            "mode": "software",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software",
+            "mode": "software",
+            "eligible": true
+          }
+        ],
+        "runtimeCapabilities": [
+          {
+            "planId": "native-direct",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "This source policy requires controlled remux transport",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "verified",
+            "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+            "previouslyVerified": false,
+            "evidence": {
+              "timing": {
+                "preparationRequested": 590.4850000143051,
+                "metadata": 590.5950000286102,
+                "ready": 590.6000000238419,
+                "outputRequested": 594.9499999880791,
+                "firstFrame": 698.0149999856949,
+                "outputAccepted": 698.0250000357628
+              },
+              "metadata": true,
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter",
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640029,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            }
+          },
+          {
+            "planId": "native-direct-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv scalar filter stage does not match the request",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          }
+        ],
+        "selection": {
+          "automatic": false,
+          "attempts": [
+            {
+              "mode": "native",
+              "outcome": "skipped",
+              "reason": "native-direct: This source policy requires controlled remux transport"
+            },
+            {
+              "mode": "native",
+              "outcome": "selected",
+              "reason": "native-remux: Playback requirements and actual startup accepted"
+            }
+          ]
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "backend": {
+          "capability": {
+            "timing": {
+              "preparationRequested": 590.4850000143051,
+              "metadata": 590.5950000286102,
+              "ready": 590.6000000238419,
+              "outputRequested": 594.9499999880791,
+              "firstFrame": 698.0149999856949,
+              "outputAccepted": 698.0250000357628
+            },
+            "metadata": true,
+            "decoderOutput": true,
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": true,
+            "videoPresented": true,
+            "playbackReady": true,
+            "audioProgress": true,
+            "audioEvidence": "decoded-byte-counter",
+            "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640029,mp4a.40.2\")=true",
+            "sourceBufferCreated": true,
+            "initAccepted": true,
+            "mediaAccepted": true
+          },
+          "path": "native",
+          "plan": "remux",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "remux": {
+            "capability": {
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640029,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            },
+            "stats": {
+              "fragments": [
+                {
+                  "lane": 0,
+                  "bytes": 1258,
+                  "at": 324.5149999856949,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 539305,
+                  "at": 327.92500001192093,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 172866,
+                  "at": 329.6200000047684,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 243163,
+                  "at": 330.6650000214577,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 223406,
+                  "at": 332.0450000166893,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 178283,
+                  "at": 333.69499999284744,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 166116,
+                  "at": 334.8299999833107,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 131821,
+                  "at": 335.2450000047684,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 145502,
+                  "at": 336.2300000190735,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 179767,
+                  "at": 337.50999999046326,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 107474,
+                  "at": 337.8400000333786,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 197847,
+                  "at": 623.2800000309944,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 99472,
+                  "at": 1220.199999988079,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 165988,
+                  "at": 1721.8600000143051,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 172214,
+                  "at": 2220.8799999952316,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 169118,
+                  "at": 2722.0550000071526,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 169148,
+                  "at": 3220.4050000309944,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 314861,
+                  "at": 3722.6949999928474,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 14709,
+                  "at": 4219.694999992847,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 23266,
+                  "at": 4719.25,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 35900,
+                  "at": 5220.675000011921,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 62190,
+                  "at": 5719.850000023842,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 56019,
+                  "at": 6219.310000002384,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 41748,
+                  "at": 6721.564999997616,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 20649,
+                  "at": 7220.639999985695,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 25771,
+                  "at": 7719.685000002384,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 181040,
+                  "at": 8219.574999988079,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 79296,
+                  "at": 8721.975000023842,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 75596,
+                  "at": 9219.944999992847,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 66527,
+                  "at": 9720.055000007153,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 60523,
+                  "at": 10219.675000011921,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 102987,
+                  "at": 10723.050000011921,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 48199,
+                  "at": 11220,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 373172,
+                  "at": 11723.25,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 55424,
+                  "at": 12220.475000023842,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 132751,
+                  "at": 12721.145000040531,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 143757,
+                  "at": 13220.145000040531,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 156222,
+                  "at": 13720.870000004768,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 172593,
+                  "at": 14222.67000001669,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 188951,
+                  "at": 14720.790000021458,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 123420,
+                  "at": 15222.314999997616,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 110190,
+                  "at": 15723.25,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 133089,
+                  "at": 16219.32999998331,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 192088,
+                  "at": 16721.62999999523,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 272403,
+                  "at": 17221.54500001669,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 22731,
+                  "at": 17720.46500003338,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 22340,
+                  "at": 18220.110000014305,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 19061,
+                  "at": 18720.360000014305,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 447940,
+                  "at": 19223.875,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 46566,
+                  "at": 19720.12999999523,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 46118,
+                  "at": 20221.139999985695,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 37076,
+                  "at": 20723.900000035763,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 155798,
+                  "at": 21222.155000030994,
+                  "generation": 1
+                }
+              ],
+              "generatedBytes": 7123719,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 2852948,
+              "peakBufferedBytesUpperBound": 4645201,
+              "peakBufferedSeconds": 16.511999,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 268.4050000309944
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 7128618,
+                  "firstPlayableMs": 72.19999998807907,
+                  "firstPlayableSourceBytes": 2218399,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.640029,mp4a.40.2\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 2088961,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": []
+            },
+            "source": {
+              "fetchedBytes": 7128618,
+              "requests": 32,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 327680
+            },
+            "remux": {
+              "trace": {
+                "emits": 137,
+                "emittedBytes": 7123719,
+                "gathers": 53,
+                "gatheredBytes": 7123719,
+                "maxPieces": 9,
+                "firstEmit": null,
+                "lastEmit": 20939.839999973774,
+                "publications": [
+                  {
+                    "at": 42.269999980926514,
+                    "bytes": 1258,
+                    "pieces": 2,
+                    "firstEmit": 40.5450000166893,
+                    "lastEmit": 42.19499999284744
+                  },
+                  {
+                    "at": 45.66500002145767,
+                    "bytes": 539305,
+                    "pieces": 9,
+                    "firstEmit": 45.54000002145767,
+                    "lastEmit": 45.65499997138977
+                  },
+                  {
+                    "at": 47.52999997138977,
+                    "bytes": 172866,
+                    "pieces": 3,
+                    "firstEmit": 47.49500000476837,
+                    "lastEmit": 47.519999980926514
+                  },
+                  {
+                    "at": 48.5799999833107,
+                    "bytes": 243163,
+                    "pieces": 4,
+                    "firstEmit": 48.54000002145767,
+                    "lastEmit": 48.57499998807907
+                  },
+                  {
+                    "at": 49.935000002384186,
+                    "bytes": 223406,
+                    "pieces": 4,
+                    "firstEmit": 49.89999997615814,
+                    "lastEmit": 49.93000000715256
+                  },
+                  {
+                    "at": 51.58499997854233,
+                    "bytes": 178283,
+                    "pieces": 3,
+                    "firstEmit": 51.55000001192093,
+                    "lastEmit": 51.57499998807907
+                  },
+                  {
+                    "at": 52.75,
+                    "bytes": 166116,
+                    "pieces": 3,
+                    "firstEmit": 52.730000019073486,
+                    "lastEmit": 52.75
+                  },
+                  {
+                    "at": 53.144999980926514,
+                    "bytes": 131821,
+                    "pieces": 3,
+                    "firstEmit": 53.125,
+                    "lastEmit": 53.144999980926514
+                  },
+                  {
+                    "at": 54.18000000715256,
+                    "bytes": 145502,
+                    "pieces": 3,
+                    "firstEmit": 54.16500002145767,
+                    "lastEmit": 54.18000000715256
+                  },
+                  {
+                    "at": 55.44499999284744,
+                    "bytes": 179767,
+                    "pieces": 3,
+                    "firstEmit": 55.41500002145767,
+                    "lastEmit": 55.44499999284744
+                  },
+                  {
+                    "at": 55.810000002384186,
+                    "bytes": 107474,
+                    "pieces": 2,
+                    "firstEmit": 55.7950000166893,
+                    "lastEmit": 55.80500000715256
+                  },
+                  {
+                    "at": 341.17500001192093,
+                    "bytes": 197847,
+                    "pieces": 4,
+                    "firstEmit": 341.1449999809265,
+                    "lastEmit": 341.17500001192093
+                  },
+                  {
+                    "at": 937.9900000095367,
+                    "bytes": 99472,
+                    "pieces": 2,
+                    "firstEmit": 937.9599999785423,
+                    "lastEmit": 937.9850000143051
+                  },
+                  {
+                    "at": 1439.6399999856949,
+                    "bytes": 165988,
+                    "pieces": 3,
+                    "firstEmit": 1439.589999973774,
+                    "lastEmit": 1439.6399999856949
+                  },
+                  {
+                    "at": 1938.7649999856949,
+                    "bytes": 172214,
+                    "pieces": 3,
+                    "firstEmit": 1938.714999973774,
+                    "lastEmit": 1938.7649999856949
+                  },
+                  {
+                    "at": 2439.8949999809265,
+                    "bytes": 169118,
+                    "pieces": 3,
+                    "firstEmit": 2439.8449999690056,
+                    "lastEmit": 2439.889999985695
+                  },
+                  {
+                    "at": 2938.175000011921,
+                    "bytes": 169148,
+                    "pieces": 3,
+                    "firstEmit": 2938.110000014305,
+                    "lastEmit": 2938.1700000166893
+                  },
+                  {
+                    "at": 3440.5400000214577,
+                    "bytes": 314861,
+                    "pieces": 5,
+                    "firstEmit": 3440.4599999785423,
+                    "lastEmit": 3440.5400000214577
+                  },
+                  {
+                    "at": 3937.4950000047684,
+                    "bytes": 14709,
+                    "pieces": 1,
+                    "firstEmit": 3937.4900000095367,
+                    "lastEmit": 3937.4900000095367
+                  },
+                  {
+                    "at": 4437.099999964237,
+                    "bytes": 23266,
+                    "pieces": 1,
+                    "firstEmit": 4437.089999973774,
+                    "lastEmit": 4437.094999969006
+                  },
+                  {
+                    "at": 4938.495000004768,
+                    "bytes": 35900,
+                    "pieces": 1,
+                    "firstEmit": 4938.485000014305,
+                    "lastEmit": 4938.490000009537
+                  },
+                  {
+                    "at": 5437.6449999809265,
+                    "bytes": 62190,
+                    "pieces": 1,
+                    "firstEmit": 5437.639999985695,
+                    "lastEmit": 5437.639999985695
+                  },
+                  {
+                    "at": 5937.209999978542,
+                    "bytes": 56019,
+                    "pieces": 1,
+                    "firstEmit": 5937.204999983311,
+                    "lastEmit": 5937.204999983311
+                  },
+                  {
+                    "at": 6439.430000007153,
+                    "bytes": 41748,
+                    "pieces": 1,
+                    "firstEmit": 6439.425000011921,
+                    "lastEmit": 6439.425000011921
+                  },
+                  {
+                    "at": 6938.52999997139,
+                    "bytes": 20649,
+                    "pieces": 1,
+                    "firstEmit": 6938.52999997139,
+                    "lastEmit": 6938.52999997139
+                  },
+                  {
+                    "at": 7437.504999995232,
+                    "bytes": 25771,
+                    "pieces": 1,
+                    "firstEmit": 7437.5,
+                    "lastEmit": 7437.5
+                  },
+                  {
+                    "at": 7937.409999966621,
+                    "bytes": 181040,
+                    "pieces": 3,
+                    "firstEmit": 7937.370000004768,
+                    "lastEmit": 7937.40499997139
+                  },
+                  {
+                    "at": 8439.870000004768,
+                    "bytes": 79296,
+                    "pieces": 2,
+                    "firstEmit": 8439.855000019073,
+                    "lastEmit": 8439.865000009537
+                  },
+                  {
+                    "at": 8937.709999978542,
+                    "bytes": 75596,
+                    "pieces": 2,
+                    "firstEmit": 8937.685000002384,
+                    "lastEmit": 8937.70499998331
+                  },
+                  {
+                    "at": 9437.849999964237,
+                    "bytes": 66527,
+                    "pieces": 2,
+                    "firstEmit": 9437.814999997616,
+                    "lastEmit": 9437.839999973774
+                  },
+                  {
+                    "at": 9937.52999997139,
+                    "bytes": 60523,
+                    "pieces": 1,
+                    "firstEmit": 9937.519999980927,
+                    "lastEmit": 9937.519999980927
+                  },
+                  {
+                    "at": 10440.849999964237,
+                    "bytes": 102987,
+                    "pieces": 2,
+                    "firstEmit": 10440.824999988079,
+                    "lastEmit": 10440.844999969006
+                  },
+                  {
+                    "at": 10937.894999980927,
+                    "bytes": 48199,
+                    "pieces": 1,
+                    "firstEmit": 10937.889999985695,
+                    "lastEmit": 10937.889999985695
+                  },
+                  {
+                    "at": 11440.944999992847,
+                    "bytes": 373172,
+                    "pieces": 6,
+                    "firstEmit": 11440.800000011921,
+                    "lastEmit": 11440.939999997616
+                  },
+                  {
+                    "at": 11938.284999966621,
+                    "bytes": 55424,
+                    "pieces": 1,
+                    "firstEmit": 11938.274999976158,
+                    "lastEmit": 11938.274999976158
+                  },
+                  {
+                    "at": 12439.069999992847,
+                    "bytes": 132751,
+                    "pieces": 3,
+                    "firstEmit": 12439.050000011921,
+                    "lastEmit": 12439.064999997616
+                  },
+                  {
+                    "at": 12938.055000007153,
+                    "bytes": 143757,
+                    "pieces": 3,
+                    "firstEmit": 12938.02999997139,
+                    "lastEmit": 12938.04500001669
+                  },
+                  {
+                    "at": 13438.745000004768,
+                    "bytes": 156222,
+                    "pieces": 3,
+                    "firstEmit": 13438.719999969006,
+                    "lastEmit": 13438.745000004768
+                  },
+                  {
+                    "at": 13940.415000021458,
+                    "bytes": 172593,
+                    "pieces": 3,
+                    "firstEmit": 13940.370000004768,
+                    "lastEmit": 13940.409999966621
+                  },
+                  {
+                    "at": 14438.540000021458,
+                    "bytes": 188951,
+                    "pieces": 3,
+                    "firstEmit": 14438.459999978542,
+                    "lastEmit": 14438.534999966621
+                  },
+                  {
+                    "at": 14940.120000004768,
+                    "bytes": 123420,
+                    "pieces": 2,
+                    "firstEmit": 14940.084999978542,
+                    "lastEmit": 14940.110000014305
+                  },
+                  {
+                    "at": 15440.769999980927,
+                    "bytes": 110190,
+                    "pieces": 2,
+                    "firstEmit": 15440.735000014305,
+                    "lastEmit": 15440.769999980927
+                  },
+                  {
+                    "at": 15937.224999964237,
+                    "bytes": 133089,
+                    "pieces": 3,
+                    "firstEmit": 15937.199999988079,
+                    "lastEmit": 15937.224999964237
+                  },
+                  {
+                    "at": 16439.52999997139,
+                    "bytes": 192088,
+                    "pieces": 3,
+                    "firstEmit": 16439.5,
+                    "lastEmit": 16439.524999976158
+                  },
+                  {
+                    "at": 16939.389999985695,
+                    "bytes": 272403,
+                    "pieces": 5,
+                    "firstEmit": 16939.32499998808,
+                    "lastEmit": 16939.389999985695
+                  },
+                  {
+                    "at": 17438.32999998331,
+                    "bytes": 22731,
+                    "pieces": 1,
+                    "firstEmit": 17438.32499998808,
+                    "lastEmit": 17438.32499998808
+                  },
+                  {
+                    "at": 17937.855000019073,
+                    "bytes": 22340,
+                    "pieces": 1,
+                    "firstEmit": 17937.849999964237,
+                    "lastEmit": 17937.849999964237
+                  },
+                  {
+                    "at": 18438.165000021458,
+                    "bytes": 19061,
+                    "pieces": 1,
+                    "firstEmit": 18438.15999996662,
+                    "lastEmit": 18438.15999996662
+                  },
+                  {
+                    "at": 18941.44999998808,
+                    "bytes": 447940,
+                    "pieces": 7,
+                    "firstEmit": 18941.259999990463,
+                    "lastEmit": 18941.439999997616
+                  },
+                  {
+                    "at": 19437.865000009537,
+                    "bytes": 46566,
+                    "pieces": 1,
+                    "firstEmit": 19437.855000019073,
+                    "lastEmit": 19437.860000014305
+                  },
+                  {
+                    "at": 19939.00499999523,
+                    "bytes": 46118,
+                    "pieces": 1,
+                    "firstEmit": 19939,
+                    "lastEmit": 19939
+                  },
+                  {
+                    "at": 20441.540000021458,
+                    "bytes": 37076,
+                    "pieces": 1,
+                    "firstEmit": 20441.52999997139,
+                    "lastEmit": 20441.52999997139
+                  },
+                  {
+                    "at": 20939.889999985695,
+                    "bytes": 155798,
+                    "pieces": 4,
+                    "firstEmit": 20939.569999992847,
+                    "lastEmit": 20939.839999973774
+                  }
+                ]
+              },
+              "calls": 52,
+              "remuxMs": 94.55500012636185,
+              "generatedBytes": 7123719,
+              "peakBatchBytes": 539305,
+              "heapBytes": 67108864,
+              "gatherCopiedBytes": 6485429,
+              "reusedOwnedBatches": 17
+            },
+            "windowed": false,
+            "presentationFloor": 0,
+            "trackBounds": {
+              "videoEnd": 26.066666666666666,
+              "audioEnd": 26
+            },
+            "ranges": [
+              [
+                16.106666,
+                26.166666
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 20.559969,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[mov,mp4,m4a,3gp,3g2,mj2 @ 0x1344390] Protocol name not provided, cannot determine if input is local or a network protocol, buffers and access patterns cannot be configured optimally without knowing the protocol"
+            ]
+          },
+          "position": 20.559969,
+          "rendered": 622,
+          "dropped": 0,
+          "readyState": 4
+        }
+      },
+      "appends": [
+        {
+          "bytes": 1258,
+          "at": 324.5300000309944
+        },
+        {
+          "bytes": 539305,
+          "at": 327.93000000715256
+        },
+        {
+          "bytes": 172866,
+          "at": 329.6200000047684
+        },
+        {
+          "bytes": 243163,
+          "at": 330.6650000214577
+        },
+        {
+          "bytes": 223406,
+          "at": 332.05000001192093
+        },
+        {
+          "bytes": 178283,
+          "at": 333.69999998807907
+        },
+        {
+          "bytes": 166116,
+          "at": 334.8299999833107
+        },
+        {
+          "bytes": 131821,
+          "at": 335.2450000047684
+        },
+        {
+          "bytes": 145502,
+          "at": 336.2350000143051
+        },
+        {
+          "bytes": 179767,
+          "at": 337.52000004053116
+        },
+        {
+          "bytes": 107474,
+          "at": 337.8400000333786
+        },
+        {
+          "bytes": 197847,
+          "at": 623.2800000309944
+        },
+        {
+          "bytes": 99472,
+          "at": 1220.2049999833107
+        },
+        {
+          "bytes": 165988,
+          "at": 1721.8600000143051
+        },
+        {
+          "bytes": 172214,
+          "at": 2220.8799999952316
+        },
+        {
+          "bytes": 169118,
+          "at": 2722.0550000071526
+        },
+        {
+          "bytes": 169148,
+          "at": 3220.4050000309944
+        },
+        {
+          "bytes": 314861,
+          "at": 3722.699999988079
+        },
+        {
+          "bytes": 14709,
+          "at": 4219.699999988079
+        },
+        {
+          "bytes": 23266,
+          "at": 4719.254999995232
+        },
+        {
+          "bytes": 35900,
+          "at": 5220.675000011921
+        },
+        {
+          "bytes": 62190,
+          "at": 5719.8550000190735
+        },
+        {
+          "bytes": 56019,
+          "at": 6219.310000002384
+        },
+        {
+          "bytes": 41748,
+          "at": 6721.569999992847
+        },
+        {
+          "bytes": 20649,
+          "at": 7220.645000040531
+        },
+        {
+          "bytes": 25771,
+          "at": 7719.689999997616
+        },
+        {
+          "bytes": 181040,
+          "at": 8219.574999988079
+        },
+        {
+          "bytes": 79296,
+          "at": 8721.975000023842
+        },
+        {
+          "bytes": 75596,
+          "at": 9219.949999988079
+        },
+        {
+          "bytes": 66527,
+          "at": 9720.069999992847
+        },
+        {
+          "bytes": 60523,
+          "at": 10219.680000007153
+        },
+        {
+          "bytes": 102987,
+          "at": 10723.055000007153
+        },
+        {
+          "bytes": 48199,
+          "at": 11220
+        },
+        {
+          "bytes": 373172,
+          "at": 11723.25
+        },
+        {
+          "bytes": 55424,
+          "at": 12220.480000019073
+        },
+        {
+          "bytes": 132751,
+          "at": 12721.145000040531
+        },
+        {
+          "bytes": 143757,
+          "at": 13220.145000040531
+        },
+        {
+          "bytes": 156222,
+          "at": 13720.870000004768
+        },
+        {
+          "bytes": 172593,
+          "at": 14222.675000011921
+        },
+        {
+          "bytes": 188951,
+          "at": 14720.790000021458
+        },
+        {
+          "bytes": 123420,
+          "at": 15222.319999992847
+        },
+        {
+          "bytes": 110190,
+          "at": 15723.254999995232
+        },
+        {
+          "bytes": 133089,
+          "at": 16219.32999998331
+        },
+        {
+          "bytes": 192088,
+          "at": 16721.634999990463
+        },
+        {
+          "bytes": 272403,
+          "at": 17221.54500001669
+        },
+        {
+          "bytes": 22731,
+          "at": 17720.47000002861
+        },
+        {
+          "bytes": 22340,
+          "at": 18220.115000009537
+        },
+        {
+          "bytes": 19061,
+          "at": 18720.360000014305
+        },
+        {
+          "bytes": 447940,
+          "at": 19223.875
+        },
+        {
+          "bytes": 46566,
+          "at": 19720.12999999523
+        },
+        {
+          "bytes": 46118,
+          "at": 20221.139999985695
+        },
+        {
+          "bytes": 37076,
+          "at": 20723.905000030994
+        },
+        {
+          "bytes": 155798,
+          "at": 21222.155000030994
+        }
+      ],
+      "packetOracle": [
+        {
+          "type": "video",
+          "packets": 782,
+          "exact": true
+        },
+        {
+          "type": "audio",
+          "packets": 1220,
+          "exact": true
+        }
+      ],
+      "outputSHA256": "3d9b1c3f8c208ba6d648c0a5dd529e29d40ee2c74e0a2d59842f8008d65e84e8",
+      "seek": 6,
+      "workersAfter": 0,
+      "passed": true
+    }
+  ],
+  "sources": {
+    "worker": "89447a41174c2e8786b9fc653e176b92cb1024d40216f4da6662fe69a76c165b",
+    "instrumentedWorker": "ffa5e3878dcd3e850718e2d8976a7dcb0bd926dab41a0951e37d7c41fafa526d"
+  },
+  "origin": "http://127.0.0.1:58287",
+  "browser": "152.0.7977.83"
+}

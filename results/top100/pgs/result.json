@@ -1,0 +1,68 @@
+{
+  "scope": "Restricted complete-object PGS literal bitmap/display/clear component against independent FFmpeg subtitle overlay on unchanged black video. No fragmented objects, general RLE or integrated native overlay.",
+  "rows": [
+    {
+      "frame": 0,
+      "exact": true
+    },
+    {
+      "frame": 1,
+      "exact": true
+    },
+    {
+      "frame": 2,
+      "exact": true
+    },
+    {
+      "frame": 3,
+      "exact": true
+    },
+    {
+      "frame": 4,
+      "exact": true
+    },
+    {
+      "frame": 5,
+      "exact": true
+    },
+    {
+      "frame": 6,
+      "exact": true
+    },
+    {
+      "frame": 7,
+      "exact": true
+    }
+  ],
+  "oracleSamplePhaseSeconds": 0.125,
+  "exactTransitionBoundaryUnqualified": true,
+  "truncatedSegmentRejected": true,
+  "fixtureSHA256": "1a56bfb4129f184c049514728c526e27ca77c7b0b718e3507b8681d41eb5dc04",
+  "oracleCommand": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-copyts",
+    "-f",
+    "lavfi",
+    "-i",
+    "color=black:s=160x96:r=4:d=2",
+    "-i",
+    "/Volumes/seed2/Projects/demuxe/results/top100/pgs/caption.sup",
+    "-filter_complex",
+    "[0:v]settb=1/1000,setpts=PTS+125[v];[v][1:s]overlay",
+    "-t",
+    "2.1",
+    "-fps_mode",
+    "passthrough",
+    "-enc_time_base",
+    "1/1000",
+    "-pix_fmt",
+    "rgb24",
+    "-f",
+    "rawvideo",
+    "/Volumes/seed2/Projects/demuxe/results/top100/pgs/reference.rgb"
+  ],
+  "passed": true
+}

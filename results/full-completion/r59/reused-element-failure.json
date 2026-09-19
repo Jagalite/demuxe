@@ -1,0 +1,115 @@
+{
+  "scope": "Known local three-track MP4 metadata view; both moov layouts, actual marked output, seek and EOF. No general track admission, remote proxy or redacted export.",
+  "identity": {
+    "scope": "Known unencrypted three-track fixture only; nested dependencies and non-32-bit box sizes reject. All unselected payload remains: not a redacted export.",
+    "cases": [
+      {
+        "offset": 32,
+        "size": 5368,
+        "replacements": [
+          1904
+        ],
+        "tracks": [
+          [
+            1,
+            "vide"
+          ],
+          [
+            2,
+            "soun"
+          ],
+          [
+            3,
+            "soun"
+          ]
+        ],
+        "name": "two-front",
+        "originalSHA256": "f9840b85a75912c70ef8c6a4a3620d7328f84310e7ce5d0c859c4988e9e7b489",
+        "selectedSHA256": "7d0fefe681a105749ca6ff86a9412cba19df1071a280254145be2baf4fbc086c",
+        "sameSelectedPackets": true,
+        "sameMdat": true,
+        "sameSize": true
+      },
+      {
+        "offset": 74928,
+        "size": 5368,
+        "replacements": [
+          76800
+        ],
+        "tracks": [
+          [
+            1,
+            "vide"
+          ],
+          [
+            2,
+            "soun"
+          ],
+          [
+            3,
+            "soun"
+          ]
+        ],
+        "name": "two-tail",
+        "originalSHA256": "8939729f486611851fb1adec4cc4fef77e49c7a59de25af843cc9afb1911d062",
+        "selectedSHA256": "f783c667d9ee75932e3a0ac21b47fadad5ed864d4fb41f20464f2ebf3c35b05b",
+        "sameSelectedPackets": true,
+        "sameMdat": true,
+        "sameSize": true
+      }
+    ],
+    "negativeControls": 2
+  },
+  "cases": [
+    {
+      "name": "default-control",
+      "expectedTone": 440,
+      "error": null,
+      "ended": true,
+      "seeked": true,
+      "correctBeforeSeek": 5,
+      "correctAfterSeek": 65,
+      "sourceBytes": 80296,
+      "viewBytes": 80296,
+      "metadataBytesCopied": 0
+    },
+    {
+      "name": "selected-reference",
+      "expectedTone": 880,
+      "error": null,
+      "ended": true,
+      "seeked": true,
+      "correctBeforeSeek": 5,
+      "correctAfterSeek": 64,
+      "sourceBytes": 41906,
+      "viewBytes": 41906,
+      "metadataBytesCopied": 0
+    },
+    {
+      "name": "front-view",
+      "expectedTone": 880,
+      "error": null,
+      "ended": true,
+      "seeked": true,
+      "correctBeforeSeek": 5,
+      "correctAfterSeek": 15,
+      "sourceBytes": 80296,
+      "viewBytes": 80296,
+      "metadataBytesCopied": 5368
+    },
+    {
+      "name": "tail-view",
+      "expectedTone": 880,
+      "error": null,
+      "ended": true,
+      "seeked": false,
+      "correctBeforeSeek": 0,
+      "correctAfterSeek": 0,
+      "sourceBytes": 80296,
+      "viewBytes": 80296,
+      "metadataBytesCopied": 5368
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(c.ended&&c.seeked&&c.correctBeforeSeek>=5&&c.correctAfterSeek>=5)\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/completion-track-view.mjs:24:65"
+}

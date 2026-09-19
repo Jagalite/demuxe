@@ -1,0 +1,1 @@
+Append decisions with tools/screening.py. This directory is a local ledger, not production evidence by itself. Inherited findings are user-reported; verify their raw local records once when accessible, do not rerun them blindly.

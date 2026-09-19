@@ -1,0 +1,25 @@
+{
+  "scope": "Authored valid H264 A53 registered SEI carrying restricted CEA608 pop-on HI, independent FFmpeg608-to-SRT oracle. No full caption renderer/seek state machine.",
+  "caption": "HI",
+  "independentCaptionOracle": true,
+  "videoPixelsUnchanged": true,
+  "badParityRejected": true,
+  "existingNALBytesUnchanged": true,
+  "fixtureSHA256": "2d272b378b60d9bf392e652e20424cbff7247125862e0485e1b9c101b191253c",
+  "oracleCommand": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "movie=/Volumes/seed2/Projects/demuxe/results/top100/captions/caption.mp4[out0+subcc]",
+    "-map",
+    "0:s:0",
+    "-c:s",
+    "srt",
+    "/Volumes/seed2/Projects/demuxe/results/top100/captions/reference.srt"
+  ],
+  "passed": true
+}

@@ -1,0 +1,89 @@
+configure: ./configure --static --prefix=/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix
+Building static library libz.a version 1.3.1 with /Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc.
+Checking for size_t... Yes.
+Checking for off64_t... Yes.
+Checking for fseeko... Yes.
+Checking for strerror... Yes.
+Checking for unistd.h... Yes.
+Checking for stdarg.h... Yes.
+Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf().
+Checking for vsnprintf() in stdio.h... Yes.
+Checking for return value of vsnprintf()... Yes.
+Checking for attribute(visibility) support... Yes.
+make: make clean
+cd contrib/minizip && { /Applications/Xcode.app/Contents/Developer/usr/bin/make clean ; cd ../.. ; }
+/bin/rm -f *.o *~ minizip miniunz test.*
+rm -f *.o *.lo *~ \
+	   example minigzip examplesh minigzipsh \
+	   example64 minigzip64 \
+	   infcover \
+	   libz.* foo.gz so_locations \
+	   _match.s maketree contrib/infback9/*.o
+rm -rf objs
+rm -f *.gcda *.gcno *.gcov
+rm -f contrib/infback9/*.gcda contrib/infback9/*.gcno contrib/infback9/*.gcov
+make: make -j4 libz.a
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o adler32.o adler32.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o crc32.o crc32.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o deflate.o deflate.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o infback.o infback.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o inffast.o inffast.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o inflate.o inflate.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o inftrees.o inftrees.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o trees.o trees.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o zutil.o zutil.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o compress.o compress.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o uncompr.o uncompr.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o gzclose.o gzclose.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o gzlib.o gzlib.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o gzread.o gzread.c
+/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc -O2 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN  -c -o gzwrite.o gzwrite.c
+libtool -o libz.a adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o 
+libtool: warning: not a mach-o 'adler32.o'
+libtool: warning: not a mach-o 'crc32.o'
+libtool: warning: not a mach-o 'deflate.o'
+libtool: warning: not a mach-o 'infback.o'
+libtool: warning: not a mach-o 'inffast.o'
+libtool: warning: not a mach-o 'inflate.o'
+libtool: warning: not a mach-o 'inftrees.o'
+libtool: warning: not a mach-o 'trees.o'
+libtool: warning: not a mach-o 'zutil.o'
+libtool: warning: not a mach-o 'compress.o'
+libtool: warning: not a mach-o 'uncompr.o'
+libtool: warning: not a mach-o 'gzclose.o'
+libtool: warning: not a mach-o 'gzlib.o'
+libtool: warning: not a mach-o 'gzread.o'
+libtool: warning: not a mach-o 'gzwrite.o'
+make: make install
+rm -f /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib/libz.a
+cp libz.a /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib
+chmod 644 /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib/libz.a
+rm -f /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/share/man/man3/zlib.3
+cp zlib.3 /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/share/man/man3
+chmod 644 /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/share/man/man3/zlib.3
+rm -f /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib/pkgconfig/zlib.pc
+cp zlib.pc /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib/pkgconfig
+chmod 644 /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib/pkgconfig/zlib.pc
+rm -f /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include/zlib.h /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include/zconf.h
+cp zlib.h zconf.h /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include
+chmod 644 /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include/zlib.h /Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include/zconf.h
+configure: /Volumes/seed2/Projects/demuxe/build/sources/ffmpeg/configure --target-os=none --arch=wasm32 --enable-cross-compile --cc=emcc --cxx=em++ --ar=emar --ranlib=emranlib --nm=emnm --enable-static --disable-shared --disable-programs --disable-doc --disable-debug --disable-autodetect --disable-network --disable-asm --disable-everything --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample --disable-postproc --enable-avformat --enable-avcodec --enable-avutil --disable-pthreads --enable-demuxer=mov,matroska,mpegts,mp3,flac,ogg,aac,loas --enable-muxer=mp4,webm --enable-parsers --enable-bsfs --enable-zlib '--extra-cflags=-O2 -I/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include' --extra-ldflags=-L/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib
+ERROR: zlib requested but not found
+
+If you think configure made a mistake, make sure you are using the latest
+version from Git.  If the latest version fails, report the problem to the
+ffmpeg-user@ffmpeg.org mailing list or IRC #ffmpeg on irc.libera.chat.
+Include the log file "ffbuild/config.log" produced by configure as this will help
+solve the problem.
+emconfigure: error: '/Volumes/seed2/Projects/demuxe/build/sources/ffmpeg/configure --target-os=none --arch=wasm32 --enable-cross-compile --cc=emcc --cxx=em++ --ar=emar --ranlib=emranlib --nm=emnm --enable-static --disable-shared --disable-programs --disable-doc --disable-debug --disable-autodetect --disable-network --disable-asm --disable-everything --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample --disable-postproc --enable-avformat --enable-avcodec --enable-avutil --disable-pthreads --enable-demuxer=mov,matroska,mpegts,mp3,flac,ogg,aac,loas --enable-muxer=mp4,webm --enable-parsers --enable-bsfs --enable-zlib '--extra-cflags=-O2 -I/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include' --extra-ldflags=-L/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib' failed (returned 1)
+Traceback (most recent call last):
+  File "/Volumes/seed2/Projects/demuxe/results/top100/build-jspi.py", line 13, in <module>
+    run(['emconfigure',str(root/'build/sources/ffmpeg/configure'),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm','--disable-everything','--disable-avdevice','--disable-avfilter','--disable-swscale','--disable-swresample','--disable-postproc','--enable-avformat','--enable-avcodec','--enable-avutil','--disable-pthreads','--enable-demuxer=mov,matroska,mpegts,mp3,flac,ogg,aac,loas','--enable-muxer=mp4,webm','--enable-parsers','--enable-bsfs','--enable-zlib','--extra-cflags=-O2 -I'+str(prefix/'include'),'--extra-ldflags=-L'+str(prefix/'lib')],f)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/seed2/Projects/demuxe/results/top100/build-jspi.py", line 9, in run
+    commands.append([str(x) for x in cmd]);(root/'results/top100/jspi-commands.json').write_text(json.dumps(commands,indent=2)+'\n');subprocess.run(cmd,cwd=cwd,env=env,check=True)
+                                                                                                                                     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['emconfigure', '/Volumes/seed2/Projects/demuxe/build/sources/ffmpeg/configure', '--target-os=none', '--arch=wasm32', '--enable-cross-compile', '--cc=emcc', '--cxx=em++', '--ar=emar', '--ranlib=emranlib', '--nm=emnm', '--enable-static', '--disable-shared', '--disable-programs', '--disable-doc', '--disable-debug', '--disable-autodetect', '--disable-network', '--disable-asm', '--disable-everything', '--disable-avdevice', '--disable-avfilter', '--disable-swscale', '--disable-swresample', '--disable-postproc', '--enable-avformat', '--enable-avcodec', '--enable-avutil', '--disable-pthreads', '--enable-demuxer=mov,matroska,mpegts,mp3,flac,ogg,aac,loas', '--enable-muxer=mp4,webm', '--enable-parsers', '--enable-bsfs', '--enable-zlib', '--extra-cflags=-O2 -I/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/include', '--extra-ldflags=-L/Volumes/seed2/Projects/demuxe/build/top100-jspi/prefix/lib']' returned non-zero exit status 1.

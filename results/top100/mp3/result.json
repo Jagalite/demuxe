@@ -1,0 +1,114 @@
+{
+  "scope": "Authored48k stereo128k MP3 without Xing gapless metadata; continuous float PCM reference, exact coded-packet suffix closure at two targets. No universal2-frame rule or browser seek admission.",
+  "rows": [
+    {
+      "targetPacket": 100,
+      "priorFrames": 0,
+      "prerollMs": 0,
+      "samples": 541440,
+      "exact": false,
+      "maxAbsError": 0.11004861816763878,
+      "prefixBytes": 0
+    },
+    {
+      "targetPacket": 100,
+      "priorFrames": 1,
+      "prerollMs": 24,
+      "samples": 541440,
+      "exact": false,
+      "maxAbsError": 0.1137106642127037,
+      "prefixBytes": 384
+    },
+    {
+      "targetPacket": 100,
+      "priorFrames": 2,
+      "prerollMs": 48,
+      "samples": 541440,
+      "exact": false,
+      "maxAbsError": 0.07449943944811821,
+      "prefixBytes": 768
+    },
+    {
+      "targetPacket": 100,
+      "priorFrames": 3,
+      "prerollMs": 72,
+      "samples": 541440,
+      "exact": true,
+      "maxAbsError": 0.0,
+      "prefixBytes": 1152
+    },
+    {
+      "targetPacket": 100,
+      "priorFrames": 4,
+      "prerollMs": 96,
+      "samples": 541440,
+      "exact": true,
+      "maxAbsError": 0.0,
+      "prefixBytes": 1536
+    },
+    {
+      "targetPacket": 220,
+      "priorFrames": 0,
+      "prerollMs": 0,
+      "samples": 264960,
+      "exact": false,
+      "maxAbsError": 0.09647222247440368,
+      "prefixBytes": 0
+    },
+    {
+      "targetPacket": 220,
+      "priorFrames": 1,
+      "prerollMs": 24,
+      "samples": 264960,
+      "exact": false,
+      "maxAbsError": 0.09533769974950701,
+      "prefixBytes": 384
+    },
+    {
+      "targetPacket": 220,
+      "priorFrames": 2,
+      "prerollMs": 48,
+      "samples": 264960,
+      "exact": false,
+      "maxAbsError": 0.0385705828666687,
+      "prefixBytes": 768
+    },
+    {
+      "targetPacket": 220,
+      "priorFrames": 3,
+      "prerollMs": 72,
+      "samples": 264960,
+      "exact": true,
+      "maxAbsError": 0.0,
+      "prefixBytes": 1152
+    },
+    {
+      "targetPacket": 220,
+      "priorFrames": 4,
+      "prerollMs": 96,
+      "samples": 264960,
+      "exact": true,
+      "maxAbsError": 0.0,
+      "prefixBytes": 1536
+    }
+  ],
+  "sourceSHA256": "c8e6e2fae88552d07b68541462c9b9f942c4374c6bdbb95e50369b02d4650535",
+  "command": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "aevalsrc=0.1*sin(2*PI*(300*t+90*t*t))|0.1*sin(2*PI*(700*t+60*t*t)):s=48000:d=8",
+    "-c:a",
+    "libmp3lame",
+    "-b:a",
+    "128k",
+    "-write_xing",
+    "0",
+    "/Volumes/seed2/Projects/demuxe/results/top100/mp3/source.mp3"
+  ],
+  "passed": true
+}

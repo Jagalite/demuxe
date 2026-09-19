@@ -1,0 +1,53 @@
+
+<--- Last few GCs --->
+
+[4405:0x738400000]    25068 ms: Mark-Compact 2093.6 (2101.3) -> 2093.3 (2103.0) MB, pooled: 2 MB, 1931.33 / 0.00 ms  (average mu = 0.179, current mu = 0.011) allocation failure; scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x1002e4e78 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 2: 0x1005116d8 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 3: 0x100715eec v8::internal::Heap::stack() [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 4: 0x1007141b8 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 5: 0x10070a428 v8::internal::HeapAllocator::AllocateRawWithLightRetrySlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 6: 0x10070adf4 v8::internal::HeapAllocator::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 7: 0x1006ec66c v8::internal::Factory::NewFillerObject(int, v8::internal::AllocationAlignment, v8::internal::AllocationType, v8::internal::AllocationOrigin) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 8: 0x100b036e8 v8::internal::Runtime_AllocateInYoungGeneration(int, unsigned long*, v8::internal::Isolate*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+ 9: 0x10112b9f4 Builtins_CEntry_Return1_ArgvOnStack_NoBuiltinExit [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+10: 0x1010cd49c Builtins_CloneFastJSArray [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+11: 0x101160a90 Builtins_ArrayPrototypeSlice [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+12: 0x10c632eac 
+13: 0x101094838 Builtins_InterpreterEntryTrampoline [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+14: 0x101094838 Builtins_InterpreterEntryTrampoline [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+15: 0x1010953cc Builtins_InterpreterPushArgsThenFastConstructFunction [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+16: 0x10120ecb4 Builtins_ConstructHandler [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+17: 0x101094838 Builtins_InterpreterEntryTrampoline [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+18: 0x101094838 Builtins_InterpreterEntryTrampoline [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+19: 0x101094838 Builtins_InterpreterEntryTrampoline [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+20: 0x1010d1e20 Builtins_AsyncFunctionAwaitResolveClosure [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+21: 0x10119f298 Builtins_PromiseFulfillReactionJob [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+22: 0x1010c1214 Builtins_RunMicrotasks [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+23: 0x1010923f0 Builtins_JSRunMicrotasksEntry [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+24: 0x10066cc90 v8::internal::(anonymous namespace)::Invoke(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+25: 0x10066d52c v8::internal::(anonymous namespace)::InvokeWithTryCatch(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+26: 0x10066d664 v8::internal::Execution::TryRunMicrotasks(v8::internal::Isolate*, v8::internal::MicrotaskQueue*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+27: 0x10069955c v8::internal::MicrotaskQueue::RunMicrotasks(v8::internal::Isolate*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+28: 0x100699e14 v8::internal::MicrotaskQueue::PerformCheckpoint(v8::Isolate*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+29: 0x100201994 node::InternalCallbackScope::Close() [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+30: 0x100201454 node::InternalCallbackScope::~InternalCallbackScope() [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+31: 0x1002e9648 node::fs::FileHandle::CloseReq::Resolve() [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+32: 0x1003063d4 node::fs::FileHandle::ClosePromise()::$_0::__invoke(uv_fs_s*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+33: 0x1002dd37c node::MakeLibuvRequestCallback<uv_fs_s, void (*)(uv_fs_s*)>::Wrapper(uv_fs_s*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+34: 0x10106f1ec uv__work_done [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+35: 0x101072d10 uv__async_io [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+36: 0x101086704 uv__io_poll [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+37: 0x1010732a8 uv_run [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+38: 0x1002024e4 node::SpinEventLoopInternal(node::Environment*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+39: 0x10032cd50 node::NodeMainInstance::Run(node::ExitCode*, node::Environment*) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+40: 0x10032caec node::NodeMainInstance::Run() [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+41: 0x1002a2978 node::Start(int, char**) [/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node]
+42: 0x18819fe00 start [/usr/lib/dyld]

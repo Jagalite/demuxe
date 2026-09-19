@@ -1,0 +1,14 @@
+{
+  "key": "R189",
+  "decision": "STOP_PROFILE",
+  "evidence_level": "SOURCE_REVIEW",
+  "reason": "Scoped mux selects only video and audio. No selected sparse metadata track is present to create the source model bottleneck; implementing sparse-frontier machinery here has no current opportunity.",
+  "source": "native/remux/remux.c",
+  "sha256": "a3251fd423784e6b7a7bfc51ff0ee57eab46c13248ab66002e359ad8468d2812",
+  "lines": {
+    "start": 386,
+    "end": 400,
+    "text": " for(int i=0;i<64;i++)map[i]=-1;\n for(unsigned i=0;i<in->nb_streams;i++){\n  if((int)i!=video&&(int)i!=audio)continue;\n  AVStream *s=avformat_new_stream(out,NULL);map[i]=s->index;\n  avcodec_parameters_copy(s->codecpar,in->streams[i]->codecpar);s->codecpar->codec_tag=0;s->time_base=in->streams[i]->time_base;\n#ifdef DEMUXE_AUDIO_ADAPTATION\n  if(adapt_enabled&&(int)i==audio){r=avcodec_parameters_from_context(s->codecpar,adapt_encoder);if(r<0)return r;s->time_base=adapt_encoder->time_base;}\n#endif\n  // Codec parameter coded side data (rotation/color) is copied by avcodec_parameters_copy.\n  s->sample_aspect_ratio=in->streams[i]->sample_aspect_ratio;\n  s->avg_frame_rate=in->streams[i]->avg_frame_rate;s->r_frame_rate=in->streams[i]->r_frame_rate;\n  if((int)i==audio&&strstr(in->iformat->name,\"mpegts\")){\n   r=av_bsf_alloc(av_bsf_get_by_name(\"aac_adtstoasc\"),&audio_bsf);if(r<0)return r;\n   avcodec_parameters_copy(audio_bsf->par_in,s->codecpar);audio_bsf->time_base_in=s->time_base;\n   r=av_bsf_init(audio_bsf);if(r<0)return r;avcodec_parameters_copy(s->codecpar,audio_bsf->par_out);"
+  },
+  "executedExperiment": false
+}

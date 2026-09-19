@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "authority": "user-supplied local follow-up; preserve scope; raw runs not inspected in this packaging pass",
+  "findings": [
+    {
+      "key": "R001.share-source-reads-and-inspection-across-candidates",
+      "legacy_id": "R01",
+      "decision": "DEFER_SETUP",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Reported duplicate requested reads total only 1.455–3.185 ms; an authority-safe cache/handoff remains E3, not a missing-report gate.",
+      "raw_locations_as_supplied": "module-separated-01; R01 File-read observer runs",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Demonstrated larger repeated-read cost or reusable ownership infrastructure."
+    },
+    {
+      "key": "R004.stream-inside-a-fragment-instead-of-making-it-smaller",
+      "legacy_id": "R04",
+      "decision": "STOP_PROFILE",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Reported 26-second trace: media first-emission-to-flush max 0.320 ms, peak queue depth one; no material withholding demonstrated at this boundary. Later browser delays not measured.",
+      "raw_locations_as_supplied": "runs/follow-up/opportunity-summary.json",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "A trace exposing material producer/worker withholding or another specific boundary."
+    },
+    {
+      "key": "R027.share-immutable-compiled-code-not-live-playback-state",
+      "legacy_id": "R27",
+      "decision": "ADVANCE_CONFIRMATION",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Reported maintained-reference startup suite saving 14.10%; 95% interval 9.89–18.39% straddles the 10% threshold. Functional prototype exists, but raw evidence and production ownership are not independently rechecked here.",
+      "raw_locations_as_supplied": "runs/module-maintained-pairs-01/summary.json; module-reuse-01",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Later cache/asset/memory/cancellation confirmation; do not automatically start a large confirmation campaign during breadth-first screening."
+    },
+    {
+      "key": "R034.small-startup-appends-larger-steady-state-batches",
+      "legacy_id": "R34",
+      "decision": "STOP_PROFILE",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Same supplied trace does not demonstrate a trickle-producer or batching-gap problem. This is scoped opportunity evidence, not a universal rejection.",
+      "raw_locations_as_supplied": "runs/follow-up/opportunity-summary.json",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Different producer/delivery conditions with demonstrable useful waiting."
+    },
+    {
+      "key": "R042.recycle-owned-transfer-buffers-at-the-mse-boundary",
+      "legacy_id": "R42",
+      "decision": "DEFER_SETUP",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Gather bytes remain, but no observed GC/allocator pressure justifies a new buffer-return protocol on the supplied trace.",
+      "raw_locations_as_supplied": "runs/follow-up/opportunity-summary.json",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Observed allocation pressure or an already-safe shared buffer-return infrastructure."
+    },
+    {
+      "key": "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+      "legacy_id": "R48",
+      "decision": "DEFER_SETUP",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Browser comparison resolved the cue-boundary oracle discrepancy; this is not a cue virtualization defect. Virtualization still needs an API/lifecycle design.",
+      "raw_locations_as_supplied": "caption-boundary-02; earlier boundary diagnostic",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Real large-cue overhead plus a bounded API-compatible design; do not re-open the explained boundary mismatch as a bug."
+    },
+    {
+      "key": "R074.skip-redundant-packed-pcm-staging",
+      "legacy_id": "R74",
+      "decision": "STOP_PROFILE",
+      "basis": "USER_REPORT_NOT_INDEPENDENTLY_RERUN",
+      "reason": "Reported exact packed-lossless Wasm prototype; seven complete-operation pairs were -0.80% saving (95% interval -2.97% to +1.23%) against a predeclared 5% gate. Observer-free deployment not established.",
+      "raw_locations_as_supplied": "runs/r74-packed-cost-01/result.json; runs/r74-packed-cost-01/summary.json",
+      "raw_artifacts_in_bundle": false,
+      "reopen_condition": "Reopen for a different demonstrated workload, memory outcome or materially changed implementation; do not repeat the same seven-pair CPU screen."
+    }
+  ]
+}

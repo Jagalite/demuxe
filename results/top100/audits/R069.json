@@ -1,0 +1,14 @@
+{
+  "key": "R069",
+  "decision": "STOP_PROFILE",
+  "evidence_level": "SOURCE_REVIEW",
+  "reason": "Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.",
+  "source": "native/vd_browser.c",
+  "sha256": "6808dfb7a4db9522d2b4ea143f98e76d9da03ce53af42f4b06988ddf5c64fe19",
+  "lines": {
+    "start": 188,
+    "end": 192,
+    "text": "static void reset(struct mp_filter *f){\n    struct browser_priv *p=f->priv;clear_replay(p);if(p->software_open)avcodec_flush_buffers(p->software);\n    p->delivered=p->recovery_target=AV_NOPTS_VALUE;p->drained=false;p->submitted_keyframe=false;p->state=(struct lavc_state){0};\n    if(p->browser&&request(6)<0)fallback(f);\n}"
+  },
+  "executedExperiment": false
+}

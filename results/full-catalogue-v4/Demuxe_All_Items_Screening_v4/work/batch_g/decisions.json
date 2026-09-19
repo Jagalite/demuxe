@@ -1,0 +1,1764 @@
+[
+  {
+    "key": "R196.independent-aac-channel-assembly",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+    "hypothesis": "The mechanism 'independent AAC channel assembly' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Two independent AAC-LC SCE streams retain exact per-channel PCM and sample alignment, with truthful PCE tags/layout and all excluded tools rejected.",
+    "current_code_paths": [
+      "native/remux/remux.c:369",
+      "native/ao_browser.c:30"
+    ],
+    "observed_gap": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Independent decoding of each mono stream and ordinary PCM assembly at identical source sample positions."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Independent decoding of each mono stream and ordinary PCM assembly at identical source sample positions. Not executed.",
+      "negative_control": "Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
+      "outcome": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R196.independent-aac-channel-assembly.md",
+        "sha256": "09ebd7ea17e5f307ba5859d2c107a948fd45e04fee2156f76d4ebef0cbfb3419",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+    "next_test": "Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R084.spatially-selective-video",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "dcc63ab3a83f8aa8324d5f2abfe0e9baaf8e171ef3f67e524a37e3fb5efc4263",
+    "hypothesis": "The mechanism 'Spatially selective video' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Explicit prepared spatial viewport contract reports re-encoding/pixel error, exact selected tile identities and times; full-quality original requests remain unchanged.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:37",
+      "web/retained-video.js:3"
+    ],
+    "observed_gap": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Full-source decode cropped to identical requested viewport, with preparation bandwidth/cost included."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Full-source decode cropped to identical requested viewport, with preparation bandwidth/cost included. Not executed.",
+      "negative_control": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+      "outcome": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R084.spatially-selective-video.md",
+        "sha256": "f3c5940de301e90a37668b925efa69f8a33df4b2816dae37819909257db5ee65",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
+    "next_test": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Sidecars that let decoding start halfway through an entropy-coded slice' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Source/version-bound complete entropy registers, contexts, bit position and neighbor syntax reproduce every subsequent parsed symbol before reconstruction.",
+    "current_code_paths": [
+      "build/sources/ffmpeg/libavcodec/h264_cabac.c:1262",
+      "native/vd_browser.c:54"
+    ],
+    "observed_gap": "Current H264 parser initializes CABAC contexts per slice and the browser bridge treats decode state as opaque. Mid-slice arithmetic/neighbor state restoration requires a maintained decoder instrumentation/export ABI, not source range seeking alone.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Ordinary pinned sequential entropy parsing from legal slice start."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Ordinary pinned sequential entropy parsing from legal slice start. Not executed.",
+      "negative_control": "Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+      "outcome": "Current H264 parser initializes CABAC contexts per slice and the browser bridge treats decode state as opaque. Mid-slice arithmetic/neighbor state restoration requires a maintained decoder instrumentation/export ABI, not source range seeking alone."
+    },
+    "measurement": {
+      "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md",
+        "sha256": "cad93abeaea357f22ba4723220d04fe7b207c0b8e42b071a9dbbeb058b319bbe",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current H264 parser initializes CABAC contexts per slice and the browser bridge treats decode state as opaque. Mid-slice arithmetic/neighbor state restoration requires a maintained decoder instrumentation/export ABI, not source range seeking alone.",
+    "next_test": "Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Give two independent videos separate reference banks inside one decoder' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Prepared compatible streams use distinct valid reference banks and produce both exact independently decoded outputs with original source mapping.",
+    "current_code_paths": [
+      "web/video-codec-config.js:43",
+      "web/retained-decoder-worker.js:122"
+    ],
+    "observed_gap": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Two independent decoder sessions with matched bounded concurrency."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Two independent decoder sessions with matched bounded concurrency. Not executed.",
+      "negative_control": "Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
+      "outcome": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md",
+        "sha256": "48a285d94f4b8def57e76eebdd40a5f3f4537bd6cdfd61a56584b8938091b915",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+    "next_test": "Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R137.prepared-non-keyframe-representation-switches-using-av1-s-frames",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Prepared non-keyframe representation switches using AV1 S-frames' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Running AV1 decoder shares qualified reference history at deliberate S-frame switch, with exact subsequent pictures, delay and source identity.",
+    "current_code_paths": [
+      "web/video-codec-config.js:43",
+      "web/retained-decoder-worker.js:37"
+    ],
+    "observed_gap": "Existing configure/reset path starts with key requirement and no prepared S-frame switch transaction or shared-history representation pair. S-frame is not a cold-start substitute.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Decode each prepared representation through ordinary qualified keyframe transition."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Decode each prepared representation through ordinary qualified keyframe transition. Not executed.",
+      "negative_control": "Provide two authored streams with known shared history and one S-frame boundary; compare complete suffix to reference and reject cold start or mismatched reference history.",
+      "outcome": "Existing configure/reset path starts with key requirement and no prepared S-frame switch transaction or shared-history representation pair. S-frame is not a cold-start substitute."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R137.prepared-non-keyframe-representation-switches-using-av1-s-frames.md",
+        "sha256": "fa6d3d566c3765e6ebe7200cada255dbe79a9a08fec9e50f6bc91f8ba0f69c4b",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Existing configure/reset path starts with key requirement and no prepared S-frame switch transaction or shared-history representation pair. S-frame is not a cold-start substitute.",
+    "next_test": "Provide two authored streams with known shared history and one S-frame boundary; compare complete suffix to reference and reject cold start or mismatched reference history.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Provide two authored streams with known shared history and one S-frame boundary; compare complete suffix to reference and reject cold start or mismatched reference history.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R178.selective-jpeg-2000-source-reads",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+    "hypothesis": "The mechanism 'selective JPEG 2000 source reads' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Requested JPEG2000 region/resolution/layers match full-backed same-decoder output exactly; report spatial selection separately from quality/resolution byte savings.",
+    "current_code_paths": [
+      "web/range-reader.js:3",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Same requested OpenJPEG decode with whole-codestream backing, not full-image quality when request differs."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Same requested OpenJPEG decode with whole-codestream backing, not full-image quality when request differs. Not executed.",
+      "negative_control": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "outcome": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile."
+    },
+    "measurement": {
+      "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md",
+        "sha256": "3a074261a9bf0d6f729885e22f742be66855086b9cc772479abefeb195577842",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+    "next_test": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+    "hypothesis": "The mechanism 'restricted IMA ADPCM through two clipped scans' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact IMA-WAV mono/stereo samples including clipped index/predictor extremes and channel interleave.",
+    "current_code_paths": [
+      "build/sources/ffmpeg/libavcodec/adpcm.c:398",
+      "native/ao_browser.c:30"
+    ],
+    "observed_gap": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Optimized sequential pinned adpcm_ima_expand_nibble at identical total samples."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Optimized sequential pinned adpcm_ima_expand_nibble at identical total samples. Not executed.",
+      "negative_control": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+      "outcome": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md",
+        "sha256": "9401d7193b95d1069e7675da44c720ce4d3fc0b7e44aad987044fdedd71d0d3c",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
+    "next_test": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R202.guarded-narrow-arithmetic",
+    "decision": "ADVANCE_CONFIRMATION",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+    "hypothesis": "The mechanism 'guarded narrow arithmetic' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "A conservative guard admits only blocks whose exact production IDCT intermediates fit selected lane width; admitted pixels match wide reference and rejected blocks fall back.",
+    "current_code_paths": [
+      "build/sources/ffmpeg/libavcodec/h264idct_template.c:33",
+      "native/simd/h264-dsp.c:1"
+    ],
+    "observed_gap": "Current IDCT uses its bit-depth template and arithmetic/storage contract; maintained custom SIMD initializes biweight/deblock, not a guarded IDCT path. The reported 2672 model bound cannot simply replace this implementation without proving identical bias/shifts/clipping.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Current optimized pinned IDCT including block[0] bias and final clipping, not a simplified standalone model."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Current optimized pinned IDCT including block[0] bias and final clipping, not a simplified standalone model. Not executed.",
+      "negative_control": "First reconcile actual IDCT arithmetic with the 2672 bound and collect bounded admitted-block counts; then one kernel oracle at 2672/2673, negative extrema and high-bit-depth rejection. No whole-decoder promotion.",
+      "outcome": "Current IDCT uses its bit-depth template and arithmetic/storage contract; maintained custom SIMD initializes biweight/deblock, not a guarded IDCT path. The reported 2672 model bound cannot simply replace this implementation without proving identical bias/shifts/clipping."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R202.guarded-narrow-arithmetic.md",
+        "sha256": "d2195a507386a0910240de068e1f0f2277d375d8d7db0c55078bace1e62c44b5",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current IDCT uses its bit-depth template and arithmetic/storage contract; maintained custom SIMD initializes biweight/deblock, not a guarded IDCT path. The reported 2672 model bound cannot simply replace this implementation without proving identical bias/shifts/clipping.",
+    "next_test": "First reconcile actual IDCT arithmetic with the 2672 bound and collect bounded admitted-block counts; then one kernel oracle at 2672/2673, negative extrema and high-bit-depth rejection. No whole-decoder promotion.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: First reconcile actual IDCT arithmetic with the 2672 bound and collect bounded admitted-block counts; then one kernel oracle at 2672/2673, negative extrema and high-bit-depth rejection. No whole-decoder promotion.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R212.vectorize-across-independent-streams-rather-than-time",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+    "hypothesis": "The mechanism 'Vectorize across independent streams rather than time' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Only genuinely concurrent independent streams may occupy SIMD lanes; preserve each exact state/sample sequence and latency.",
+    "current_code_paths": [
+      "native/ao_browser.c:30",
+      "build/sources/ffmpeg/libavcodec/adpcm.c:398"
+    ],
+    "observed_gap": "Current player produces one selected audio stream, not eight independent IMA state machines. Cross-stream SIMD requires simultaneous independent demand absent from this playback profile; adding dummy streams would create an artificial gain.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Existing one-stream IMA decoder for ordinary single-player audio."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Existing one-stream IMA decoder for ordinary single-player audio. Not executed.",
+      "negative_control": "Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+      "outcome": "Current player produces one selected audio stream, not eight independent IMA state machines. Cross-stream SIMD requires simultaneous independent demand absent from this playback profile; adding dummy streams would create an artificial gain."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R212.vectorize-across-independent-streams-rather-than-time.md",
+        "sha256": "f3b15a4ecdf3016c23e06d62475544ae77956db416076c40a0d0e12a0a7e61b5",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current player produces one selected audio stream, not eight independent IMA state machines. Cross-stream SIMD requires simultaneous independent demand absent from this playback profile; adding dummy streams would create an artificial gain.",
+    "next_test": "Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R232.decode-raw-sensor-data-once-develop-the-picture-during-playback",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Decode RAW sensor data once; develop the picture during playback' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact unpacked sensor samples and explicitly specified Bayer demosaic/color/exposure recipe; reject unsupported CFA/opcodes/profiles.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:11",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "Presenter receives decoded YUV/RGB; there is no retained Bayer sensor plane, DNG metadata/profile parser or development recipe owner. Existing 601/709 shader is not RAW development.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Decode RAW once using trusted sensor oracle and develop with same declared CPU recipe."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Decode RAW once using trusted sensor oracle and develop with same declared CPU recipe. Not executed.",
+      "negative_control": "Scope one RGGB R16 sensor-plane adapter with integer color oracle before UI adjustments; gray-as-RGB and unsupported CFA/layout must fail, counting upload/retention.",
+      "outcome": "Presenter receives decoded YUV/RGB; there is no retained Bayer sensor plane, DNG metadata/profile parser or development recipe owner. Existing 601/709 shader is not RAW development."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R232.decode-raw-sensor-data-once-develop-the-picture-during-playback.md",
+        "sha256": "2916a1d413aa6b6bf90d2991966c5fdd84f8e2d06b16c360c733b550459d1e55",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R232-R238-report.md",
+        "sha256": "a178546d432e1a1772f153a3c908c5c04aa88386fddd6094fb1d4411d5bac2e7",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Presenter receives decoded YUV/RGB; there is no retained Bayer sensor plane, DNG metadata/profile parser or development recipe owner. Existing 601/709 shader is not RAW development.",
+    "next_test": "Scope one RGGB R16 sensor-plane adapter with integer color oracle before UI adjustments; gray-as-RGB and unsupported CFA/layout must fail, counting upload/retention.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Scope one RGGB R16 sensor-plane adapter with integer color oracle before UI adjustments; gray-as-RGB and unsupported CFA/layout must fail, counting upload/retention.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R242.decompress-haps-texture-data-directly-into-gpu-owned-storage",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Decompress Hap\u2019s texture data directly into GPU-owned storage' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current source-owner review plus inspected shared secure-localhost GPU prerequisite; complete mechanism not executed",
+    "requested_output_contract": "Exact Hap texture-block bytes from validated literal/copy jobs, legal overlap semantics and legal compressed texture publication.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:11",
+      "web/retained-video.js:3"
+    ],
+    "observed_gap": "Current textures upload decoded R8/RGBA bytes. No bounded Hap/Snappy job parser, GPU overlap-dependency scheduler or compressed-texture copy path exists. BC support alone cannot provide GPU Snappy reconstruction.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "CPU Snappy decode followed by compressed BC texture upload on same GPU."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "CPU Snappy decode followed by compressed BC texture upload on same GPU. Not executed.",
+      "negative_control": "Define one bounded Snappy job graph and exact reconstructed-byte oracle; overlapping backreference and compressed-block alignment controls must pass before GPU presentation.",
+      "outcome": "Current textures upload decoded R8/RGBA bytes. No bounded Hap/Snappy job parser, GPU overlap-dependency scheduler or compressed-texture copy path exists. BC support alone cannot provide GPU Snappy reconstruction. Inspected coordinator secure-localhost Chrome152 result: Apple Metal3 nonfallback WebGPU adapter advertises texture-compression-bc. This removes a generic destination API absence; no GPU Snappy job execution or compressed-copy correctness was tested."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R242.decompress-haps-texture-data-directly-into-gpu-owned-storage.md",
+        "sha256": "dcef35344ef26852b2ec711d65a1063764dc2b5dc093f17c8475d392a86db381",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Inspected coordinator secure-localhost Chrome152 result: Apple Metal3 nonfallback WebGPU adapter advertises texture-compression-bc. This removes a generic destination API absence; no GPU Snappy job execution or compressed-copy correctness was tested."
+      }
+    ],
+    "reason": "Current textures upload decoded R8/RGBA bytes. No bounded Hap/Snappy job parser, GPU overlap-dependency scheduler or compressed-texture copy path exists. BC support alone cannot provide GPU Snappy reconstruction.",
+    "next_test": "Define one bounded Snappy job graph and exact reconstructed-byte oracle; overlapping backreference and compressed-block alignment controls must pass before GPU presentation.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded Snappy job graph and exact reconstructed-byte oracle; overlapping backreference and compressed-block alignment controls must pass before GPU presentation.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Parallelize recursive audio effects by correcting each chunk\u2019s initial state' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Specified fixed stable linear DSP has declared numerical tolerance, correct initial history, output length and complete tails.",
+    "current_code_paths": [
+      "src/internal/wasm-player.ts:187",
+      "native/ao_browser.c:30"
+    ],
+    "observed_gap": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Optimized sequential same DSP recipe and state at identical latency."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Optimized sequential same DSP recipe and state at identical latency. Not executed.",
+      "negative_control": "Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
+      "outcome": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md",
+        "sha256": "bf308a26e63f75acf7a2a8fbed761d2c0366fdd37b60709057229e9fe8d4b6ed",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+    "next_test": "Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R263.retained-deep-samples-deferred-composition",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+    "source_checked": true,
+    "source_sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+    "hypothesis": "The mechanism 'retained deep samples / deferred composition' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current source-owner review plus inspected shared secure-localhost GPU prerequisite; complete mechanism not executed",
+    "requested_output_contract": "Same ordered deep samples produce exact declared ROI compositing, with retained-memory bounds and full-frame adverse workload.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:11",
+      "web/retained-video.js:3"
+    ],
+    "observed_gap": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Strong decoded deep-state retention/checkpoint baseline composing only requested views, not gratuitously flattening full frame each time."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Strong decoded deep-state retention/checkpoint baseline composing only requested views, not gratuitously flattening full frame each time. Not executed.",
+      "negative_control": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+      "outcome": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation. Current shared result exposes WebGPU on Apple Metal3. The report opaque-page lack of GPU is not a current HOLD_ENV; real deep parser, sample-list ownership and GPU ROI compositor remain setup prerequisites."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "sha256": "c8104f1be44ccde1d1fe317a40226b0bebebc726fcbbb23c37dc9f55bc4cc62e",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Current shared result exposes WebGPU on Apple Metal3. The report opaque-page lack of GPU is not a current HOLD_ENV; real deep parser, sample-list ownership and GPU ROI compositor remain setup prerequisites."
+      }
+    ],
+    "reason": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
+    "next_test": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R290.compose-exact-motion-copy-chains-before-reconstructing-pixels",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "7574d087e49ed723033238ec3a379db6bb7c353412b20f0b8856baf96c47f32a",
+    "hypothesis": "The mechanism 'Compose exact motion-copy chains before reconstructing pixels' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact integer-plane motion-copy dependency composition with every boundary operation, residual leaf and reference state preserved.",
+    "current_code_paths": [
+      "native/vd_browser.c:54",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "Current software/browser bridge returns reconstructed planes or frames, not symbolic prediction maps. Historical matches were detected after full decode, so they did not eliminate real MPEG2 reconstruction.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Optimized ordinary reconstruction plus dependency-aware sparse reconstruction without map composition."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Optimized ordinary reconstruction plus dependency-aware sparse reconstruction without map composition. Not executed.",
+      "negative_control": "Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+      "outcome": "Current software/browser bridge returns reconstructed planes or frames, not symbolic prediction maps. Historical matches were detected after full decode, so they did not eliminate real MPEG2 reconstruction."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels.md",
+        "sha256": "8e7d8752474493b8e2699ccea86e93385b2bef432d5b18d02b76207d3bd6ee21",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R289-R294-report.md",
+        "sha256": "6cc7322c2bb0c42e76c2c2d9a04a250888c1edb9cbc593b7f6528b50ce8a77f5",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current software/browser bridge returns reconstructed planes or frames, not symbolic prediction maps. Historical matches were detected after full decode, so they did not eliminate real MPEG2 reconstruction.",
+    "next_test": "Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R303.schedule-h-264-deblocking-as-a-dependency-graph",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+    "source_checked": true,
+    "source_sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+    "hypothesis": "The mechanism 'Schedule H.264 deblocking as a dependency graph' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current source-owner review plus inspected shared secure-localhost GPU prerequisite; complete mechanism not executed",
+    "requested_output_contract": "Exact weak/strong luma filtering order with conservative read/write dependencies and unchanged subsequent reference pictures.",
+    "current_code_paths": [
+      "native/simd/h264-deblock.c:20",
+      "native/simd/h264-dsp.c:1"
+    ],
+    "observed_gap": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Existing optimized Wasm/CPU deblock, not only scalar Python schedule."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Existing optimized Wasm/CPU deblock, not only scalar Python schedule. Not executed.",
+      "negative_control": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+      "outcome": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only. Current shared result exposes WebGPU and nonfallback Apple adapter. The historical no-GPU gate is superseded for this environment, but no actual captured deblock trace or GPU-resident reconstruction path was exercised."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "sha256": "aa5e60f17634f7c37df9c010c20c13d276231cbec6559a6c0276d551c0a05baf",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Current shared result exposes WebGPU and nonfallback Apple adapter. The historical no-GPU gate is superseded for this environment, but no actual captured deblock trace or GPU-resident reconstruction path was exercised."
+      }
+    ],
+    "reason": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
+    "next_test": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R315.carry-hidden-caption-state-across-packet-copy-cuts",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "9d25bf8cf87cb6a7a0dd4cb7784e6603048ea36dc8370e8b57db7f870c580f31",
+    "hypothesis": "The mechanism 'Carry hidden caption state across packet-copy cuts' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Admitted CEA608 pop-on displayed/hidden buffers, style/cursor/mode/repeated-command state and times continue exactly across source-bound cut.",
+    "current_code_paths": [
+      "web/subtitle-overlay.js:3",
+      "src/internal/native-ass.ts:4"
+    ],
+    "observed_gap": "Current subtitle bridge consumes already-rendered bitmap snapshots; NativeASS handles external ASS. No controlled CEA608 parser/logical state capsule restore owner exists. Visible bitmap/text snapshots cannot preserve hidden pop-on state.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Caption-only replay to boundary plus original suffix, not full preceding video decode."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Caption-only replay to boundary plus original suffix, not full preceding video decode. Not executed.",
+      "negative_control": "Define versioned logical CEA608 state and one cut between hidden write/EOC; compare entire suffix and reject visible-text-only, repeated-EOC or wrong-service/source capsule.",
+      "outcome": "Current subtitle bridge consumes already-rendered bitmap snapshots; NativeASS handles external ASS. No controlled CEA608 parser/logical state capsule restore owner exists. Visible bitmap/text snapshots cannot preserve hidden pop-on state."
+    },
+    "measurement": {
+      "primary_metric": "Required caption capability or total render/extraction cost and retained cue/atlas memory.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R315.carry-hidden-caption-state-across-packet-copy-cuts.md",
+        "sha256": "f087910ecf05b8f3c6d8ed587c420d343ad8d746ca7ed66dd356b959296eb7f2",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R313-R317-report.md",
+        "sha256": "420712b2a80378d02680e01d901d72753aae948d8587f93fcebcba03580a21f3",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current subtitle bridge consumes already-rendered bitmap snapshots; NativeASS handles external ASS. No controlled CEA608 parser/logical state capsule restore owner exists. Visible bitmap/text snapshots cannot preserve hidden pop-on state.",
+    "next_test": "Define versioned logical CEA608 state and one cut between hidden write/EOC; compare entire suffix and reject visible-text-only, repeated-EOC or wrong-service/source capsule.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define versioned logical CEA608 state and one cut between hidden write/EOC; compare entire suffix and reject visible-text-only, repeated-EOC or wrong-service/source capsule.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Smart-cut predictive video by synthesizing only the missing reference boundary' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Constrained synthetic boundary plus copied predictive suffix reproduces all suffix pictures, numbering/filter state and timing.",
+    "current_code_paths": [
+      "native/vd_browser.c:54",
+      "web/video-codec-config.js:43"
+    ],
+    "observed_gap": "Current pipeline consumes original packets and legal keyframe boundaries; no exact synthetic-reference encoder/state validator exists. Matching one MPEG2 reference pixel plane does not establish hidden reference equivalence for other codecs.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Full edge-GOP reconstruction or qualified smart-cut reference preserving requested exact output."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Full edge-GOP reconstruction or qualified smart-cut reference preserving requested exact output. Not executed.",
+      "negative_control": "Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+      "outcome": "Current pipeline consumes original packets and legal keyframe boundaries; no exact synthetic-reference encoder/state validator exists. Matching one MPEG2 reference pixel plane does not establish hidden reference equivalence for other codecs."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary.md",
+        "sha256": "36414c8edf263427ba819a998a87478abf8a32e88028ca23691ed3d39d85b431",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R324-R331-report.md",
+        "sha256": "64b889b47d6c6f12f088e2d2113aef8b44d2d2072e3dcc379b268b4903aa547b",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current pipeline consumes original packets and legal keyframe boundaries; no exact synthetic-reference encoder/state validator exists. Matching one MPEG2 reference pixel plane does not establish hidden reference equivalence for other codecs.",
+    "next_test": "Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R328.skip-decoding-video-frames-whose-entire-visible-contribution-is-provably-occluded",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Skip decoding video frames whose entire visible contribution is provably occluded' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Only provably covered, future-unreferenced reconstruction may be skipped; syntax/reference state and all later visible pictures remain exact.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:122",
+      "web/retained-video.js:3"
+    ],
+    "observed_gap": "Current presentation has ordinary DOM/canvas layers but no authoritative fully opaque coverage timeline or future-reference liveness graph. Hiding an element cannot authorize decode suppression.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Current complete decode with same declared opaque overlay semantics."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Current complete decode with same declared opaque overlay semantics. Not executed.",
+      "negative_control": "Define a source-time opaque-coverage contract and controlled no-b-pyramid reference oracle; test one nonreference covered picture and reject covered reference/partial-alpha cases. Count modest historical savings honestly.",
+      "outcome": "Current presentation has ordinary DOM/canvas layers but no authoritative fully opaque coverage timeline or future-reference liveness graph. Hiding an element cannot authorize decode suppression."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R328.skip-decoding-video-frames-whose-entire-visible-contribution-is-provably-occluded.md",
+        "sha256": "31641ef0f9e5d12bac09e1822715c62507deea35049b79824cf00efb414c955b",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R324-R331-report.md",
+        "sha256": "64b889b47d6c6f12f088e2d2113aef8b44d2d2072e3dcc379b268b4903aa547b",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current presentation has ordinary DOM/canvas layers but no authoritative fully opaque coverage timeline or future-reference liveness graph. Hiding an element cannot authorize decode suppression.",
+    "next_test": "Define a source-time opaque-coverage contract and controlled no-b-pyramid reference oracle; test one nonreference covered picture and reject covered reference/partial-alpha cases. Count modest historical savings honestly.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define a source-time opaque-coverage contract and controlled no-b-pyramid reference oracle; test one nonreference covered picture and reject covered reference/partial-alpha cases. Count modest historical savings honestly.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R329.build-audio-seek-checkpoints-from-codec-state-plus-filter-state-together",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Build audio seek checkpoints from codec state plus filter state together' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact resumed sample/tail/state identity under same source/recipe/runtime; reject all identity changes and never persist raw pointers.",
+    "current_code_paths": [
+      "src/internal/wasm-player.ts:187",
+      "web/audio-worklet.js:16",
+      "native/vd_browser.c:54"
+    ],
+    "observed_gap": "Seek commands let mpv rebuild decoder/filter state; no portable versioned logical state serializer spans decoder, resampler, mixer and filters. Raw decoder snapshot in historical prototype is not maintained ABI.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Current exact seek/replay with decoder plus full filter-history reconstruction."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Current exact seek/replay with decoder plus full filter-history reconstruction. Not executed.",
+      "negative_control": "Define a versioned state schema for one fixed Opus/resampler/IIR pipeline; test nonzero resampler phase checkpoint and reject zeroed phase/filter state or runtime mismatch.",
+      "outcome": "Seek commands let mpv rebuild decoder/filter state; no portable versioned logical state serializer spans decoder, resampler, mixer and filters. Raw decoder snapshot in historical prototype is not maintained ABI."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R329.build-audio-seek-checkpoints-from-codec-state-plus-filter-state-together.md",
+        "sha256": "f27a534ab085d2210c8141150816fcc356588ffa86114d67070ad3f0a0ecd1b6",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R324-R331-report.md",
+        "sha256": "64b889b47d6c6f12f088e2d2113aef8b44d2d2072e3dcc379b268b4903aa547b",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Seek commands let mpv rebuild decoder/filter state; no portable versioned logical state serializer spans decoder, resampler, mixer and filters. Raw decoder snapshot in historical prototype is not maintained ABI.",
+    "next_test": "Define a versioned state schema for one fixed Opus/resampler/IIR pipeline; test nonzero resampler phase checkpoint and reject zeroed phase/filter state or runtime mismatch.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define a versioned state schema for one fixed Opus/resampler/IIR pipeline; test nonzero resampler phase checkpoint and reject zeroed phase/filter state or runtime mismatch.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "269a6469f2cddfbcb40c479658892c5e842bdd2da591d8db9c6afd1a9282a358",
+    "hypothesis": "The mechanism 'Seek through APNG by resolving the last writer of each region' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Eight-bit SOURCE/NONE APNG target and continuation are sample-exact, transparent SOURCE replaces history, unsupported disposal/blend rejects.",
+    "current_code_paths": [
+      "web/retained-video.js:3",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "Current software decoder yields complete animation frames; no APNG operation index, standalone per-frame PNG view or bounded unresolved-region planner exists. Historical checkpoint was faster than planner at different retention cost, so use equal memory baseline.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Full replay and strongest bounded decoded-state checkpoints at the same memory budget."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Full replay and strongest bounded decoded-state checkpoints at the same memory budget. Not executed.",
+      "negative_control": "Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+      "outcome": "Current software decoder yields complete animation frames; no APNG operation index, standalone per-frame PNG view or bounded unresolved-region planner exists. Historical checkpoint was faster than planner at different retention cost, so use equal memory baseline."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R344.seek-through-apng-by-resolving-the-last-writer-of-each-region.md",
+        "sha256": "24d0faa0f87f640ad34f5f00ed8260c4b21412d3fe574d18afd0e314c664ffc3",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R343-R347-rerun-report.md",
+        "sha256": "9d331068906b791d297e4751f952072b68e5752d06ee5620bd626e956fa7b190",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current software decoder yields complete animation frames; no APNG operation index, standalone per-frame PNG view or bounded unresolved-region planner exists. Historical checkpoint was faster than planner at different retention cost, so use equal memory baseline.",
+    "next_test": "Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "e778885a12e305271899d494b2dbf9dcf0a16ed2793a67e31db89b17672720cb",
+    "hypothesis": "The mechanism 'Parallelize phase-vocoder accumulation without resetting phase at job boundaries' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Explicit fixed mono phase-vocoder algorithm preserves declared complex-spectrum/PCM tolerance, global phase anchors, OLA coverage, delay and trimming.",
+    "current_code_paths": [
+      "src/internal/wasm-player.ts:187",
+      "native/ao_browser.c:30"
+    ],
+    "observed_gap": "Playback rate delegates to mpv speed; no selected simple phase-vocoder algorithm or exposed phase/OLA state exists. Replacing a production stretcher with a teaching algorithm changes semantics.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Optimized sequential same algorithm and independent frequency-bin parallel baseline."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Optimized sequential same algorithm and independent frequency-bin parallel baseline. Not executed.",
+      "negative_control": "Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+      "outcome": "Playback rate delegates to mpv speed; no selected simple phase-vocoder algorithm or exposed phase/OLA state exists. Replacing a production stretcher with a teaching algorithm changes semantics."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries.md",
+        "sha256": "b382c58b14ea3302056730cd8fc28d24f83a65065cf662a9731aa0d07ebf8374",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Playback rate delegates to mpv speed; no selected simple phase-vocoder algorithm or exposed phase/OLA state exists. Replacing a production stretcher with a teaching algorithm changes semantics.",
+    "next_test": "Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "4dc14c62fe748c7bc2860a9191009943c5d1708a9bd949c884e0e43ef227f1ad",
+    "hypothesis": "The mechanism 'Stop replaying alpha-animation history when its remaining contribution is bounded' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact opaque-overwrite elision separate from opt-in bounded-error OVER/NONE preview in normalized premultiplied output; uncovered pixel/underflow never prove exactness.",
+    "current_code_paths": [
+      "web/retained-video.js:3",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "No APNG retained composition/index owner or opt-in approximation contract exists. Current output promises full frame; bounded transmittance cannot silently justify approximate playback, and historical microbenchmark excludes decode/index work.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Full replay and equal-memory exact canvas checkpoints under the same color pipeline."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Full replay and equal-memory exact canvas checkpoints under the same color pipeline. Not executed.",
+      "negative_control": "Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+      "outcome": "No APNG retained composition/index owner or opt-in approximation contract exists. Current output promises full frame; bounded transmittance cannot silently justify approximate playback, and historical microbenchmark excludes decode/index work."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded.md",
+        "sha256": "9b66c37d7eaf3193ab0301358149d6e53a54189ec67f57b31c5c16b8009d91d6",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R358-R362-report.md",
+        "sha256": "2eaa1962f9c072a9559bc58372ec9ddd7cca0372aa44e9a7ed986fdbaea4989a",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "No APNG retained composition/index owner or opt-in approximation contract exists. Current output promises full frame; bounded transmittance cannot silently justify approximate playback, and historical microbenchmark excludes decode/index work.",
+    "next_test": "Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+    "source_checked": true,
+    "source_sha256": "9d25bf8cf87cb6a7a0dd4cb7784e6603048ea36dc8370e8b57db7f870c580f31",
+    "hypothesis": "The mechanism 'Sample B44-compressed HDR images without expanding the whole frame' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current source-owner review plus inspected shared secure-localhost GPU prerequisite; complete mechanism not executed",
+    "requested_output_contract": "Flat B44 HALF non-subsampled pLinear-off samples equal pinned decode at bit patterns before declared nearest sampling/color; nonzero origins/edges bounded.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:11",
+      "native/yuv-backend.c:29"
+    ],
+    "observed_gap": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Pinned full OpenEXR decode and selected-block expand-then-sample at same requested views."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Pinned full OpenEXR decode and selected-block expand-then-sample at same requested views. Not executed.",
+      "negative_control": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+      "outcome": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values. Current shared result exposes WebGPU shader-f16. This is not a B44 parser/demand sampler, sample-bit oracle or half-float color pipeline qualification."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "sha256": "2a4f5046d3f373396f8ad17160b5697e54f743ea0dfa2bdfaa176082dbea0638",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R313-R317-report.md",
+        "sha256": "420712b2a80378d02680e01d901d72753aae948d8587f93fcebcba03580a21f3",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Current shared result exposes WebGPU shader-f16. This is not a B44 parser/demand sampler, sample-bit oracle or half-float color pipeline qualification."
+      }
+    ],
+    "reason": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+    "next_test": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+    "hypothesis": "The mechanism 'Carry full-resolution color planes through a 4:2:0 video decoder' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Explicit prepared 4:4:4 planes recover correct ranges/colors/times from luma atlas without filtered region bleed; report actual sample errors.",
+    "current_code_paths": [
+      "web/video-codec-config.js:43",
+      "web/yuv-presenter.js:11"
+    ],
+    "observed_gap": "Current decoded YUV mapping assumes ordinary image planes and no carrier-atlas interpretation/profile exists. New prepared three-width luma atlas and shader require explicit contract and range oracle.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Direct supported 4:4:4 or software 4:4:4 plus ordinary 4:2:0 quality control."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Direct supported 4:4:4 or software 4:4:4 plus ordinary 4:2:0 quality control. Not executed.",
+      "negative_control": "Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+      "outcome": "Current decoded YUV mapping assumes ordinary image planes and no carrier-atlas interpretation/profile exists. New prepared three-width luma atlas and shader require explicit contract and range oracle."
+    },
+    "measurement": {
+      "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder.md",
+        "sha256": "19560e240c44bac14c9ad0394a40128ac4a95630cad2edcd37e88270eb239434",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Current decoded YUV mapping assumes ordinary image planes and no carrier-atlas interpretation/profile exists. New prepared three-width luma atlas and shader require explicit contract and range oracle.",
+    "next_test": "Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R143.native-base-video-plus-an-exact-correction-stream",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "The mechanism 'Native base video plus an exact correction stream' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Exact declared source samples require identical base reconstruction, specified upsampling and signed correction semantics with full timing alignment.",
+    "current_code_paths": [
+      "web/video-codec-config.js:43",
+      "web/yuv-presenter.js:11"
+    ],
+    "observed_gap": "Current browser-decoded frame path has no signed correction stream or base-reconstruction identity contract. Platform-varying base/color conversion can invalidate supposedly exact residuals.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Direct exact software decode of original source under the same sample/color contract."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Direct exact software decode of original source under the same sample/color contract. Not executed.",
+      "negative_control": "Define one prepared base/correction oracle tied to exact decoder reconstruction; deliberately different base reconstruction must reject rather than display approximate corrected output; count correction bytes/production.",
+      "outcome": "Current browser-decoded frame path has no signed correction stream or base-reconstruction identity contract. Platform-varying base/color conversion can invalidate supposedly exact residuals."
+    },
+    "measurement": {
+      "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R143.native-base-video-plus-an-exact-correction-stream.md",
+        "sha256": "8e8fe0fd18c34589bb55be2f3534bc285d3527d9068a0045739171bae3680503",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current browser-decoded frame path has no signed correction stream or base-reconstruction identity contract. Platform-varying base/color conversion can invalidate supposedly exact residuals.",
+    "next_test": "Define one prepared base/correction oracle tied to exact decoder reconstruction; deliberately different base reconstruction must reject rather than display approximate corrected output; count correction bytes/production.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one prepared base/correction oracle tied to exact decoder reconstruction; deliberately different base reconstruction must reject rather than display approximate corrected output; count correction bytes/production.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R209.fetch-wavpack-correction-data-only-when-exact-output-is-required",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+    "hypothesis": "The mechanism 'Fetch WavPack correction data only when exact output is required' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Explicit base-only lossy mode differs from exact base-plus-correction; exact suffix requires matching correction blocks and original sample mapping.",
+    "current_code_paths": [
+      "build/sources/ffmpeg/libavcodec/wavpack.c:1633",
+      "web/range-reader.js:3",
+      "web/range-reader.js:80"
+    ],
+    "observed_gap": "Current single-source packet decoder does not own a separate WavPack correction stream or exact/lossy mode transition. Dual-source authorization and block-aligned correction mapping are prerequisites.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Always-corrected full decode for exact requests, explicitly base-only decode for lossy requests."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Always-corrected full decode for exact requests, explicitly base-only decode for lossy requests. Not executed.",
+      "negative_control": "Define bounded source-paired correction map and one block-boundary mode switch; verify suffix PCM exactness and reject absent/stale correction without claiming lossless output.",
+      "outcome": "Current single-source packet decoder does not own a separate WavPack correction stream or exact/lossy mode transition. Dual-source authorization and block-aligned correction mapping are prerequisites."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R209.fetch-wavpack-correction-data-only-when-exact-output-is-required.md",
+        "sha256": "2e8ffb7ae7c405771589f4350afaf30f1e95f25b77526d3a670a5f7589592596",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current single-source packet decoder does not own a separate WavPack correction stream or exact/lossy mode transition. Dual-source authorization and block-aligned correction mapping are prerequisites.",
+    "next_test": "Define bounded source-paired correction map and one block-boundary mode switch; verify suffix PCM exactness and reject absent/stale correction without claiming lossless output.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define bounded source-paired correction map and one block-boundary mode switch; verify suffix PCM exactness and reject absent/stale correction without claiming lossless output.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R306.defer-opus-redundancy-processing-until-it-can-repair-a-real-gap",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+    "hypothesis": "The mechanism 'Defer Opus redundancy processing until it can repair a real gap' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "No-loss ordinary output stays identical; explicitly authorized repair equals same eager pinned DRED reference, not original lost samples.",
+    "current_code_paths": [
+      "web/range-reader.js:3",
+      "web/audio-worklet.js:16"
+    ],
+    "observed_gap": "Maintained finite-source path reads complete authorized bytes and has no packet-loss concealment deadline or DRED model state. Normal packets make redundancy irrelevant for this exact-file profile; historical encoder build blocker is not asserted about current SDK.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Current exact original-packet file playback; for future lossy profile, eager/lazy DRED under identical latency."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Current exact original-packet file playback; for future lossy profile, eager/lazy DRED under identical latency. Not executed.",
+      "negative_control": "Reopen only for an actual loss-repair use case plus mutually compatible DRED encoder/model/decoder; then one missing-packet/deadline/cancellation comparison without increasing candidate playout delay.",
+      "outcome": "Maintained finite-source path reads complete authorized bytes and has no packet-loss concealment deadline or DRED model state. Normal packets make redundancy irrelevant for this exact-file profile; historical encoder build blocker is not asserted about current SDK."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R306.defer-opus-redundancy-processing-until-it-can-repair-a-real-gap.md",
+        "sha256": "b45458436c097ba186724b036882aa61b6ab0ba40a80ddf89a013c78d661e9e7",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      },
+      {
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "note": "Per-mechanism related historical section reviewed; raw runs not independently imported"
+      }
+    ],
+    "reason": "Maintained finite-source path reads complete authorized bytes and has no packet-loss concealment deadline or DRED model state. Normal packets make redundancy irrelevant for this exact-file profile; historical encoder build blocker is not asserted about current SDK.",
+    "next_test": "Reopen only for an actual loss-repair use case plus mutually compatible DRED encoder/model/decoder; then one missing-packet/deadline/cancellation comparison without increasing candidate playout delay.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Reopen only for an actual loss-repair use case plus mutually compatible DRED encoder/model/decoder; then one missing-packet/deadline/cancellation comparison without increasing candidate playout delay.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+    "hypothesis": "The mechanism 'JPEG XL reconstruction followed by browser JPEG decode' may reduce work or add capability only while preserving its explicitly scoped output contract.",
+    "tested_profile": "Current maintained source-owner review against exact cited definition; no new complete mechanism execution",
+    "requested_output_contract": "Only JPEG-origin JXL with valid reconstruction metadata emits byte-identical original JPEG and matching browser decoded pixels within output bounds.",
+    "current_code_paths": [
+      "web/video-codec-config.js:43",
+      "web/retained-video.js:3"
+    ],
+    "observed_gap": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": null,
+      "plan": "Direct original JPEG decode and normal qualified JXL decode where available, including preparation/storage cost."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition, current owner and related report when present",
+      "positive_control": "Direct original JPEG decode and normal qualified JXL decode where available, including preparation/storage cost. Not executed.",
+      "negative_control": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+      "outcome": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "Faithful added capability or demonstrated removable work for this contract",
+      "paired_runs": null,
+      "result": "No new measurements",
+      "uncertainty": "Setup, workload exposure, exact integration and complete cost remain unmeasured",
+      "excluded_costs": []
+    },
+    "evidence": [
+      {
+        "path": "work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md",
+        "sha256": "a6f045faf47e26b1bc9c655af55a5f4c146cb6982f28946e0978944ba5d4655f",
+        "note": "Full definition, hashed owner excerpts, distinct baseline/contract/gap/falsifier"
+      }
+    ],
+    "reason": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+    "next_test": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+    "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+    "limits": [
+      "Historical source outcomes are not newly executed local results.",
+      "No complete-route correctness, net speed, physical GPU or release qualification established."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  }
+]

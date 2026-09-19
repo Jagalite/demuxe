@@ -1,0 +1,19 @@
+{
+  "scope": "Actual current RemuxPlayer with isolated native bridge builds; default routing unchanged. Host independent decoded output oracle. No performance qualification.",
+  "cases": [
+    {
+      "variant": "baseline",
+      "fixture": "pid-change.ts",
+      "passed": true,
+      "workersAfter": 0
+    },
+    {
+      "variant": "pid",
+      "fixture": "pid-change.ts",
+      "error": "page.evaluate: Error: FFmpeg error -1094995529: Selected timeline discontinuity\nError: FFmpeg error -1094995529: Selected timeline discontinuity\n    at check (http://127.0.0.1:49660/web/native-remux-worker.js:8:30)\n    at self.onmessage (http://127.0.0.1:49660/web/native-remux-worker.js:41:15)\n    at check (http://127.0.0.1:49660/web/native-remux-worker.js:8:30)\n    at self.onmessage (http://127.0.0.1:49660/web/native-remux-worker.js:41:15)\n    at RemuxPlayer.fail (http://127.0.0.1:49660/web/native-remux-player.js:252:73)\n    at worker.onmessage (http://127.0.0.1:49660/web/native-remux-player.js:64:33)\n    at /Volumes/seed2/Projects/demuxe/tests/top100-pid.mjs:7:1143",
+      "workersAfter": 0
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "completed": true
+}

@@ -1,0 +1,1925 @@
+[
+  {
+    "key": "R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Extract mid subframes from an all-mid-side FLAC stream as an explicitly requested rounded integer mono average. Preserve residuals and regenerate truthful framing/integrity; test negative odd sums and coding-mode changes.",
+    "tested_profile": "Source/current-owner first-pass audit: Extract the exact rounded mono mix already stored inside mid-side FLAC. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:29-38",
+      "native/adaptation/flac.h:97-118"
+    ],
+    "observed_gap": "The maintained FLAC path preserves selected integer samples and layouts through decode/encode; it does not expose mid subframes or a rounded-mono request. Mid extraction needs a bit parser and a precisely defined floor/rounding contract, especially for negative odd sums and coding-mode transitions.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Parse one all-mid-side FLAC fixture, extract only mid residuals into valid mono frames, and compare against the explicitly rounded integer average; reject a switched left/side frame.",
+      "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+      "outcome": "The maintained FLAC path preserves selected integer samples and layouts through decode/encode; it does not expose mid subframes or a rounded-mono request. Mid extraction needs a bit parser and a precisely defined floor/rounding contract, especially for negative odd sums and coding-mode transitions."
+    },
+    "measurement": {
+      "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac.md",
+        "sha256": "e5ddcfd7eaecd4d768fe3384709894625c04572d8d0a7d9833e8c4f6e56fe547",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained FLAC path preserves selected integer samples and layouts through decode/encode; it does not expose mid subframes or a rounded-mono request. Mid extraction needs a bit parser and a precisely defined floor/rounding contract, especially for negative odd sums and coding-mode transitions.",
+    "next_test": "Parse one all-mid-side FLAC fixture, extract only mid residuals into valid mono frames, and compare against the explicitly rounded integer average; reject a switched left/side frame.",
+    "reopen_condition": "Reopen when a rounded-mono output is requested and bounded subframe parsing exists; this is not arbitrary stereo downmix or lossless stereo preservation.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R204.edit-mp3-coded-gain-without-changing-spectral-payload",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+    "hypothesis": "For a bounded MPEG-1 Layer III mono/no-CRC profile, every granule's global_gain was reduced by four steps while main-data/spectral payload hashes were left unchanged. Host decoded RMS became 0.500000004\u00d7 the original (target 0.5); the maximum sample error versus half-amplitude was 5.31e-08. Chromium measured 0.499999757\u00d7 after decoding at 48 kHz. Underflow is explicitly rejected and an MPEG-2 fixture fails this narrow admission profile instead of being patched with the wrong side-information layout. Output is intentionally changed; this is not bit-exact editing.",
+    "tested_profile": "Source/current-owner first-pass audit: Edit MP3 coded gain without changing spectral payload. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "src/internal/native-player.ts:36-51",
+      "web/remux-packaging.js:6-7"
+    ],
+    "observed_gap": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R204.edit-mp3-coded-gain-without-changing-spectral-payload.md",
+        "sha256": "e683a51984514c3a6c33ff5a5734d1ba5a22bad4b2b523eefe65a1cee8346e60",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R203-R213-report.md",
+        "sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner.",
+    "next_test": "For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
+    "reopen_condition": "Reopen for a compressed-output editing use case, not ordinary volume control; near-half decoded amplitude is not sample-exact gain.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R244.make-dithering-reproducible-at-any-sample-position",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Define a counter-addressed dither recipe keyed by track, channel, sample position and seed, so independent jobs reproduce the same quantized output. Exclude noise shaping and preserve the specific altered-output contract.",
+    "tested_profile": "Source/current-owner first-pass audit: Make dithering reproducible at any sample position. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:31-37",
+      "native/adaptation/flac.h:110-118"
+    ],
+    "observed_gap": "Current lossless preparation rejects quantization and copies integer values; its optional S16/S24-to-float conversion is exact. There is no dithered parallel quantizer at this boundary, so adding counter noise would change required output rather than remove work.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: If explicit quantized export is added, define track/channel/absolute-sample seed mapping and compare shuffled chunks with a serial oracle, including chunk-index reset failure.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Current lossless preparation rejects quantization and copies integer values; its optional S16/S24-to-float conversion is exact. There is no dithered parallel quantizer at this boundary, so adding counter noise would change required output rather than remove work."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R244.make-dithering-reproducible-at-any-sample-position.md",
+        "sha256": "3d20f4b25575501643893718e72b8ecbb971b379e02b87953577f2b418d72150",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current lossless preparation rejects quantization and copies integer values; its optional S16/S24-to-float conversion is exact. There is no dithered parallel quantizer at this boundary, so adding counter noise would change required output rather than remove work.",
+    "next_test": "If explicit quantized export is added, define track/channel/absolute-sample seed mapping and compare shuffled chunks with a serial oracle, including chunk-index reset failure.",
+    "reopen_condition": "Reopen with an explicitly dithered quantization recipe; exclude stateful noise shaping and preserve lossless playback unchanged.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+    "hypothesis": "A JavaScript Philox4x32-10 implementation was checked against three published Random123 known-answer vectors and an independently implemented vectorized Python integer oracle.[S5] The counter contains absolute sample-index low/high words, stable channel identity and separate draw identity; the key is the render seed. Two draws generate the explicitly specified unshaped triangular dither. Input is exact Q8 in output-LSB units, with a declared rounding and saturation rule. Cases span zero, the 2^32 boundary, and 2^48+9, two stable channel identities, fractional half-LSB inputs and output clipping boundaries. Four Node workers exercised reverse/shuffled jobs, native worker termination followed by replay, and output-slot reordering. 163,952 output comparisons were exact. A negative per-chunk index reset produced 21,206 mismatches.",
+    "tested_profile": "Source/current-owner first-pass audit: Make parallel audio quantization deterministic without shared random state. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:31-37",
+      "native/adaptation/flac.h:110-118"
+    ],
+    "observed_gap": "The Philox source provides concrete deterministic-worker correctness, distinct from unspecified legacy dither equality. Current playback has no Q8-to-integer parallel render stage; the reported worker results do not justify inserting quantization into this lossless path.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For a new permitted quantizer, reuse published known-answer vectors and absolute counter mapping, then compare canceled/replayed workers at 2^32 and 2^48 boundaries.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "The Philox source provides concrete deterministic-worker correctness, distinct from unspecified legacy dither equality. Current playback has no Q8-to-integer parallel render stage; the reported worker results do not justify inserting quantization into this lossless path."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R246.make-parallel-audio-quantization-deterministic-without-shared-random-state.md",
+        "sha256": "442d22d7ef6e567918825d190f87c9010794cd64e9c93312a51736dba2d7a140",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R239-R246-report.md",
+        "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The Philox source provides concrete deterministic-worker correctness, distinct from unspecified legacy dither equality. Current playback has no Q8-to-integer parallel render stage; the reported worker results do not justify inserting quantization into this lossless path.",
+    "next_test": "For a new permitted quantizer, reuse published known-answer vectors and absolute counter mapping, then compare canceled/replayed workers at 2^32 and 2^48 boundaries.",
+    "reopen_condition": "Reopen when deterministic parallel quantization is required; do not claim byte equality to an existing differently seeded or noise-shaped engine.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "7ae4dc9793e534c8339ad71994b22f8f464117ce356d8af75e98afcdbbecbf6b",
+    "hypothesis": "Class: Bounded recovery from sparse corruption; no weakened integrity admission. Output contract: Only bytes matching an independently trusted expected identity can be admitted as repaired. Related: R181 identifies contaminated output; this investigates repairing compressed bytes before decoding. FLAC specifies a frame CRC with a fixed polynomial and zero initialization [S7]. For a known frame length and an explicitly single-bit candidate model, precompute how each possible bit flip changes the observed CRC mismatch. The mismatch can then nominate candidate error locations much more efficiently than repeated full-frame CRC scans. CRC agreement is only a candidate filter. After applying a candidate to a temporary view, verify the exact frame or containing verified chunk against an independently trusted SHA-256 value or equivalent authenticated identity. Web Crypto provides the digest primitive, not trust in the expected digest [S8].",
+    "tested_profile": "Source/current-owner first-pass audit: Use frame CRCs to narrow a repair, then require trusted-hash verification. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "current_code_paths": [
+      "web/range-reader.js:94-105",
+      "web/range-reader.js:115-129",
+      "web/file-reader.js:13-33"
+    ],
+    "observed_gap": "Current readers validate range identity and retry transport but have no independently trusted compressed-frame hashes or FLAC frame-length index. Related report CRC32 localization/collision filtering is not the proposed FLAC single-bit syndrome implementation.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Provide a tiny frame extent plus separately trusted SHA256, then enumerate bounded single-bit candidates on a temporary copy and reject CRC-valid hash-invalid, missing-identity and two-bit controls.",
+      "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+      "outcome": "Current readers validate range identity and retry transport but have no independently trusted compressed-frame hashes or FLAC frame-length index. Related report CRC32 localization/collision filtering is not the proposed FLAC single-bit syndrome implementation."
+    },
+    "measurement": {
+      "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification.md",
+        "sha256": "b967dc32cd7165a8ebe99891ac2660c2b0648eeb3f1f81961af4075472c33c5b",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/Demuxe_R307_R312_Proposals.md",
+        "sha256": "7ae4dc9793e534c8339ad71994b22f8f464117ce356d8af75e98afcdbbecbf6b",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current readers validate range identity and retry transport but have no independently trusted compressed-frame hashes or FLAC frame-length index. Related report CRC32 localization/collision filtering is not the proposed FLAC single-bit syndrome implementation.",
+    "next_test": "Provide a tiny frame extent plus separately trusted SHA256, then enumerate bounded single-bit candidates on a temporary copy and reject CRC-valid hash-invalid, missing-identity and two-bit controls.",
+    "reopen_condition": "Reopen with trusted expected compressed-byte identity and a bounded repair advantage over reread; never mutate source files or treat CRC as authentication.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R322.invert-flac-polarity-directly-in-the-residual-domain",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "For fixed predictors with safe integer headroom, negate warm-ups and residuals and regenerate valid frames. Test all admitted orders and the two's-complement minimum; general shifted LPC is a separate proof.",
+    "tested_profile": "Source/current-owner first-pass audit: Invert FLAC polarity directly in the residual domain. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:29-38",
+      "native/adaptation/flac.h:97-118"
+    ],
+    "observed_gap": "Current adaptation does not expose fixed-predictor residuals or compressed polarity editing. Negating a two-complement minimum overflows at unchanged bit depth, and shifted LPC does not inherit the fixed-predictor proof.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Build a component writer for one fixed-predictor order with safe headroom, verify exact negated PCM and reject minimum-value overflow, then consider remaining admitted orders separately.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current adaptation does not expose fixed-predictor residuals or compressed polarity editing. Negating a two-complement minimum overflows at unchanged bit depth, and shifted LPC does not inherit the fixed-predictor proof."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R322.invert-flac-polarity-directly-in-the-residual-domain.md",
+        "sha256": "111c643bc3c29559dddedae3458a1fd07534fe004d605f71f437f69cf09d0955",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current adaptation does not expose fixed-predictor residuals or compressed polarity editing. Negating a two-complement minimum overflows at unchanged bit depth, and shifted LPC does not inherit the fixed-predictor proof.",
+    "next_test": "Build a component writer for one fixed-predictor order with safe headroom, verify exact negated PCM and reject minimum-value overflow, then consider remaining admitted orders separately.",
+    "reopen_condition": "Reopen with explicit polarity-edit semantics and bounded FLAC residual parsing; no silent widening, clipping or general LPC claim.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R141.split-flac-frames-in-time-while-reusing-their-prediction-work",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "For a restricted FLAC predictor, derive new warm-up samples and valid residual partitions at a temporal split while reusing predictor information. Require exact PCM, numbering, checksums and seek metadata.",
+    "tested_profile": "Source/current-owner first-pass audit: Split FLAC frames in time while reusing their prediction work. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:45-75",
+      "native/remux/remux.c:386-400"
+    ],
+    "observed_gap": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
+        "sha256": "d878a61b7852815a016adc1e072e398f225dfaccff20d72651b6565472cbde82",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+    "next_test": "For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
+    "reopen_condition": "Reopen for an actual sub-frame seek/edit requirement with a bounded residual writer; complete-frame extraction does not establish this mechanism.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R155.fused-synthesis-and-resampling-mathematical-boundary-only",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+    "hypothesis": "Composed the same long-window synthesis/overlap operator with a 31-tap, fixed 2:1 downsampling operator. Zero, random, impulse, previous-tail and tiny-input cases produce the same 1,024 output samples as the separate operations, with maximum absolute floating-point difference 1.39e-16. The comparison uses identical centered-filter delay and zero-padding conventions. The fused dense matrix occupies 25,165,824 bytes (24 MiB) and took 186.72 ms to prepare in this run. It is not proposed as a competitive decoder implementation. There is no comparison against a fast transform, no real AAC decoder modification and no proof of streaming boundary/future-sample handling. This verifies linear composition for a restricted model. Actual AAC fusion remains not tested, and there is no performance win to report.",
+    "tested_profile": "Source/current-owner first-pass audit: Fused synthesis and resampling: mathematical boundary only. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:31-38",
+      "native/audio_bridge.h:7-13"
+    ],
+    "observed_gap": "The maintained adaptation contract forbids resampling, and the historical dense 24MiB matrix only verifies linear composition. It lacks real AAC transforms, streaming edge handling and comparison against a fast implementation; no optimization is supported.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Only after a requested fixed-rate conversion exists, inspect an actual synthesis/resample boundary and derive a structured fused kernel with identical delay/tails.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "The maintained adaptation contract forbids resampling, and the historical dense 24MiB matrix only verifies linear composition. It lacks real AAC transforms, streaming edge handling and comparison against a fast implementation; no optimization is supported."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R155.fused-synthesis-and-resampling-mathematical-boundary-only.md",
+        "sha256": "8d9b85d87c48fafb8fef4ed931fd9721460ff15693a5422cd0992644f8c7a0fc",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R146-R158-report.md",
+        "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The maintained adaptation contract forbids resampling, and the historical dense 24MiB matrix only verifies linear composition. It lacks real AAC transforms, streaming edge handling and comparison against a fast implementation; no optimization is supported.",
+    "next_test": "Only after a requested fixed-rate conversion exists, inspect an actual synthesis/resample boundary and derive a structured fused kernel with identical delay/tails.",
+    "reopen_condition": "Reopen with a real repeated operator and efficient implementation hypothesis; do not benchmark the dense identity as a decoder speedup.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R166.prove-where-an-audio-edit-stops-affecting-subsequent-output",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Analyze codec-specific overlap and persistent state to certify when the copied suffix of a constrained AAC edit again matches original decoded output. Unknown state means no certificate.",
+    "tested_profile": "Source/current-owner first-pass audit: Prove where an audio edit stops affecting subsequent output. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:29-38",
+      "native/remux/remux.c:379-400"
+    ],
+    "observed_gap": "Current audio preparation is continuous and does not splice altered AAC packets or track coding-tool recovery certificates. A codec name and packet count cannot establish that transform/PNS/persistent state has converged after an edit.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: On one declared AAC tool profile, alter a bounded packet interval and compare every suffix sample against uninterrupted decode; unknown state must prevent certification.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current audio preparation is continuous and does not splice altered AAC packets or track coding-tool recovery certificates. A codec name and packet count cannot establish that transform/PNS/persistent state has converged after an edit."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R166.prove-where-an-audio-edit-stops-affecting-subsequent-output.md",
+        "sha256": "1a75e20d3307683174185e2a0f993b2d5e27e59d7518121af3023edd6485b7f7",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current audio preparation is continuous and does not splice altered AAC packets or track coding-tool recovery certificates. A codec name and packet count cannot establish that transform/PNS/persistent state has converged after an edit.",
+    "next_test": "On one declared AAC tool profile, alter a bounded packet interval and compare every suffix sample against uninterrupted decode; unknown state must prevent certification.",
+    "reopen_condition": "Reopen with an explicit AAC-edit requirement and tool-aware exact suffix oracle; no universal fixed-preroll certificate.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R157.interpolation-guided-by-real-codec-motion-vectors",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+    "hypothesis": "Used actual MPEG-2 I/P decoder-exported AVMotionVector side data, not the fixture\u2019s known motion as the algorithm input. Native FFI output pixels are independently matched to FFmpeg CLI output. Missing vectors use zero-motion blending; vector-guided bilinear warps construct midpoint pictures. Original 30 fps synthetic frames provide ground truth while the coded input contains every other frame [S8, S9]. The interval crossing the scene cut is a clear counterexample: guided error 54.44/255, blend 53.28/255, previous-frame hold 32.83/255. Averages over mostly translating frames must not conceal that failure. Scene-cut/occlusion decisions and disoccluded-region synthesis remain necessary before a robust interpolator could be claimed.",
+    "tested_profile": "Source/current-owner first-pass audit: Interpolation guided by real codec motion vectors. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:127-145",
+      "web/filter-retained-engine-worker.js:29-50"
+    ],
+    "observed_gap": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
+      "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+      "outcome": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors."
+    },
+    "measurement": {
+      "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R157.interpolation-guided-by-real-codec-motion-vectors.md",
+        "sha256": "7a11247a56699af619bfb6d71d2a026c54757192f661089142e80a32aafa97a6",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R146-R158-report.md",
+        "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors.",
+    "next_test": "For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
+    "reopen_condition": "Reopen with explicit approximate-frame semantics and scene-cut handling; no exact missing-frame reconstruction or runtime saving inferred.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R167.produce-a-requested-dissolve-directly-in-transform-space",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Combine compatible JPEG dequantized coefficients for an explicitly requested dissolve, then serialize valid output. Specify blend domain, rounding and fidelity; compare ordinary GPU display separately.",
+    "tested_profile": "Source/current-owner first-pass audit: Produce a requested dissolve directly in transform space. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/retained-video.js:3-15",
+      "web/filter-retained-engine-worker.js:29-38"
+    ],
+    "observed_gap": "The current presenter already has decoded surfaces, so a requested display dissolve can blend there. Transform-space JPEG output differs at intermediate alpha and needs entropy serialization; it is an export representation, not a pixel-identical live-display shortcut.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For an explicit JPEG dissolve export, define coefficient/blend rounding domain and compare endpoints exactly plus intermediate tolerated error, including mismatched tables.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "The current presenter already has decoded surfaces, so a requested display dissolve can blend there. Transform-space JPEG output differs at intermediate alpha and needs entropy serialization; it is an export representation, not a pixel-identical live-display shortcut."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R167.produce-a-requested-dissolve-directly-in-transform-space.md",
+        "sha256": "7356a491a0bba043470a67ecaa24e26464a7bbdbb750a2929dceb84b53fb5e59",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The current presenter already has decoded surfaces, so a requested display dissolve can blend there. Transform-space JPEG output differs at intermediate alpha and needs entropy serialization; it is an export representation, not a pixel-identical live-display shortcut.",
+    "next_test": "For an explicit JPEG dissolve export, define coefficient/blend rounding domain and compare endpoints exactly plus intermediate tolerated error, including mismatched tables.",
+    "reopen_condition": "Reopen for persistent compressed-effect output with declared fidelity; do not inherit endpoint equality for every alpha.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R244.recompute-video-effects-only-where-the-input-actually-changed.report-a",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+    "hypothesis": "A CPU model retained intermediate blur, pointwise-color and subtitle-composite surfaces. Actual changed pixels were discovered by comparing consecutive source arrays. Damage was expanded by the 3\u00d73 blur footprint; color-parameter changes, subtitle changes and an explicit seek reset invalidated the appropriate outputs. The 96-frame 256\u00d7144 trace was compared against full recomputation for 3,538,944 final pixels with zero mismatches. Another 150 randomized edge/discontinuity/parameter cases also matched. A repeated identical input required no additional effect evaluation. Omitting the blur halo generated 116,265 mismatches, so the control detected the dependency error. Blur work fell from 3,538,944 to 96,175 pixels, a 97.28% reduction, but the actual CPU prototype was slower: 32.93 ms full recomputation versus 108.14 ms incremental, approximately 3.28\u00d7. Eight measured runs per construction followed warmup, with rotated order; the timing includes damage discovery, retained copies and the same reset event. Pixel-area reduction is emphatically not a speedup measurement.",
+    "tested_profile": "Source/current-owner first-pass audit: Recompute video effects only where the input actually changed. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:29-56",
+      "web/filter-retained-engine-worker.js:29-38"
+    ],
+    "observed_gap": "Current presentation receives complete frames with no trustworthy effect-damage metadata. The reported full compare/retain/halo CPU implementation is 3.28x slower despite fewer evaluated blur pixels, so porting that discovery scheme has negative evidence.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Revisit only a cheap producer-supplied damage map; compare all final pixels including blur halo, subtitle changes and seek invalidation before measuring a GPU path.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Current presentation receives complete frames with no trustworthy effect-damage metadata. The reported full compare/retain/halo CPU implementation is 3.28x slower despite fewer evaluated blur pixels, so porting that discovery scheme has negative evidence."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R244.recompute-video-effects-only-where-the-input-actually-changed.report-a.md",
+        "sha256": "d352dfc3bef09d9f40b7a9e4efe3ce3dc9655c8294c3efd169c470243d393261",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R239-R246-report.md",
+        "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current presentation receives complete frames with no trustworthy effect-damage metadata. The reported full compare/retain/halo CPU implementation is 3.28x slower despite fewer evaluated blur pixels, so porting that discovery scheme has negative evidence.",
+    "next_test": "Revisit only a cheap producer-supplied damage map; compare all final pixels including blur halo, subtitle changes and seek invalidation before measuring a GPU path.",
+    "reopen_condition": "Reopen with trustworthy low-cost damage provenance; pixel-area reduction alone is not throughput improvement.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R244.reservoir-independent-prepared-mp3.report-c",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+    "hypothesis": "Matched six-second stereo Layer III files were encoded at 192 kb/s CBR with and without the LAME bit reservoir. Both are 144,866 bytes and contain 231 frames. At frame 120 the ordinary stream has main_data_begin=168; the prepared representation has zero. Every frame in the prepared file has main_data_begin=0, while 230/231 ordinary frames reference reservoir data. When each file is cut exactly at frame 120, the normal stream reaches a byte-exact PCM suffix after two decoded MP3 frames. The no-reservoir stream reaches the exact suffix after one. This reproduces the prior conclusion: removing the compressed-data back-reference removes one preroll dependency, but synthesis/filterbank state remains.",
+    "tested_profile": "Source/current-owner first-pass audit: reservoir-independent prepared MP3. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "web/remux-packaging.js:6-7",
+      "native/remux/remux.c:386-400"
+    ],
+    "observed_gap": "Current packet-copy playback preserves source MP3 and does not author a no-reservoir encoding. Removing reservoir dependence changes preparation requirements and still leaves synthesis-state preroll, so it cannot make arbitrary MP3 packets independent.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For explicitly prepared seek-friendly MP3, compare no-reservoir and normal encodes at matched requested quality and verify exact suffix recovery after restart.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current packet-copy playback preserves source MP3 and does not author a no-reservoir encoding. Removing reservoir dependence changes preparation requirements and still leaves synthesis-state preroll, so it cannot make arbitrary MP3 packets independent."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R244.reservoir-independent-prepared-mp3.report-c.md",
+        "sha256": "f12278fc09da962136839306f95e1f188a385d674a3668ec6cc767c674aa186a",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R239-R245-rerun-report.md",
+        "sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current packet-copy playback preserves source MP3 and does not author a no-reservoir encoding. Removing reservoir dependence changes preparation requirements and still leaves synthesis-state preroll, so it cannot make arbitrary MP3 packets independent.",
+    "next_test": "For explicitly prepared seek-friendly MP3, compare no-reservoir and normal encodes at matched requested quality and verify exact suffix recovery after restart.",
+    "reopen_condition": "Reopen when preparation/re-encoding is authorized and saved restart work repays it; zero main_data_begin does not imply zero decoder state.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R322.animated-image-disposal-checkpoints.report-continuity",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+    "hypothesis": "The controlled compositor exercised GIF-style keep, restore-to-background, and restore-to-previous semantics over 120 frames. Checkpoints store the canvas after prior disposal and before the checkpoint frame. Random seeks from those states reproduced the uninterrupted oracle exactly. The workload reduced frame compositions from 23,361 to 2,171, at a retained-state cost of 294,912 bytes. This proves the state-checkpoint concept; parsing palettes, transparency, interlace, timing, and malformed real GIF streams remain separate qualification.",
+    "tested_profile": "Source/current-owner first-pass audit: Animated-image disposal checkpoints. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/filter-retained-engine-worker.js:11-26",
+      "src/internal/native-player.ts:236-241"
+    ],
+    "observed_gap": "Current retained state contains video frames and generations, not an animated-image compositor with disposal transactions. A checkpoint must capture post-disposal canvas state; historical controlled commands do not parse real GIF palettes/interlace/transparency.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Define one tiny real disposal fixture and reference compositor, checkpoint after prior disposal and compare random seeks, with restore-to-previous incorrectly timed as adverse control.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Current retained state contains video frames and generations, not an animated-image compositor with disposal transactions. A checkpoint must capture post-disposal canvas state; historical controlled commands do not parse real GIF palettes/interlace/transparency."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R322.animated-image-disposal-checkpoints.report-continuity.md",
+        "sha256": "2bff810fea854502d98a0d7ca4b9b1fd5e2541446b34ef8678ccfc535e4ebf2d",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R318-R323-report.md",
+        "sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current retained state contains video frames and generations, not an animated-image compositor with disposal transactions. A checkpoint must capture post-disposal canvas state; historical controlled commands do not parse real GIF palettes/interlace/transparency.",
+    "next_test": "Define one tiny real disposal fixture and reference compositor, checkpoint after prior disposal and compare random seeks, with restore-to-previous incorrectly timed as adverse control.",
+    "reopen_condition": "Reopen for a requested animated-image seek path and bounded parser; decoded-frame caching alone does not supply disposal state.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+    "hypothesis": "Type: Compressed-video composition. Priority: P1. Question. Can several synchronized, suitably constrained HEVC inputs become one coded mosaic? What differs from earlier work. R98 prepared a new atlas encode. This asks whether suitable coded regions can be merged into one decoder input without pixel composition and re-encoding. Mechanism. Combine compatible coded regions into a motion-constrained tiled HEVC stream by rebuilding parameter/slice geometry around retained coded tile data. Initial source profile. Start with equal, coding-unit-aligned dimensions, matching timing/GOP/configuration, and proven motion constraints. Do not accept arbitrary unrelated HEVC files. Source basis. GPAC supplies hevcmerge and tile split/aggregation tools. Strict configuration validation is optional in the merger and should be enabled; the splitter does not establish motion independence. [S3, S4]",
+    "tested_profile": "Source/current-owner first-pass audit: Build a single HEVC mosaic from compatible compressed streams. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/video-codec-config.js:46-48",
+      "native/remux/remux.c:37-47",
+      "src/internal/wasm-player.ts:41-59"
+    ],
+    "observed_gap": "Current HEVC adapter carries existing configuration, not slice/tile merging. Shared current hvc1 query is positive, so historical blanket browser unavailability cannot be carried forward; motion-constrained inputs and a strict merger remain setup.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Provision two controlled motion-constrained tiles and a pinned strict merger, validate every reconstructed region before one exact browser HEVC configuration probe.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Current HEVC adapter carries existing configuration, not slice/tile merging. Shared current hvc1 query is positive, so historical blanket browser unavailability cannot be carried forward; motion-constrained inputs and a strict merger remain setup."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams.md",
+        "sha256": "f88bb2db423a1056db99669ffb4287705f50e6b75a6a818c2661fd01f7fe6c66",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/proposals/R102-R115-research-backlog.md",
+        "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+        "note": "Full definition source checked against supplied catalogue identity."
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Coordinator current API/adapter prerequisite: removes historical environment blocker only; no codec mechanism executed here."
+      }
+    ],
+    "reason": "Current HEVC adapter carries existing configuration, not slice/tile merging. Shared current hvc1 query is positive, so historical blanket browser unavailability cannot be carried forward; motion-constrained inputs and a strict merger remain setup.",
+    "next_test": "Provision two controlled motion-constrained tiles and a pinned strict merger, validate every reconstructed region before one exact browser HEVC configuration probe.",
+    "reopen_condition": "Reopen with constrained synchronized inputs/tooling; profile query success does not prove seam correctness or arbitrary HEVC composability.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R120.entropy-only-transcoding",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "For restricted H.264 I/P material, translate CABAC/CAVLC symbol representation while preserving coefficients, motion and prediction meaning, without pixel reconstruction or requantization. Require exact reconstruction before assessing compatibility or cost.",
+    "tested_profile": "Source/current-owner first-pass audit: Entropy-only transcoding. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/remux/remux.c:49-60",
+      "web/retained-decoder-worker.js:127-145"
+    ],
+    "observed_gap": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R120.entropy-only-transcoding.md",
+        "sha256": "1ab4f03c62ebd0c0ae17c89a36e544d8dcbd56fb3a381b66acbe2c7d5b4ffc01",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+    "next_test": "Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
+    "reopen_condition": "Reopen with a pinned bounded transcoder component and a concrete destination constraint; do not rewrite entropy flags without translating symbols.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R128.compile-screen-operations-directly-into-video-prediction-commands",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Prepare a constrained predictive video stream from known block-aligned screen copy/scroll/replace operations, instead of general motion estimation. Compare a reference scene and total producer/player work; this requires a producer-assisted encoder.",
+    "tested_profile": "Source/current-owner first-pass audit: Compile screen operations directly into video prediction commands. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "current_code_paths": [
+      "web/filter-retained-engine-worker.js:29-50",
+      "web/retained-decoder-worker.js:127-145"
+    ],
+    "observed_gap": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
+      "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+      "outcome": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage."
+    },
+    "measurement": {
+      "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
+        "sha256": "c502bbb8e250f67888ce8f79f2ad300ede48e79827223827ed942b180c45c244",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+    "next_test": "Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
+    "reopen_condition": "Reopen with an explicit screen producer and bounded encoder; avoid building a general screen codec during screening.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Split a restricted MPEG-2 decoder into CPU/Wasm entropy parsing and GPU inverse transforms, motion compensation and resident references. Start progressive I/P; require exact sample reconstruction before adding B frames or interlacing.",
+    "tested_profile": "Source/current-owner first-pass audit: Extend GPU reconstruction from still pictures to predictive video. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "src/internal/wasm-player.ts:41-59",
+      "web/yuv-presenter.js:29-43",
+      "web/retained-decoder-worker.js:127-145"
+    ],
+    "observed_gap": "Existing GPU presentation uploads reconstructed planes; browser decode outputs complete frames. A CPU entropy/GPU MPEG2 reconstruction split requires coefficient, motion, reference and synchronization interfaces absent from these owners.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Start with one progressive I picture and exact coefficient/pixel oracle, then one P reference case; defer B/interlace and full decoder replacement.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Existing GPU presentation uploads reconstructed planes; browser decode outputs complete frames. A CPU entropy/GPU MPEG2 reconstruction split requires coefficient, motion, reference and synchronization interfaces absent from these owners."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video.md",
+        "sha256": "446c0ac1c632e153da0598ce2b2c91a194d2d00fd0af79352f0c7be63bbb51a5",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Coordinator current API/adapter prerequisite: removes historical environment blocker only; no codec mechanism executed here."
+      }
+    ],
+    "reason": "Existing GPU presentation uploads reconstructed planes; browser decode outputs complete frames. A CPU entropy/GPU MPEG2 reconstruction split requires coefficient, motion, reference and synchronization interfaces absent from these owners.",
+    "next_test": "Start with one progressive I picture and exact coefficient/pixel oracle, then one P reference case; defer B/interlace and full decoder replacement.",
+    "reopen_condition": "Reopen with a narrow entropy data interface and GPU reconstruction kernel; WebGPU presence only removes the device prerequisite.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R142.burn-in-an-overlay-by-re-encoding-only-the-spatial-blocks-it-changes",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Begin with fixed-quantization MJPEG and block-aligned requested overlays; retain untouched coefficients and recompute affected blocks. Verify outside-region pixels and chroma boundaries, including whole-image entropy serialization cost.",
+    "tested_profile": "Source/current-owner first-pass audit: Burn in an overlay by re-encoding only the spatial blocks it changes. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "src/internal/native-ass.ts:96-108",
+      "web/filter-retained-engine-worker.js:36-38"
+    ],
+    "observed_gap": "Current captions composite after decode and preserve video bytes. Fixed-quantization MJPEG burn-in is a requested persistent pixel change needing coefficient access and whole-image entropy serialization, not an overlay optimization of this existing presenter.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: On one block-aligned MJPEG frame, preserve untouched coefficients and rewrite affected blocks; compare outside-region pixels and chroma edges while charging full serialization.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Current captions composite after decode and preserve video bytes. Fixed-quantization MJPEG burn-in is a requested persistent pixel change needing coefficient access and whole-image entropy serialization, not an overlay optimization of this existing presenter."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R142.burn-in-an-overlay-by-re-encoding-only-the-spatial-blocks-it-changes.md",
+        "sha256": "df7f0c68a739938e3d0bba4cb0d6c2a1a71a215ea832fd7283a2cd3663d64413",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current captions composite after decode and preserve video bytes. Fixed-quantization MJPEG burn-in is a requested persistent pixel change needing coefficient access and whole-image entropy serialization, not an overlay optimization of this existing presenter.",
+    "next_test": "On one block-aligned MJPEG frame, preserve untouched coefficients and rewrite affected blocks; compare outside-region pixels and chroma edges while charging full serialization.",
+    "reopen_condition": "Reopen with explicit burn-in/export requirements and a bounded JPEG coefficient writer; do not silently replace overlay semantics.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R148.actual-mpeg-2-coefficient-data-reused-by-jpeg",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+    "hypothesis": "Created a 32\u00d732 MPEG-2 I picture composed of flat 8\u00d78 blocks. The candidate parses actual DC Huffman codes for all 24 luminance/chroma blocks, checks a narrow frame-DCT profile, retains the 16 luminance blocks, accounts for JPEG\u2019s DC level shift and MPEG-2 mismatch control, and writes coefficients through libjpeg\u2019s coefficient API [S4, S5]. The candidate does not reconstruct MPEG pixels before writing JPEG. All 1,024 luminance samples match an independent FFmpeg decode exactly. Chromium\u2019s JPEG decode also matches a PNG oracle made from those decoded luminance values exactly. A real nonzero-AC MPEG-2 picture and a truncated picture are rejected rather than silently accepted. This is a deliberately restricted success, not a general MPEG-2\u2192JPEG bridge. Nonzero AC coefficients, predicted pictures, field DCT, alternate scan, clipping/IDCT differences and full-color reconstruction remain unimplemented. No speedup is claimed from this tiny fixture.",
+    "tested_profile": "Source/current-owner first-pass audit: Actual MPEG-2 coefficient data reused by JPEG. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/video-codec-config.js:40-59",
+      "src/internal/wasm-player.ts:41-59"
+    ],
+    "observed_gap": "The historical bridge admits only flat DC-only MPEG2 I blocks and rejects actual nonzero AC. Current playback uses general MPEG2 software decode where no browser bridge exists, so this restricted grayscale construction cannot replace that route.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: If a matching DC-only image-extraction workload exists, test certificate rejection of AC, field DCT and truncation before considering JPEG emission.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "The historical bridge admits only flat DC-only MPEG2 I blocks and rejects actual nonzero AC. Current playback uses general MPEG2 software decode where no browser bridge exists, so this restricted grayscale construction cannot replace that route."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R148.actual-mpeg-2-coefficient-data-reused-by-jpeg.md",
+        "sha256": "273c0d668bfe1e9fe1a494f9e901d7000f1e037a7c2021379a987d5f08e9f966",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R146-R158-report.md",
+        "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The historical bridge admits only flat DC-only MPEG2 I blocks and rejects actual nonzero AC. Current playback uses general MPEG2 software decode where no browser bridge exists, so this restricted grayscale construction cannot replace that route.",
+    "next_test": "If a matching DC-only image-extraction workload exists, test certificate rejection of AC, field DCT and truncation before considering JPEG emission.",
+    "reopen_condition": "Reopen for an actual admitted DC-only source or a separately proved wider coefficient transform; no general MPEG2-to-JPEG speed claim.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R153.shared-continuation-and-the-wrong-history-negative",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+    "hypothesis": "Two alternative one-second H.264 branches, red or green, append the identical compressed blue continuation at a clean random-access boundary on one MSE SourceBuffer. Both branches show the continuation, survive backward/forward seeks and reach EOF. The shared continuation SHA-256 is recorded. A separate negative uses a non-random-access continuation taken from a long-GOP pattern stream after an unrelated green history. MSE accepts the bytes, but output is dramatically different from the same full-source MSE oracle (mean RGBA error 84.25/255, maximum 255). The useful result is bounded continuation reuse plus an explicit decoder-history requirement. Matching timestamps and configuration are insufficient. No merge of arbitrary predictive states, seamless audio branch switching, or network prefetch saving is claimed.",
+    "tested_profile": "Source/current-owner first-pass audit: Shared continuation and the wrong-history negative. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "current_code_paths": [
+      "web/native-remux-player.js:35-42",
+      "web/native-remux-player.js:274-286"
+    ],
+    "observed_gap": "Current source replacement retires generation and buffered reuse requires same source/RAP coverage; there is no branch-composition owner. The wrong-history counterexample proves shared timestamps/configuration are insufficient without a clean continuation boundary.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Represent one A/B branch plus shared RAP continuation and compare exact frames against full-source MSE; append a non-RAP continuation as a required negative.",
+      "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+      "outcome": "Current source replacement retires generation and buffered reuse requires same source/RAP coverage; there is no branch-composition owner. The wrong-history counterexample proves shared timestamps/configuration are insufficient without a clean continuation boundary."
+    },
+    "measurement": {
+      "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R153.shared-continuation-and-the-wrong-history-negative.md",
+        "sha256": "c69e187563ea1d9093ca5a6b68b618d9b620c6a02c7bd8cd9b2c5a7846d6b624",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R146-R158-report.md",
+        "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current source replacement retires generation and buffered reuse requires same source/RAP coverage; there is no branch-composition owner. The wrong-history counterexample proves shared timestamps/configuration are insufficient without a clean continuation boundary.",
+    "next_test": "Represent one A/B branch plus shared RAP continuation and compare exact frames against full-source MSE; append a non-RAP continuation as a required negative.",
+    "reopen_condition": "Reopen for an explicit branching composition feature with source authority and RAP certificate; do not share arbitrary predictive states.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Treat restricted FLAC fixed-predictor residual reconstruction as prefix sums with exact integer boundaries. Include entropy decoding and complete transfer/output costs.",
+    "tested_profile": "Source/current-owner first-pass audit: Reconstruct fixed-predictor lossless audio with parallel scans. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:45-54",
+      "native/adaptation/flac.h:97-118"
+    ],
+    "observed_gap": "The decoder delivers already reconstructed samples to the maintained adapter; fixed-predictor residuals are not exposed. Parallel exact scans require a decoder-internal stage plus entropy parsing/transfer accounting, not replacing the sample-copy loop.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Extract one admitted fixed-order residual block, perform bounded exact prefix reconstruction against a scalar integer oracle and include overflow/end-boundary controls.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "The decoder delivers already reconstructed samples to the maintained adapter; fixed-predictor residuals are not exposed. Parallel exact scans require a decoder-internal stage plus entropy parsing/transfer accounting, not replacing the sample-copy loop."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans.md",
+        "sha256": "016727b3d21aa505e53988cc04a653dc8e8886c82f49b9683d82bc2791011112",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "The decoder delivers already reconstructed samples to the maintained adapter; fixed-predictor residuals are not exposed. Parallel exact scans require a decoder-internal stage plus entropy parsing/transfer accounting, not replacing the sample-copy loop.",
+    "next_test": "Extract one admitted fixed-order residual block, perform bounded exact prefix reconstruction against a scalar integer oracle and include overflow/end-boundary controls.",
+    "reopen_condition": "Reopen with a trustworthy residual interface and measured reconstruction cost; include entropy decoding and output transfers before any speed claim.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R165.reverse-predictive-audio-by-transforming-its-residuals",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "For a restricted first-order FLAC block, derive the last sample as a new warm-up and reverse/negate residuals to produce exact reversed PCM without ordinary encoder prediction search.",
+    "tested_profile": "Source/current-owner first-pass audit: Reverse predictive audio by transforming its residuals. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "current_code_paths": [
+      "native/adaptation/flac.h:45-75",
+      "web/audio-worklet.js:27-41"
+    ],
+    "observed_gap": "Current audio path decodes forward and streams ordered PCM. The first-order residual reversal identity needs the last sample, warmup rewrite and valid FLAC framing; no compressed reverse-audio owner is present.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For one order1 block, derive last sample then reverse/negate residuals and compare exact reversed PCM, rejecting unsupported predictor orders and integer overflow.",
+      "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+      "outcome": "Current audio path decodes forward and streams ordered PCM. The first-order residual reversal identity needs the last sample, warmup rewrite and valid FLAC framing; no compressed reverse-audio owner is present."
+    },
+    "measurement": {
+      "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R165.reverse-predictive-audio-by-transforming-its-residuals.md",
+        "sha256": "97c1d0dd778feaa9f10a9513e9a94b07136e66d7d3f4a719d1b2d33657b0dda5",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current audio path decodes forward and streams ordered PCM. The first-order residual reversal identity needs the last sample, warmup rewrite and valid FLAC framing; no compressed reverse-audio owner is present.",
+    "next_test": "For one order1 block, derive last sample then reverse/negate residuals and compare exact reversed PCM, rejecting unsupported predictor orders and integer overflow.",
+    "reopen_condition": "Reopen for an explicit reverse-audio request with bounded residual parsing/writing; mathematical inversion alone is not a valid FLAC file.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R168.compress-cold-reference-tiles-not-just-whole-cached-frames",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+    "hypothesis": "Store cold decoder reference regions as independently decompressible lossless blocks with a bounded tile cache. Verify exact interpolation neighborhoods and include repeated expansion/locality costs.",
+    "tested_profile": "Source/current-owner first-pass audit: Compress cold reference tiles, not just whole cached frames. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:47-53",
+      "web/filter-retained-engine-worker.js:11-26"
+    ],
+    "observed_gap": "Browser reference pictures are opaque; retained frames are output surfaces, not motion-compensation reference tiles. The historical cold-tile trace decompressed frequently and was much slower than dense access, so it is not a latency optimization for current owners.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Only after identifying real software-reference memory pressure, trace tile locality and compare compression plus halo expansion under the same byte budget.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Browser reference pictures are opaque; retained frames are output surfaces, not motion-compensation reference tiles. The historical cold-tile trace decompressed frequently and was much slower than dense access, so it is not a latency optimization for current owners."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R168.compress-cold-reference-tiles-not-just-whole-cached-frames.md",
+        "sha256": "f667bb36e4271c8f91d1a46d535c8350099359ba4f822eef7d00cbeb1db7094f",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Browser reference pictures are opaque; retained frames are output surfaces, not motion-compensation reference tiles. The historical cold-tile trace decompressed frequently and was much slower than dense access, so it is not a latency optimization for current owners.",
+    "next_test": "Only after identifying real software-reference memory pressure, trace tile locality and compare compression plus halo expansion under the same byte budget.",
+    "reopen_condition": "Reopen for genuinely cold accessible reference regions with measured memory pressure; output-frame caching is a different mechanism.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R175.tighten-verified-h-264-decoder-requirements",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+    "hypothesis": "The fixture is progressive H.264 with 60 frames: 2 I and 58 P, no B pictures, one actual active reference, and no list-0 reordering flags. An intentionally overstated SPS advertises eight reference pictures. The corrected stream advertises one. Decoded frame-MD5 sequences are identical. Slice payloads are unchanged outside the SPS, and the MP4 muxed timestamps/frame types are identical for all 60 frames. Integration implication: Demuxe may safely lower advertised requirements only after deriving a certificate from actual bitstream behavior. This is not permission to rewrite arbitrary SPS constraints optimistically.",
+    "tested_profile": "Source/current-owner first-pass audit: tighten verified H.264 decoder requirements. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "native/remux/remux.c:49-60",
+      "native/remux/remux.c:20-24",
+      "web/video-codec-config.js:43-45"
+    ],
+    "observed_gap": "Current SPS reading establishes dimensions/reorder contract and preserves truthful configuration. It does not inspect every slice/reference operation to certify a lower advertised DPB requirement; changing SPS optimistically would weaken admission.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Audit one overstated progressive I/P stream across every reference-list operation, then rewrite only num_ref_frames with exact frame hashes and a hidden extra-reference negative.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Current SPS reading establishes dimensions/reorder contract and preserves truthful configuration. It does not inspect every slice/reference operation to certify a lower advertised DPB requirement; changing SPS optimistically would weaken admission."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R175.tighten-verified-h-264-decoder-requirements.md",
+        "sha256": "bd0328178b842922e5ea708a20144b8820a6a8a634c33ea786dec1c1b3d614c1",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R172-R182-report.md",
+        "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current SPS reading establishes dimensions/reorder contract and preserves truthful configuration. It does not inspect every slice/reference operation to certify a lower advertised DPB requirement; changing SPS optimistically would weaken admission.",
+    "next_test": "Audit one overstated progressive I/P stream across every reference-list operation, then rewrite only num_ref_frames with exact frame hashes and a hidden extra-reference negative.",
+    "reopen_condition": "Reopen with a full-source behavior certificate and actual destination/resource benefit; never infer one-reference use from SPS/profile labels alone.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R177.gpu-jpeg-entropy-decoding",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+    "hypothesis": "This card is BLOCKED by the execution environment, not disproven. The permitted page reports no WebGPU adapter and no WebGL context. A localhost-origin capability retest could not run because Chromium returned ERR_BLOCKED_BY_ADMINISTRATOR for the navigation. No CPU implementation was substituted for the requested GPU entropy kernel, because that would not test the card. Integration implication: keep the experiment pending for a GPU-enabled browser environment with exact coefficient or pixel oracle coverage and malformed-input bounds.",
+    "tested_profile": "Source/current-owner first-pass audit: GPU JPEG entropy decoding. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/yuv-presenter.js:29-43",
+      "src/internal/wasm-player.ts:41-59"
+    ],
+    "observed_gap": "Shared current evidence exposes a real nonfallback Apple WebGPU adapter, so the historical no-GPU/blocked-localhost verdict is no longer the blocker. Existing renderer accepts decoded planes; there is still no GPU JPEG entropy parser/kernel or malformed-input oracle.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Prepare one restart-bounded JPEG entropy segment and independent coefficient oracle, then test a single bounded GPU kernel with truncated/invalid Huffman controls.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Shared current evidence exposes a real nonfallback Apple WebGPU adapter, so the historical no-GPU/blocked-localhost verdict is no longer the blocker. Existing renderer accepts decoded planes; there is still no GPU JPEG entropy parser/kernel or malformed-input oracle."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R177.gpu-jpeg-entropy-decoding.md",
+        "sha256": "6caa58633dbdb4fe5b816fc26fb6b622a0f0c8363525fcd044a2ae4f4620d710",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R172-R182-report.md",
+        "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+        "note": "Full definition source checked against supplied catalogue identity."
+      },
+      {
+        "path": "evidence/prerequisites/result.json",
+        "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b",
+        "note": "Coordinator current API/adapter prerequisite: removes historical environment blocker only; no codec mechanism executed here."
+      }
+    ],
+    "reason": "Shared current evidence exposes a real nonfallback Apple WebGPU adapter, so the historical no-GPU/blocked-localhost verdict is no longer the blocker. Existing renderer accepts decoded planes; there is still no GPU JPEG entropy parser/kernel or malformed-input oracle.",
+    "next_test": "Prepare one restart-bounded JPEG entropy segment and independent coefficient oracle, then test a single bounded GPU kernel with truncated/invalid Huffman controls.",
+    "reopen_condition": "Reopen with a bounded kernel and pinned coefficient cases; do not substitute CPU decode or call an adapter query GPU-decoder success.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R187.recover-encoder-decisions-from-the-source",
+    "decision": "DEFER_SETUP",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+    "hypothesis": "The pilot encoded a controlled source with x264 first-pass statistics, then used the recovered frame-level motion-bit and intra/partition decisions to choose a constrained search radius in a separate block-matching transcoder model. The model operates on frames decoded from that H.264 source. Against a \u00b16 exhaustive search, the hint-driven policy reduced candidate evaluations 30.38% while increasing total prediction SSE only 0.0685% on the controlled slow/fast-motion plus scene-change fixture. This is evidence that source codec decisions can usefully steer later search. It is not an AVC\u2192HEVC encoding benchmark: source vectors/partitions were not injected into x265, no HEVC bitrate/quality comparison was produced, and the model's residual proxy is not a complete encoder cost function.",
+    "tested_profile": "Source/current-owner first-pass audit: recover encoder decisions from the source. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "current_code_paths": [
+      "web/retained-decoder-worker.js:127-145",
+      "src/internal/wasm-player.ts:41-59"
+    ],
+    "observed_gap": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+      "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+      "outcome": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost."
+    },
+    "measurement": {
+      "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "sha256": "7f97abbe5ac0c51b23100f215a9cec4bffc6531fb77357a6ded9ff4d80632740",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R183-R192-report.md",
+        "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+    "next_test": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+    "reopen_condition": "Reopen with a producer/transcode use case and actual encoder integration; model search-count savings cannot stand in for full encoding.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  },
+  {
+    "key": "R197.common-jpeg-quantization-basis-without-requantization-loss",
+    "decision": "STOP_PROFILE",
+    "evidence_level": "SOURCE_REVIEW",
+    "source_checked": true,
+    "source_sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+    "hypothesis": "Two 128\u00d7128 grayscale JPEGs used different quantization tables. For every coefficient position the transformer chose G=gcd(Q_A,Q_B) and replaced each quantized coefficient with C' = C\u00b7Q/G. Every transformed coefficient remained within JCOEF range (maximum absolute 513). The dequantized coefficient hashes are unchanged for both images. FFmpeg reports zero decoded-pixel differences, and Chromium createImageBitmap + canvas reports zero RGBA component differences for both transformed files. The representation is not automatically smaller: A grew 516\u21921494 bytes and B 1329\u21922292 bytes. This is a lossless compatibility/editing basis, not a compression win.",
+    "tested_profile": "Source/current-owner first-pass audit: common JPEG quantization basis without requantization loss. No local runtime experiment executed for this record.",
+    "requested_output_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "current_code_paths": [
+      "web/retained-video.js:3-15",
+      "src/internal/native-player.ts:236-241"
+    ],
+    "observed_gap": "Current playback consumes JPEG/video pixels without requiring a shared coefficient quantization basis. The gcd transform is exactly useful for coefficient editing but substantially grew both example files, so it is not a transparent compression/playback improvement.",
+    "baseline": {
+      "git_sha": "c5a82ca0346d1e27be8f8007d4a68585ababcb75",
+      "artifact_manifest": "work/batch_h/source-snapshot-manifest.json",
+      "plan": "Current checkout behavior at cited owners; historical report bodies inform the comparison but their raw runs were not revalidated."
+    },
+    "candidate": {
+      "revision": null,
+      "executed": false,
+      "silent_fallback": null
+    },
+    "probe": {
+      "method": "Read full definition section, cited related report sections and current owner code; compare proposal precondition against actual maintained ownership.",
+      "positive_control": "Future experiment: For a coefficient-domain composition requirement, verify each dequantized coefficient after gcd rescaling with JCOEF overflow rejection, then charge larger entropy payloads.",
+      "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+      "outcome": "Current playback consumes JPEG/video pixels without requiring a shared coefficient quantization basis. The gcd transform is exactly useful for coefficient editing but substantially grew both example files, so it is not a transparent compression/playback improvement."
+    },
+    "measurement": {
+      "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+      "worthwhile_change": "An output-correct reduction or added requested capability at the identified boundary without expanding first-pass setup.",
+      "paired_runs": null,
+      "result": "No timing or runtime result collected; source review only.",
+      "uncertainty": "Historical component observations are not current complete-path validation; read code establishes applicability, not measured benefit.",
+      "excluded_costs": [
+        "No performance estimate made."
+      ]
+    },
+    "evidence": [
+      {
+        "path": "work/batch_h/audits/R197.common-jpeg-quantization-basis-without-requantization-loss.md",
+        "sha256": "eec625cc1982ca0c59abad4639d9d3b2b14f4441ce981dd77d7d3214b834580f",
+        "note": "Per-key source/current-owner audit with exact definition and owner excerpts; no runtime claim."
+      },
+      {
+        "path": "sources/reports/R193-R202-report.md",
+        "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+        "note": "Full definition source checked against supplied catalogue identity."
+      }
+    ],
+    "reason": "Current playback consumes JPEG/video pixels without requiring a shared coefficient quantization basis. The gcd transform is exactly useful for coefficient editing but substantially grew both example files, so it is not a transparent compression/playback improvement.",
+    "next_test": "For a coefficient-domain composition requirement, verify each dequantized coefficient after gcd rescaling with JCOEF overflow rejection, then charge larger entropy payloads.",
+    "reopen_condition": "Reopen when a downstream operation actually requires shared tables; no requantization loss does not imply smaller or cheaper media.",
+    "limits": [
+      "Source review only; no builds, browser runs, candidate edits or qualification performed.",
+      "Scope is this full stable key; reused legacy numbers retain separate decisions.",
+      "Historical reports are supplied source evidence; referenced raw archives were not inspected."
+    ],
+    "effort": {
+      "new_fixture_count": 0,
+      "candidate_revisions": 0,
+      "shared_rebuilds": 0,
+      "scope_escalated": false
+    },
+    "duplicate_of": null
+  }
+]
