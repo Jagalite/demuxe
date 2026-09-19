@@ -1,0 +1,1 @@
+Initial pilot, before run-manifest generation was added. Its captured harness was placed under files/harness to preserve software licenses. Every harness byte was checked against the original summary sourceHashes. The evidence manifest was added after completion; it is not a new player run. The original Movi startup integration failure is retained.

@@ -1,0 +1,196 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Rerunnable player comparison
+
+The maintained harness is `tests/head-to-head/`. It compares the current Demuxe
+source with pinned Movi 0.4.0, libmedia AVPlayer 1.3.1, and ordinary HTML video.
+These competitor versions reproduce the earlier study's baselines; they are not
+claims about the latest available releases.
+
+Each run selects explicit cases, validates a frozen asset snapshot, starts its
+own range-capable server and fresh browser instances, and writes a new result
+directory. The current matrix has 28 cases: seven player/configuration choices
+across four media/feature combinations. Edit the matrix and adapters together
+when adding another player, route, codec, track layout or feature.
+
+## Prepare once
+
+From the repository root, install the locked development dependencies with
+`npm ci` if they are absent. Python 3.12+, Node 22+, FFmpeg/ffprobe (including
+libx264, AAC, geq and drawbox), and the selected browser are required. The default
+browser is installed Google Chrome through Playwright's `chrome` channel.
+
+```sh
+npm run fixtures:head-to-head -- --output build/head-to-head/assets-01
+```
+
+The output directory must not already exist. Preparation downloads hash-pinned
+competitor packages/runtime files, generates 36-second synthetic media, and
+compiles the current Demuxe TypeScript into that isolated directory. It copies
+currently available local engines and their notices without changing the live
+checkout or substituting an older engine from a lab. It records missing engines
+explicitly. Build needed engines using the project's normal build process before
+preparing another snapshot; preparation does not silently rebuild them.
+
+An optional local cache avoids downloading identical dependency bytes:
+
+```sh
+npm run fixtures:head-to-head -- \
+  --output build/head-to-head/assets-02 \
+  --lab /absolute/path/to/preserved/head-to-head-lab
+```
+
+The lab argument is optional and portable. Every reused dependency must match
+`tests/head-to-head/assets.lock.json`. Neither the old Demuxe binary nor its old
+fixtures are used. A failed setup preserves `commands.json` and has no completed
+`manifest.json`; use a new directory after diagnosing it. `--duration 90` creates
+a longer fixture for longer performance windows.
+
+The prepared snapshot records the source revision and dirty player diff, source
+hashes, generated runtime hashes, available engines, dependency hashes, FFmpeg
+version, generator commands, fixture stream metadata and video-packet identity.
+Regeneration on another FFmpeg version may produce different media bytes: compare
+only runs using the same prepared manifest, not just the same fixture name.
+
+## Run correctness
+
+```sh
+# List all exact case IDs without launching a browser.
+npm run test:head-to-head -- --list
+
+# All 28 declared cases.
+npm run test:head-to-head -- \
+  --assets build/head-to-head/assets-02 \
+  --output results/head-to-head/my-correctness-run
+
+# A player, or comma-separated exact IDs, selects a bounded subset.
+npm run test:head-to-head -- \
+  --assets build/head-to-head/assets-02 \
+  --cases video.default.aac-mp4,demuxe.auto.aac-mp4,movi.native-first.aac-mp4,libmedia.prefer-mse.aac-mp4
+```
+
+Without `--output`, the runner creates a timestamped result directory. It never
+overwrites an existing run. The default is headless correctness. Use `--headed`
+for a visible browser run. For Playwright's bundled Chromium use `--channel ''`;
+for its Firefox use `--browser firefox --channel ''`. Install those browsers with
+the matching Playwright version beforehand. Missing browser assets are blocked,
+not successful tests. Only tested browser/profile combinations are qualified by
+their individual records.
+
+| Fixture | Requirements |
+| --- | --- |
+| `aac-mp4` | H.264 + AAC, MP4 |
+| `aac-mkv` | The same compressed video/audio packets, Matroska |
+| `pcm-mkv` | The same video packets, decoded signed-24-bit stereo audio |
+| `pcm-ass` | PCM Matroska plus the exact ASS drawing and font |
+
+Routes are plain video default; Demuxe auto/explicit Native; Movi default/native
+preference; and AVPlayer default/MSE preference. A preference is not a forced
+codec capability. Actual observed routes are retained in each case record.
+
+Plain video, configured Native Demuxe and configured native-first Movi use the
+same explicit host libass overlay for ASS. This measures an application integration,
+not built-in ASS support. Default library routes request their documented built-in
+integration. Missing subtitles fail correctness, even when video is smooth.
+
+Each correctness case checks:
+
+- Moving displayed output and a red/blue/green timeline marker from screenshots.
+- Independent 440 Hz left / 880 Hz right decoded digital audio signals.
+- Pause/resume, bounded 1.25x rate progression, forward/backward/far seeks, and
+  final timeline settlement near EOF.
+- Required magenta ASS drawing before and after seeks.
+- Observed surface, AudioContext and worker cleanup before closing the browser.
+
+These are bounded marked-output checks, not sample-exact decoding, physical speaker
+output, calibrated A/V synchronization, exhaustive subtitle rendering or endurance.
+The small 320x180 fixture is appropriate for compatibility and harness validation;
+its performance cannot stand in for high-resolution real media. Video packet hashes
+establish the fixture relationship, not browser output fidelity. The fixture uses
+different channel tones to catch a missing, swapped or duplicated channel.
+
+`passed`, `failed` and `blocked` are separate outcomes. A missing required current
+engine is blocked. Unsupported audio or absent requested subtitles fail the tested
+combination; they are not converted into a passing expected failure. The exit code
+is nonzero if any selected case does not pass. A subset says nothing about omitted
+cases. Interrupted runs stay incomplete and cannot pass the evidence verifier.
+
+## Performance is a separate gate
+
+Run benchmarks only while no competing playback, benchmark or build is active.
+`--exclusive` is the operator's explicit assertion of that condition; the runner
+does not stop other people's processes or pretend it can prove machine idleness.
+First obtain a matching **headed** correctness run with the final harness and
+asset hashes, then use its summary:
+
+```sh
+npm run test:head-to-head -- --assets build/head-to-head/assets-02 \
+  --cases video.default.aac-mp4,demuxe.auto.aac-mp4 \
+  --headed --output results/head-to-head/headed-correctness
+
+npm run test:head-to-head -- --assets build/head-to-head/assets-02 \
+  --cases video.default.aac-mp4,demuxe.auto.aac-mp4 \
+  --headed --performance --exclusive \
+  --correctness results/head-to-head/headed-correctness/summary.json \
+  --output results/head-to-head/performance-01
+```
+
+Performance requires the same asset manifest, harness/matrix and exact browser
+profile as a passed correctness case. It runs at least three rotating-order rounds,
+five seconds of warmup and twenty seconds of measurement, using a fresh browser
+per trial. `--rounds`, `--warmup-seconds`, and `--measure-seconds` can increase
+those bounds; prepare a longer fixture if needed.
+
+Recorded metrics include API open wall time, CDP-listed browser-process CPU,
+sampled summed RSS where available, position, native frame drops, errors and
+server requests. Foreground loss, process turnover, stalled progression or
+excessive frame drops reject the trial. Custom routes without comparable frame-drop
+counters are explicitly blocked from this performance profile. They can still
+run correctness. Add an independently justified counter contract before comparing
+their costs as equally smooth playback.
+
+Correctness analysers and screenshots are absent from scored playback. CDP and
+state polling still add overhead. CPU excludes server work, external OS media
+services, GPU energy and setup/warmup; API open time is not first frame or sound.
+Summed RSS can double-count shared mappings. Fresh browsers do not flush OS caches.
+Three rounds are a starting record, not statistical proof of a universal ranking.
+
+## Inspect and verify results
+
+Each completed run contains `REPORT.md`, `summary.json`, per-case records and
+captures, the request trace, the asset manifest, a frozen harness under `files/`,
+and `manifest.json` with hashes of the captured run files. Original dependencies
+and large fixture/runtime bytes remain in the prepared `build/` snapshot; preserve
+that snapshot for offline byte-identical reruns. Result records alone are not a
+self-contained runtime distribution.
+
+```sh
+npm run verify:head-to-head -- results/head-to-head/my-correctness-run
+npm run test:head-to-head:contracts
+
+# Deliberately obscure real video. This must fail the displayed-marker check.
+npm run test:head-to-head -- --assets build/head-to-head/assets-02 \
+  --cases video.default.aac-mp4 --negative-control cover
+```
+
+An integrity pass means the recorded outcomes are intact, including failures and
+blocks. It does not mean every player passed. The cover command intentionally exits
+nonzero; preserve that record as evidence the visual acceptance gate is exercised.
+Unit controls additionally reject silence, swapped/missing channels, wrong timeline
+colors, changed performance identities, unsafe paths and malformed ranges.
+
+Original harness code is Apache-2.0 where marked; the test HTML retains the project
+integration grant. Synthetic fixtures/results are original Demuxe research material;
+the font, Movi, AVPlayer, libass and linked dependencies retain their own licenses.
+Pinned package notices are copied into the local asset snapshot. Captured source
+under `files/` retains its SPDX notices and is not relicensed as result data.
+This workflow neither publishes a player release nor certifies distribution rights.
+
+The earlier September 16 comparison remains a separate historical study. Its
+interrupted trials are not pooled with these new generated-fixture runs.
+
+The [initial maintained run](../results/head-to-head/README.md) records all 28
+correctness outcomes, the negative control, harness corrections and validation
+limits. It contains no new performance measurements.
+The [player-by-media route table](HEAD-TO-HEAD-ROUTES.md) shows the observed paths
+and outcomes for each configuration, with links to the individual records.

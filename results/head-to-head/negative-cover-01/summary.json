@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "kind": "correctness",
+  "startedAt": "2026-09-19T21:19:12.406Z",
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-02",
+  "assetsSHA256": "f6e11baa80cf3c477323bb6b4a93b8ed4524cead372ebc6f871230a85725d753",
+  "harnessSHA256": "ea890f3fdbe8230099c043817cc758e635416af7946657c236a1e4c67dfc50fc",
+  "sourceHashes": {
+    "run.mjs": "a1296b09a862978b28313b43f1f2ae5ab103fc8c426653ea544e41a2240c20cb",
+    "server.mjs": "51370d0fcd8fa87fde343f9857fdde79108fa89fda7289e5f32cd79b5c584ef9",
+    "checks.mjs": "2f95549238a956439ac2e86b7afb129c711b3d93917df15d27d6e8fe634e9326",
+    "adapters.mjs": "f7d8b249616fb55029ff4c479fccfd3ffe45b4d7c6845be58425d6049582f5c9",
+    "harness.html": "e5a949a87f133332e4848cddd4b3a91d6615b0da2b9776077bd9d4ba2df6ebdd",
+    "matrix.json": "6476826d2a6c14fcd38554925182f199791f418e1b0d4576b3490abf68a6bfa3",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c"
+  },
+  "gitRevision": "a99e793beab78ec6f28cae252562cb844af527c5",
+  "playerSourceRevision": "a99e793beab78ec6f28cae252562cb844af527c5",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets",
+      "build/head-to-head/assets-02",
+      "--cases",
+      "video.default.aac-mp4",
+      "--negative-control",
+      "cover",
+      "--output",
+      "results/head-to-head/negative-cover-01"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "video.default.aac-mp4"
+  ],
+  "cases": [
+    {
+      "id": "video.default.aac-mp4",
+      "player": "video",
+      "lane": "default",
+      "fixture": "aac-mp4",
+      "requirements": [
+        "moving-video",
+        "marked-stereo-audio",
+        "seek",
+        "pause-resume",
+        "rate",
+        "eof",
+        "cleanup"
+      ],
+      "status": "failed",
+      "startedAt": "2026-09-19T21:19:12.674Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "requestFailures": [],
+      "recordPath": "video.default.aac-mp4/result.json",
+      "negativeControl": "cover",
+      "initial": {
+        "position": 0.653333,
+        "duration": 36,
+        "paused": false,
+        "route": "native-direct",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.1057406846111019,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10602077547551046,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "time": 0.653333,
+          "ended": false,
+          "paused": false,
+          "total": 19,
+          "dropped": 0
+        }
+      },
+      "initialImage": {
+        "rgb": [
+          0,
+          0,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": false,
+        "magentaPixels": 0
+      },
+      "reason": "Error: Initial displayed timeline marker incorrect\n    at expect (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:59:56)\n    at correctness (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:76:66)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:479:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:161:7",
+      "failureState": {
+        "position": 0.768,
+        "duration": 36,
+        "paused": false,
+        "route": "native-direct",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10570920123169707,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10565924554253439,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "time": 0.768,
+          "ended": false,
+          "paused": false,
+          "total": 26,
+          "dropped": 0
+        }
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "finishedAt": "2026-09-19T21:19:17.116Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserIdentity": "chromium/152.0.7977.83/chrome/headless",
+  "finishedAt": "2026-09-19T21:19:17.119Z",
+  "counts": {
+    "passed": 0,
+    "failed": 1,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": false
+}
