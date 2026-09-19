@@ -2,57 +2,32 @@
 
 # Unwrap AAC-LATM into a browser-decoded audio route
 
-Full identity: `R343.unwrap-aac-latm-into-a-browser-decoded-audio-route`. Reused R-numbers are separate mechanisms.
+Full identity: `R343.unwrap-aac-latm-into-a-browser-decoded-audio-route`. Original rank: 4.
 
-Current imported decision: **PURSUE** (top100).
+Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
 
 Restricted bit-aligned LOAS/LATM AAC-LC extraction produces142 AAC frames with exact independent PCM; truncation/sync/missing configuration reject. Browser raw AAC lane plays marked audio beside changing video. Multi-program/layer/CRC/otherData variants deliberately reject.
 
+## Accepted scope
+
+142 AAC frames; multi-program/layer, CRC and otherData mappings excluded.
+
+Restricted single-program/layer AAC-LC LATM extraction preserves all independent decoded PCM; truncated/sync/missing-config controls reject. Actual browser raw AAC lane preserves marked output through changing video and EOF/cleanup.
+
 Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Definition and contract
-
-FFmpeg's pinned LATM implementation separates stream configuration and payload-length parsing from AAC reconstruction. The AAC WebCodecs registration expects ADTS or raw AAC; supplying AudioSpecificConfig selects the raw-AAC representation. [S1, S2] The first candidate is a small transport adapter, not a different AAC decoder. Repack unaligned payload bits correctly; this is not necessarily a fixed header removal or a zero-copy slice. Account for source-specific padding and preserve meaningful AAC syntax. Keep the native video path unchanged in a subsequent A/V integration pilot. First establish a real destination difference: the actual existing bridge fails or performs avoidable software reconstruction, while the adapted route produces the complete requested output. Audit existing normalization before adding a new component.
-
-Output contract: Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.
-
-Primary metric: Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.
-
-Adverse control: Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE. No integration or qualification inferred. |
+| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
+| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
+| correctness | passed | Restricted single-program/layer AAC-LC LATM extraction preserves all independent decoded PCM; truncated/sync/missing-config controls reject. Actual browser raw AAC lane preserves marked output through changing video and EOF/cleanup. |
+| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
+| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
+| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md)
-- [results/top100/lanes/result.json](../../../results/top100/lanes/result.json)
-- [results/top100/transport/latm-result.json](../../../results/top100/transport/latm-result.json)
+Original definitions and historical evidence remain intact. Integration and release qualification are separate.

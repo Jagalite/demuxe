@@ -17,7 +17,7 @@
       "line_end": 72,
       "source_kind": "report"
     },
-    "source_excerpt": "The host experiment processed 192,000 float64 samples through four 513-tap impulse responses using identical 2,048-point overlap-save blocks. The separate path recomputed the source FFT four times per block; the candidate computed it once and reused X for four IFFT(X  H_k) outputs. The outputs had 0.0 maximum absolute difference. Median times over seven alternating runs were 17.80 ms separate versus 12.33 ms shared, a 1.44× speedup, with the same 512-sample algorithmic history/latency. This is a host numerical component result, not a browser audio-device benchmark.",
+    "source_excerpt": "The host experiment processed 192,000 float64 samples through four 513-tap impulse responses using identical 2,048-point overlap-save blocks. The separate path recomputed the source FFT four times per block; the candidate computed it once and reused X for four IFFT(X  H_k) outputs. The outputs had 0.0 maximum absolute difference. Median times over seven alternating runs were 17.80 ms separate versus 12.33 ms shared, a 1.44\u00d7 speedup, with the same 512-sample algorithmic history/latency. This is a host numerical component result, not a browser audio-device benchmark.",
     "related_reports": [],
     "scope_hash": "a165f962f2461fa0a559d24ac60539fff6745f479d254b3d911bd263b444b5f6",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,30 +91,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 265,
-    "record": {
-      "key": "R219.shared-spectral-analysis",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R219.shared-spectral-analysis.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md"
-      ],
-      "reason": "The current browser audio stage is a PCM consumer; the qualified filter subset is scalar volume, with no repeated source FFT across multiple FIR outputs. Shared FFT algebra is valid but there is no duplicated transform at this owner to remove.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
-      "reopen_condition": "Reopen when an actual filter bank recomputes the same source FFT; do not compare against artificially separate pipelines.",
-      "recorded_at_utc": "2026-09-19T17:34:19.142409+00:00"
-    }
+    "key": "R219.shared-spectral-analysis",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The current browser audio stage is a PCM consumer; the qualified filter subset is scalar volume, with no repeated source FFT across multiple FIR outputs. Shared FFT algebra is valid but there is no duplicated transform at this owner to remove.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 265,
+      "record": {
+        "key": "R219.shared-spectral-analysis",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R219.shared-spectral-analysis.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md"
+        ],
+        "reason": "The current browser audio stage is a PCM consumer; the qualified filter subset is scalar volume, with no repeated source FFT across multiple FIR outputs. Shared FFT algebra is valid but there is no duplicated transform at this owner to remove.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
+        "reopen_condition": "Reopen when an actual filter bank recomputes the same source FFT; do not compare against artificially separate pipelines.",
+        "recorded_at_utc": "2026-09-19T17:34:19.142409+00:00"
+      }
+    },
+    "next_action": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
   "integration": {

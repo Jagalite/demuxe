@@ -17,7 +17,7 @@
       "line_end": 82,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New bounded-clip session candidate · P2 · PROPOSED / NOT TESTED Extends: R09, R37, R40. Reference primitives: S1, S4, S9. Question. Can an excerpt beginning between keyframes start correctly using only nearby original media, instead of re-encoding its first frames or preparing the whole source? Mechanism. Separate decoder preroll from the public visible interval. Supply the preceding random-access data, map source time explicitly, and seek the candidate to the requested start before presentation. Keep one A/V owner. Smallest useful experiment. Use an H.264 B-frame clip with two-second GOPs, AAC or FLAC audio and burned frame IDs. Request [3.35, 7.65) seconds. Compare full-source seek with a bounded indexed input window. Verify pause, replay, final-frame coverage and cancellation. Include a deliberately broken control that filters away needed preroll with appendWindowStart.",
+    "source_excerpt": "New bounded-clip session candidate \u00b7 P2 \u00b7 PROPOSED / NOT TESTED Extends: R09, R37, R40. Reference primitives: S1, S4, S9. Question. Can an excerpt beginning between keyframes start correctly using only nearby original media, instead of re-encoding its first frames or preparing the whole source? Mechanism. Separate decoder preroll from the public visible interval. Supply the preceding random-access data, map source time explicitly, and seek the candidate to the requested start before presentation. Keep one A/V owner. Smallest useful experiment. Use an H.264 B-frame clip with two-second GOPs, AAC or FLAC audio and burned frame IDs. Request [3.35, 7.65) seconds. Compare full-source seek with a bounded indexed input window. Verify pause, replay, final-frame coverage and cancellation. Include a deliberately broken control that filters away needed preroll with appendWindowStart.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,78 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen.",
+      "evidence": [
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Original-coded B-frame AVC/FLAC fragment window with preroll yields exact full-source excerpt pictures and206400PCM samples for[3.35,7.65). Independent packet payload/timing oracle passes; dropping needed preroll diverges.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Host excerpt packet/picture/PCM oracle passes, but public browser presentation boundaries and lifecycle are required by full item contract.",
+      "evidence": [
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark or owner opportunity measurement.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable positive/negative evidence and manifests registered.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md"
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue; remaining gate and actual owner opportunity explicit.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 228,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      "state": "pursue",
+      "reason": "Original-coded B-frame AVC/FLAC fragment window with preroll yields exact full-source excerpt pictures and206400PCM samples for[3.35,7.65). Independent packet payload/timing oracle passes; dropping needed preroll diverges.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
+      "run_ids": [
+        "20260919T203300Z-preroll-excerpt"
       ],
-      "reason": "Seek already supplies preroll and checks covering frames, but public exact interval end/audio suppression contract is missing. Partial packet slicing alone cannot promise no preroll audio or exact end.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
-      "recorded_at_utc": "2026-09-19T17:34:19.107224+00:00"
+      "evidence": [
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/run.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/results.json",
+        "research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/manifest.json"
+      ],
+      "next_test": "Implement public presentation start/end suppression and run browser pause/replay/cancel and appendWindowStart broken-preroll control; host trim oracle is not public playback qualification.",
+      "reopen_condition": "Implement public presentation start/end suppression and run browser pause/replay/cancel and appendWindowStart broken-preroll control; host trim oracle is not public playback qualification.",
+      "scope": "Host excerpt packet/picture/PCM oracle passes, but public browser presentation boundaries and lifecycle are required by full item contract."
     }
   },
-  "next_action": "Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
+  "next_action": "Implement public presentation start/end suppression and run browser pause/replay/cancel and appendWindowStart broken-preroll control; host trim oracle is not public playback qualification.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

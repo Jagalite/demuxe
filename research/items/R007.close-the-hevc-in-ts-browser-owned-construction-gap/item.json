@@ -17,7 +17,7 @@
       "line_end": 209,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Packaging · Follow-on route expansion · P1 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Construct a qualified HEVC/AAC TS-to-fMP4 plan rather than falling to Hybrid solely because the maintained TS repair is AVC-specific. Preserve original video/audio and extend only the missing timestamp/configuration logic. Source basis. FFmpeg supports codec configuration extraction and fragmented MP4 controls; the previous user-supplied comparison identified a working competitor MSE alternative. Neither establishes correctness of Demuxe’s HEVC adaptation. [F1, F2; prior qualification report]",
+    "source_excerpt": "Packaging \u00b7 Follow-on route expansion \u00b7 P1 \u00b7 Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Construct a qualified HEVC/AAC TS-to-fMP4 plan rather than falling to Hybrid solely because the maintained TS repair is AVC-specific. Preserve original video/audio and extend only the missing timestamp/configuration logic. Source basis. FFmpeg supports codec configuration extraction and fragmented MP4 controls; the previous user-supplied comparison identified a working competitor MSE alternative. Neither establishes correctness of Demuxe\u2019s HEVC adaptation. [F1, F2; prior qualification report]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 89,
         "line_end": 92,
         "source_kind": "report",
-        "reported_heading": "HEVC/AAC TS → browser MSE: BLOCKED ON THIS LINUX CHROMIUM"
+        "reported_heading": "HEVC/AAC TS \u2192 browser MSE: BLOCKED ON THIS LINUX CHROMIUM"
       }
     ],
     "scope_hash": "77be3d3449438b073420ba2a305189ddf5ada0b6e520761c3287f306c37aa656",
@@ -64,73 +64,119 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Full host pictures/PCM and actual HEVC/AAC playback/seek pass, with AVC control and worker cleanup. Codec-aware adverse timestamp/configuration cases remain before closing correctness.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R007.close-the-hevc-in-ts-browser-owned-construction-gap.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R007.close-the-hevc-in-ts-browser-owned-construction-gap.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/transport/browser-result.json",
-        "results/top100/transport/build-commands.json",
-        "results/top100/transport/hevc-remux.c"
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 1,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
-      "rank": 1,
-      "state": "PURSUE",
-      "reason": "Actual isolated Wasm gate extension plays HEVC/AAC TS and seeks; current bridge rejects it. Complete output video and PCM match independent host decode with passthrough frame timing; AVC control still passes. Additional codec-aware adverse timestamp/configuration cases remain before integration.",
-      "evidence_level": "REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "transport/browser-result.json",
-          "sha256": "8bf33f3353cf001e5efc878ac228c987cfb12c84dd7fcceffbf14275f1b3cfc6"
-        },
-        {
-          "path": "transport/hevc-remux.c",
-          "sha256": "102644cf509c1558eccc2855b757c9743a7577767addd5f0be346d79175be264"
-        },
-        {
-          "path": "transport/build-commands.json",
-          "sha256": "e3b6a5df73bce7d5c57ecd5b32495c99b1cef04ab6bd314b7befdf68d88f177c"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 1,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:13.846821+00:00"
+      "evidence_level": "reconciled_real_path_screen",
+      "new_media_execution": false,
+      "reason": "Actual isolated Wasm gate extension plays HEVC/AAC TS and seeks; current bridge rejects it. Complete output video and PCM match independent host decode with passthrough frame timing; AVC control still passes. Additional codec-aware adverse timestamp/configuration cases remain before integration.",
+      "scope": "HEVC/AAC TS isolated RemuxPlayer bridge; baseline rejects; ordinary runtime unchanged.",
+      "correctness_acceptance": "Full host pictures/PCM and actual HEVC/AAC playback/seek pass, with AVC control and worker cleanup. Codec-aware adverse timestamp/configuration cases remain before closing correctness.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 1,
+        "record": {
+          "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
+          "rank": 1,
+          "state": "PURSUE",
+          "reason": "Actual isolated Wasm gate extension plays HEVC/AAC TS and seeks; current bridge rejects it. Complete output video and PCM match independent host decode with passthrough frame timing; AVC control still passes. Additional codec-aware adverse timestamp/configuration cases remain before integration.",
+          "evidence_level": "REAL_PATH_SCREEN",
+          "evidence": [
+            {
+              "path": "transport/browser-result.json",
+              "sha256": "8bf33f3353cf001e5efc878ac228c987cfb12c84dd7fcceffbf14275f1b3cfc6"
+            },
+            {
+              "path": "transport/hevc-remux.c",
+              "sha256": "102644cf509c1558eccc2855b757c9743a7577767addd5f0be346d79175be264"
+            },
+            {
+              "path": "transport/build-commands.json",
+              "sha256": "e3b6a5df73bce7d5c57ecd5b32495c99b1cef04ab6bd314b7befdf68d88f177c"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:05:13.846821+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

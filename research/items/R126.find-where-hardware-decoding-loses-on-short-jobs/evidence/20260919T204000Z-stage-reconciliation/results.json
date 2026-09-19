@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 80,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 79,
+    "record": {
+      "key": "R126.find-where-hardware-decoding-loses-on-short-jobs",
+      "rank": 80,
+      "state": "PURSUE_PREFERENCE_ONLY",
+      "reason": "Both acceleration preferences passed exact visible-pixel and timestamp oracle before retained timing rerun. Software-preferred complete1/12/72-frame jobs were faster in this bounded profile. Hints do not prove decoder hardware identity; no universal hardware crossover claim or production policy.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "decode-cost-qualification.json",
+          "sha256": "ac7ce9f07a9ee2f9b0c83fa72eb1fb21cccce49b42bfee113ce30d7f3f7bae77"
+        },
+        {
+          "path": "decode-cost-result.json",
+          "sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:50:21.369709+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/decode-cost-qualification.json",
+      "declared_sha256": "ac7ce9f07a9ee2f9b0c83fa72eb1fb21cccce49b42bfee113ce30d7f3f7bae77",
+      "observed_sha256": "ac7ce9f07a9ee2f9b0c83fa72eb1fb21cccce49b42bfee113ce30d7f3f7bae77",
+      "matched": true
+    },
+    {
+      "path": "results/top100/decode-cost-result.json",
+      "declared_sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0",
+      "observed_sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Both preference hints at1/12/72frames pass exact visible pixels andPTS against independent oracle before retained timing run; decoder errors empty, cleanup recorded. No physical hardware identity proven."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Single bounded preference timing observation does not supply predeclared threshold/repeated crossover statistics or hardware attribution."
+    }
+  },
+  "passed": true
+}

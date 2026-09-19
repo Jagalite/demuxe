@@ -2,55 +2,30 @@
 
 # Keep source sample rates across audio-track changes
 
-Full identity: `R052.keep-source-sample-rates-across-audio-track-changes`. Reused R-numbers are separate mechanisms.
+Full identity: `R052.keep-source-sample-rates-across-audio-track-changes`.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **pursue** (2026-09-19T20:07:16.715931+00:00).
 
-Current track change remuxes at source time, copying original rate; preserving only video while swapping 44.1/48k audio needs missing per-track transaction and priming map.
+Both 44.1-to-48 and 48-to-44.1 kHz AAC split-MSE transitions play expected 440/880Hz markers, retain the same video/audio SourceBuffers, reach EOF and restore earlier buffered audio on backward seek. No sample-exact priming/boundary claim.
 
-Next action: Define one paused AAC same-profile rate switch and inspect new initialization, PCM marker speed and tail; wrong-rate description or failed backward restoration must reject.
+## Tested contract
 
-## Definition and contract
+Same AAC-LC stereo profile, source 44.1/48kHz, two-second segments, existing separate AVC video buffer
 
-New format-transition experiment · P2 · PROPOSED / NOT TESTED Extends: R15, R16, R35. Reference primitives: S1, S5, S8. Question. Can switching between 44.1 and 48 kHz audio preserve video and original audio packets, rather than normalizing all tracks into one encoded format? Mechanism. Reconfigure only the audio initialization/configuration at an explicit switch boundary. Begin with the same AAC profile and stereo layout at different sample rates, preserving each track’s own source clock and priming. Smallest useful experiment. Generate distinct 44.1/48 kHz tracks and hold one video buffer. Test both directions with new initialization data, then compare the supported same-SourceBuffer procedure against a full reopen. Include nonzero offsets, pause, backward restoration and failed replacement.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
+Next action: Compare decoded boundary PCM/priming and failed replacement rollback before integrating the per-track switch transaction.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| define | passed | Source contract refined to explicit component profile and exclusions in current decision. |
+| prepare | passed | Generated fixtures, source/runtime identities, baseline/oracle and adverse controls pinned in shared run. |
+| screen | passed | Both 44.1-to-48 and 48-to-44.1 kHz AAC split-MSE transitions play expected 440/880Hz markers, retain the same video/audio SourceBuffers, reach EOF and restore earlier buffered audio on backward seek. No sample-exact priming/boundary claim. |
+| correctness | pending | Audible rate/marker, EOF, same-owner and backward-seek screens passed; sample-exact boundary PCM and failed replacement controls remain. |
+| performance | pending | Do not benchmark replacement savings before remaining fidelity/lifecycle gates. |
+| results | passed | Positive, negative and setup-failure observations preserved with source/output manifest and commands. |
+| decision | passed | Scoped pursue decision; no production integration or release qualification. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Shared run](../../shared/runs/20260919T200716Z-audio-mse/run.json) · [Browser results](../../shared/runs/20260919T200716Z-audio-mse/browser-result.json) · [Analysis](../../shared/runs/20260919T200716Z-audio-mse/analysis.md) · [Manifest](../../shared/runs/20260919T200716Z-audio-mse/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R052.keep-source-sample-rates-across-audio-track-changes.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R052.keep-source-sample-rates-across-audio-track-changes.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R052.keep-source-sample-rates-across-audio-track-changes.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R052.keep-source-sample-rates-across-audio-track-changes.md)
+Historical definitions and evidence remain preserved. Production integration and release qualification are separate.

@@ -17,7 +17,7 @@
       "line_end": 78,
       "source_kind": "report"
     },
-    "source_excerpt": "Two separately encoded 3-second stereo AAC-LC ADTS streams were concatenated byte-for-byte. File length is exactly the sum of the inputs, and the concatenated decoder produces the expected total number of samples, but the second segment is not equal to decoding B as its own stream. Maximum float difference is 0.090085; 144,640 sample frames differ above 1e-7. This rejects the naive “compatible headers means raw AAC segments are spliceable” route. Transform overlap and other decoder state must be accounted for, or the player must create an explicit discontinuity/reset instead of pretending the coded streams are continuous.",
+    "source_excerpt": "Two separately encoded 3-second stereo AAC-LC ADTS streams were concatenated byte-for-byte. File length is exactly the sum of the inputs, and the concatenated decoder produces the expected total number of samples, but the second segment is not equal to decoding B as its own stream. Maximum float difference is 0.090085; 144,640 sample frames differ above 1e-7. This rejects the naive \u201ccompatible headers means raw AAC segments are spliceable\u201d route. Transform overlap and other decoder state must be accounted for, or the player must create an explicit discontinuity/reset instead of pretending the coded streams are continuous.",
     "related_reports": [],
     "scope_hash": "2c1672bfcc466c92855a0eaeb40883a50eaac3fa32786d3214f1eacc2f27210c",
     "legacy_guide_aliases": [
@@ -55,9 +55,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -67,14 +69,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -87,30 +93,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 282,
-    "record": {
-      "key": "R228.naive-aac-splice-is-rejected.report-continuity",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R228.naive-aac-splice-is-rejected.report-continuity.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
-      ],
-      "reason": "The supplied counterexample preserves lengths/sample counts yet changes decoded AAC B, decisively invalidating naive concatenation. Current queue opens each source separately rather than claiming same-header raw splice continuity.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
-      "reopen_condition": "Reopen only for a principled discontinuity/overlap model; compatible headers and sample counts cannot qualify splicing.",
-      "recorded_at_utc": "2026-09-19T17:34:19.146780+00:00"
-    }
+    "key": "R228.naive-aac-splice-is-rejected.report-continuity",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The supplied counterexample preserves lengths/sample counts yet changes decoded AAC B, decisively invalidating naive concatenation. Current queue opens each source separately rather than claiming same-header raw splice continuity.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 282,
+      "record": {
+        "key": "R228.naive-aac-splice-is-rejected.report-continuity",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R228.naive-aac-splice-is-rejected.report-continuity.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+        ],
+        "reason": "The supplied counterexample preserves lengths/sample counts yet changes decoded AAC B, decisively invalidating naive concatenation. Current queue opens each source separately rather than claiming same-header raw splice continuity.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
+        "reopen_condition": "Reopen only for a principled discontinuity/overlap model; compatible headers and sample counts cannot qualify splicing.",
+        "recorded_at_utc": "2026-09-19T17:34:19.146780+00:00"
+      }
+    },
+    "next_action": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
   "integration": {

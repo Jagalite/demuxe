@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 78,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 80,
+    "record": {
+      "key": "R125.buffer-according-to-predicted-decode-work",
+      "rank": 78,
+      "state": "PURSUE",
+      "reason": "Correct72-frame serialized decode trace: packet-size linear model lowered held-out latency MAE versus constant prediction on24 held-out frames. Tiny synthetic trace only; predictive buffering controller and representative difficult-region value remain future confirmation.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "decode-cost-result.json",
+          "sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:50:21.414989+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/decode-cost-result.json",
+      "declared_sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0",
+      "observed_sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "pending",
+      "basis": "Serialized72-frame decoder trace is correct and47-training/24-held-out packet-size prediction improvesMAE. No buffering-controller output/lifecycle experiment; prediction evidence is not controller correctness."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "One tiny trace and no controller benefit, repeated representative workloads or decision threshold."
+    }
+  },
+  "passed": true
+}

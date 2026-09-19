@@ -1,0 +1,3 @@
+// SPDX-License-Identifier: Apache-2.0
+import {webkit} from 'playwright';import {writeFile} from 'node:fs/promises';
+const b=await webkit.launch({headless:true});let r={browser:b.version(),scope:'Actual installed WebKit runtime prerequisite; not Safari application or physical device qualification.'};try{const p=await b.newPage();r.probe=await p.evaluate(()=>({managedMediaSource:typeof ManagedMediaSource,mediaSource:typeof MediaSource,ua:navigator.userAgent}));}catch(e){r.error=String(e);}finally{await b.close();await writeFile('research/shared/runs/20260919T200500Z-managed/prerequisite.json',JSON.stringify(r,null,2)+'\n');console.log(r);}

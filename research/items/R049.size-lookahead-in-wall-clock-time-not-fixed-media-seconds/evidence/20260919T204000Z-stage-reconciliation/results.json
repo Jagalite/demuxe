@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 67,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 35,
+    "record": {
+      "key": "R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds",
+      "rank": 67,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: At 0.5x startup, peak buffered media changed 5.503999s to 3.007999s, fetched bytes 2359296 to 1572864. Actual 4x after seek is explicitly asserted; frame progress, source replacement rejection and worker cleanup pass. Worth a bounded rate-aware preparation policy; no generalized high-speed improvement claimed.",
+      "evidence_level": "REUSED_REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "../full-completion/remux-policies/result.json",
+          "sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.491126+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/remux-policies/result.json",
+      "declared_sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb",
+      "observed_sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "pending",
+      "basis": "Actual0.5x/4x route progress, source replacement rejection and worker cleanup recorded; no complete independent picture/PCM oracle for rate-policy changes."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Buffered time and fetched-byte work counts improve startup; no equivalent-work statistical latency/CPU gate."
+    }
+  },
+  "passed": true
+}

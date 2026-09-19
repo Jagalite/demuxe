@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 82,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 41,
+    "record": {
+      "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+      "rank": 82,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Same-size same-packet indexed and unindexed variants reach identical target pixel hashes at 20s. Global index reduces this bounded native request trace from 6656858 to 6296410 bytes. Benefit is modest on this 26-second local fixture; pursue asset-side metadata only with real remote byte/latency exposure.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/remote-index/result.json",
+          "sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9"
+        },
+        {
+          "path": "../full-completion/remote-index/identity.json",
+          "sha256": "472e8955ec8902cacbf5ff16d6975b072fa4c736398108a5984f6e4b9d714095"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.660825+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/remote-index/result.json",
+      "declared_sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9",
+      "observed_sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9",
+      "matched": true
+    },
+    {
+      "path": "results/full-completion/remote-index/identity.json",
+      "declared_sha256": "472e8955ec8902cacbf5ff16d6975b072fa4c736398108a5984f6e4b9d714095",
+      "observed_sha256": "472e8955ec8902cacbf5ff16d6975b072fa4c736398108a5984f6e4b9d714095",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Same-size index variants preserve2002packet metadata records and identical20s target pixel hash; no-SIDX control and cleanup present. Scoped target seek only."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Local transmitted-byte saving360448bytes observed; cold network/latency distribution and deployment exposure unqualified."
+    }
+  },
+  "passed": true
+}

@@ -4,7 +4,7 @@
 
 Full identity: `R069.separate-decoder-compatibility-from-per-source-initialization-identity`. Reused R-numbers are separate mechanisms.
 
-Current imported decision: **STOP_PROFILE** (top100).
+Prior imported decision: **STOP_PROFILE** (top100).
 
 Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.
 
@@ -20,21 +20,21 @@ Primary metric: User-visible operation latency, duplicated work or peak/steady l
 
 Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
 
+## Current stage reconciliation
+
+**stop_current_profile** — retained source decision, no new experiment. [Run](../../shared/runs/20260919T200619Z-source-stage-reconciliation/run.json).
+
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| correctness | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
+| performance | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
 | results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred. |
-
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+| decision | passed | Prior scoped decision reconciled into the current checklist: stop_current_profile |
 
 ## Working files
 

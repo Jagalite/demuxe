@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 74,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 71,
+    "record": {
+      "key": "R119.mse-future-range-replacement-report-paragraph-label.report-frontier",
+      "rank": 74,
+      "state": "PURSUE",
+      "reason": "Future RAP-aligned range replacement changes red to green after2s while retaining SourceBuffer. Stale canceled transaction leaves buffered ranges unchanged; valid commit plays to EOF. Video-only component; current combined A/V controller not integrated.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "mse/result.json",
+          "sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:41:21.222699+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/mse/result.json",
+      "declared_sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6",
+      "observed_sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "pending",
+      "basis": "Future red\u2192green replacement and stale generation range preservation verified to EOF; exact full-frame/A/V boundary and real failed-append rollback remain unqualified."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Presentation transaction has no equivalent-work timing or memory benchmark."
+    }
+  },
+  "passed": true
+}

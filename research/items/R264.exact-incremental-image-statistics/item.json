@@ -17,7 +17,7 @@
       "line_end": 56,
       "source_kind": "report"
     },
-    "source_excerpt": "A 2048×2048 8-bit image was partitioned into 64×64 tiles. Each tile owns an exact 256-bin histogram. Global state is updated by subtracting the old tile histogram and adding the new one. Result. Incremental global histograms matched a full-image recomputation after every edit. Final pixel count, sum, mean, percentiles, min, and max all derive from the exact global histogram. Timing was 0.0115s incremental versus 0.725s for full recomputation over the same 80 edits, a 63.2× corpus-level improvement. The no-subtraction negative control drifted immediately. Boundary. 8-bit scalar histogram only. HDR/float statistics need explicit binning/exact-sum/NaN policy, and GPU readback cost is outside this probe.",
+    "source_excerpt": "A 2048\u00d72048 8-bit image was partitioned into 64\u00d764 tiles. Each tile owns an exact 256-bin histogram. Global state is updated by subtracting the old tile histogram and adding the new one. Result. Incremental global histograms matched a full-image recomputation after every edit. Final pixel count, sum, mean, percentiles, min, and max all derive from the exact global histogram. Timing was 0.0115s incremental versus 0.725s for full recomputation over the same 80 edits, a 63.2\u00d7 corpus-level improvement. The no-subtraction negative control drifted immediately. Boundary. 8-bit scalar histogram only. HDR/float statistics need explicit binning/exact-sum/NaN policy, and GPU readback cost is outside this probe.",
     "related_reports": [],
     "scope_hash": "2d7a1d9db1faba838d0be827201c10864e1b326f5f0936b021661d15e509f655",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -86,30 +92,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 182,
-    "record": {
-      "key": "R264.exact-incremental-image-statistics",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R264.exact-incremental-image-statistics.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
-      ],
-      "reason": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
-      "reopen_condition": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
-      "recorded_at_utc": "2026-09-19T17:34:19.094960+00:00"
-    }
+    "key": "R264.exact-incremental-image-statistics",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 182,
+      "record": {
+        "key": "R264.exact-incremental-image-statistics",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R264.exact-incremental-image-statistics.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+        ],
+        "reason": "The report assumes sparse edits of a persistent scalar image with per-tile histograms. Current presenter draws changing full video frames and has no persistent histogram/statistics consumer; two bounded pixel checks are not such a workload.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+        "reopen_condition": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+        "recorded_at_utc": "2026-09-19T17:34:19.094960+00:00"
+      }
+    },
+    "next_action": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Reopen with an actual scalar-image statistics consumer and sparse edit rectangles; compare subtract-old/add-new global histogram with full recomputation.",
   "integration": {

@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "run_id": "20260919T195933Z-resampler-gate",
+  "item_keys": [
+    "R233.make-independently-resampled-audio-chunks-join-exactly"
+  ],
+  "stage": "screen",
+  "status": "blocked",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    [
+      "rg",
+      "-n",
+      "resampl|IIR|biquad",
+      "native/adaptation/flac.h",
+      "web/audio-worklet.js",
+      "src/internal/playback-plans.ts"
+    ]
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "dfedda979fad5a5287a4b530f3672af68a7858df5790987a93955a99676ef618",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "node": "v23.5.0",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "browser": "not used"
+  },
+  "candidate": {
+    "executed": false,
+    "fallback_observed": null
+  },
+  "decision": {
+    "key": "R233.make-independently-resampled-audio-chunks-join-exactly",
+    "recorded_at_utc": "2026-09-19T19:59:33.240223+00:00",
+    "stage": "decision",
+    "disposition": "blocked",
+    "state": "blocked",
+    "run_ids": [
+      "20260919T195933Z-resampler-gate"
+    ],
+    "evidence_level": "source_review",
+    "profile": "Maintained native adaptation and PCM output ownership audit",
+    "candidate_executed": false,
+    "fallback_observed": null,
+    "reason": "Maintained adaptation explicitly preserves sample rate without swresample and has no independent absolute-output resampling job interface. A host or rational toy would not prove production state/phase equivalence.",
+    "next_action": "Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.",
+    "reopen_condition": "Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.",
+    "evidence": [
+      "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
+    ],
+    "blocker_category": "setup"
+  },
+  "limits": [],
+  "performance": {
+    "applicable": true,
+    "measured": false
+  }
+}

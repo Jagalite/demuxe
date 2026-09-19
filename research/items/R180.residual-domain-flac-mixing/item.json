@@ -17,7 +17,7 @@
       "line_end": 108,
       "source_kind": "report"
     },
-    "source_excerpt": "Two real mono FLAC frames were parsed. Both use compatible fixed predictor order 3 and Rice parameter 1. Instead of reconstructing the complete PCM signals, the prototype sums the predictor warmups and all 4,093 coded residual values directly, chooses a valid output Rice parameter, authors a new FLAC frame, and rebuilds integrity fields. The output contains 4,096 samples and decodes sample-for-sample exactly to the ordinary PCM sum. The observed output range, −6,581 to 7,887, remains safely inside signed 16-bit headroom. Integration implication: exact lossless mixing can exist below the PCM layer for carefully admitted, aligned predictor-compatible FLAC. General gain, clipping, resampling, stereo coupling, mismatched predictors, and arbitrary frame alignment remain outside the proven route.",
+    "source_excerpt": "Two real mono FLAC frames were parsed. Both use compatible fixed predictor order 3 and Rice parameter 1. Instead of reconstructing the complete PCM signals, the prototype sums the predictor warmups and all 4,093 coded residual values directly, chooses a valid output Rice parameter, authors a new FLAC frame, and rebuilds integrity fields. The output contains 4,096 samples and decodes sample-for-sample exactly to the ordinary PCM sum. The observed output range, \u22126,581 to 7,887, remains safely inside signed 16-bit headroom. Integration implication: exact lossless mixing can exist below the PCM layer for carefully admitted, aligned predictor-compatible FLAC. General gain, clipping, resampling, stereo coupling, mismatched predictors, and arbitrary frame alignment remain outside the proven route.",
     "related_reports": [],
     "scope_hash": "098ae894f69d730be7f31d709376f202d702858e57ab38c69641803d7ca1160c",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R180.residual-domain-flac-mixing.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 424,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R180.residual-domain-flac-mixing",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      "rank": 383,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ],
       "next_test": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
       "reopen_condition": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
-      "recorded_at_utc": "2026-09-19T17:34:19.186128+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",

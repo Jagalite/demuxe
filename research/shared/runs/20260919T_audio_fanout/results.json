@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "candidate_executed": true,
+  "fallback": false,
+  "profile": "host FFmpeg FLAC to source-rate stereo f32; three independent persistent sample-rate consumers",
+  "canonical_pcm_bytes": 768000,
+  "input_bytes_per_consumer": [
+    768000,
+    768000,
+    768000
+  ],
+  "max_queue_chunks": [
+    2,
+    2,
+    2
+  ],
+  "max_queue_bytes_per_consumer": 8192,
+  "queue_policy_control": "full queue rejected and drained",
+  "epoch_control": "stale descriptor rejected; isolated policy component only",
+  "outputs": [
+    {
+      "rate": 32000,
+      "samples_per_channel": 64000,
+      "sha256": "d27d4d7b2cfe82eb408d2ff3f7b4241f91ba425b436f6156d0cebd8e6ce4c9d3",
+      "exact": true
+    },
+    {
+      "rate": 44100,
+      "samples_per_channel": 88200,
+      "sha256": "aed798a16334d59d7ffd826192a528ea319d668e58f25275c9bfa0b0162ae0a1",
+      "exact": true
+    },
+    {
+      "rate": 48000,
+      "samples_per_channel": 96000,
+      "sha256": "c769c080f7422f265a56c4f2a511028f92210cab3af3e87a07de77a07361302f",
+      "exact": true
+    }
+  ],
+  "limits": [
+    "host FFmpeg, not maintained browser decoder or player integration",
+    "blocking backpressure in actual fanout; slow-consumer rejection is separately tested policy",
+    "FFmpeg internal pipe/process memory not measured",
+    "no acoustic or performance qualification"
+  ]
+}

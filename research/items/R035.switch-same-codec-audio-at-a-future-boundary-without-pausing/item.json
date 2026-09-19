@@ -17,7 +17,7 @@
       "line_end": 143,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Follow-on transition experiment · P1 · extends R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Preserve the buffered old-audio prefix up to a future switch time T, replace only later audio with an equivalent-configuration selected track, and let the current video and playhead continue. New question versus prior work. The saved R15 harness pauses, clears the audio buffer, changes type and resumes. This tests a non-pausing same-codec splice; the earlier result does not establish seamlessness. Source primitive. MSE exposes append windows, timestamp offsets and range removal; audio gap/overlap behavior requires output-level validation. [S3, S7] Why testable here. The same MSE and Web Audio observation tools used by R15 are available. Only generated same-codec media is needed initially.",
+    "source_excerpt": "Follow-on transition experiment \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. Preserve the buffered old-audio prefix up to a future switch time T, replace only later audio with an equivalent-configuration selected track, and let the current video and playhead continue. New question versus prior work. The saved R15 harness pauses, clears the audio buffer, changes type and resumes. This tests a non-pausing same-codec splice; the earlier result does not establish seamlessness. Source primitive. MSE exposes append windows, timestamp offsets and range removal; audio gap/overlap behavior requires output-level validation. [S3, S7] Why testable here. The same MSE and Web Audio observation tools used by R15 are available. Only generated same-codec media is needed initially.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only.",
+      "evidence": [
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Same-codec AAC future T=2 replacement commits while playing near .5 s, retains old prefix and exact presentation objects, reaches EOF and observes 440-to-880 Hz change. Stale generation and invalid preparation leave old ranges untouched.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice.",
+      "evidence": [
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark before relevant output correctness gates.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing.md"
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Pursue bounded mechanism; no integration or release qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 225,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R035.switch-same-codec-audio-at-a-future-boundary-without-pausing",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      "state": "pursue",
+      "reason": "Same-codec AAC future T=2 replacement commits while playing near .5 s, retains old prefix and exact presentation objects, reaches EOF and observes 440-to-880 Hz change. Stale generation and invalid preparation leave old ranges untouched.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:06:24.309553+00:00",
+      "run_ids": [
+        "20260919T200300Z-mse-transactions",
+        "20260919T200700Z-mse-transactions-tail"
       ],
-      "reason": "Current selection pauses/restarts full remux; no future audio splice commit or rollback state exists. Keeping video and old-audio prefix across an unpaused boundary requires the missing audio transaction.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "First define same-configuration FLAC future-boundary transaction; compare exact digital marker boundary and video frame identity, cancel before commit, reject any gap/repeat rather than widening tolerance.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: First define same-configuration FLAC future-boundary transaction; compare exact digital marker boundary and video frame identity, cancel before commit, reject any gap/repeat rather than widening tolerance.",
-      "recorded_at_utc": "2026-09-19T17:34:19.106469+00:00"
+      "evidence": [
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R035.switch-same-codec-audio-at-a-future-boundary-without-pausing/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ],
+      "next_test": "Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice.",
+      "reopen_condition": "Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice.",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "case": "future-audio"
     }
   },
-  "next_action": "First define same-configuration FLAC future-boundary transaction; compare exact digital marker boundary and video frame identity, cancel before commit, reject any gap/repeat rather than widening tolerance.",
+  "next_action": "Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

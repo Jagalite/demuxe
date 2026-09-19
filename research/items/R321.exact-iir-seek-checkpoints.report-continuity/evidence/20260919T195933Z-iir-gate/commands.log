@@ -1,0 +1,6 @@
+["rg", "-n", "resampl|IIR|biquad", "native/adaptation/flac.h", "web/audio-worklet.js", "src/internal/playback-plans.ts"]
+src/internal/playback-plans.ts:30:  fidelity:plan.id.startsWith('native-opus')?'Explicitly permitted lossy audio; no resampling/downmix; video copied':plan.id.startsWith('native-flac')?'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample':'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
+src/internal/playback-plans.ts:36:// remapping, resampling, latency-changing filters and video filters are excluded.
+native/adaptation/flac.h:4: * is enabled in the build. Integer samples are copied without swresample. */
+native/adaptation/flac.h:38: if(adapt_enabled==2&&p->sample_rate!=48000)return reject("Opus adaptation requires 48 kHz input; resampling is not permitted");
+native/adaptation/flac.h:115:    // is format conversion only: no sample insertion, resampling or downmix.

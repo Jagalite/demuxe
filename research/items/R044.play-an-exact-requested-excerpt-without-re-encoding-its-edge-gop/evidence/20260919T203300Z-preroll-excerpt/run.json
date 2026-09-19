@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T203300Z-preroll-excerpt",
+  "item_keys": [
+    "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -f lavfi -i testsrc2=s=160x96:r=24:d=10 -f lavfi -i sine=frequency=997:sample_rate=48000:duration=10 -c:v libx264 -g 48 -bf 2 -sc_threshold 0 -c:a flac -strict -2 -movflags frag_keyframe+empty_moov+default_base_moof research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/evidence/20260919T203300Z-preroll-excerpt/source.mp4",
+    "python3 research/items/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop/tests/excerpt.py"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256_at_registration": "e254c143cb175a7563cbab5d4a8f959287106bc44007f6f39cd6da8db3a4eabd",
+    "browser": "not run",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Host excerpt packet/picture/PCM oracle passes, but public browser presentation boundaries and lifecycle are required by full item contract.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "No equivalent-work benchmark; actual owner opportunity remains to be established."
+  },
+  "limits": [
+    "Host excerpt packet/picture/PCM oracle passes, but public browser presentation boundaries and lifecycle are required by full item contract.",
+    "Research component only; no production changes."
+  ],
+  "decision": "pursue",
+  "next_action": "Implement public presentation start/end suppression and run browser pause/replay/cancel and appendWindowStart broken-preroll control; host trim oracle is not public playback qualification."
+}

@@ -2,54 +2,28 @@
 
 # Reservoir-aware MP3 repacketization
 
-Full identity: `R122.reservoir-aware-mp3-repacketization`. Reused R-numbers are separate mechanisms.
+Full identity: `R122.reservoir-aware-mp3-repacketization`. Original rank: 206.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
 
 MP3 currently passes as complete codec packets to ordinary muxing. No parser exposes reservoir-dependent coded units or synthesis-state restart certificates; packet reshuffling could preserve headers while changing output.
 
-Next action: Use one reservoir-bearing MP3 excerpt to compare ordinary decode and reconstructed units across repeated starts, with a missing reservoir dependency control.
+No matching candidate/reference/control execution for this exact gate. MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle.
 
-## Definition and contract
-
-Represent MP3 data internally by the coded data needed for decoding units, then reconstruct valid ordinary MP3 for a qualified destination. Include reservoir dependencies, synthesis-state preroll and repeated excerpt starts.
-
-Output contract: Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.
-
-Primary metric: Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.
-
-Adverse control: Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.
+Next action: Use one reservoir-bearing MP3 excerpt to compare ordinary decode and reconstructed units across repeated starts, with a missing reservoir dependency control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| prepare | blocked | Unperformed setup gate: MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle. |
+| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
+| correctness | blocked | No matching candidate/reference/control execution for this exact gate. MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle. |
+| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
+| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
+| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.reservoir-aware-mp3-repacketization.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.reservoir-aware-mp3-repacketization.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R122.reservoir-aware-mp3-repacketization.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R122.reservoir-aware-mp3-repacketization.md)
+Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.

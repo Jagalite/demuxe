@@ -1,0 +1,42 @@
+{
+  "scope": "Experimental flagged Chrome containerless encoded AVC/AAC MSE playback component. Default browser feature remains unavailable.",
+  "flags": [
+    "--enable-blink-features=MediaSourceExtensionsForWebCodecs",
+    "--autoplay-policy=no-user-gesture-required"
+  ],
+  "browser": "152.0.7977.83",
+  "probe": {
+    "rows": [
+      {
+        "name": "no-b",
+        "invalidConfigRejected": false,
+        "error": "NotSupportedError: Failed to execute 'addSourceBuffer' on 'MediaSource': H.264/H.265 EncodedVideoChunk buffering is not yet supported in MSE.See https://crbug.com/1144908.",
+        "cleanup": true
+      },
+      {
+        "name": "b-frames",
+        "invalidConfigRejected": false,
+        "error": "NotSupportedError: Failed to execute 'addSourceBuffer' on 'MediaSource': H.264/H.265 EncodedVideoChunk buffering is not yet supported in MSE.See https://crbug.com/1144908.",
+        "cleanup": true
+      },
+      {
+        "name": "vp9",
+        "invalidConfigRejected": false,
+        "sourceBuffersCreatedBeforeAppend": 2,
+        "pixel": [
+          0,
+          216,
+          0,
+          255
+        ],
+        "hz": 882.861328125,
+        "afterSeek": 1.013333,
+        "eof": true,
+        "frames": 57,
+        "passed": true,
+        "cleanup": true
+      }
+    ]
+  },
+  "completed": true
+}

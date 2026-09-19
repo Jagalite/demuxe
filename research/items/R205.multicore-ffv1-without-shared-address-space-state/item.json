@@ -17,7 +17,7 @@
       "line_end": 42,
       "source_kind": "report"
     },
-    "source_excerpt": "A prepared representation split a 640×360 lossless source into four independent 320×180 FFV1 quadrant streams. Four independent FFmpeg processes—no shared address space—decoded the streams and reconstructed all 120 visible BGR frames exactly. Median null-output wall time was 0.666 s sequential versus 0.228 s parallel, 2.92× faster. Compressed size increased 5.1%. This is deliberately PARTIAL: it proves the no-shared-memory execution model for independently encoded FFV1 regions, not extraction and independent decoding of slices from one existing FFV1 bitstream.",
+    "source_excerpt": "A prepared representation split a 640\u00d7360 lossless source into four independent 320\u00d7180 FFV1 quadrant streams. Four independent FFmpeg processes\u2014no shared address space\u2014decoded the streams and reconstructed all 120 visible BGR frames exactly. Median null-output wall time was 0.666 s sequential versus 0.228 s parallel, 2.92\u00d7 faster. Compressed size increased 5.1%. This is deliberately PARTIAL: it proves the no-shared-memory execution model for independently encoded FFV1 regions, not extraction and independent decoding of slices from one existing FFV1 bitstream.",
     "related_reports": [],
     "scope_hash": "db33a73d36ff3cc4aa499a150beb8c8c7fcbfb642f85d48a1c003d2cc94b6b25",
     "legacy_guide_aliases": [],
@@ -53,65 +53,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351\u219228965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351\u219228965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Establish target browser/process transport and account preparation plus decode/assembly costs before claiming multicore value.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351\u219228965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R205.multicore-ffv1-without-shared-address-space-state.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R205.multicore-ffv1-without-shared-address-space-state.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/top100/ffv1/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351\u219228965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 55,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R205.multicore-ffv1-without-shared-address-space-state",
       "rank": 39,
-      "state": "PURSUE",
-      "reason": "Prepared four independent FFV1 quadrant streams decoded by four separate host processes reconstruct 12 frames exactly. Swapped quadrants fail; preparation size recorded. Original-bitstream slice extraction and browser multicore route are not proven.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "ffv1/result.json",
-          "sha256": "31bebae0bc35d064c5a5182bb190c2cef0e70ce5c155f75431c99cf42eb65ed7"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:27:19.497507+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_component_test",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Prepared four independent FFV1 quadrant streams decoded by four separate host processes reconstruct 12 frames exactly. Swapped quadrants fail; preparation size recorded. Original-bitstream slice extraction and browser multicore route are not proven.",
+      "stage_acceptance": "Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351\u219228965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ffv1/result.json"
+      ],
+      "next_test": "Establish target browser/process transport and account preparation plus decode/assembly costs before claiming multicore value.",
+      "reopen_condition": "Establish target browser/process transport and account preparation plus decode/assembly costs before claiming multicore value.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Establish target browser/process transport and account preparation plus decode/assembly costs before claiming multicore value.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

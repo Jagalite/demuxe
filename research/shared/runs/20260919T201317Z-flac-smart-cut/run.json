@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "run_id": "20260919T201317Z-flac-smart-cut",
+  "item_keys": [
+    "R270.exact-flac-smart-cut-concat"
+  ],
+  "stage": "correctness",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/shared/tooling/audio-stage-probes/flac_smart_cut.py research/shared/runs/20260919T_audio_flac_smart_cut"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "bcd0a96517ff77167370eb995e097d8d07f0753cf150426515284c351de90ac4",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "flac": "flac 1.5.0",
+    "browser": "not rerun; reused exactly pinned Chrome 152.0.7977.83 Ogg outputs where applicable"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Real mono16 48kHz FLAC cut 41737:105565 reconstructs only two edge frames, preserves 12 interior subframe payloads, and rewrites variable sample numbering plus CRCs. All 63828 PCM samples and five independent libFLAC seeks match. Wrong fixed numbering fails two late seeks. Repeat-concat output and crossing-boundary seek are exact. STREAMINFO MD5 explicitly unknown.",
+    "passed": true,
+    "scope": "bounded component only"
+  },
+  "performance": {
+    "measured": false
+  },
+  "limits": [
+    "Repeat-concat tested; distinct-format concat and browser playback unqualified",
+    "Only mono 16-bit fixture and supported FLAC header field grammar",
+    "No performance claim; source full decode exists only as independent oracle"
+  ],
+  "reused_evidence": [],
+  "original_output_directory": "research/shared/runs/20260919T_audio_flac_smart_cut"
+}

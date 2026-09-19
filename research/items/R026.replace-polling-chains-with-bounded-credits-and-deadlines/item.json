@@ -17,7 +17,7 @@
       "line_end": 570,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Scheduling · New optimization hypothesis · P1 · Risk: Medium First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Coordinate source, mux, decoder and presenter through bounded credits, high/low watermarks and deadline wakeups. Coalesce diagnostics separately. Distinguish intentional backpressure from an actually blocked decoder. Source basis. Streams provides backpressure; WebCodecs exposes decode queues and output lifecycle. Chrome worklet guidance keeps heavy processing away from the audio callback. [S1, W1, A2] First agent experiment. Count wakeups/messages while paused, buffered, playing and under delayed output. Replace one redundant timer boundary at a time. Verify cancellation always wakes waiters and codec reordering cannot be mistaken for a deadlock.",
+    "source_excerpt": "Scheduling \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Coordinate source, mux, decoder and presenter through bounded credits, high/low watermarks and deadline wakeups. Coalesce diagnostics separately. Distinguish intentional backpressure from an actually blocked decoder. Source basis. Streams provides backpressure; WebCodecs exposes decode queues and output lifecycle. Chrome worklet guidance keeps heavy processing away from the audio callback. [S1, W1, A2] First agent experiment. Count wakeups/messages while paused, buffered, playing and under delayed output. Replace one redundant timer boundary at a time. Verify cancellation always wakes waiters and codec reordering cannot be mistaken for a deadlock.",
     "related_reports": [],
     "scope_hash": "70e4d0ad3e5c39db4c8d9d7ec7a1417df5a2f61d1013f5ad453ac559511a45ff",
     "legacy_guide_aliases": [],
@@ -53,65 +53,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Pause tick count drops 24\u21921 in equal 1.2-second observation; play/seek wake, source identity rejection and cleanup pass. Complete independent presentation output and delayed-wake/deadline stress are not recorded; work count is not CPU qualification.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Pause tick count drops 24\u21921 in equal 1.2-second observation; play/seek wake, source identity rejection and cleanup pass. Complete independent presentation output and delayed-wake/deadline stress are not recorded; work count is not CPU qualification.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Check exact presentation with delayed event/deadline and cancel controls; then declare full scheduler cost sampling.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Pause tick count drops 24\u21921 in equal 1.2-second observation; play/seek wake, source identity rejection and cleanup pass. Complete independent presentation output and delayed-wake/deadline stress are not recorded; work count is not CPU qualification.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R026.replace-polling-chains-with-bounded-credits-and-deadlines.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R026.replace-polling-chains-with-bounded-credits-and-deadlines.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/full-completion/remux-policies/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Pause tick count drops 24\u21921 in equal 1.2-second observation; play/seek wake, source identity rejection and cleanup pass. Complete independent presentation output and delayed-wake/deadline stress are not recorded; work count is not CPU qualification.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 31,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R026.replace-polling-chains-with-bounded-credits-and-deadlines",
       "rank": 62,
-      "state": "PURSUE",
-      "reason": "Reconciled completed prior evidence: Paused pump callbacks changed from 24 to 1 over the same 1.2s observation. Event wakes resume playback/seek, changed source rejects, and cleanup passes. Worth integrating this one-owner timer policy behind lifecycle checks, not replacing every scheduler.",
-      "evidence_level": "REUSED_REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "../full-completion/remux-policies/result.json",
-          "sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.449421+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_reused_real_path_screen",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Paused pump callbacks changed from 24 to 1 over the same 1.2s observation. Event wakes resume playback/seek, changed source rejects, and cleanup passes. Worth integrating this one-owner timer policy behind lifecycle checks, not replacing every scheduler.",
+      "stage_acceptance": "Pause tick count drops 24\u21921 in equal 1.2-second observation; play/seek wake, source identity rejection and cleanup pass. Complete independent presentation output and delayed-wake/deadline stress are not recorded; work count is not CPU qualification.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ],
+      "next_test": "Check exact presentation with delayed event/deadline and cancel controls; then declare full scheduler cost sampling.",
+      "reopen_condition": "Check exact presentation with delayed event/deadline and cancel controls; then declare full scheduler cost sampling.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "next_action": "Check exact presentation with delayed event/deadline and cancel controls; then declare full scheduler cost sampling.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

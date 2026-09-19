@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "run_id": "20260919T201245Z-presentation-owner-review",
+  "item_keys": [
+    "R237.propagate-the-visible-region-backward-through-the-effects-pipeline",
+    "R330.encode-repeated-subtitle-glyph-arrangements-as-reusable-scene-objects",
+    "R364.reuse-gpu-command-sequences-across-changing-video-frames"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:13:50.090468+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "cat web/yuv-presenter.js native/subtitles/ass.c web/native-ass-worker.js src/internal/native-ass.ts",
+    "rg -n \"new YUVPresenter|from.*yuv-presenter|new NativeASS\" src web",
+    "rg -n \"requestAdapter|createRenderBundleEncoder|webgl2|drawArrays|crop|cache|ass_render_frame|changed\" web/yuv-presenter.js web/native-ass-worker.js native/subtitles/ass.c src/internal/native-ass.ts"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "1492fd2eb65ec7b426728674f69f9da35667e970b0851f602e68b844efd7f8a3",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used; source review"
+  },
+  "candidate": {
+    "executed": false,
+    "fallback_observed": null
+  },
+  "acceptance": {
+    "contract": "Identify actual owner and relevant work before preparing candidate",
+    "passed": true,
+    "result": "No current localized implementation opportunity in each reviewed scope"
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "Source opportunity screen stopped these current profiles before candidate implementation."
+  },
+  "decision": "stop_current_profile",
+  "limits": [
+    "No general algorithm rejection, runtime measurement or qualification."
+  ]
+}

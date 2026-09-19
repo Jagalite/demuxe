@@ -2,55 +2,20 @@
 
 # Canonicalize equivalent decoder configurations
 
-Full identity: `R119.canonicalize-equivalent-decoder-configurations`. Reused R-numbers are separate mechanisms.
+Current decision: **pursue**. Exact duplicate AVC SPS/PPS entries canonicalize to one copy, preserving48 browser-decoded frames and PTS against independent host oracle; same-ID changed SPS rejects. No semantic equivalence beyond exact duplicate parameter bytes; source reset still required.
 
-Current imported decision: **PURSUE** (top100).
-
-Exact duplicate AVC SPS/PPS entries canonicalize to one copy, preserving48 browser-decoded frames and PTS against independent host oracle; same-ID changed SPS rejects. No semantic equivalence beyond exact duplicate parameter bytes; source reset still required.
-
-Next action: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
-
-## Definition and contract
-
-Normalize a constrained H.264 parameter-set representation only when slice instructions and reconstructed pictures remain equivalent. Verify configuration transitions and seeks; profile relabeling is not tool conversion.
-
-Output contract: Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.
-
-Primary metric: Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.
-
-Adverse control: Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.
-
-## Stages
+Historical stage reconciliation; no new experiment.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE. No integration or qualification inferred. |
+| correctness | passed | Exact duplicate SPS/PPS bytes canonicalize69→38description bytes; two48-frame browser decodes match independent pixels/timestamps; same-ID changed SPS rejects and cleanup recorded. Only byte-identical duplicates. |
+| performance | pending | No repeated reconfiguration cost/workload benefit measured. |
+| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
+| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R119.canonicalize-equivalent-decoder-configurations.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R119.canonicalize-equivalent-decoder-configurations.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R119.canonicalize-equivalent-decoder-configurations.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R119.canonicalize-equivalent-decoder-configurations.md)
-- [results/top100/canonical-config-result.json](../../../results/top100/canonical-config-result.json)
+[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

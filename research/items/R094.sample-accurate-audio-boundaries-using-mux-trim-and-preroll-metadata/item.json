@@ -27,7 +27,7 @@
         "line_start": 79,
         "line_end": 94,
         "source_kind": "report",
-        "reported_heading": "sample-accurate compressed Opus crop — PROMISING"
+        "reported_heading": "sample-accurate compressed Opus crop \u2014 PROMISING"
       }
     ],
     "scope_hash": "7affc730fd0255b95ff85622728b53f9b8631031fc867f082c9a439621bac7f7",
@@ -58,75 +58,82 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Source contract refined to explicit component profile and exclusions in current decision.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md"
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Generated fixtures, source/runtime identities, baseline/oracle and adverse controls pinned in shared run.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Copied-packet Ogg Opus sample crop is feasible: host and Chrome each produce exactly the expected 55545-sample source slice; 72 packet payload hashes match and missing crop pre-skip fails the length oracle.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Bounded retained-prefix Ogg crop matches independent continuous-source slices exactly in host and Chrome; wrong pre-skip rejected, contexts closed.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This run answers sample fidelity, not speed; retains the full compressed prefix and makes no performance claim.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive, negative and setup-failure observations preserved with source/output manifest and commands.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R88-R101-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md"
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue decision; no production integration or release qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 237,
+    "campaign": "audio-stage-reconciliation",
     "record": {
       "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R88-R101-report.md"
+      "recorded_at_utc": "2026-09-19T20:07:16.715931+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T200716Z-ogg-crop"
       ],
-      "reason": "Current path preserves source delay/padding for whole playback; it lacks arbitrary sample-domain excerpt authoring and Ogg granule/preroll mapping. Element currentTime cannot supply sample-exact cut evidence.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
-      "recorded_at_utc": "2026-09-19T17:34:19.109489+00:00"
+      "evidence_level": "component_test",
+      "profile": "Mono Ogg Opus at 48kHz, interior samples 12345:67890, complete decoder prefix retained, host and browser decodeAudioData",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Copied-packet Ogg Opus sample crop is feasible: host and Chrome each produce exactly the expected 55545-sample source slice; 72 packet payload hashes match and missing crop pre-skip fails the length oracle.",
+      "next_action": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
+      "reopen_condition": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
     }
   },
-  "next_action": "Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
+  "next_action": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
   "integration": {
-    "status": "not_assessed_by_migration"
+    "status": "not_integrated"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "not_release_qualified"
   }
 }

@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 99,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 68,
+    "record": {
+      "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+      "rank": 99,
+      "state": "PURSUE",
+      "reason": "Explicit program202 TS packet filter keeps selected elementary/PCR/PMT PIDs and rewrites PAT with valid CRC. Reversed PAT order produces identical selected payload/timing. Unchanged RemuxPlayer plays/seeks output, complete host decoded pixels/PCM exact. Missing program rejects; dynamic PSI/scrambled transport outside scope.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "program/result.json",
+          "sha256": "90572583d98c397b810a9cbd31bd969d7bd1b718a73e232c9e8edd4afeeb4b2d"
+        },
+        {
+          "path": "program/browser-result.json",
+          "sha256": "e50c9884492385d89cc433d75cd36837aadd7b19cb35378cfe1088b786655088"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:39:14.632391+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/program/result.json",
+      "declared_sha256": "90572583d98c397b810a9cbd31bd969d7bd1b718a73e232c9e8edd4afeeb4b2d",
+      "observed_sha256": "90572583d98c397b810a9cbd31bd969d7bd1b718a73e232c9e8edd4afeeb4b2d",
+      "matched": true
+    },
+    {
+      "path": "results/top100/program/browser-result.json",
+      "declared_sha256": "e50c9884492385d89cc433d75cd36837aadd7b19cb35378cfe1088b786655088",
+      "observed_sha256": "e50c9884492385d89cc433d75cd36837aadd7b19cb35378cfe1088b786655088",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Program202 selector preserves packet timing/payload under reversedPATorder, rewrites validCRC and rejects missingprogram. Complete hostpixels/PCM exact; maintainedRemuxPlayer plays/seeks/cleans workers. DynamicPSI/scrambling excluded."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "No equivalent-work transport/preparation cost benchmark."
+    }
+  },
+  "passed": true
+}

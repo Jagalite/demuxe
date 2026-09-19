@@ -17,7 +17,7 @@
       "line_end": 90,
       "source_kind": "report"
     },
-    "source_excerpt": "A 30-frame closed H.264 group was encoded once and stream-concatenated between different pre/post groups to create two different 90-frame files. The exact shared coded byte sequence appears at byte offsets 17051 and 1420. Frames 30–59 extracted from both complete files match the independent shared-group decode exactly and match each other exactly. The cache identity also changes when color metadata, dependency-boundary identity or decoder configuration changes. This supports caching verified immutable work for closed dependency groups across authorized files while keeping current-file timestamps/timeline semantics outside the cached object. It does not justify sharing mutable live decoder state.",
+    "source_excerpt": "A 30-frame closed H.264 group was encoded once and stream-concatenated between different pre/post groups to create two different 90-frame files. The exact shared coded byte sequence appears at byte offsets 17051 and 1420. Frames 30\u201359 extracted from both complete files match the independent shared-group decode exactly and match each other exactly. The cache identity also changes when color metadata, dependency-boundary identity or decoder configuration changes. This supports caching verified immutable work for closed dependency groups across authorized files while keeping current-file timestamps/timeline semantics outside the cached object. It does not justify sharing mutable live decoder state.",
     "related_reports": [],
     "scope_hash": "b2aac4416c65e92443dbbfc76f2d33829c0f818a159dbcdd5246922c41e13d18",
     "legacy_guide_aliases": [],
@@ -64,9 +64,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/content-cache-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -76,50 +80,64 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Different owned wrappers share exact coded packets/config; poisoned entry rejects, changed config misses and all owner refs release. Per-source timelines kept separate; no cross-authority claim.",
+      "evidence": [
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/content-cache-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "45hits/806retained vs4552logical bytes is a work count; hash/lookup/retention/real workload costs unmeasured.",
+      "evidence": [
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/content-cache-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R200.content-addressed-reuse-across-different-files.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R200.content-addressed-reuse-across-different-files.md",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/ownership/content-cache-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/content-cache-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 82,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R200.content-addressed-reuse-across-different-files",
-      "rank": 92,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Two different owned file wrappers share exact coded packets/configuration through bounded content-addressed entries, retaining source timelines separately. Poisoned digest entry rejects, changed configuration misses, all references released. No workload benefit or cross-authority reuse claim.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "ownership/content-cache-result.json",
-          "sha256": "2e9bcff852bdf39ccfe30b558d61a4d0ea1c6c36e7ec6a650f0cb98b6ba6f4af"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:50:21.466461+00:00"
+      "evidence": [
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R200.content-addressed-reuse-across-different-files/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/content-cache-result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Different owned wrappers share exact coded packets/config; poisoned entry rejects, changed config misses and all owner refs release. Per-source timelines kept separate; no cross-authority claim.",
+      "performance_gate": "45hits/806retained vs4552logical bytes is a work count; hash/lookup/retention/real workload costs unmeasured.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

@@ -17,7 +17,7 @@
       "line_end": 231,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Follow-on scheduling optimization · P2 · extends R15, R26 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. When video is buffered far ahead but audio is nearly empty, give production/delivery priority to audio rather than continuing to fill video. Base decisions on a contiguous jointly usable interval near the playhead, not total bytes or the farthest buffered endpoint. New question versus prior work. R26 supplies generic credits and watermarks. This is a concrete per-track scheduling policy that tests whether those credits should be asymmetric. Source primitive. MSE defines availability using active track buffers. The scheduling policy is our proposal and must handle holes and actual track-end state. [S3]",
+    "source_excerpt": "Follow-on scheduling optimization \u00b7 P2 \u00b7 extends R15, R26 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. When video is buffered far ahead but audio is nearly empty, give production/delivery priority to audio rather than continuing to fill video. Base decisions on a contiguous jointly usable interval near the playhead, not total bytes or the farthest buffered endpoint. New question versus prior work. R26 supplies generic credits and watermarks. This is a concrete per-track scheduling policy that tests whether those credits should be asymmetric. Source primitive. MSE defines availability using active track buffers. The scheduling policy is our proposal and must handle holes and actual track-end state. [S3]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Independently retrievable selected-track producer topology and bounded fairness/temporary-gap policy.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Independently retrievable selected-track producer topology and bounded fairness/temporary-gap policy.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R039.prioritize-the-track-that-limits-usable-playback.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 249,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R039.prioritize-the-track-that-limits-usable-playback",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 176,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Controller already gates on joint usable buffered coverage, but one sequential demux/mux call produces both tracks. No independent per-track fetch/producer credits exist to prioritize audio without extra scanning.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap.",
-      "recorded_at_utc": "2026-09-19T17:34:19.112492+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Independently retrievable selected-track producer topology and bounded fairness/temporary-gap policy.",
+      "next_action": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 249,
+        "record": {
+          "key": "R039.prioritize-the-track-that-limits-usable-playback",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+          ],
+          "reason": "Controller already gates on joint usable buffered coverage, but one sequential demux/mux call produces both tracks. No independent per-track fetch/producer credits exist to prioritize audio without extra scanning.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap.",
+          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap.",
+          "recorded_at_utc": "2026-09-19T17:34:19.112492+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ]
     }
   },
-  "next_action": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap.",
+  "next_action": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 95,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 74,
+    "record": {
+      "key": "R216.one-request-for-distant-byte-ranges",
+      "rank": 95,
+      "state": "PURSUE",
+      "reason": "Actual HTTP multipart range response matches two independent single-range reads; truncated multipart rejects. One request replaces two for capable test origin, with575 response bytes for384 payload bytes. Production origin capability remains prerequisite.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/result.json",
+          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.789447+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/ownership/result.json",
+      "declared_sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1",
+      "observed_sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual multipart HTTP bytes match two independent single-range bodies; truncation rejects. One request/575body bytes for384payload documented. Restricted capable-origin parser component."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Origin capability, header/latency/CPU and cancellation/fallback overhead not performance-qualified."
+    }
+  },
+  "passed": true
+}

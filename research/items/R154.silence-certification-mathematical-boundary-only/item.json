@@ -17,7 +17,7 @@
       "line_end": 152,
       "source_kind": "report"
     },
-    "source_excerpt": "Implemented a long-sine-window IMDCT/overlap model. A conservative bound for the current output interval is (2/N) × sum(abs(coefficients)) + max(abs(previous_overlap)). Across 48 generated cases, all observed peaks lie below the bound: eight cases are certified exactly silent, eight have a small bound, and 32 remain unknown. A zero-current-coefficient/nonzero-overlap case produces nonzero samples, disproving the naïve zero-coefficients rule. Short windows, window transitions, PNS, SBR and unresolved coupling/prediction are deliberately outside the certificate profile. An actual AAC-LC tone/impulse/silence fixture was encoded and decoded as ancillary evidence, but its coded coefficients and overlap state were not extracted or certified.",
+    "source_excerpt": "Implemented a long-sine-window IMDCT/overlap model. A conservative bound for the current output interval is (2/N) \u00d7 sum(abs(coefficients)) + max(abs(previous_overlap)). Across 48 generated cases, all observed peaks lie below the bound: eight cases are certified exactly silent, eight have a small bound, and 32 remain unknown. A zero-current-coefficient/nonzero-overlap case produces nonzero samples, disproving the na\u00efve zero-coefficients rule. Short windows, window transitions, PNS, SBR and unresolved coupling/prediction are deliberately outside the certificate profile. An actual AAC-LC tone/impulse/silence fixture was encoded and decoded as ancillary evidence, but its coded coefficients and overlap state were not extracted or certified.",
     "related_reports": [],
     "scope_hash": "5f3c9d447610377e28f3debc0867a8cc8969cfb16e280c494f0437f812e1d5f4",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,29 +91,49 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 204,
-    "record": {
-      "key": "R154.silence-certification-mathematical-boundary-only",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R154.silence-certification-mathematical-boundary-only.md"
-      ],
-      "reason": "The report itself disproves zero-current-coefficients implying silence when prior overlap is nonzero; no coded AAC coefficients or overlap state were certified. Current native adaptation does not admit AAC for this decode path and exposes no AAC synthesis-state certificate. Skipping synthesis from packet silence assumptions is unsupported in this profile.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
-      "reopen_condition": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
-      "recorded_at_utc": "2026-09-19T17:34:19.100643+00:00"
-    }
+    "key": "R154.silence-certification-mathematical-boundary-only",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The report itself disproves zero-current-coefficients implying silence when prior overlap is nonzero; no coded AAC coefficients or overlap state were certified. Current native adaptation does not admit AAC for this decode path and exposes no AAC synthesis-state certificate. Skipping synthesis from packet silence assumptions is unsupported in this profile.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 204,
+      "record": {
+        "key": "R154.silence-certification-mathematical-boundary-only",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R154.silence-certification-mathematical-boundary-only.md"
+        ],
+        "reason": "The report itself disproves zero-current-coefficients implying silence when prior overlap is nonzero; no coded AAC coefficients or overlap state were certified. Current native adaptation does not admit AAC for this decode path and exposes no AAC synthesis-state certificate. Skipping synthesis from packet silence assumptions is unsupported in this profile.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+        "reopen_condition": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+        "recorded_at_utc": "2026-09-19T17:34:19.100643+00:00"
+      }
+    },
+    "next_action": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
   "integration": {

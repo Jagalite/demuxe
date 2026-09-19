@@ -17,7 +17,7 @@
       "line_end": 94,
       "source_kind": "report"
     },
-    "source_excerpt": "Two 128×96 RGB images were serialized as three channel-major planes, giving 36,864 carrier samples each. The integer packing is int16 = (uint8 - 128) × 128, encoded as mono 48 kHz FLAC. The native decoded PCM matches exactly. Chromium decodeAudioData at 48 kHz produces floats that are not exact multiples of the ideal scale in every case. Nearest-grid recovery, round(sample × 256 + 128), recovers every original byte. The maximum pre-rounding value error is below 0.0039, safely below half a data level on these fixtures. The earlier raw-float equality check was intentionally retained in browser_initial.json; the final claim is reversible integer recovery, not bit-identical floating-point PCM. At a 44.1 kHz context rate, resampling changes both count (36,864→33,868) and values, and the carrier is rejected. Context-rate resampling is part of the documented decoding contract [S6]. No carrier signal is connected to speakers.",
+    "source_excerpt": "Two 128\u00d796 RGB images were serialized as three channel-major planes, giving 36,864 carrier samples each. The integer packing is int16 = (uint8 - 128) \u00d7 128, encoded as mono 48 kHz FLAC. The native decoded PCM matches exactly. Chromium decodeAudioData at 48 kHz produces floats that are not exact multiples of the ideal scale in every case. Nearest-grid recovery, round(sample \u00d7 256 + 128), recovers every original byte. The maximum pre-rounding value error is below 0.0039, safely below half a data level on these fixtures. The earlier raw-float equality check was intentionally retained in browser_initial.json; the final claim is reversible integer recovery, not bit-identical floating-point PCM. At a 44.1 kHz context rate, resampling changes both count (36,864\u219233,868) and values, and the carrier is rejected. Context-rate resampling is part of the documented decoding contract [S6]. No carrier signal is connected to speakers.",
     "related_reports": [],
     "scope_hash": "8bf60571a5143af8ec5df75dc91825a0d86050916a89a74568bb95fd2cb6ea7f",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,29 +91,49 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 423,
-    "record": {
-      "key": "R149.image-data-through-a-lossless-audio-decoder",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R149.image-data-through-a-lossless-audio-decoder.md"
-      ],
-      "reason": "Image-as-FLAC is unrelated to current audio output contract and both historical fixtures are larger than PNG. Browser recovery relies on a matched sample rate and nearest-grid decoding, not exact float PCM. No image carrier consumer exists and speakers must not receive carrier data.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
-      "reopen_condition": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
-      "recorded_at_utc": "2026-09-19T17:34:19.185870+00:00"
-    }
+    "key": "R149.image-data-through-a-lossless-audio-decoder",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Image-as-FLAC is unrelated to current audio output contract and both historical fixtures are larger than PNG. Browser recovery relies on a matched sample rate and nearest-grid decoding, not exact float PCM. No image carrier consumer exists and speakers must not receive carrier data.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 423,
+      "record": {
+        "key": "R149.image-data-through-a-lossless-audio-decoder",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R149.image-data-through-a-lossless-audio-decoder.md"
+        ],
+        "reason": "Image-as-FLAC is unrelated to current audio output contract and both historical fixtures are larger than PNG. Browser recovery relies on a matched sample rate and nearest-grid decoding, not exact float PCM. No image carrier consumer exists and speakers must not receive carrier data.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+        "reopen_condition": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+        "recorded_at_utc": "2026-09-19T17:34:19.185870+00:00"
+      }
+    },
+    "next_action": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
   "integration": {

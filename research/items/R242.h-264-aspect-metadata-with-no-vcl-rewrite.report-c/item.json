@@ -17,7 +17,7 @@
       "line_end": 56,
       "source_kind": "report"
     },
-    "source_excerpt": "The earlier continuity run validated the SPS/VUI mechanism but rejected a temporary MP4→Annex-B→MP4 packaging route because it disturbed B-frame presentation timing. This rerun removes that artifact. The H.264 metadata bitstream filter first produces the 4:3 SPS. Because the SPS length is unchanged, the existing MP4 avcC SPS is patched in place, and the existing 16-byte pasp box is changed from 1:1 to 4:3. No media payload or box offsets move. The candidate keeps all 90 VCL NAL hashes, all 90 decoded-frame hashes, and every packet PTS/DTS/duration unchanged. Source and candidate are both 116,070 bytes. FFprobe reports SAR 4:3 / DAR 64:27, and Chromium reports 427×180 intrinsic display geometry while presenting all 90 frames with zero drops.",
+    "source_excerpt": "The earlier continuity run validated the SPS/VUI mechanism but rejected a temporary MP4\u2192Annex-B\u2192MP4 packaging route because it disturbed B-frame presentation timing. This rerun removes that artifact. The H.264 metadata bitstream filter first produces the 4:3 SPS. Because the SPS length is unchanged, the existing MP4 avcC SPS is patched in place, and the existing 16-byte pasp box is changed from 1:1 to 4:3. No media payload or box offsets move. The candidate keeps all 90 VCL NAL hashes, all 90 decoded-frame hashes, and every packet PTS/DTS/duration unchanged. Source and candidate are both 116,070 bytes. FFprobe reports SAR 4:3 / DAR 64:27, and Chromium reports 427\u00d7180 intrinsic display geometry while presenting all 90 frames with zero drops.",
     "related_reports": [],
     "scope_hash": "6d9f1fe5dbb35411ff6a264763e71fcab82063ecd6263a2e711f381b8ead864a",
     "legacy_guide_aliases": [
@@ -81,63 +81,99 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Length-safe SPS/VUI/pasp editor for explicit aspect correction with VCL/timestamp identity controls.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Length-safe SPS/VUI/pasp editor for explicit aspect correction with VCL/timestamp identity controls.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 216,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 134,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Current code preserves existing sample_aspect_ratio and retained display geometry. It does not expose a requested aspect-metadata editing/export operation; adding SPS/VUI and pasp patching would be a distinct semantic feature.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter.",
-      "recorded_at_utc": "2026-09-19T17:34:19.104025+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Length-safe SPS/VUI/pasp editor for explicit aspect correction with VCL/timestamp identity controls.",
+      "next_action": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 216,
+        "record": {
+          "key": "R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+          ],
+          "reason": "Current code preserves existing sample_aspect_ratio and retained display geometry. It does not expose a requested aspect-metadata editing/export operation; adding SPS/VUI and pasp patching would be a distinct semantic feature.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter.",
+          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter.",
+          "recorded_at_utc": "2026-09-19T17:34:19.104025+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+      ]
     }
   },
-  "next_action": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter.",
+  "next_action": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

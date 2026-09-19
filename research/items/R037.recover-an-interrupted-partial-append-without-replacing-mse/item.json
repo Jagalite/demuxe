@@ -17,7 +17,7 @@
       "line_end": 187,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Follow-on recovery optimization · P1 · extends R04, R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. On a same-source seek during partial media delivery, retire obsolete input, reset only the affected parser state, and start a valid segment near the new target while preserving unrelated accepted buffers. New question versus prior work. This combines partial transport with seek recovery. It tests whether an incomplete mdat forces full presentation replacement, not whether a corrupted source should be ignored. Source primitive. MSE defines abort/parser-reset behavior and a subsequent random-access requirement. Reset may process complete buffered frames before discarding remaining input bytes. [S3]",
+    "source_excerpt": "Follow-on recovery optimization \u00b7 P1 \u00b7 extends R04, R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. On a same-source seek during partial media delivery, retire obsolete input, reset only the affected parser state, and start a valid segment near the new target while preserving unrelated accepted buffers. New question versus prior work. This combines partial transport with seek recovery. It tests whether an incomplete mdat forces full presentation replacement, not whether a corrupted source should be ignored. Source primitive. MSE defines abort/parser-reset behavior and a subsequent random-access requirement. Reset may process complete buffered frames before discarding remaining input bytes. [S3]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,59 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual SourceBuffer abort during moof or sample parsing permits complete RAP retry and A/V/EOF without replacement. Stale-generation flag is a model, not maintained message-ownership qualification.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R037.recover-an-interrupted-partial-append-without-replacing-mse.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R037.recover-an-interrupted-partial-append-without-replacing-mse.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/fragments/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 25,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R037.recover-an-interrupted-partial-append-without-replacing-mse",
-      "state": "PURSUE",
-      "evidence": "fragments/result.json",
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 147,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "evidence_level": "reconciled_imported_execution",
+      "new_media_execution": false,
       "reason": "Actual SourceBuffer abort after incomplete moof or sample allows complete target-RAP append and marked A/V through EOF without replacing MSE. Generation flag in harness is only a model, not validation of maintained stale-message ownership.",
-      "recorded_at_utc": "2026-09-19T17:14:02.927203+00:00"
+      "correctness_acceptance": "Actual SourceBuffer abort during moof or sample parsing permits complete RAP retry and A/V/EOF without replacement. Stale-generation flag is a model, not maintained message-ownership qualification.",
+      "next_action": "Exercise maintained generation/cancel/source replacement before integration.",
+      "reopen_condition": "Exercise maintained generation/cancel/source replacement before integration.",
+      "blocker_category": null,
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 25,
+        "record": {
+          "key": "R037.recover-an-interrupted-partial-append-without-replacing-mse",
+          "state": "PURSUE",
+          "evidence": "fragments/result.json",
+          "reason": "Actual SourceBuffer abort after incomplete moof or sample allows complete target-RAP append and marked A/V through EOF without replacing MSE. Generation flag in harness is only a model, not validation of maintained stale-message ownership.",
+          "recorded_at_utc": "2026-09-19T17:14:02.927203+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/fragments/result.json"
+      ]
     }
   },
-  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "next_action": "Exercise maintained generation/cancel/source replacement before integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

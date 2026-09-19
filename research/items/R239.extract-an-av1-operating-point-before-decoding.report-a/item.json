@@ -17,7 +17,7 @@
       "line_end": 53,
       "source_kind": "report"
     },
-    "source_excerpt": "The lab driver uses the installed libaom SVC API to author a real 160×96, 120-frame, 60 fps AV1 sequence with one spatial layer and three temporal layers. Actual frame OBU counts were 30 at temporal ID 0, 30 at ID 1, and 60 at ID 2. The encoder produced operating-point masks 0x107, 0x103 and 0x101. A fixture-scoped parser extracts temporal ID 0, retains its coded frame OBUs, and rewrites the sequence header to advertise one available operating point. The IVF timing is changed from 60 ticks/second with every fourth picture retained to 15 ticks/second with sequential picture indices; presentation timestamps remain the same. The picture payload is not decoded and re-encoded by the extractor. This is not a general-purpose parser for arbitrary AV1 headers.",
+    "source_excerpt": "The lab driver uses the installed libaom SVC API to author a real 160\u00d796, 120-frame, 60 fps AV1 sequence with one spatial layer and three temporal layers. Actual frame OBU counts were 30 at temporal ID 0, 30 at ID 1, and 60 at ID 2. The encoder produced operating-point masks 0x107, 0x103 and 0x101. A fixture-scoped parser extracts temporal ID 0, retains its coded frame OBUs, and rewrites the sequence header to advertise one available operating point. The IVF timing is changed from 60 ticks/second with every fourth picture retained to 15 ticks/second with sequential picture indices; presentation timestamps remain the same. The picture payload is not decoded and re-encoded by the extractor. This is not a general-purpose parser for arbitrary AV1 headers.",
     "related_reports": [],
     "scope_hash": "c9c05f0f569618307713020800964b3c34ce580788ce33f534d6c521b454ed2a",
     "legacy_guide_aliases": [
@@ -75,70 +75,70 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Selected advertised temporal subset only; reject unadvertised operating point before output.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md"
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Pinned inputs, actual commands, tool identities and independent references captured in run manifest.",
+      "evidence": [
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed.",
+      "evidence": [
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness.",
+      "evidence": [
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive/negative evidence and limitations captured in immutable run.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md"
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "pursue: The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202700Z-av1-guard/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 292,
-    "record": {
-      "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md"
-      ],
-      "reason": "Current AV1 path copies complete packets; no operating-point OBU parser exposes layer dependencies or a lower-cadence permission. Historical exact extraction is strongly fixture-scoped and required real SVC authoring.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For explicitly requested lower cadence, use the identified SVC fixture and verify retained OBU/timestamp/picture identity with missing-base and truncated OBU controls.",
-      "reopen_condition": "Reopen with a bounded operating-point parser and explicit reduced-cadence contract; arbitrary packet dropping remains invalid.",
-      "recorded_at_utc": "2026-09-19T17:34:19.149283+00:00"
-    }
+    "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+    "disposition": "pursue",
+    "evidence_level": "component_test",
+    "reason": "The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.",
+    "next_action": "Test the report-specific generalized header rewriting and selected-point seek boundary before integration.",
+    "correctness": "passed",
+    "correctness_basis": "Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed.",
+    "run_id": "20260919T202700Z-av1-guard",
+    "recorded_at_utc": "2026-09-19T20:25:16.973208+00:00",
+    "evidence": [
+      "research/shared/runs/20260919T202700Z-av1-guard/run.json"
+    ],
+    "stage": "decision"
   },
-  "next_action": "For explicitly requested lower cadence, use the identified SVC fixture and verify retained OBU/timestamp/picture identity with missing-base and truncated OBU controls.",
+  "next_action": "Test the report-specific generalized header rewriting and selected-point seek boundary before integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

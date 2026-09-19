@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 92,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 82,
+    "record": {
+      "key": "R200.content-addressed-reuse-across-different-files",
+      "rank": 92,
+      "state": "PURSUE",
+      "reason": "Two different owned file wrappers share exact coded packets/configuration through bounded content-addressed entries, retaining source timelines separately. Poisoned digest entry rejects, changed configuration misses, all references released. No workload benefit or cross-authority reuse claim.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/content-cache-result.json",
+          "sha256": "2e9bcff852bdf39ccfe30b558d61a4d0ea1c6c36e7ec6a650f0cb98b6ba6f4af"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:50:21.466461+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/ownership/content-cache-result.json",
+      "declared_sha256": "2e9bcff852bdf39ccfe30b558d61a4d0ea1c6c36e7ec6a650f0cb98b6ba6f4af",
+      "observed_sha256": "2e9bcff852bdf39ccfe30b558d61a4d0ea1c6c36e7ec6a650f0cb98b6ba6f4af",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Different owned wrappers share exact coded packets/config; poisoned entry rejects, changed config misses and all owner refs release. Per-source timelines kept separate; no cross-authority claim."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "45hits/806retained vs4552logical bytes is a work count; hash/lookup/retention/real workload costs unmeasured."
+    }
+  },
+  "passed": true
+}

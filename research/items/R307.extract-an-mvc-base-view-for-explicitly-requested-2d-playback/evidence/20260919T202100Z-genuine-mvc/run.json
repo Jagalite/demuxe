@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "run_id": "20260919T202100Z-genuine-mvc",
+  "item_keys": [
+    "R307.extract-an-mvc-base-view-for-explicitly-requested-2d-playback"
+  ],
+  "stage": "screen",
+  "status": "failed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "curl --fail --location --max-time 60 https://samples.ffmpeg.org/3D/999.MTS -o research/items/R307.extract-an-mvc-base-view-for-explicitly-requested-2d-playback/evidence/20260919T202100Z-genuine-mvc/999.MTS",
+    "python3 research/items/R307.extract-an-mvc-base-view-for-explicitly-requested-2d-playback/tests/mvc-base.py"
+  ],
+  "command_detail": "Failed assertion; execution-time code preserved under snapshots/.",
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256_at_registration": "a9317260abfead232baee1eb6a6aff372391a3203200009e1c866b21eca7736c",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "browser": "not run",
+    "capture_note": "Host decoder component; not Wasm/browser execution. Negative source snapshot preserved; executable subsequently refined."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Declared MVC AVC-compatible base bytes, decoded pictures and explicit PES timing; reject dependent-view standalone admission.",
+    "baseline": "Host FFmpeg MPEG-TS demux and decoder on original source selected stream0.",
+    "oracle": "Independent demux bytes,39 complete picture hashes and source packet timing compared to custom TS/PES extraction.",
+    "adverse_control": "Genuine view1 dependent bitstream rejected by admission and decodes zero standalone pictures.",
+    "passed": false
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "Fidelity screen only; no equivalent-work benchmark."
+  },
+  "decision": "pursue",
+  "limits": [
+    "One interlaced Stereo High MVC transport layout; fixed independently verified base PID.",
+    "No browser destination, Wasm decode, stereo reconstruction, arbitrary selected view or integrated lifecycle.",
+    "Source and derived media rights NOASSERTION."
+  ],
+  "next_action": "Qualify a browser/Wasm destination for this interlaced base, truthful container initialization/timing, source change/cancel/seek, and more MVC layouts before integration. Do not infer stereo or arbitrary dependent-view support."
+}

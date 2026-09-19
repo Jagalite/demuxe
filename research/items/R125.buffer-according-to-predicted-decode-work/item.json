@@ -53,9 +53,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/decode-cost-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -66,49 +70,63 @@
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Serialized72-frame decoder trace is correct and47-training/24-held-out packet-size prediction improvesMAE. No buffering-controller output/lifecycle experiment; prediction evidence is not controller correctness.",
+      "evidence": [
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/decode-cost-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "One tiny trace and no controller benefit, repeated representative workloads or decision threshold.",
+      "evidence": [
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/decode-cost-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R125.buffer-according-to-predicted-decode-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R125.buffer-according-to-predicted-decode-work.md",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/decode-cost-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/decode-cost-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 80,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R125.buffer-according-to-predicted-decode-work",
-      "rank": 78,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Correct72-frame serialized decode trace: packet-size linear model lowered held-out latency MAE versus constant prediction on24 held-out frames. Tiny synthetic trace only; predictive buffering controller and representative difficult-region value remain future confirmation.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "decode-cost-result.json",
-          "sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:50:21.414989+00:00"
+      "evidence": [
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R125.buffer-according-to-predicted-decode-work/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/decode-cost-result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Serialized72-frame decoder trace is correct and47-training/24-held-out packet-size prediction improvesMAE. No buffering-controller output/lifecycle experiment; prediction evidence is not controller correctness.",
+      "performance_gate": "One tiny trace and no controller benefit, repeated representative workloads or decision threshold.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

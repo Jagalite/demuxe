@@ -17,7 +17,7 @@
       "line_end": 475,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Subtitles · New optimization hypothesis · P1 · Risk: Medium First environment: Existing NativeASS + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Cache unchanged alpha/color tiles and reuse surfaces instead of expanding and allocating every tile on each bitmap update. Add safe static-cue scheduling while retaining continuous rendering for unknown/animated ASS constructs. Source basis. The current NativeASS source expands tile alpha to RGBA, creates OffscreenCanvas tiles and checks media time through requestAnimationFrame. It already handles an unchanged response; the proposal targets remaining allocation/composition work. [D2] First agent experiment. Compare static dialogue, karaoke, transforms and paused resize. Record render RPCs, allocation/bitmap bytes and UI work, not only total CPU. Key invalidation by track, fonts, source geometry and render revision.",
+    "source_excerpt": "Subtitles \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Existing NativeASS + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Cache unchanged alpha/color tiles and reuse surfaces instead of expanding and allocating every tile on each bitmap update. Add safe static-cue scheduling while retaining continuous rendering for unknown/animated ASS constructs. Source basis. The current NativeASS source expands tile alpha to RGBA, creates OffscreenCanvas tiles and checks media time through requestAnimationFrame. It already handles an unchanged response; the proposal targets remaining allocation/composition work. [D2] First agent experiment. Compare static dialogue, karaoke, transforms and paused resize. Record render RPCs, allocation/bitmap bytes and UI work, not only total CPU. Key invalidation by track, fonts, source geometry and render revision.",
     "related_reports": [],
     "scope_hash": "4032df6d1bf7b761e94c710467f762e958fa20d57380194f45aaade8c23f02d0",
     "legacy_guide_aliases": [],
@@ -53,71 +53,102 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320\u2192640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320\u2192640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Measure complete render/raster/retention workload and invalidation costs; avoid equating tile hits with CPU savings.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320\u2192640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md",
-        "results/full-completion/r21/result.json",
-        "results/top100/ass-build.log",
-        "results/top100/subtitles/result.json"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320\u2192640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 5,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
       "rank": 61,
-      "state": "PURSUE",
-      "reason": "Built isolated pinned libass runtime, then real static/karaoke tiles rendered exactly with bounded cache through time changes, rewind and resize:28 cache hits/20 misses,145496 peak retained bytes. Value is repeated-tile allocation avoidance, not proven CPU saving.",
-      "evidence_level": "REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "subtitles/result.json",
-          "sha256": "e53d39045338bf2ee979196afda98bff7621e2506a90b4cbe78761a8818b1632"
-        },
-        {
-          "path": "ass-build.log",
-          "sha256": "0d7961b8c0d9eac13edf3070070c7ed3e97dda81ab139a3eea08423dfbdb7a3e"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:14.180252+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_real_path_screen",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Built isolated pinned libass runtime, then real static/karaoke tiles rendered exactly with bounded cache through time changes, rewind and resize:28 cache hits/20 misses,145496 peak retained bytes. Value is repeated-tile allocation avoidance, not proven CPU saving.",
+      "stage_acceptance": "Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320\u2192640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/subtitles/result.json",
+        "results/top100/ass-build.log"
+      ],
+      "next_test": "Measure complete render/raster/retention workload and invalidation costs; avoid equating tile hits with CPU savings.",
+      "reopen_condition": "Measure complete render/raster/retention workload and invalidation costs; avoid equating tile hits with CPU savings.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect.",
+  "next_action": "Measure complete render/raster/retention workload and invalidation costs; avoid equating tile hits with CPU savings.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

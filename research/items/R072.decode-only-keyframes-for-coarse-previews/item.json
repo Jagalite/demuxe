@@ -17,7 +17,7 @@
       "line_end": 76,
       "source_kind": "report"
     },
-    "source_excerpt": "Question. When the requested output is a sparse keyframe storyboard, can non-keyframe reconstruction be skipped? This is different from R64's reduced-resolution reconstruction and R55's preview caching. The documented skip_frame=nokey control discards non-keyframes. It does not provide arbitrary exact-frame access. [F2] The reference fully decodes a 12-second 1280×720 H.264 fixture, selects its I frames and scales them to 320×180. The candidate decodes keyframes only and uses the same scaler. The fixture has a closed 60-frame GOP, B frames and no scene-cut keyframes; the selected frames are 0, 60, 120, 180, 240 and 300. All six resized-frame hashes and complete frame records match. Median CPU is 828.87 → 101.55 ms; wall time is 464.74 → 96.39 ms. The candidate does less temporal work without changing these selected images in this fixture.",
+    "source_excerpt": "Question. When the requested output is a sparse keyframe storyboard, can non-keyframe reconstruction be skipped? This is different from R64's reduced-resolution reconstruction and R55's preview caching. The documented skip_frame=nokey control discards non-keyframes. It does not provide arbitrary exact-frame access. [F2] The reference fully decodes a 12-second 1280\u00d7720 H.264 fixture, selects its I frames and scales them to 320\u00d7180. The candidate decodes keyframes only and uses the same scaler. The fixture has a closed 60-frame GOP, B frames and no scene-cut keyframes; the selected frames are 0, 60, 120, 180, 240 and 300. All six resized-frame hashes and complete frame records match. Median CPU is 828.87 \u2192 101.55 ms; wall time is 464.74 \u2192 96.39 ms. The candidate does less temporal work without changing these selected images in this fixture.",
     "related_reports": [],
     "scope_hash": "c067ec2caa30cf15850aa3d45d4b6c8bfbb22099f505aff65a60d5d787ad068e",
     "legacy_guide_aliases": [],
@@ -53,66 +53,99 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Explicit coarse-only preview job with open-GOP/non-key rejection, separate from exact playback.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Explicit coarse-only preview job with open-GOP/non-key rejection, separate from exact playback.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R072.decode-only-keyframes-for-coarse-previews.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md",
-        "results/local-screening/README.md",
-        "results/local-screening/follow-up.md",
-        "results/local-screening/full-queue-audit.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 235,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R072.decode-only-keyframes-for-coarse-previews",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 158,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "No maintained coarse-preview service or explicit skip_frame policy exists. Historical host hashes/CPU support a coarse-only experiment, not a browser result or permission to alter playback decoding.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek.",
-      "recorded_at_utc": "2026-09-19T17:34:19.108986+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Explicit coarse-only preview job with open-GOP/non-key rejection, separate from exact playback.",
+      "next_action": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 235,
+        "record": {
+          "key": "R072.decode-only-keyframes-for-coarse-previews",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+          ],
+          "reason": "No maintained coarse-preview service or explicit skip_frame policy exists. Historical host hashes/CPU support a coarse-only experiment, not a browser result or permission to alter playback decoding.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek.",
+          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek.",
+          "recorded_at_utc": "2026-09-19T17:34:19.108986+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+      ]
     }
   },
-  "next_action": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek.",
+  "next_action": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -2,54 +2,28 @@
 
 # MSE timestampOffset concatenation [report paragraph label]
 
-Full identity: `R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier`. Reused R-numbers are separate mechanisms.
+Full identity: `R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier`. Original rank: 140.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
 
 Current SourceBuffers use segments mode and zero offset for one already biased source timeline. Explicit 0/2/4 concatenation needs asset/source mapping and boundary priming, not just timestampOffset changes.
 
-Next action: Define one two-clip source-to-presentation map and compare explicit offset join to reference; a B-frame/nonzero-origin clip must retain internal timing and not double-apply bias.
+No matching candidate/reference/control execution for this exact gate. Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation.
 
-## Definition and contract
-
-R117: the same fragments in ordinary segments mode worked with explicit offsets 0/2/4 s. The observed range was [0.066666,6.066666], retaining the source's H.264 timestamp lead. This highlights a useful distinction: sequence mode constructs an adjacent output timeline automatically, while direct offsetting preserves the source epoch's internal timing relationship.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
+Next action: Define one two-clip source-to-presentation map and compare explicit offset join to reference; a B-frame/nonzero-origin clip must retain internal timing and not double-apply bias. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| prepare | blocked | Unperformed setup gate: Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation. |
+| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
+| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation. |
+| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
+| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
+| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier.md)
+Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.

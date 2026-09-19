@@ -17,7 +17,7 @@
       "line_end": 104,
       "source_kind": "report"
     },
-    "source_excerpt": "The H.264-style integer 4×4 inverse-transform model derives a cheap conservative intermediate bound from the maximum absolute dequantized input. For int16 intermediates the largest admitted threshold is 2672; 2672 is admitted and 2673 rejected. Across 120,000 randomized blocks, the guard admitted 57,948. Every admitted block matched the wide-integer reference exactly and zero admitted blocks overflowed. The guard intentionally rejects 38,366 actually-safe blocks, favoring correctness over maximal admission. This validates the admission strategy; it is not yet a SIMD speed benchmark or production decoder kernel.",
+    "source_excerpt": "The H.264-style integer 4\u00d74 inverse-transform model derives a cheap conservative intermediate bound from the maximum absolute dequantized input. For int16 intermediates the largest admitted threshold is 2672; 2672 is admitted and 2673 rejected. Across 120,000 randomized blocks, the guard admitted 57,948. Every admitted block matched the wide-integer reference exactly and zero admitted blocks overflowed. The guard intentionally rejects 38,366 actually-safe blocks, favoring correctness over maximal admission. This validates the admission strategy; it is not yet a SIMD speed benchmark or production decoder kernel.",
     "related_reports": [],
     "scope_hash": "47d610c7a71058d461162693af48e1ffabb77256bfada1e9664fe24d774df3c7",
     "legacy_guide_aliases": [],
@@ -53,58 +53,96 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Reconciled existing scoped preparation/output evidence; no new candidate execution.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No complete-work performance claim accepted; Capture real coefficient guard-admission distribution and include guard/fallback/SIMD cost before integration.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R202.guarded-narrow-arithmetic.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R202.guarded-narrow-arithmetic.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-completion/r202/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 22,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R202.guarded-narrow-arithmetic",
-      "state": "PURSUE",
-      "evidence": "r202/result.json",
-      "reason": "Actual pinned8-bit IDCT bias/shifts/storage/clipping match int16 intermediate candidate for65536 threshold-corner blocks plus20000 random blocks under UBSan;2673,-2673,-32768 rejected. Arithmetic feasibility established; actual coefficient admission rates and SIMD cost still needed.",
-      "recorded_at_utc": "2026-09-19T17:14:02.927189+00:00"
+      "rank": 316,
+      "state": "pursue",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
+      ],
+      "evidence_level": "reconciled_historical_component",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r202/result.json"
+      ],
+      "next_test": "Capture real coefficient guard-admission distribution and include guard/fallback/SIMD cost before integration.",
+      "reopen_condition": "Capture real coefficient guard-admission distribution and include guard/fallback/SIMD cost before integration.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
-  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "next_action": "Capture real coefficient guard-admission distribution and include guard/fallback/SIMD cost before integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

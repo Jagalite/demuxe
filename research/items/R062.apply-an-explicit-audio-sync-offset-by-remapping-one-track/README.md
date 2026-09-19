@@ -2,55 +2,30 @@
 
 # Apply an explicit audio-sync offset by remapping one track
 
-Full identity: `R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track`. Reused R-numbers are separate mechanisms.
+Full identity: `R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track`.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **pursue** (2026-09-19T20:07:16.715931+00:00).
 
-Native copied tracks share an established timeline bias; no public one-track delay mapping or replacement transaction exists. Setting timestampOffset cannot retime accepted audio.
+Actual split-MSE +0.35/-0.25 second audio offsets preserve video ownership and move known tone windows. Paused remove/reappend to the opposite offset passes. Property-only timestampOffset change correctly leaves accepted audio ranges unchanged. Negative prefix clipping is explicit and only silent source prefix is tested.
 
-Next action: Define static positive/negative delay boundary semantics first; test one split-MSE impulse/flash fixture with nonzero origin and reject unrepresentable leading/tail samples rather than silently padding.
+## Tested contract
 
-## Definition and contract
+Stereo AAC pulse 0.5-1.3s at 660Hz; static +0.35/-0.25s mapping and paused replacement; silent negative prefix clipped
 
-New timeline-feature path · P1 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox split-MSE pilot; static offset first, paused update second. Related cards: R15, R35, R52. Proposed mechanism. When the user requests an audio-delay adjustment, retime copied audio in its own SourceBuffer rather than decoding and filtering the entire presentation. Keep video timestamps and the playback owner unchanged. This changes intended timing, not the encoded samples. What is new. R52 preserved an existing source rate and earlier tests preserved source offsets. This card adds an explicitly requested timing effect and its reversible update contract. Source basis. MSE provides timestampOffset and append-window controls for subsequent coded frames; changing the property does not retime audio already buffered. The successful prior split-buffer work supplies a starting harness, not proof of this effect. [S1, L3]
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
+Next action: Qualify non-silent leading/tail policy and sample-exact PCM boundaries before exposing a user-facing offset controller.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| define | passed | Source contract refined to explicit component profile and exclusions in current decision. |
+| prepare | passed | Generated fixtures, source/runtime identities, baseline/oracle and adverse controls pinned in shared run. |
+| screen | passed | Actual split-MSE +0.35/-0.25 second audio offsets preserve video ownership and move known tone windows. Paused remove/reappend to the opposite offset passes. Property-only timestampOffset change correctly leaves accepted audio ranges unchanged. Negative prefix clipping is explicit and only silent source prefix is tested. |
+| correctness | passed | Scoped silent-prefix marker timing, unchanged video ownership, property-only adverse control, paused replacement, EOF and cleanup passed. Exact sample boundary/non-silent clipping fidelity excluded. |
+| performance | not_applicable | Requested timing transformation; no throughput or power claim in this component gate. |
+| results | passed | Positive, negative and setup-failure observations preserved with source/output manifest and commands. |
+| decision | passed | Scoped pursue decision; no production integration or release qualification. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Shared run](../../shared/runs/20260919T200716Z-audio-mse/run.json) · [Browser results](../../shared/runs/20260919T200716Z-audio-mse/browser-result.json) · [Analysis](../../shared/runs/20260919T200716Z-audio-mse/analysis.md) · [Manifest](../../shared/runs/20260919T200716Z-audio-mse/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md)
+Historical definitions and evidence remain preserved. Production integration and release qualification are separate.

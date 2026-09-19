@@ -17,7 +17,7 @@
       "line_end": 55,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Type: Prepared-media construction; high-risk follow-on to R135 and R142. Preserve a source picture as a non-displayed reference-building picture, and insert an independently coded edited picture that is displayed but does not refresh the reference slots. Later source pictures could then continue using their original references rather than requiring re-encoding solely because of the visual edit. AV1 distinguishes display decisions from reference refresh decisions. Its syntax includes show_frame, INTRA_ONLY_FRAME, and refresh_frame_flags; the reference-update process stores picture and auxiliary state in the selected slots. These primitives do not establish the complete proposed edit operation. [A1–A3]",
+    "source_excerpt": "Type: Prepared-media construction; high-risk follow-on to R135 and R142. Preserve a source picture as a non-displayed reference-building picture, and insert an independently coded edited picture that is displayed but does not refresh the reference slots. Later source pictures could then continue using their original references rather than requiring re-encoding solely because of the visual edit. AV1 distinguishes display decisions from reference refresh decisions. Its syntax includes show_frame, INTRA_ONLY_FRAME, and refresh_frame_flags; the reference-update process stores picture and auxiliary state in the selected slots. These primitives do not establish the complete proposed edit operation. [A1\u2013A3]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,62 +64,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 417,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R301.edit-displayed-frames-without-changing-the-prediction-history",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      "rank": 376,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
       "next_test": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
       "reopen_condition": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
-      "recorded_at_utc": "2026-09-19T17:34:19.184308+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",

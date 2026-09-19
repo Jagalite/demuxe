@@ -17,7 +17,7 @@
       "line_end": 133,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Delivery · New optimization hypothesis · P1 · Risk: Medium First environment: Host fixture server + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Use bounded adjacent-read coalescing and metadata/keyframe-aware prefetch rather than one network request per small AVIO read. Maintain separate budgets for startup metadata, active playback and speculative seek lookahead. Source basis. FFmpeg exposes probe and I/O buffering controls; increasing probe coverage may increase startup work. Streams defines consumer-driven backpressure. These do not choose Demuxe’s network chunk size for it. [F1, S1] First agent experiment. Compare fixed small chunks with adaptive coalescing on front-index MP4, tail-index MP4, MKV cues and interrupted seek scrubbing. Use the same range server with controlled latency; record received and abandoned bytes separately.",
+    "source_excerpt": "Delivery \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Host fixture server + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Use bounded adjacent-read coalescing and metadata/keyframe-aware prefetch rather than one network request per small AVIO read. Maintain separate budgets for startup metadata, active playback and speculative seek lookahead. Source basis. FFmpeg exposes probe and I/O buffering controls; increasing probe coverage may increase startup work. Streams defines consumer-driven backpressure. These do not choose Demuxe\u2019s network chunk size for it. [F1, S1] First agent experiment. Compare fixed small chunks with adaptive coalescing on front-index MP4, tail-index MP4, MKV cues and interrupted seek scrubbing. Use the same range server with controlled latency; record received and abandoned bytes separately.",
     "related_reports": [],
     "scope_hash": "7adfe9f260ac515c9fc746c6a905434603522c0d8249310d85edf5e9e8abfc8c",
     "legacy_guide_aliases": [],
@@ -53,66 +53,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Adaptive read window reduces requests 73\u219224 while fetched bytes rise 4784128\u21925701632; real output progress, distant seek, source identity rejection and cleanup recorded. No full independent decoded-output comparison or abandoned-byte performance protocol.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Adaptive read window reduces requests 73\u219224 while fetched bytes rise 4784128\u21925701632; real output progress, distant seek, source identity rejection and cleanup recorded. No full independent decoded-output comparison or abandoned-byte performance protocol.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Verify output equivalence under cancellation/seek, then predeclare latency versus fetched/abandoned-byte tradeoff workload.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Adaptive read window reduces requests 73\u219224 while fetched bytes rise 4784128\u21925701632; real output progress, distant seek, source identity rejection and cleanup recorded. No full independent decoded-output comparison or abandoned-byte performance protocol.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R003.coalesce-range-reads-around-useful-media-boundaries.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R003.coalesce-range-reads-around-useful-media-boundaries.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/r003-baseline-correction.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/full-completion/remux-policies/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Adaptive read window reduces requests 73\u219224 while fetched bytes rise 4784128\u21925701632; real output progress, distant seek, source identity rejection and cleanup recorded. No full independent decoded-output comparison or abandoned-byte performance protocol.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 30,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
       "rank": 59,
-      "state": "PURSUE",
-      "reason": "Reconciled completed prior evidence: Actual remux read-window candidate reduced requests 73 to 24 while fetched bytes changed 4784128 to 5701632. Source identity replacement rejects, decoded-frame progress and distant seek pass, workers close. Worth a latency/abandoned-byte tradeoff study; this is not boundary-indexed coalescing or a CPU benchmark.",
-      "evidence_level": "REUSED_REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "../full-completion/remux-policies/result.json",
-          "sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.449172+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_reused_real_path_screen",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Actual remux read-window candidate reduced requests 73 to 24 while fetched bytes changed 4784128 to 5701632. Source identity replacement rejects, decoded-frame progress and distant seek pass, workers close. Worth a latency/abandoned-byte tradeoff study; this is not boundary-indexed coalescing or a CPU benchmark.",
+      "stage_acceptance": "Adaptive read window reduces requests 73\u219224 while fetched bytes rise 4784128\u21925701632; real output progress, distant seek, source identity rejection and cleanup recorded. No full independent decoded-output comparison or abandoned-byte performance protocol.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ],
+      "next_test": "Verify output equivalence under cancellation/seek, then predeclare latency versus fetched/abandoned-byte tradeoff workload.",
+      "reopen_condition": "Verify output equivalence under cancellation/seek, then predeclare latency versus fetched/abandoned-byte tradeoff workload.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "next_action": "Verify output equivalence under cancellation/seek, then predeclare latency versus fetched/abandoned-byte tradeoff workload.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

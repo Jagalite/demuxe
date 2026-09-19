@@ -17,7 +17,7 @@
       "line_end": 66,
       "source_kind": "report"
     },
-    "source_excerpt": "The pilot encoded a controlled source with x264 first-pass statistics, then used the recovered frame-level motion-bit and intra/partition decisions to choose a constrained search radius in a separate block-matching transcoder model. The model operates on frames decoded from that H.264 source. Against a ±6 exhaustive search, the hint-driven policy reduced candidate evaluations 30.38% while increasing total prediction SSE only 0.0685% on the controlled slow/fast-motion plus scene-change fixture. This is evidence that source codec decisions can usefully steer later search. It is not an AVC→HEVC encoding benchmark: source vectors/partitions were not injected into x265, no HEVC bitrate/quality comparison was produced, and the model's residual proxy is not a complete encoder cost function.",
+    "source_excerpt": "The pilot encoded a controlled source with x264 first-pass statistics, then used the recovered frame-level motion-bit and intra/partition decisions to choose a constrained search radius in a separate block-matching transcoder model. The model operates on frames decoded from that H.264 source. Against a \u00b16 exhaustive search, the hint-driven policy reduced candidate evaluations 30.38% while increasing total prediction SSE only 0.0685% on the controlled slow/fast-motion plus scene-change fixture. This is evidence that source codec decisions can usefully steer later search. It is not an AVC\u2192HEVC encoding benchmark: source vectors/partitions were not injected into x265, no HEVC bitrate/quality comparison was produced, and the model's residual proxy is not a complete encoder cost function.",
     "related_reports": [],
     "scope_hash": "557131d6a01e86512f1b2273ffcfbaea7ac13457114dfb28fed0020db6cb2161",
     "legacy_guide_aliases": [],
@@ -53,61 +53,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 404,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R187.recover-encoder-decisions-from-the-source",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      "rank": 363,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      ],
       "next_test": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
-      "reopen_condition": "Reopen with a producer/transcode use case and actual encoder integration; model search-count savings cannot stand in for full encoding.",
-      "recorded_at_utc": "2026-09-19T17:34:19.180963+00:00"
+      "reopen_condition": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",

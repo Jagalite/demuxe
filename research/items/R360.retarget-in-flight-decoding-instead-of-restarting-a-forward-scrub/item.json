@@ -58,73 +58,107 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub.md"
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.",
+      "evidence": [
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Continuing H.264 decode retargeted 3\u21928\u219210 and published only frame 10, matching host output. Current UI already coalesces scrub commits; this component submitted 12 packets versus 11 needed for the final-only target baseline, so it establishes no saved work for the present UI.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Scoped output checks pass; full affected lifecycle acceptance remains pending: Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing.",
+      "evidence": [
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Current final-only scrub has no demonstrated redundant decode opportunity; no benchmark warranted.",
+      "evidence": [
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R358_R362_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub.md"
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 195,
+    "campaign": "research-presentation-components",
     "record": {
       "key": "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub.md"
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T200002Z-presentation",
+        "20260919T195841Z-presentation"
       ],
-      "reason": "The UI already commits only the final scrub change; public seeks retire a generation and restore codec entry requirements. No sample-ordinal retargeting owner proves a new target is still ahead or retained. Reusing a decoder based only on timestamps/same GOP would weaken existing source/configuration authority.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For an explicitly paused I/P exact-scrub profile, trace one continuing GOP and latest-target ordinal eligibility against the existing coalesced baseline; backward/previously released/duplicate-timestamp targets must take an explicit restart path.",
-      "reopen_condition": "For an explicitly paused I/P exact-scrub profile, trace one continuing GOP and latest-target ordinal eligibility against the existing coalesced baseline; backward/previously released/duplicate-timestamp targets must take an explicit restart path.",
-      "recorded_at_utc": "2026-09-19T17:34:19.098323+00:00"
+      "recorded_at_utc": "2026-09-19T20:02:01.998637+00:00",
+      "evidence_level": "component_test",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Continuing H.264 decode retargeted 3\u21928\u219210 and published only frame 10, matching host output. Current UI already coalesces scrub commits; this component submitted 12 packets versus 11 needed for the final-only target baseline, so it establishes no saved work for the present UI.",
+      "scope": "Eligibility predicates reject backward/source changes, but their full restart paths were not executed. No user latency claim.",
+      "evidence": [
+        "research/shared/runs/20260919T200002Z-presentation/results.json",
+        "research/shared/runs/20260919T200002Z-presentation/manifest.json",
+        "research/shared/runs/20260919T200002Z-presentation/analysis.md"
+      ],
+      "next_test": "Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing.",
+      "reopen_condition": "Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing."
     }
   },
-  "next_action": "For an explicitly paused I/P exact-scrub profile, trace one continuing GOP and latest-target ordinal eligibility against the existing coalesced baseline; backward/previously released/duplicate-timestamp targets must take an explicit restart path.",
+  "next_action": "Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
     "status": "not_assessed_by_migration"
+  },
+  "investigation_contract": {
+    "scope": "Bounded synthetic H.264 WebCodecs component, full key-specific result below",
+    "baseline": "Independent host pixels and separate browser decode/render baseline",
+    "success_criteria": "All required scoped assertions pass; no fallback; retain unsatisfied lifecycle gates",
+    "effort_limit": "One shared tiny fixture preparation and browser component run; no production owner rewrite",
+    "falsifier": "Pixel/timestamp mismatch, incorrect job correlation or stale generation accepted",
+    "exclusions": "Eligibility predicates reject backward/source changes, but their full restart paths were not executed. No user latency claim."
   }
 }

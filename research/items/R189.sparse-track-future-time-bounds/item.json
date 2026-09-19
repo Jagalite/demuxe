@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -86,30 +92,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 92,
-    "record": {
-      "key": "R189.sparse-track-future-time-bounds",
-      "rank": 91,
-      "state": "STOP_PROFILE",
-      "reason": "Scoped mux selects only video and audio. No selected sparse metadata track is present to create the source model bottleneck; implementing sparse-frontier machinery here has no current opportunity.",
-      "evidence_level": "SOURCE_REVIEW",
-      "evidence": [
-        {
-          "path": "audits/R189.json",
-          "sha256": "7551b75a303841bf0ca9b659fc457fe015c711c470be82e8a5818e9e30d2251c"
-        }
-      ],
-      "recorded_at_utc": "2026-09-19T19:03:40.739140+00:00"
-    }
+    "key": "R189.sparse-track-future-time-bounds",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Scoped mux selects only video and audio. No selected sparse metadata track is present to create the source model bottleneck; implementing sparse-frontier machinery here has no current opportunity.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "top100",
+      "ledger": "results/top100/decisions.jsonl",
+      "line": 92,
+      "record": {
+        "key": "R189.sparse-track-future-time-bounds",
+        "rank": 91,
+        "state": "STOP_PROFILE",
+        "reason": "Scoped mux selects only video and audio. No selected sparse metadata track is present to create the source model bottleneck; implementing sparse-frontier machinery here has no current opportunity.",
+        "evidence_level": "SOURCE_REVIEW",
+        "evidence": [
+          {
+            "path": "audits/R189.json",
+            "sha256": "7551b75a303841bf0ca9b659fc457fe015c711c470be82e8a5818e9e30d2251c"
+          }
+        ],
+        "recorded_at_utc": "2026-09-19T19:03:40.739140+00:00"
+      }
+    },
+    "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
   "integration": {

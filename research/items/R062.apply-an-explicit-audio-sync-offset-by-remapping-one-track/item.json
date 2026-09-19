@@ -17,7 +17,7 @@
       "line_end": 175,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New timeline-feature path · P1 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox split-MSE pilot; static offset first, paused update second. Related cards: R15, R35, R52. Proposed mechanism. When the user requests an audio-delay adjustment, retime copied audio in its own SourceBuffer rather than decoding and filtering the entire presentation. Keep video timestamps and the playback owner unchanged. This changes intended timing, not the encoded samples. What is new. R52 preserved an existing source rate and earlier tests preserved source offsets. This card adds an explicitly requested timing effect and its reversible update contract. Source basis. MSE provides timestampOffset and append-window controls for subsequent coded frames; changing the property does not retime audio already buffered. The successful prior split-buffer work supplies a starting harness, not proof of this effect. [S1, L3]",
+    "source_excerpt": "New timeline-feature path \u00b7 P1 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox split-MSE pilot; static offset first, paused update second. Related cards: R15, R35, R52. Proposed mechanism. When the user requests an audio-delay adjustment, retime copied audio in its own SourceBuffer rather than decoding and filtering the entire presentation. Keep video timestamps and the playback owner unchanged. This changes intended timing, not the encoded samples. What is new. R52 preserved an existing source rate and earlier tests preserved source offsets. This card adds an explicitly requested timing effect and its reversible update contract. Source basis. MSE provides timestampOffset and append-window controls for subsequent coded frames; changing the property does not retime audio already buffered. The successful prior split-buffer work supplies a starting harness, not proof of this effect. [S1, L3]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 64,
         "line_end": 71,
         "source_kind": "report",
-        "reported_heading": "Split-MSE audio delay — PROMISING"
+        "reported_heading": "Split-MSE audio delay \u2014 PROMISING"
       }
     ],
     "scope_hash": "505c7410523fe8cf750c034f3fc215b22040cc3b214ba5d9db11628634bb601e",
@@ -58,75 +58,82 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Source contract refined to explicit component profile and exclusions in current decision.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md"
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Generated fixtures, source/runtime identities, baseline/oracle and adverse controls pinned in shared run.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Actual split-MSE +0.35/-0.25 second audio offsets preserve video ownership and move known tone windows. Paused remove/reappend to the opposite offset passes. Property-only timestampOffset change correctly leaves accepted audio ranges unchanged. Negative prefix clipping is explicit and only silent source prefix is tested.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Scoped silent-prefix marker timing, unchanged video ownership, property-only adverse control, paused replacement, EOF and cleanup passed. Exact sample boundary/non-silent clipping fidelity excluded.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Requested timing transformation; no throughput or power claim in this component gate.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive, negative and setup-failure observations preserved with source/output manifest and commands.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md"
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue decision; no production integration or release qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 232,
+    "campaign": "audio-stage-reconciliation",
     "record": {
       "key": "R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md"
+      "recorded_at_utc": "2026-09-19T20:07:16.715931+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T200716Z-audio-mse"
       ],
-      "reason": "Native copied tracks share an established timeline bias; no public one-track delay mapping or replacement transaction exists. Setting timestampOffset cannot retime accepted audio.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define static positive/negative delay boundary semantics first; test one split-MSE impulse/flash fixture with nonzero origin and reject unrepresentable leading/tail samples rather than silently padding.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define static positive/negative delay boundary semantics first; test one split-MSE impulse/flash fixture with nonzero origin and reject unrepresentable leading/tail samples rather than silently padding.",
-      "recorded_at_utc": "2026-09-19T17:34:19.108252+00:00"
+      "evidence_level": "component_test",
+      "profile": "Stereo AAC pulse 0.5-1.3s at 660Hz; static +0.35/-0.25s mapping and paused replacement; silent negative prefix clipped",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual split-MSE +0.35/-0.25 second audio offsets preserve video ownership and move known tone windows. Paused remove/reappend to the opposite offset passes. Property-only timestampOffset change correctly leaves accepted audio ranges unchanged. Negative prefix clipping is explicit and only silent source prefix is tested.",
+      "next_action": "Qualify non-silent leading/tail policy and sample-exact PCM boundaries before exposing a user-facing offset controller.",
+      "reopen_condition": "Qualify non-silent leading/tail policy and sample-exact PCM boundaries before exposing a user-facing offset controller.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-audio-mse/run.json"
+      ]
     }
   },
-  "next_action": "Define static positive/negative delay boundary semantics first; test one split-MSE impulse/flash fixture with nonzero origin and reject unrepresentable leading/tail samples rather than silently padding.",
+  "next_action": "Qualify non-silent leading/tail policy and sample-exact PCM boundaries before exposing a user-facing offset controller.",
   "integration": {
-    "status": "not_assessed_by_migration"
+    "status": "not_integrated"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "not_release_qualified"
   }
 }

@@ -17,7 +17,7 @@
       "line_end": 63,
       "source_kind": "report"
     },
-    "source_excerpt": "A 4 s, 640×360 H.264 source was represented as four independently encoded 320×180 quadrants. All four tile streams play in Chromium. At three sampled times per tile, the tile output closely matched the corresponding region of the full-frame decode; mean absolute RGB error stayed below 0.97/255 in all twelve comparisons. Compositing all four decoded tiles back into one 640×360 canvas at 2 s produced 0.509/255 mean absolute RGB error versus the full-frame source. The largest per-channel error was concentrated in local compression/boundary differences, so this is a near-equivalent prepared representation rather than byte/pixel identity. Host FFmpeg software-decode medians provide a component-cost screen:",
+    "source_excerpt": "A 4 s, 640\u00d7360 H.264 source was represented as four independently encoded 320\u00d7180 quadrants. All four tile streams play in Chromium. At three sampled times per tile, the tile output closely matched the corresponding region of the full-frame decode; mean absolute RGB error stayed below 0.97/255 in all twelve comparisons. Compositing all four decoded tiles back into one 640\u00d7360 canvas at 2 s produced 0.509/255 mean absolute RGB error versus the full-frame source. The largest per-channel error was concentrated in local compression/boundary differences, so this is a near-equivalent prepared representation rather than byte/pixel identity. Host FFmpeg software-decode medians provide a component-cost screen:",
     "related_reports": [],
     "scope_hash": "8d57e6d9f907cbdf357938df6de324c039bc8f86465c2487d1be60b65ba829ba",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R084.spatially-selective-video.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 352,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R084.spatially-selective-video",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      "rank": 310,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ],
       "next_test": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
-      "recorded_at_utc": "2026-09-19T17:34:19.167026+00:00"
+      "reopen_condition": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",

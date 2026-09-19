@@ -2,55 +2,22 @@
 
 # Make split-buffer audio switching transactional
 
-Full identity: `R015.make-split-buffer-audio-switching-transactional`. Reused R-numbers are separate mechanisms.
+`R015.make-split-buffer-audio-switching-transactional`
 
-Current imported decision: **DEFER_SETUP** (full-completion).
-
-Track selection restarts entire remux with rollback; split buffers currently support unequal tails only, not prepare/commit/retire audio switching. Transaction and source generations need design before same-object reuse.
-
-Next action: Specify one paused same-codec audio transaction retaining video; compare digital markers and covering frame, then cancel before commit and verify old track remains authoritative.
-
-## Definition and contract
-
-Timeline · Follow-on architecture experiment · P1 · Risk: High First environment: Browser-only; adaptation integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep one MediaSource/video element and a retained video SourceBuffer while replacing only the selected audio stream. Use prepare/validate/commit/retire around a defined switch time rather than treating successful appends as a seamless switch. Source basis. MSE supplies changeType, timestamp offsets and append windows. It permits, but does not guarantee, a particular multiple-SourceBuffer combination or continuous codec switch. [M1] First agent experiment. Exercise same-codec switching first, then AAC/FLAC/Opus transitions only where accepted. Test pause, seek-before-commit, encoder preroll and failed preparation. Compare video identity and digital audio markers around the boundary.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
-
-## Stages
+Current decision: **pursue**. Paused same-codec AAC switch at future T=2 after seek-before-commit to .25 s; old prefix retained and 440-to-880 Hz observation changes, video and both buffer identities retained. Stale generation and invalid MIME preflight leave ranges unchanged.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| prepare | passed | Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only. |
+| screen | passed | Paused same-codec AAC switch at future T=2 after seek-before-commit to .25 s; old prefix retained and 440-to-880 Hz observation changes, video and both buffer identities retained. Stale generation and invalid MIME preflight leave ranges unchanged. |
+| correctness | pending | Capture sample-exact digital marker PCM across commit; test real failing append rollback and cancel/source change during in-flight preparation. |
+| performance | pending | No equivalent-work benchmark before relevant output correctness gates. |
+| results | passed | Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism. |
+| decision | passed | Pursue bounded mechanism; no integration or release qualification. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Capture sample-exact digital marker PCM across commit; test real failing append rollback and cancel/source change during in-flight preparation.
 
-## Working files
+[Contract and current state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
 
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R015.make-split-buffer-audio-switching-transactional.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R015.make-split-buffer-audio-switching-transactional.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R015.make-split-buffer-audio-switching-transactional.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R015.make-split-buffer-audio-switching-transactional.md)
+Research-only; shipping behavior unchanged.

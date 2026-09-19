@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200716Z-audio-mse",
+  "item_keys": [
+    "R052.keep-source-sample-rates-across-audio-track-changes",
+    "R062.apply-an-explicit-audio-sync-offset-by-remapping-one-track"
+  ],
+  "stage": "correctness",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/shared/tooling/audio-stage-probes/mse_fixtures.py research/shared/runs/20260919T_audio_mse",
+    "node research/shared/tooling/audio-stage-probes/mse.mjs research/shared/runs/20260919T_audio_mse"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "7ed6058d10c8adc04124b6335a36ecb52b04ce8c507325c4356fe90d14464a07",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "node": "v23.5.0",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "browser": "Chrome 152.0.7977.83"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Both AAC source-rate directions play expected tones and video, reach EOF, pause and seek backward with same audio/video SourceBuffers. Positive and negative offsets relocate tone windows; changing timestampOffset alone leaves accepted ranges unchanged. Paused remove/reappend updates to opposite offsets also produce expected tone and EOF.",
+    "passed": true,
+    "scope": "bounded component only"
+  },
+  "performance": {
+    "measured": false
+  },
+  "limits": [
+    "Component browser ownership, not maintained player controller integration",
+    "Rate-switch PCM sample-exact boundaries and failed replacement recovery unqualified",
+    "Offset negative-time prefix intentionally clipped; fixture prefix is silence",
+    "Marker checks use intervals 200ms inside onset and 100ms inside end, not sample-exact timing",
+    "Preserved failed aggregate observation mixed backward startup with forward observations; corrected phase-labelled run passes",
+    "Preserved server-path failure is setup error, not media failure"
+  ],
+  "original_output_directory": "research/shared/runs/20260919T_audio_mse"
+}

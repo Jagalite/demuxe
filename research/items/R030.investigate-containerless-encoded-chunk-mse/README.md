@@ -2,13 +2,13 @@
 
 # Investigate containerless encoded-chunk MSE
 
-Full identity: `R030.investigate-containerless-encoded-chunk-mse`. Reused R-numbers are separate mechanisms.
+Full identity: `R030.investigate-containerless-encoded-chunk-mse`.
 
-Current imported decision: **HOLD_ENV** (full-completion).
+Current decision: **pursue** (component_test).
 
-appendEncodedChunks is absent in both window and dedicated worker on the current default Chrome configuration; ordinary appendBuffer is present. No encoded-chunk candidate ran. Experimental feature enablement is a separate research configuration, not a negative mechanism result.
+Independent review corrected the VP9/Opus construction order: creating both SourceBuffers before any appendEncodedChunks allows actual green video/882.9Hz audio, seek to0.8s, EOF and cleanup in explicitly flagged Chrome152. Previous quota error was harness initialization order, not environment impossibility. AVC/H265 still explicitly unsupported with either no-B or B-frame source. Default browser remains unexposed. Restricted experimental VP9/Opus feasibility only; full pixels/PCM/config/timestamp fidelity not yet compared.
 
-Next action: Read the exact appendEncodedChunks/config-based API presence on unmodified Chrome and record flags; if absent, stop as an upstream-watch environment gate.
+Next action: Keep frontier route gated; compare complete VP9/Opus decoded pixels/PCM/timing and reconfiguration/cancel controls before any performance study. Track AVC buffering support separately.
 
 ## Definition and contract
 
@@ -23,34 +23,13 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred. |
+|---|---|---|
+| define | passed | Restricted experimental VP9/Opus config-based native A/V; create all track buffers before initializing any track. |
+| prepare | passed | Pinned inputs, actual commands, tool identities and independent references captured in run manifest. |
+| screen | passed | Independent review corrected the VP9/Opus construction order: creating both SourceBuffers before any appendEncodedChunks allows actual green video/882.9Hz audio, seek to0.8s, EOF and cleanup in explicitly flagged Chrome152. Previous quota error was harness initialization order, not environment impossibility. AVC/H265 still explicitly unsupported with either no-B or B-frame source. Default browser remains unexposed. Restricted experimental VP9/Opus feasibility only; full pixels/PCM/config/timestamp fidelity not yet compared. |
+| correctness | pending | Real flagged native playback witnesses and seek/EOF/cleanup pass for VP9/Opus. Full output fidelity, reconfiguration and malformed chunk controls remain unqualified; AVC destination remains unsupported. |
+| performance | pending | Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness. |
+| results | passed | Positive/negative evidence and limitations captured in immutable run. |
+| decision | passed | pursue: Independent review corrected the VP9/Opus construction order: creating both SourceBuffers before any appendEncodedChunks allows actual green video/882.9Hz audio, seek to0.8s, EOF and cleanup in explicitly flagged Chrome152. Previous quota error was harness initialization order, not environment impossibility. AVC/H265 still explicitly unsupported with either no-B or B-frame source. Default browser remains unexposed. Restricted experimental VP9/Opus feasibility only; full pixels/PCM/config/timestamp fidelity not yet compared. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R030.investigate-containerless-encoded-chunk-mse.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R030.investigate-containerless-encoded-chunk-mse.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/api-gates.json](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/api-gates.json)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R030.investigate-containerless-encoded-chunk-mse.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R030.investigate-containerless-encoded-chunk-mse.md)
+[New run](../../shared/runs/20260919T202600Z-containerless-order/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

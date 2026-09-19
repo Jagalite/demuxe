@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 81,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 73,
+    "record": {
+      "key": "R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier",
+      "rank": 81,
+      "state": "PURSUE",
+      "reason": "Actual same VP9 codec WebM-to-fMP4 changeType keeps SourceBuffer and renders both marked intervals to EOF; invalid type rejected. Video-only component; current combined A/V controller not integrated.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "mse/result.json",
+          "sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:41:21.263601+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/mse/result.json",
+      "declared_sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6",
+      "observed_sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "pending",
+      "basis": "VP9 WebM\u2192fMP4 changeType renders expected interval colors, EOF and invalid MIME rejection; no full-frame/timing/A/V boundary oracle."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Explicit same-codec byte-stream capability; full fidelity remains next gate, no speed claim."
+    }
+  },
+  "passed": true
+}

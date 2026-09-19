@@ -17,7 +17,7 @@
       "line_end": 88,
       "source_kind": "report"
     },
-    "source_excerpt": "WebGL2/float blending compared two complete 1024×576 RGBA textures by drawing one point per pixel into three 1×1 reductions: mismatch count, maximum channel error, and first mismatch position. With 37 injected fault pixels, the graphics result exactly matched the CPU oracle: count 37, maximum error 236, first index 12345. The no-difference control also passed. Only 12 bytes of result data were read back instead of a 2,359,296-byte full frame. But SwiftShader took ~411.2 ms versus ~4.1 ms for the JS CPU oracle, so this is a readback/observer mechanism—not a performance win in this environment. Physical-GPU qualification remains open.",
+    "source_excerpt": "WebGL2/float blending compared two complete 1024\u00d7576 RGBA textures by drawing one point per pixel into three 1\u00d71 reductions: mismatch count, maximum channel error, and first mismatch position. With 37 injected fault pixels, the graphics result exactly matched the CPU oracle: count 37, maximum error 236, first index 12345. The no-difference control also passed. Only 12 bytes of result data were read back instead of a 2,359,296-byte full frame. But SwiftShader took ~411.2 ms versus ~4.1 ms for the JS CPU oracle, so this is a readback/observer mechanism\u2014not a performance win in this environment. Physical-GPU qualification remains open.",
     "related_reports": [],
     "scope_hash": "046a1812c908d1d254261faf66fd5d6ca05b1ed21d2fe24787f3ed104ed41d08",
     "legacy_guide_aliases": [],
@@ -69,9 +69,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/gpu/witness-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -81,51 +85,64 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual GPU all15360resident RGBA pixels checked; equal and first/middle/last changes match CPUoracle; four-byte witness readback and cleanup/errors recorded. Resident-pixel scope only.",
+      "evidence": [
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/gpu/witness-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No CPU/latency/transfer benchmark; uploading solely for compare could erase benefit.",
+      "evidence": [
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/gpu/witness-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/gpu/witness-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/gpu/witness-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 57,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
-      "rank": 93,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Actual GPU atomic difference witness scans all 15360 resident RGBA pixels with four-byte readback. Equal frame and first/middle/last changed pixels match CPU oracle. Opportunity restricted to pixels already on GPU; no measured whole-player savings.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "gpu/witness-result.json",
-          "sha256": "d413d9e1a404ed3aa197dcd06cbe0b72ca4dc5102e297697e8f6a8ace136b1d7"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:30:40.721249+00:00"
+      "evidence": [
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/gpu/witness-result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Actual GPU all15360resident RGBA pixels checked; equal and first/middle/last changes match CPUoracle; four-byte witness readback and cleanup/errors recorded. Resident-pixel scope only.",
+      "performance_gate": "No CPU/latency/transfer benchmark; uploading solely for compare could erase benefit.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

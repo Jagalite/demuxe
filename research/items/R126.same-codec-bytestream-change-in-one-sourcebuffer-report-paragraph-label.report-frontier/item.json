@@ -17,7 +17,7 @@
       "line_end": 74,
       "source_kind": "report"
     },
-    "source_excerpt": "R126 changes bytestream format while keeping VP9: WebM/VP9 → MP4/VP9. Both MIME types are accepted, changeType() succeeds, and one SourceBuffer presents green then blue over ~4 s.",
+    "source_excerpt": "R126 changes bytestream format while keeping VP9: WebM/VP9 \u2192 MP4/VP9. Both MIME types are accepted, changeType() succeeds, and one SourceBuffer presents green then blue over ~4 s.",
     "related_reports": [],
     "scope_hash": "29cde2103e56a1c7de1c8fa36080668c691d72ca1dead8677bd4202e081a483b",
     "legacy_guide_aliases": [],
@@ -53,9 +53,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -66,49 +70,63 @@
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "VP9 WebM\u2192fMP4 changeType renders expected interval colors, EOF and invalid MIME rejection; no full-frame/timing/A/V boundary oracle.",
+      "evidence": [
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Explicit same-codec byte-stream capability; full fidelity remains next gate, no speed claim.",
+      "evidence": [
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier.md",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/mse/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 73,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier",
-      "rank": 81,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Actual same VP9 codec WebM-to-fMP4 changeType keeps SourceBuffer and renders both marked intervals to EOF; invalid type rejected. Video-only component; current combined A/V controller not integrated.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "mse/result.json",
-          "sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:41:21.263601+00:00"
+      "evidence": [
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R126.same-codec-bytestream-change-in-one-sourcebuffer-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "VP9 WebM\u2192fMP4 changeType renders expected interval colors, EOF and invalid MIME rejection; no full-frame/timing/A/V boundary oracle.",
+      "performance_gate": "Explicit same-codec byte-stream capability; full fidelity remains next gate, no speed claim.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

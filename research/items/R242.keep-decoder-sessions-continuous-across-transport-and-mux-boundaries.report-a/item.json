@@ -81,9 +81,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -93,14 +95,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -117,34 +123,54 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: already_implemented",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 22,
-    "record": {
-      "key": "R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a",
-      "rank": 11,
-      "state": "ALREADY_IMPLEMENTED",
-      "reason": "Reconciled completed prior evidence: The recovered report was blocked by an opaque insecure origin. The present secure environment has VideoDecoder. More decisively, current decoder bridge calls operation 3 only for a null-packet drain, and workers flush only for that operation; ordinary packet batches keep the decoder session. No unconditional transport-batch flush opportunity is present in these owners.",
-      "evidence_level": "REUSED_SOURCE_REVIEW",
-      "evidence": [
-        {
-          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a.md",
-          "sha256": "add211eabc5604d31ffbeeacdf678984bc669cdcb9f28b86fc5f3bf6736cae4f"
-        },
-        {
-          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-          "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b"
-        }
-      ],
-      "recorded_at_utc": "2026-09-19T18:17:13.273585+00:00"
-    }
+    "key": "R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a",
+    "disposition": "already_implemented",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Reconciled completed prior evidence: The recovered report was blocked by an opaque insecure origin. The present secure environment has VideoDecoder. More decisively, current decoder bridge calls operation 3 only for a null-packet drain, and workers flush only for that operation; ordinary packet batches keep the decoder session. No unconditional transport-batch flush opportunity is present in these owners.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "top100",
+      "ledger": "results/top100/decisions.jsonl",
+      "line": 22,
+      "record": {
+        "key": "R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a",
+        "rank": 11,
+        "state": "ALREADY_IMPLEMENTED",
+        "reason": "Reconciled completed prior evidence: The recovered report was blocked by an opaque insecure origin. The present secure environment has VideoDecoder. More decisively, current decoder bridge calls operation 3 only for a null-packet drain, and workers flush only for that operation; ordinary packet batches keep the decoder session. No unconditional transport-batch flush opportunity is present in these owners.",
+        "evidence_level": "REUSED_SOURCE_REVIEW",
+        "evidence": [
+          {
+            "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a.md",
+            "sha256": "add211eabc5604d31ffbeeacdf678984bc669cdcb9f28b86fc5f3bf6736cae4f"
+          },
+          {
+            "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+            "sha256": "d0c6115618b4410dcb06178bd733fce497d141472c2dff843f56245fea7a561b"
+          }
+        ],
+        "recorded_at_utc": "2026-09-19T18:17:13.273585+00:00"
+      }
+    },
+    "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
   "integration": {

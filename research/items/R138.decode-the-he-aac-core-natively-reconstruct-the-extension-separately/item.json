@@ -53,62 +53,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Core/SBR candidate stopped because ordinary native HE-AAC already returns100288 stereo frames matching independent reference within1.67005e-5 sample error; malformed input rejects. Baseline fidelity is established, not separate-SBR correctness.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Stopped tested profile/variant; further performance work has no authorized candidate benefit.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/audio/native-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 54,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately",
-      "rank": 27,
-      "state": "STOP_PROFILE",
-      "reason": "Original HE-AAC v1 already decodes through native browser API: full 100288-frame stereo output matches independent reference within 1.68e-5 maximum sample error, malformed header rejected. Core plus separate SBR reconstruction adds no missing capability in this local profile; highband tone alone was not relied upon.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "audio/native-result.json",
-          "sha256": "25dd039814124d818a0ae8e7b886e06ca9c44441bfb3bd0ea9a123f38bb6cfb5"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
+      "previous_state": "STOP_PROFILE",
+      "initial_rank": 27,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:27:19.454440+00:00"
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
+      "reason": "Original HE-AAC v1 already decodes through native browser API: full 100288-frame stereo output matches independent reference within 1.68e-5 maximum sample error, malformed header rejected. Core plus separate SBR reconstruction adds no missing capability in this local profile; highband tone alone was not relied upon.",
+      "scope": "Local HE-AACv1 native decode capability; highband tone alone was not the oracle.",
+      "correctness_acceptance": "Core/SBR candidate stopped because ordinary native HE-AAC already returns100288 stereo frames matching independent reference within1.67005e-5 sample error; malformed input rejects. Baseline fidelity is established, not separate-SBR correctness.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 54,
+        "record": {
+          "key": "R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately",
+          "rank": 27,
+          "state": "STOP_PROFILE",
+          "reason": "Original HE-AAC v1 already decodes through native browser API: full 100288-frame stereo output matches independent reference within 1.68e-5 maximum sample error, malformed header rejected. Core plus separate SBR reconstruction adds no missing capability in this local profile; highband tone alone was not relied upon.",
+          "evidence_level": "COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "audio/native-result.json",
+              "sha256": "25dd039814124d818a0ae8e7b886e06ca9c44441bfb3bd0ea9a123f38bb6cfb5"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:27:19.454440+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/audio/native-result.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

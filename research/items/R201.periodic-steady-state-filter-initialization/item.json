@@ -17,7 +17,7 @@
       "line_end": 96,
       "source_kind": "report"
     },
-    "source_excerpt": "For the scalar stable IIR model y[n]=a·y[n−1]+(1−a)·x[n], one loop is represented as s_next=M·s+b. The prototype solves the fixed point and starts the first requested loop there. Across a=0.8, 0.98, 0.999, 0.9999, end-state closure is within 2.220e-16; maximum output difference from a 5,000–20,000-loop converged reference is 2.220e-16. This is strong evidence for periodic-state initialization on a controlled stable linear filter, not a general solution for nonlinear or time-varying filter graphs.",
+    "source_excerpt": "For the scalar stable IIR model y[n]=a\u00b7y[n\u22121]+(1\u2212a)\u00b7x[n], one loop is represented as s_next=M\u00b7s+b. The prototype solves the fixed point and starts the first requested loop there. Across a=0.8, 0.98, 0.999, 0.9999, end-state closure is within 2.220e-16; maximum output difference from a 5,000\u201320,000-loop converged reference is 2.220e-16. This is strong evidence for periodic-state initialization on a controlled stable linear filter, not a general solution for nonlinear or time-varying filter graphs.",
     "related_reports": [],
     "scope_hash": "db305036b64770d1cb68ae54fb96e4c58b7e7d9d118a4b6a8b5b39ad8d7b95bf",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R201.periodic-steady-state-filter-initialization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 208,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R201.periodic-steady-state-filter-initialization",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      "rank": 305,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ],
       "next_test": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
       "reopen_condition": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
-      "recorded_at_utc": "2026-09-19T17:34:19.101731+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",

@@ -17,7 +17,7 @@
       "line_end": 100,
       "source_kind": "report"
     },
-    "source_excerpt": "Two Noto fonts totaling 756,780 bytes were subset for the controlled ASS track to 112,164 bytes, or 14.82% of the original footprint. Tests included Latin ligatures, AV kerning, decomposed combining acute, Greek, Cyrillic, Arabic shaping, and an explicit line break. The exactness gate failed. The composite libass frame differs in 162 RGBA bytes with a maximum channel delta of 43. Isolated rendering found the mismatch in decomposed A + combining acute; the office/affine/AV/naïve/Greek/Cyrillic/Arabic controls were exact. This should be treated as a useful rejection, not rounded into a success because the visible difference is small. Integration implication: a prepared font subset is acceptable only with a track-specific shaping/raster witness suite. This current subset recipe is rejected for exact playback.",
+    "source_excerpt": "Two Noto fonts totaling 756,780 bytes were subset for the controlled ASS track to 112,164 bytes, or 14.82% of the original footprint. Tests included Latin ligatures, AV kerning, decomposed combining acute, Greek, Cyrillic, Arabic shaping, and an explicit line break. The exactness gate failed. The composite libass frame differs in 162 RGBA bytes with a maximum channel delta of 43. Isolated rendering found the mismatch in decomposed A + combining acute; the office/affine/AV/na\u00efve/Greek/Cyrillic/Arabic controls were exact. This should be treated as a useful rejection, not rounded into a success because the visible difference is small. Integration implication: a prepared font subset is acceptable only with a track-specific shaping/raster witness suite. This current subset recipe is rejected for exact playback.",
     "related_reports": [],
     "scope_hash": "8ac847f21e0c832d5bd211719b6020fdc1e2d41ef4491bd339fecdbff33a0f7c",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,29 +91,49 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 304,
-    "record": {
-      "key": "R179.exact-subtitle-font-subsetting",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R179.exact-subtitle-font-subsetting.md"
-      ],
-      "reason": "The full report shows a concrete decomposed combining-acute mismatch for the subset recipe. Current libass receives complete supplied fonts under byte/cache limits; reducing these fonts with that failed recipe cannot preserve the exact subtitle contract. This is a historical experimental rejection, not a new test or an environment blocker.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
-      "reopen_condition": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
-      "recorded_at_utc": "2026-09-19T17:34:19.154468+00:00"
-    }
+    "key": "R179.exact-subtitle-font-subsetting",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The full report shows a concrete decomposed combining-acute mismatch for the subset recipe. Current libass receives complete supplied fonts under byte/cache limits; reducing these fonts with that failed recipe cannot preserve the exact subtitle contract. This is a historical experimental rejection, not a new test or an environment blocker.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 304,
+      "record": {
+        "key": "R179.exact-subtitle-font-subsetting",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R179.exact-subtitle-font-subsetting.md"
+        ],
+        "reason": "The full report shows a concrete decomposed combining-acute mismatch for the subset recipe. Current libass receives complete supplied fonts under byte/cache limits; reducing these fonts with that failed recipe cannot preserve the exact subtitle contract. This is a historical experimental rejection, not a new test or an environment blocker.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+        "reopen_condition": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+        "recorded_at_utc": "2026-09-19T17:34:19.154468+00:00"
+      }
+    },
+    "next_action": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
   "integration": {

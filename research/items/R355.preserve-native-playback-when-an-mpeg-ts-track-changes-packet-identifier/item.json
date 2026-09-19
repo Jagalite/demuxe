@@ -64,67 +64,108 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "failed",
+      "basis": "Candidate merge_pmt_versions changes video demux order and actual player rejects Selected timeline discontinuity. Packet multiset equality is insufficient; baseline also loses video continuity.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Stopped tested profile/variant; further performance work has no authorized candidate benefit.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R355.preserve-native-playback-when-an-mpeg-ts-track-changes-packet-identifier.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R353_R357_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R355.preserve-native-playback-when-an-mpeg-ts-track-changes-packet-identifier.md",
-        "results/top100/transport/pid-browser-result.json",
-        "results/top100/transport/pid-result.json"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_SIMPLE_OPTION. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 4,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R355.preserve-native-playback-when-an-mpeg-ts-track-changes-packet-identifier",
-      "rank": 5,
-      "state": "STOP_SIMPLE_OPTION",
-      "reason": "PMT/PID mutation preserves every video/audio packet and PTS/DTS as a multiset, but FFmpeg merge_pmt_versions changes video packet order. Actual candidate rejects Selected timeline discontinuity; baseline loses continuity as well. Do not enable the option alone. A bounded reordering/track-authority adapter is a distinct next variant.",
-      "evidence_level": "REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "transport/pid-result.json",
-          "sha256": "4886709db3ccaf58afaf48c625373e2d02daa128ed840adc6cc99fc8e429f307"
-        },
-        {
-          "path": "transport/pid-browser-result.json",
-          "sha256": "2a4ec44383a961e5a89a7bdec57e4cd24734671c52fe6187c1d21eccce9b5851"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
+      "previous_state": "STOP_SIMPLE_OPTION",
+      "initial_rank": 5,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:14.045232+00:00"
+      "evidence_level": "reconciled_real_path_screen",
+      "new_media_execution": false,
+      "reason": "PMT/PID mutation preserves every video/audio packet and PTS/DTS as a multiset, but FFmpeg merge_pmt_versions changes video packet order. Actual candidate rejects Selected timeline discontinuity; baseline loses continuity as well. Do not enable the option alone. A bounded reordering/track-authority adapter is a distinct next variant.",
+      "scope": "Option-alone PID transition variant rejected; a new authority/reordering adapter is a separate variant.",
+      "correctness_acceptance": "Candidate merge_pmt_versions changes video demux order and actual player rejects Selected timeline discontinuity. Packet multiset equality is insufficient; baseline also loses video continuity.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 4,
+        "record": {
+          "key": "R355.preserve-native-playback-when-an-mpeg-ts-track-changes-packet-identifier",
+          "rank": 5,
+          "state": "STOP_SIMPLE_OPTION",
+          "reason": "PMT/PID mutation preserves every video/audio packet and PTS/DTS as a multiset, but FFmpeg merge_pmt_versions changes video packet order. Actual candidate rejects Selected timeline discontinuity; baseline loses continuity as well. Do not enable the option alone. A bounded reordering/track-authority adapter is a distinct next variant.",
+          "evidence_level": "REAL_PATH_SCREEN",
+          "evidence": [
+            {
+              "path": "transport/pid-result.json",
+              "sha256": "4886709db3ccaf58afaf48c625373e2d02daa128ed840adc6cc99fc8e429f307"
+            },
+            {
+              "path": "transport/pid-browser-result.json",
+              "sha256": "2a4ec44383a961e5a89a7bdec57e4cd24734671c52fe6187c1d21eccce9b5851"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:05:14.045232+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

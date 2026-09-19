@@ -17,7 +17,7 @@
       "line_end": 77,
       "source_kind": "report"
     },
-    "source_excerpt": "Even though the worker MSE session could not open, the ownership primitive is decisive. Three compressed buffers transferred main→worker changed from 777, 90,419 and 96,393 bytes to 0-byte detached ArrayBuffers on the sender immediately after postMessage(..., [buffer]). That establishes a real no-retained-main-copy handoff primitive. The missing evidence is whether those transferred bytes can be appended and played in the same worker-owned MSE route under a qualified origin.",
+    "source_excerpt": "Even though the worker MSE session could not open, the ownership primitive is decisive. Three compressed buffers transferred main\u2192worker changed from 777, 90,419 and 96,393 bytes to 0-byte detached ArrayBuffers on the sender immediately after postMessage(..., [buffer]). That establishes a real no-retained-main-copy handoff primitive. The missing evidence is whether those transferred bytes can be appended and played in the same worker-owned MSE route under a qualified origin.",
     "related_reports": [],
     "scope_hash": "82e0d84dbe85ac4917088e151bc1ef76e92fd4fc1c06965bbeb6c7d1ad351a49",
     "legacy_guide_aliases": [
@@ -55,59 +55,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Owned compressed input detaches on transfer and worker MSE renders A/V with seek/EOF/malformed-input controls and cleanup.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R137.transferable-compressed-buffers-into-worker-mse.report-continuity.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R137.transferable-compressed-buffers-into-worker-mse.report-continuity.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/continuity/worker-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 14,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R137.transferable-compressed-buffers-into-worker-mse.report-continuity",
-      "state": "PURSUE",
-      "evidence": "continuity/worker-result.json",
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 130,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "evidence_level": "reconciled_imported_execution",
+      "new_media_execution": false,
       "reason": "Each full owned compressed buffer detaches from sender on transfer and reaches actual A/V output at worker MSE; selected seek/EOF and malformed-input controls pass. Shared run withR005/R136, not separate executions.",
-      "recorded_at_utc": "2026-09-19T17:02:45.322934+00:00"
+      "correctness_acceptance": "Owned compressed input detaches on transfer and worker MSE renders A/V with seek/EOF/malformed-input controls and cleanup.",
+      "next_action": "Measure real ownership/copy costs without transferring shared backing storage or coupling canceled consumers.",
+      "reopen_condition": "Measure real ownership/copy costs without transferring shared backing storage or coupling canceled consumers.",
+      "blocker_category": null,
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 14,
+        "record": {
+          "key": "R137.transferable-compressed-buffers-into-worker-mse.report-continuity",
+          "state": "PURSUE",
+          "evidence": "continuity/worker-result.json",
+          "reason": "Each full owned compressed buffer detaches from sender on transfer and reaches actual A/V output at worker MSE; selected seek/EOF and malformed-input controls pass. Shared run withR005/R136, not separate executions.",
+          "recorded_at_utc": "2026-09-19T17:02:45.322934+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     }
   },
-  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "next_action": "Measure real ownership/copy costs without transferring shared backing storage or coupling canceled consumers.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

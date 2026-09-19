@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 73,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 87,
+    "record": {
+      "key": "R119.canonicalize-equivalent-decoder-configurations",
+      "rank": 73,
+      "state": "PURSUE",
+      "reason": "Exact duplicate AVC SPS/PPS entries canonicalize to one copy, preserving48 browser-decoded frames and PTS against independent host oracle; same-ID changed SPS rejects. No semantic equivalence beyond exact duplicate parameter bytes; source reset still required.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "canonical-config-result.json",
+          "sha256": "24a6255c6fba4266e5e8a4ee6c2f58eab508b145bad7281604ae8e555e1e2002"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:02:15.527427+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/canonical-config-result.json",
+      "declared_sha256": "24a6255c6fba4266e5e8a4ee6c2f58eab508b145bad7281604ae8e555e1e2002",
+      "observed_sha256": "24a6255c6fba4266e5e8a4ee6c2f58eab508b145bad7281604ae8e555e1e2002",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Exact duplicate SPS/PPS bytes canonicalize69\u219238description bytes; two48-frame browser decodes match independent pixels/timestamps; same-ID changed SPS rejects and cleanup recorded. Only byte-identical duplicates."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "No repeated reconfiguration cost/workload benefit measured."
+    }
+  },
+  "passed": true
+}

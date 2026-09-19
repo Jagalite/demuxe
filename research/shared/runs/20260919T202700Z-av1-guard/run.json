@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "run_id": "20260919T202700Z-av1-guard",
+  "item_keys": [
+    "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+    "R239.extract-an-av1-operating-point-before-decoding.report-a"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:25:16.973208+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/shared/tooling/av1-operating-point-guard.py"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "57b31197f20393830e55db299361ece9d1a66c68552170dfa926eb5ddbdf824f",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/shared/runs/20260919T202700Z-av1-guard/manifest.json"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Selected advertised temporal subset only; reject unadvertised operating point before output.",
+    "oracle": "Byte identity to previously independently decoded candidate, complete prior pixel/timestamp evidence.",
+    "adverse_control": "Actual extract(258) raises; extract(257) yields exact previously qualified bytes.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "Prior membership-only negative claim superseded explicitly.",
+    "No general decoder-model/timing-header or arbitrary AV1 qualification."
+  ],
+  "decisions": [
+    {
+      "key": "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "A genuine two-temporal-layer source advertises masks 259 and 257. Exact OBU extraction keeps 12 of 24 timestamps, drops 12 higher-layer OBUs and reduces IVF bytes 22420 to 11657. Independent FFmpeg and libaom operating-point pixels match; Chrome decodes all selected pixels/timestamps exactly. Missing keyframe fails. Restricted stable one-spatial-layer source; not arbitrary AV1 or measured CPU savings. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.",
+      "next_action": "Qualify configuration/timing-header variations and decoder-boundary lifecycle before integration.",
+      "correctness": "passed",
+      "correctness_basis": "Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed."
+    },
+    {
+      "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.",
+      "next_action": "Test the report-specific generalized header rewriting and selected-point seek boundary before integration.",
+      "correctness": "passed",
+      "correctness_basis": "Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed."
+    }
+  ]
+}

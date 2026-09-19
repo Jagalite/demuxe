@@ -2,13 +2,13 @@
 
 # Expose an HDR10-compatible Dolby Vision base without video re-encoding
 
-Full identity: `R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding`. Reused R-numbers are separate mechanisms.
+Full identity: `R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding`.
 
-Current imported decision: **HOLD_FIXTURE_SOURCE** (top100).
+Current decision: **pursue** (component_test).
 
-No trusted Dolby Vision profile8.1 source and independent HDR10-compatible reference found among48 unique local supplied/campaign media fixtures. Ordinary HEVC fixtures cannot establish Dolby base extraction fidelity. This is a media-source gap, not missing report identity or experimental rejection.
+Genuine published Dolby8.1 fixture obtained from Chromium test corpus with documented Dolby origin. Explicit HDR10-base extraction removes120RPU NALs and DV configuration, preserves all VCL/otherSEI bytes, exact parameter-set bytes after hvcC relocation, all120packet timestamps/durations and all120decoded10-bit frame hashes. BT.2020/PQ/limited-range metadata preserved. Profile5 guard rejects. Default timestamp normalization failed and was corrected using copyts. Host adapter viable for explicitly requested HDR10; Dolby rendering, native HDR display and performance unqualified.
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
+Next action: Implement the strict metadata/NAL gate at a maintained destination and test actual browser HDR10 frames/seek before route admission.
 
 ## Definition and contract
 
@@ -23,35 +23,13 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: HOLD_FIXTURE_SOURCE. No integration or qualification inferred. |
+|---|---|---|
+| define | passed | Explicit HDR10-compatible base output for validated profile8/compatibility1/single-layer HEVC, unchanged coded pictures and timeline. |
+| prepare | passed | Pinned inputs, actual commands, tool identities and independent references captured in run manifest. |
+| screen | passed | Genuine published Dolby8.1 fixture obtained from Chromium test corpus with documented Dolby origin. Explicit HDR10-base extraction removes120RPU NALs and DV configuration, preserves all VCL/otherSEI bytes, exact parameter-set bytes after hvcC relocation, all120packet timestamps/durations and all120decoded10-bit frame hashes. BT.2020/PQ/limited-range metadata preserved. Profile5 guard rejects. Default timestamp normalization failed and was corrected using copyts. Host adapter viable for explicitly requested HDR10; Dolby rendering, native HDR display and performance unqualified. |
+| correctness | passed | Exact coded VCL/SEI and configuration identity, rational packet time comparison, complete independent HEVC decoded hashes; incompatible DV5 admission control. Host explicit HDR10-base component only. |
+| performance | not_applicable | Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness. |
+| results | passed | Positive/negative evidence and limitations captured in immutable run. |
+| decision | passed | pursue: Genuine published Dolby8.1 fixture obtained from Chromium test corpus with documented Dolby origin. Explicit HDR10-base extraction removes120RPU NALs and DV configuration, preserves all VCL/otherSEI bytes, exact parameter-set bytes after hvcC relocation, all120packet timestamps/durations and all120decoded10-bit frame hashes. BT.2020/PQ/limited-range metadata preserved. Profile5 guard rejects. Default timestamp normalization failed and was corrected using copyts. Host adapter viable for explicitly requested HDR10; Dolby rendering, native HDR display and performance unqualified. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding.md)
-- [results/top100/prerequisites/media-inventory.json](../../../results/top100/prerequisites/media-inventory.json)
+[New run](../../shared/runs/20260919T200800Z-dolby/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

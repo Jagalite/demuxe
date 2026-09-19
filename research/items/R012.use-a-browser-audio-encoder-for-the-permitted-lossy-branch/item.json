@@ -17,7 +17,7 @@
       "line_end": 304,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Audio · New execution-plan hypothesis · P2 · Risk: Medium First environment: Audio decode source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Feed normal decoded audio into WebCodecs AudioEncoder when the actual codec/rate/channel configuration is supported, then mux it with copied video. Compare this with the maintained Wasm audio encoder, not with a route that omitted conversion. Source basis. WebCodecs defines AudioData, AudioEncoder and configuration queries, but does not promise a particular encoder or hardware acceleration. [W1] First agent experiment. Use one supported AAC or Opus output profile and identical bitrate/channel requirements. Measure decode-to-AudioData copies, encoder startup, delay/padding, muxing and total browser cost. Compare decoder-equivalent input samples.",
+    "source_excerpt": "Audio \u00b7 New execution-plan hypothesis \u00b7 P2 \u00b7 Risk: Medium First environment: Audio decode source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Feed normal decoded audio into WebCodecs AudioEncoder when the actual codec/rate/channel configuration is supported, then mux it with copied video. Compare this with the maintained Wasm audio encoder, not with a route that omitted conversion. Source basis. WebCodecs defines AudioData, AudioEncoder and configuration queries, but does not promise a particular encoder or hardware acceleration. [W1] First agent experiment. Use one supported AAC or Opus output profile and identical bitrate/channel requirements. Measure decode-to-AudioData copies, encoder startup, delay/padding, muxing and total browser cost. Compare decoder-equivalent input samples.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,59 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Browser Opus produces51 packets and correct stereo tones but48648 decoded samples for48000 input leave648-sample trimming unresolved; support probe alone is not adapter correctness.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/audio-components/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 16,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch",
-      "state": "PURSUE",
-      "evidence": "audio-components/result.json",
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 230,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "evidence_level": "reconciled_imported_execution",
+      "new_media_execution": false,
       "reason": "Browser Opus encodes/decodes marked stereo PCM with independently correct tones and51 packets.48648 decoded samples for48000 input exposes648-sample padding that adapter must trim. Capability warrants scoped cost comparison against existing Wasm Opus; no speedup claimed.",
-      "recorded_at_utc": "2026-09-19T17:05:41.705049+00:00"
+      "correctness_acceptance": "Browser Opus produces51 packets and correct stereo tones but48648 decoded samples for48000 input leave648-sample trimming unresolved; support probe alone is not adapter correctness.",
+      "next_action": "Implement explicit Opus delay/end-padding handling and compare complete independent PCM count/boundaries before cost measurement.",
+      "reopen_condition": "Implement explicit Opus delay/end-padding handling and compare complete independent PCM count/boundaries before cost measurement.",
+      "blocker_category": null,
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 16,
+        "record": {
+          "key": "R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch",
+          "state": "PURSUE",
+          "evidence": "audio-components/result.json",
+          "reason": "Browser Opus encodes/decodes marked stereo PCM with independently correct tones and51 packets.48648 decoded samples for48000 input exposes648-sample padding that adapter must trim. Capability warrants scoped cost comparison against existing Wasm Opus; no speedup claimed.",
+          "recorded_at_utc": "2026-09-19T17:05:41.705049+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/audio-components/result.json"
+      ]
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Implement explicit Opus delay/end-padding handling and compare complete independent PCM count/boundaries before cost measurement.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -27,7 +27,7 @@
         "line_start": 29,
         "line_end": 34,
         "source_kind": "report",
-        "reported_heading": "Native HLS over existing fMP4 — PROMISING"
+        "reported_heading": "Native HLS over existing fMP4 \u2014 PROMISING"
       }
     ],
     "scope_hash": "745d1dbf241213e5a49d212b42009aa967664c6c95606741da999543435664c3",
@@ -70,63 +70,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Native HLS unchanged fMP4 byte ranges render marked A/V, seek, EOF and cleanup; deliberately misaligned range fails. Separate ongoing-file observations do not establish early output.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R088.native-hls-playlist-views-over-compatible-existing-media.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R088.native-hls-playlist-views-over-compatible-existing-media.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/full-completion/continuity/native-delivery.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 24,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R088.native-hls-playlist-views-over-compatible-existing-media",
-      "rank": 16,
-      "state": "PURSUE",
-      "reason": "Reconciled completed prior evidence: Native HLS byte-range view reaches marked audio/video, seeks and EOF; deliberately misaligned segment ranges fail. Local unchanged fMP4 payload supports the proposed destination primitive.",
-      "evidence_level": "REUSED_COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "../full-completion/continuity/native-delivery.json",
-          "sha256": "71c7f6a65483ad4fee6d7f7fb576d8a2da3fbf454cb08f0af9f42b6f7af8fdc4"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 16,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.325602+00:00"
+      "evidence_level": "reconciled_reused_component_test",
+      "new_media_execution": false,
+      "reason": "Reconciled completed prior evidence: Native HLS byte-range view reaches marked audio/video, seeks and EOF; deliberately misaligned segment ranges fail. Local unchanged fMP4 payload supports the proposed destination primitive.",
+      "scope": "Local native HLS view primitive only; source authorization/integration separate.",
+      "correctness_acceptance": "Native HLS unchanged fMP4 byte ranges render marked A/V, seek, EOF and cleanup; deliberately misaligned range fails. Separate ongoing-file observations do not establish early output.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 24,
+        "record": {
+          "key": "R088.native-hls-playlist-views-over-compatible-existing-media",
+          "rank": 16,
+          "state": "PURSUE",
+          "reason": "Reconciled completed prior evidence: Native HLS byte-range view reaches marked audio/video, seeks and EOF; deliberately misaligned segment ranges fail. Local unchanged fMP4 payload supports the proposed destination primitive.",
+          "evidence_level": "REUSED_COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "../full-completion/continuity/native-delivery.json",
+              "sha256": "71c7f6a65483ad4fee6d7f7fb576d8a2da3fbf454cb08f0af9f42b6f7af8fdc4"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:17:13.325602+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/native-delivery.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

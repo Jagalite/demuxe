@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "run_id": "20260919T201000Z-opus-lifecycle",
+  "item_keys": [
+    "R093.opus-repacketization-without-pcm-decoding",
+    "R203.regroup-existing-opus-frames-without-re-encoding"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:12:29.952971+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/shared/tooling/opus-lifecycle.mjs"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "c4a0a7e543a8be003a6d3e9ba83ef93e4d0b2cb14c72c141d6242017a5459298",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/shared/runs/20260919T201000Z-opus-lifecycle/manifest.json"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Fixed-mode mono Opus grouping with exact decoded content, compatible split-back, native playback and seek lifecycle.",
+    "oracle": "Prior complete independent PCM/packet oracle plus current native tone/clock/EOF checks.",
+    "adverse_control": "Incompatible TOC rejected by actual libopus in pinned prior run.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "No generic multistream/mode-switch qualification.",
+    "No measured CPU/speedup; aggregation latency and page-policy tradeoff remain."
+  ],
+  "decisions": [
+    {
+      "key": "R093.opus-repacketization-without-pcm-decoding",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "Actual libopus 20/40/60ms regrouping reduces codec packets from 101 to 51/34 and splits back to byte-identical constituent packets. Complete host and Chrome PCM preserve all 96000 samples and trim; incompatible TOC rejected. One-packet-per-page candidate files (21770/21355 bytes) remain larger than the original multipacket-page Ogg (20487 bytes). Aggregation adds 20/40ms availability wait. Viable submission-count tradeoff, not a bandwidth or CPU win. Additional actual media-element lifecycle now starts, seeks to0.8s, observes880Hz, reaches EOF and releases resources for original/40ms/60ms groupings.",
+      "next_action": "Measure equivalent live submission overhead against the explicit20/40ms availability tradeoff; keep cross-mode sources rejected.",
+      "correctness": "passed",
+      "correctness_basis": "Combined immutable complete host/browser PCM, exact split-back frames, incompatible TOC rejection, actual three-file playback/seek/tone/EOF and cleanup. Restricted mono fixed-configuration profile only."
+    },
+    {
+      "key": "R203.regroup-existing-opus-frames-without-re-encoding",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "Actual libopus 20/40/60ms regrouping reduces codec packets from 101 to 51/34 and splits back to byte-identical constituent packets. Complete host and Chrome PCM preserve all 96000 samples and trim; incompatible TOC rejected. One-packet-per-page candidate files (21770/21355 bytes) remain larger than the original multipacket-page Ogg (20487 bytes). Aggregation adds 20/40ms availability wait. Viable submission-count tradeoff, not a bandwidth or CPU win. Additional actual media-element lifecycle now starts, seeks to0.8s, observes880Hz, reaches EOF and releases resources for original/40ms/60ms groupings.",
+      "next_action": "Measure equivalent live submission overhead against the explicit20/40ms availability tradeoff; keep cross-mode sources rejected.",
+      "correctness": "passed",
+      "correctness_basis": "Combined immutable complete host/browser PCM, exact split-back frames, incompatible TOC rejection, actual three-file playback/seek/tone/EOF and cleanup. Restricted mono fixed-configuration profile only."
+    }
+  ]
+}

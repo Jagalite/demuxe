@@ -17,7 +17,7 @@
       "line_end": 399,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Timeline · Follow-on architecture experiment · P2 · Risk: High First environment: Browser-only first. Dependencies: R15. Status: Untested hypothesis. Proposed mechanism. Explore AV → audio-only or AV → video-only phases by retiring an ended track’s buffer, then restoring it or rebuilding on a backward seek. Keep media-end, subtitle-end and seekable-end as different facts. Source basis. MSE buffered ranges intersect active buffers, with different ended-state handling. Splitting SourceBuffers alone does not remove that intersection. Removal changes ownership and may constrain later restoration. [M1] First agent experiment. Use both tail directions, a temporary midstream gap as a negative control, and seeks across each boundary. Compare explicit track retirement with the current bounded rejection. Validate the visible-frame policy when video ends first.",
+    "source_excerpt": "Timeline \u00b7 Follow-on architecture experiment \u00b7 P2 \u00b7 Risk: High First environment: Browser-only first. Dependencies: R15. Status: Untested hypothesis. Proposed mechanism. Explore AV \u2192 audio-only or AV \u2192 video-only phases by retiring an ended track\u2019s buffer, then restoring it or rebuilding on a backward seek. Keep media-end, subtitle-end and seekable-end as different facts. Source basis. MSE buffered ranges intersect active buffers, with different ended-state handling. Splitting SourceBuffers alone does not remove that intersection. Removal changes ownership and may constrain later restoration. [M1] First agent experiment. Use both tail directions, a temporary midstream gap as a negative control, and seeks across each boundary. Compare explicit track retirement with the current bounded rejection. Validate the visible-frame policy when video ends first.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 224,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R017.model-unequal-tails-as-explicit-track-lifetime-phases",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 144,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Current implementation already supports a bounded unequal-tail window with known ends and EOS/resume logic; it does not retire an ended SourceBuffer as proposed. The existing working approach must be baseline, not historical bounded rejection.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality.",
-      "recorded_at_utc": "2026-09-19T17:34:19.106228+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists.",
+      "next_action": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 224,
+        "record": {
+          "key": "R017.model-unequal-tails-as-explicit-track-lifetime-phases",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+          ],
+          "reason": "Current implementation already supports a bounded unequal-tail window with known ends and EOS/resume logic; it does not retire an ended SourceBuffer as proposed. The existing working approach must be baseline, not historical bounded rejection.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality.",
+          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality.",
+          "recorded_at_utc": "2026-09-19T17:34:19.106228+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ]
     }
   },
-  "next_action": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality.",
+  "next_action": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

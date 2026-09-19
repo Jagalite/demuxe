@@ -17,7 +17,7 @@
       "line_end": 66,
       "source_kind": "report"
     },
-    "source_excerpt": "A 20-second 29.97-fps H.264/MP4 with B-frames yields 600 packets. The prototype stores packet byte gaps, sizes, DTS deltas, signed PTS−DTS offsets, durations, and a key flag using unsigned/zig-zag varints. Decoding that sidecar reconstructs every original scalar exactly, including the six observed CTS offsets [0, 1001, 2002, 3003, 4004, 5005] and duration 1001. The compact form is 5,913 bytes versus 28,800 bytes for six padded 64-bit fields per packet — 79.5% smaller. This is a representation result, not yet a browser seek benchmark or a comparison to MP4's own optimized sample tables.",
+    "source_excerpt": "A 20-second 29.97-fps H.264/MP4 with B-frames yields 600 packets. The prototype stores packet byte gaps, sizes, DTS deltas, signed PTS\u2212DTS offsets, durations, and a key flag using unsigned/zig-zag varints. Decoding that sidecar reconstructs every original scalar exactly, including the six observed CTS offsets [0, 1001, 2002, 3003, 4004, 5005] and duration 1001. The compact form is 5,913 bytes versus 28,800 bytes for six padded 64-bit fields per packet \u2014 79.5% smaller. This is a representation result, not yet a browser seek benchmark or a comparison to MP4's own optimized sample tables.",
     "related_reports": [],
     "scope_hash": "2c714055b5c809cf17dd89ad96c0e901c3172dc528dd5ebd8f76ac63dfcd3994",
     "legacy_guide_aliases": [
@@ -55,64 +55,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Actual required packet-index scalar contract and owner; compare with current sparse/container index rather than padded synthetic fields.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Actual required packet-index scalar contract and owner; compare with current sparse/container index rather than padded synthetic fields.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R226.compact-exact-packet-index.report-continuity.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 256,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R226.compact-exact-packet-index.report-continuity",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 185,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Current owner retains only bounded RAP times and live segment metadata, not a full six-scalar packet index. The reported 79.5% saving compares padded fields, not current MP4 tables; a persistent source-bound index owner is prerequisite.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas.",
-      "reopen_condition": "Reopen when a packet sidecar is actually required and its construction/lookup/retention costs are specified.",
-      "recorded_at_utc": "2026-09-19T17:34:19.114240+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Actual required packet-index scalar contract and owner; compare with current sparse/container index rather than padded synthetic fields.",
+      "next_action": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 256,
+        "record": {
+          "key": "R226.compact-exact-packet-index.report-continuity",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+          ],
+          "reason": "Current owner retains only bounded RAP times and live segment metadata, not a full six-scalar packet index. The reported 79.5% saving compares padded fields, not current MP4 tables; a persistent source-bound index owner is prerequisite.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas.",
+          "reopen_condition": "Reopen when a packet sidecar is actually required and its construction/lookup/retention costs are specified.",
+          "recorded_at_utc": "2026-09-19T17:34:19.114240+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ]
     }
   },
-  "next_action": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas.",
+  "next_action": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

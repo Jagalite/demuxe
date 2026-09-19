@@ -17,7 +17,7 @@
       "line_end": 343,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Reconfiguration-avoidance hypothesis · P2 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox decision/sequence checks; a meaningful production saving requires local reconfiguration instrumentation. Related cards: R36, R43, R27. Proposed mechanism. Use a strict decoder-configuration fingerprint to recognize when a new wrapper or initialization segment does not require replacing an entire playback backend. Maintain a DIFFERENT source/track/timeline identity and still append required initialization data. Begin with exact codec-extra-data equality, not speculative semantic rewriting of parameter sets. What is new. R27 shared immutable compiled code, while R43 crossed a real video configuration change. This asks whether harmless wrapper-level differences or object identity cause avoidable application reconfiguration when the complete codec contract is unchanged.",
+    "source_excerpt": "Reconfiguration-avoidance hypothesis \u00b7 P2 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox decision/sequence checks; a meaningful production saving requires local reconfiguration instrumentation. Related cards: R36, R43, R27. Proposed mechanism. Use a strict decoder-configuration fingerprint to recognize when a new wrapper or initialization segment does not require replacing an entire playback backend. Maintain a DIFFERENT source/track/timeline identity and still append required initialization data. Begin with exact codec-extra-data equality, not speculative semantic rewriting of parameter sets. What is new. R27 shared immutable compiled code, while R43 crossed a real video configuration change. This asks whether harmless wrapper-level differences or object identity cause avoidable application reconfiguration when the complete codec contract is unchanged.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 127,
         "line_end": 134,
         "source_kind": "report",
-        "reported_heading": "Configuration fingerprints — NOT WORTH COMPLEXITY"
+        "reported_heading": "Configuration fingerprints \u2014 NOT WORTH COMPLEXITY"
       }
     ],
     "scope_hash": "54430fe49e2cfce088e8e70598f19e3e640ffaefff6d0e584612820ff6d59f50",
@@ -64,9 +64,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -76,14 +78,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -97,30 +103,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 91,
-    "record": {
-      "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
-      "rank": 69,
-      "state": "STOP_PROFILE",
-      "reason": "Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.",
-      "evidence_level": "SOURCE_REVIEW",
-      "evidence": [
-        {
-          "path": "audits/R069.json",
-          "sha256": "f8f1edd7d9a5d7595b96c5b753dd29def0f37ac12e16fcdf90a21a9bdf18a4f8"
-        }
-      ],
-      "recorded_at_utc": "2026-09-19T19:03:40.737091+00:00"
-    }
+    "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "top100",
+      "ledger": "results/top100/decisions.jsonl",
+      "line": 91,
+      "record": {
+        "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+        "rank": 69,
+        "state": "STOP_PROFILE",
+        "reason": "Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.",
+        "evidence_level": "SOURCE_REVIEW",
+        "evidence": [
+          {
+            "path": "audits/R069.json",
+            "sha256": "f8f1edd7d9a5d7595b96c5b753dd29def0f37ac12e16fcdf90a21a9bdf18a4f8"
+          }
+        ],
+        "recorded_at_utc": "2026-09-19T19:03:40.737091+00:00"
+      }
+    },
+    "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
   "integration": {

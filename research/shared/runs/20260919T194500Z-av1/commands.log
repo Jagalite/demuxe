@@ -1,0 +1,14 @@
+git clone --depth 1 https://aomedia.googlesource.com/aom build/catalogue-tools/aom (resolved 208e9c49dba9fe961251fbd0e9c0494d9b8dbe76)
+cmake -S build/catalogue-tools/aom -B build/catalogue-tools/aom-build -DENABLE_TESTS=OFF -DENABLE_DOCS=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build/catalogue-tools/aom-build -j 4 --target aomenc aomdec svc_encoder_rtc
+ffmpeg -v error -y -f lavfi -i testsrc2=size=512x512:rate=24 -frames:v 1 -pix_fmt yuv420p results/catalogue-current/av1/tile-source.y4m
+build/catalogue-tools/aom-build/aomenc --good --cpu-used=6 --limit=1 --end-usage=q --cq-level=24 --large-scale-tile=1 --tile-columns=1 --tile-rows=1 --ivf -o results/catalogue-current/av1/tiles.ivf results/catalogue-current/av1/tile-source.y4m
+ffmpeg -v error -y -f lavfi -i testsrc2=size=160x96:rate=24 -frames:v 24 -pix_fmt yuv420p results/catalogue-current/av1/temporal-source.y4m
+build/catalogue-tools/aom-build/examples/svc_encoder_rtc -w 160 -h 96 -t 1/24 -b 150 -sl 1 -tl 2 -lm 1 -bl 75,150 -sp 8 -k 24 -o research/shared/runs/20260919T194500Z-av1/temporal.ivf results/catalogue-current/av1/temporal-source.y4m
+cc -O2 -I build/catalogue-tools/aom research/shared/tooling/av1-selected-decode.c build/catalogue-tools/aom-build/libaom.a -lc++ -lm -o build/catalogue-tools/av1-selected-decode
+build/catalogue-tools/av1-selected-decode results/catalogue-current/av1/tiles.ivf research/shared/runs/20260919T194500Z-av1/full-corrected.yuv 1 -1 -1 0
+build/catalogue-tools/av1-selected-decode results/catalogue-current/av1/tiles.ivf research/shared/runs/20260919T194500Z-av1/tile-corrected.yuv 1 1 1 0
+build/catalogue-tools/av1-selected-decode research/shared/runs/20260919T194500Z-av1/temporal.ivf research/shared/runs/20260919T194500Z-av1/all-corrected.yuv 0 -1 -1 0
+build/catalogue-tools/av1-selected-decode research/shared/runs/20260919T194500Z-av1/temporal.ivf research/shared/runs/20260919T194500Z-av1/base-corrected.yuv 0 -1 -1 1
+python3 research/shared/tooling/av1-layer-screen.py
+node research/shared/tooling/av1-browser.mjs

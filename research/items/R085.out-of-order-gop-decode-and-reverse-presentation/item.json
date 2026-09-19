@@ -17,7 +17,7 @@
       "line_end": 75,
       "source_kind": "report"
     },
-    "source_excerpt": "The four-second source was prepared as four independent one-second closed-GOP clips. They were decoded in deliberate non-timeline order 3 → 1 → 2 → 0. Each GOP retained exactly 30 ImageBitmaps, including an explicit initial-frame snapshot plus presentation callbacks. The retained frames were then drawn without further media seeking or decoding in global order 119 → 118 → ... → 0. All 120 frame identities were unique and strictly descending. Independent GOP encodes remained visually close to the matching full-source regions: sampled mean absolute RGB error was 0 to about 0.57/255. A separate stress probe started all four GOP media elements concurrently. Callback counts were 29, 29, 27 and 27 rather than 30 each. Therefore the useful result is bounded independent-region decode plus retained reverse presentation—not a claim that arbitrarily many decoder instances can run concurrently without loss.",
+    "source_excerpt": "The four-second source was prepared as four independent one-second closed-GOP clips. They were decoded in deliberate non-timeline order 3 \u2192 1 \u2192 2 \u2192 0. Each GOP retained exactly 30 ImageBitmaps, including an explicit initial-frame snapshot plus presentation callbacks. The retained frames were then drawn without further media seeking or decoding in global order 119 \u2192 118 \u2192 ... \u2192 0. All 120 frame identities were unique and strictly descending. Independent GOP encodes remained visually close to the matching full-source regions: sampled mean absolute RGB error was 0 to about 0.57/255. A separate stress probe started all four GOP media elements concurrently. Callback counts were 29, 29, 27 and 27 rather than 30 each. Therefore the useful result is bounded independent-region decode plus retained reverse presentation\u2014not a claim that arbitrarily many decoder instances can run concurrently without loss.",
     "related_reports": [],
     "scope_hash": "645b001ed2fcc8827946534804c0f1aeb66a1543ff6398c3f9ecf86940d9f43f",
     "legacy_guide_aliases": [],
@@ -53,66 +53,115 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Single closed-GOP reverse owner with byte cap and frame-ID oracle before any concurrent decode scheduling.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Single closed-GOP reverse owner with byte cap and frame-ID oracle before any concurrent decode scheduling.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R085.out-of-order-gop-decode-and-reverse-presentation.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 267,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R085.out-of-order-gop-decode-and-reverse-presentation",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 198,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "The retained owner holds a bounded forward queue plus current frame, not independent GOP caches or reverse scheduling. Historical success used prepared independent GOP encodes and its concurrent decoder stress missed frames.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection.",
-      "reopen_condition": "Reopen for requested reverse/preview semantics and a bounded GOP owner; do not build a multi-decoder service in first pass.",
-      "recorded_at_utc": "2026-09-19T17:34:19.143044+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Single closed-GOP reverse owner with byte cap and frame-ID oracle before any concurrent decode scheduling.",
+      "next_action": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 267,
+        "record": {
+          "key": "R085.out-of-order-gop-decode-and-reverse-presentation",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+          ],
+          "reason": "The retained owner holds a bounded forward queue plus current frame, not independent GOP caches or reverse scheduling. Historical success used prepared independent GOP encodes and its concurrent decoder stress missed frames.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection.",
+          "reopen_condition": "Reopen for requested reverse/preview semantics and a bounded GOP owner; do not build a multi-decoder service in first pass.",
+          "recorded_at_utc": "2026-09-19T17:34:19.143044+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     }
   },
-  "next_action": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection.",
+  "next_action": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

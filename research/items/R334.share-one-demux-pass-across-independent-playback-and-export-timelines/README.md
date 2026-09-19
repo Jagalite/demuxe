@@ -2,54 +2,28 @@
 
 # Share one demux pass across independent playback and export timelines
 
-Full identity: `R334.share-one-demux-pass-across-independent-playback-and-export-timelines`. Reused R-numbers are separate mechanisms.
+Full identity: `R334.share-one-demux-pass-across-independent-playback-and-export-timelines`. Original rank: 118.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
 
 Current remux mutates packet timestamps and stream index before feeding one mux context; each player owns a separate reader/cursor. A canonical immutable packet broker plus independent output lifetimes is absent. Tee capability alone does not supply dynamic authority, seek or slow-consumer policies.
 
-Next action: Scope two consumers sharing one qualified start and cloned packet wrappers; compare both complete packet/timestamp outputs with independent persistent muxers, and cancel/slow one consumer without mutating the other.
+No matching candidate/reference/control execution for this exact gate. Immutable packet fanout component with two independent mux cursors and slow/cancel isolation.
 
-## Definition and contract
-
-Proposal key: 592099497459d23ce3b043843fd88ea79bca6d59c9e77113caae2abfdedebe0e Mechanism: Publish immutable, source-timestamped packet records once; let each admitted output own its configuration, timestamp mapping, packet wrapper, muxer, cancellation, and buffering budget. Initial scope: One authorized finite unencrypted source, stable H.264/AAC configuration, validated destinations, and consumers whose requests remain within a bounded shared source interval. Begin at one common qualified entry point; additional clip starts require separately qualified preroll and trimming. Acceptance contract: Each completed output must match its independent qualified reference in selected coded payloads, configuration, timing, trimming, and requested playback. One output may not mutate another output’s packet metadata or silently discard its requested samples.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
+Next action: Scope two consumers sharing one qualified start and cloned packet wrappers; compare both complete packet/timestamp outputs with independent persistent muxers, and cancel/slow one consumer without mutating the other. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| prepare | blocked | Unperformed setup gate: Immutable packet fanout component with two independent mux cursors and slow/cancel isolation. |
+| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
+| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Immutable packet fanout component with two independent mux cursors and slow/cancel isolation. |
+| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
+| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
+| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R334.share-one-demux-pass-across-independent-playback-and-export-timelines.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R334.share-one-demux-pass-across-independent-playback-and-export-timelines.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R334.share-one-demux-pass-across-independent-playback-and-export-timelines.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R334.share-one-demux-pass-across-independent-playback-and-export-timelines.md)
+Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.

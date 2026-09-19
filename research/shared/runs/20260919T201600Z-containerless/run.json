@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "run_id": "20260919T201600Z-containerless",
+  "item_keys": [
+    "R030.investigate-containerless-encoded-chunk-mse"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:20:46.489943+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -y -f lavfi -i color=red:size=160x96:rate=24:duration=2 -f lavfi -i sine=frequency=440:sample_rate=48000:duration=2 -c:v libx264 -preset ultrafast -tune zerolatency -bf 0 -g 24 -c:a aac -shortest research/shared/runs/20260919T201600Z-containerless/no-b.mp4",
+    "ffprobe -v error -show_streams -show_packets -show_data -of json (each documented fixture, converted to input.json)",
+    "node research/shared/tooling/containerless-mse.mjs"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "132a5e0cd5637435d540c6411333e6930d5ae7cf6343f5d8105d51df9cefd005",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/shared/runs/20260919T201600Z-containerless/manifest.json"
+  },
+  "candidate": {
+    "executed": false,
+    "fallback_observed": null
+  },
+  "acceptance": {
+    "contract": "Construct actual config-based containerless A/V MSE in explicitly flagged isolated Chrome; capability exposure alone insufficient.",
+    "oracle": "Actual API construction and recorded browser exception; no candidate output oracle reached.",
+    "adverse_control": "Invalid codec rejected in preserved first variant; removing that preflight does not solve destination quota.",
+    "passed": false
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "Default browser flag never changed.",
+    "No native A/V success, fidelity, performance or shipping support inferred from API exposure."
+  ],
+  "decisions": [
+    {
+      "key": "R030.investigate-containerless-encoded-chunk-mse",
+      "disposition": "blocked",
+      "blocker_category": "environment",
+      "evidence_level": "prerequisite_probe",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "reason": "In explicit experimental Chrome152, --enable-blink-features=MediaSourceExtensionsForWebCodecs exposes appendEncodedChunks. Actual AVC SourceBuffer configuration rejects both no-B and B-frame inputs with H264/H265 buffering unsupported. A further VP9/Opus two-buffer attempt fails SourceBuffer quota during construction, even without invalid-config preflight. No complete containerless A/V candidate played. Default Chrome absence remains separate from experimental codec/destination limits; not a decoded-output negative.",
+      "next_action": "Watch upstream AVC/HEVC containerless buffering and config-based multi-track construction support; reopen with a documented supported A/V construction, retaining default-route gating.",
+      "correctness_basis": "Candidate cannot construct the required AVC/AAC or split VP9/Opus destination in tested experimental runtime; no complete A/V output to qualify."
+    }
+  ]
+}

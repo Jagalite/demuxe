@@ -1,0 +1,388 @@
+{
+  "scope": "Manual per-item acceptance reconciliation; no new media execution",
+  "items": [
+    {
+      "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
+      "initial_rank": 1,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "scope": "HEVC/AAC TS isolated RemuxPlayer bridge; baseline rejects; ordinary runtime unchanged.",
+      "correctness_basis": "Full host pictures/PCM and actual HEVC/AAC playback/seek pass, with AVC control and worker cleanup. Codec-aware adverse timestamp/configuration cases remain before closing correctness.",
+      "evidence": [
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/hevc-remux.c",
+        "results/top100/transport/build-commands.json"
+      ]
+    },
+    {
+      "key": "R262.configuration-interval-seek",
+      "initial_rank": 2,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Explicit source-bound SPS/RAP configuration intervals; not generic container indexing.",
+      "correctness_basis": "96 full-transition and 48 interval-seek pictures match independent visible-plane hashes. Recorded timestamps also independently checked against input packets; dependent cold-start rejects and decoders close.",
+      "evidence": [
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
+      ]
+    },
+    {
+      "key": "R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally",
+      "initial_rank": 3,
+      "disposition": "stop_current_profile",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "scope": "Synthetic VP9 profile0/8-bit 160x96; aggregate requires72 submissions versus78 split. No reason to normalize this working profile.",
+      "correctness_basis": "Maintained VP9 worker aggregate and split paths each reproduce 72 pictures/timestamps; keyframe seek gives 48 exact pictures, missing hidden frames fails, dependent start rejects, all frames close.",
+      "evidence": [
+        "results/full-completion/r332/result.json"
+      ]
+    },
+    {
+      "key": "R343.unwrap-aac-latm-into-a-browser-decoded-audio-route",
+      "initial_rank": 4,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "142 AAC frames; multi-program/layer, CRC and otherData mappings excluded.",
+      "correctness_basis": "Restricted single-program/layer AAC-LC LATM extraction preserves all independent decoded PCM; truncated/sync/missing-config controls reject. Actual browser raw AAC lane preserves marked output through changing video and EOF/cleanup.",
+      "evidence": [
+        "results/top100/transport/latm-result.json",
+        "results/top100/lanes/result.json"
+      ]
+    },
+    {
+      "key": "R355.preserve-native-playback-when-an-mpeg-ts-track-changes-packet-identifier",
+      "initial_rank": 5,
+      "disposition": "stop_current_profile",
+      "prepare": "passed",
+      "correctness": "failed",
+      "performance": "not_applicable",
+      "scope": "Option-alone PID transition variant rejected; a new authority/reordering adapter is a separate variant.",
+      "correctness_basis": "Candidate merge_pmt_versions changes video demux order and actual player rejects Selected timeline discontinuity. Packet multiset equality is insufficient; baseline also loses video continuity.",
+      "evidence": [
+        "results/top100/transport/pid-result.json",
+        "results/top100/transport/pid-browser-result.json"
+      ]
+    },
+    {
+      "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+      "initial_rank": 6,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "scope": "Matroska ContentEncodings scope1/order0/type0/zlib, unlaced blocks only.",
+      "correctness_basis": "149 authored zlib-compressed blocks preserve host packet/PTS and independent pixels/PCM through JSPI output; browser A/V reaches EOF. Malformed compression, resource bounds and configuration transitions not qualified.",
+      "evidence": [
+        "results/top100/matroska/fixture.json",
+        "results/top100/destinations/result.json"
+      ]
+    },
+    {
+      "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+      "initial_rank": 7,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Tiny loopback byte-range HLS view over generated fragments; production authorization/resource service excluded.",
+      "correctness_basis": "Maintained remux capture preserves48 video/95 audio packets, and native HLS serves marked A/V through seek/EOF; wrong range boundary rejects and resources clean up.",
+      "evidence": [
+        "results/top100/hls/maintained-result.json",
+        "results/top100/hls/native-delivery.json"
+      ]
+    },
+    {
+      "key": "R009.pass-already-valid-fragmented-media-through-unchanged",
+      "initial_rank": 8,
+      "disposition": "stop_current_profile",
+      "prepare": "not_applicable",
+      "correctness": "not_applicable",
+      "performance": "not_applicable",
+      "scope": "Local unchanged fMP4 profile only; controlled-fetch or selected-track pass-through remains a separate opportunity.",
+      "correctness_basis": "New MSE pass-through candidate stopped because existing native-direct handles the tested unchanged local fMP4, seeks to6s, and leaves zero workers. No MSE candidate correctness claimed.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R009.pass-already-valid-fragmented-media-through-unchanged.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/opportunities-02.json"
+      ]
+    },
+    {
+      "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+      "initial_rank": 9,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "scope": "AVC/AAC MP4 to VP9/Opus WebM through one MSE SourceBuffer; not gapless or sample-exact qualification.",
+      "correctness_basis": "Retained changeType and restart controls both render expected red/green pictures and tones with cleanup. Boundary timing/PCM and adverse lifecycle remain open; media log includes splice and encoded-time warnings.",
+      "evidence": [
+        "results/full-completion/continuity/result.json"
+      ]
+    },
+    {
+      "key": "R005.move-mse-ownership-off-the-window-thread",
+      "initial_rank": 10,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Worker-owned MSE component only; production scheduler and main-thread responsiveness not measured.",
+      "correctness_basis": "Actual worker MediaSourceHandle renders A/V to EOF, seeks, rejects malformed input and terminates after a frame; transferred input detaches and every tested case cleans up.",
+      "evidence": [
+        "results/full-completion/continuity/worker-result.json"
+      ]
+    },
+    {
+      "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+      "initial_rank": 12,
+      "disposition": "blocked",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "scope": "Fixed physical display/compositor diagnostic required.",
+      "correctness_basis": "No physical overlay-promotion/compositor scanout evidence exists in headless environment. This is an environment prerequisite, not a failed overlay experiment.",
+      "evidence": [
+        "results/top100/environment.json"
+      ]
+    },
+    {
+      "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
+      "initial_rank": 13,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Small independent GPU presenter owner; actual platform-loss paths beyond device.destroy and player integration excluded.",
+      "correctness_basis": "Actual WebGPU device destruction/recreation yields exact held-frame redraw, keeps the same configured VideoDecoder and emits next timestamp1000000; errors empty and cleanup recorded.",
+      "evidence": [
+        "results/top100/gpu/result.json"
+      ]
+    },
+    {
+      "key": "R057.probe-a-real-six-channel-native-flac-destination",
+      "initial_rank": 15,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Six channel identities at Web Audio boundary; not sample-exact wholePCM or six physical speaker proof.",
+      "correctness_basis": "Independent six-tone channel matrix stays diagonal for direct and MSE FLAC, while intentional stereo downmix fails the matrix. Both destinations reach EOF and clean up.",
+      "evidence": [
+        "results/full-completion/r57/result.json"
+      ]
+    },
+    {
+      "key": "R088.native-hls-playlist-views-over-compatible-existing-media",
+      "initial_rank": 16,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Local native HLS view primitive only; source authorization/integration separate.",
+      "correctness_basis": "Native HLS unchanged fMP4 byte ranges render marked A/V, seek, EOF and cleanup; deliberately misaligned range fails. Separate ongoing-file observations do not establish early output.",
+      "evidence": [
+        "results/full-completion/continuity/native-delivery.json"
+      ]
+    },
+    {
+      "key": "R183.native-color-with-separately-decoded-transparency",
+      "initial_rank": 17,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Explicit matrix metadata is required; implicit-matrix negative retained. Two-clock production owner not qualified.",
+      "correctness_basis": "Three independent VP8 color/mask frame pairs have zero alpha and visible premultiplied-color error after explicit SD matrix; wrong timestamp/dimension pairing rejects and cleanup recorded.",
+      "evidence": [
+        "results/top100/alpha/result.json"
+      ]
+    },
+    {
+      "key": "R114.use-webrtc-native-media-reception-as-a-packet-copy-destination",
+      "initial_rank": 18,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Chrome --disable-features=WebRtcHideLocalIpsWithMdns; placeholder encoder still runs, so no encoder-free or default-privacy claim.",
+      "correctness_basis": "Three received H264 NAL lists match substituted source and native receiver renders red instead of green placeholder; connections/tracks cleaned up. Qualification restricted to diagnostic mDNS-disabled environment.",
+      "evidence": [
+        "results/top100/webrtc/result.json"
+      ]
+    },
+    {
+      "key": "R176.jspi-backed-synchronous-wasm-i-o",
+      "initial_rank": 19,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Restricted TS and zlib-Matroska profile; ordinary AAC MP4 priming/trim failure remains excluded and recorded.",
+      "correctness_basis": "Actual non-pthread JSPI read suspension runs without cross-origin isolation or SAB, complete generated output matches host pixels/PCM, delayed reads permit event-loop ticks, cancellation rejects, browser output reaches EOF.",
+      "evidence": [
+        "results/top100/jspi/result.json",
+        "results/top100/destinations/result.json"
+      ]
+    },
+    {
+      "key": "R006.offer-a-non-pthread-remux-path-without-isolation",
+      "initial_rank": 20,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Restricted non-isolated deployment profile; ordinary AAC MP4 priming/trim failure is not waived.",
+      "correctness_basis": "Actual non-pthread JSPI read suspension runs without cross-origin isolation or SAB, complete generated output matches host pixels/PCM, delayed reads permit event-loop ticks, cancellation rejects, browser output reaches EOF.",
+      "evidence": [
+        "results/top100/jspi/result.json",
+        "results/top100/destinations/result.json"
+      ]
+    },
+    {
+      "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+      "initial_rank": 21,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Tiny SDR fixture only; color/chroma/HDR/rotation and production playback excluded. Diagnostic draw times are not a benchmark.",
+      "correctness_basis": "Raw VideoFrame black/white SDR pixels match existing YUVPresenter oracle with maximum error0; padded stride/crop handled, bad stride rejected, VideoFrame closed.",
+      "evidence": [
+        "results/full-completion/presentation/result.json"
+      ]
+    },
+    {
+      "key": "R086.native-video-with-an-independent-generated-pcm-clock",
+      "initial_rank": 22,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "scope": "Browser clocks only; no acoustic sync or arbitrary decoded-audio pitch fidelity.",
+      "correctness_basis": "Maintained PCM worklet handles seek/rate epochs and stale producer rejection with generated tones. Errors approach80ms active and253ms during starvation; tighter output-time feedback and sync acceptance remain unresolved.",
+      "evidence": [
+        "results/top100/independent-audio-result.json"
+      ]
+    },
+    {
+      "key": "R097.mux-color-and-alpha-into-native-transparent-webm",
+      "initial_rank": 23,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Three suitable encoded pairs; source preparation cost separate, no hardware-alpha claim.",
+      "correctness_basis": "Mux-only VP8 color/alpha host RGBA is exact; native browser alpha error0 and premultiplied RGB rounding error at most0.506 byte through seek/rewind/EOF; mispaired timestamp rejects.",
+      "evidence": [
+        "results/top100/alpha/fixture.json",
+        "results/top100/alpha/result.json"
+      ]
+    },
+    {
+      "key": "R160.turn-a-whole-file-audio-decoder-into-a-bounded-streaming-component",
+      "initial_rank": 24,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Prepared independent chunks only; arbitrary compressed-file segmentation and streaming scheduler excluded.",
+      "correctness_basis": "Two prepared independently decodable48000-frame FLAC regions concatenate to96000 samples with maximum error0 versus full browser decode; one-sample shift produces nonzero seam error and context closes.",
+      "evidence": [
+        "results/top100/audio/seams-result.json"
+      ]
+    },
+    {
+      "key": "R101.keep-decoded-video-on-the-native-overlay-display-path",
+      "initial_rank": 25,
+      "disposition": "blocked",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "scope": "Physical display/compositor environment prerequisite.",
+      "correctness_basis": "Headless API checks cannot establish physical native overlay/scanout. Fixed-display device evidence remains required; no negative display result inferred.",
+      "evidence": [
+        "results/top100/environment.json"
+      ]
+    },
+    {
+      "key": "R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately",
+      "initial_rank": 27,
+      "disposition": "stop_current_profile",
+      "prepare": "passed",
+      "correctness": "not_applicable",
+      "performance": "not_applicable",
+      "scope": "Local HE-AACv1 native decode capability; highband tone alone was not the oracle.",
+      "correctness_basis": "Core/SBR candidate stopped because ordinary native HE-AAC already returns100288 stereo frames matching independent reference within1.67005e-5 sample error; malformed input rejects. Baseline fidelity is established, not separate-SBR correctness.",
+      "evidence": [
+        "results/top100/audio/native-result.json"
+      ]
+    },
+    {
+      "key": "R159.remux-encrypted-media-without-decrypting-its-samples",
+      "initial_rank": 28,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "scope": "Owned AES-CTR relocation component; generic fragmented encrypted remux and EME playback excluded.",
+      "correctness_basis": "CENC relocation preserves ciphertext/IV/subsamples, repairs offsets, independently decrypts to exact pixels and rejects wrong IV. Both original/candidate ClearKey runs yield no observed decoded frames, so browser destination correctness remains unverified.",
+      "evidence": [
+        "results/top100/cenc/result.json",
+        "results/top100/cenc/browser-result.json",
+        "results/top100/cenc/original-browser-result.json"
+      ]
+    },
+    {
+      "key": "R208.make-cancellation-follow-media-dependency-boundaries",
+      "initial_rank": 30,
+      "disposition": "pursue",
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "scope": "Owned HTTP dependency component only; no generic WebTransport or latency qualification.",
+      "correctness_basis": "Required24-packet GOP remains and decodes24 exact frames while actual speculative HTTP fetch abort is observed by server; stale generation publication rejects.",
+      "evidence": [
+        "results/top100/ownership/result.json"
+      ]
+    }
+  ],
+  "count": 26,
+  "correctness_counts": {
+    "passed": 16,
+    "pending": 5,
+    "not_applicable": 2,
+    "blocked": 2,
+    "failed": 1
+  },
+  "manifest_verification": [
+    {
+      "path": "results/top100/evidence-manifest.json",
+      "verified_entries": 113,
+      "failures": []
+    },
+    {
+      "path": "results/top100/source-runtime-manifest.json",
+      "verified_entries": 71,
+      "failures": []
+    }
+  ],
+  "offline_timestamp_checks": [
+    {
+      "case": "full-reconfigure",
+      "timestamp_identity": true,
+      "frames": 96
+    },
+    {
+      "case": "seek-large",
+      "timestamp_identity": true,
+      "frames": 48
+    }
+  ]
+}

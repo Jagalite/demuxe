@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 89,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 104,
+    "record": {
+      "key": "R170.separate-audio-clock-drift-from-an-audio-latency-jump",
+      "rank": 89,
+      "state": "PURSUE_COMPONENT",
+      "reason": "Controlled clock observations distinguish100ppm drift from50ms output-latency step and ignore120ms callback-delivery delay. Uses actual AudioContext timestamp schema/anchor but injections are synthetic; physical device drift/jump and integrated correction remain unqualified.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "clock/classification-result.json",
+          "sha256": "457fb81d14f438ae083b3333f5041b954f2e61084ddf92a0fe5bef5ad2f753ff"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.759597+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/clock/classification-result.json",
+      "declared_sha256": "457fb81d14f438ae083b3333f5041b954f2e61084ddf92a0fe5bef5ad2f753ff",
+      "observed_sha256": "457fb81d14f438ae083b3333f5041b954f2e61084ddf92a0fe5bef5ad2f753ff",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Controlled60s observation oracle distinguishes100ppm drift,50ms step and combined traces;120ms delayed callback leaves drift diagnosis unchanged. Pure classifier correctness only, real timestamp schema anchor."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Capability/classifier scope; physical device behavior and integrated correction separately unqualified."
+    }
+  },
+  "passed": true
+}

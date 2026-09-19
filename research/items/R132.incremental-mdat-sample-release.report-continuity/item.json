@@ -17,7 +17,7 @@
       "line_end": 41,
       "source_kind": "report"
     },
-    "source_excerpt": "Question. Can Chrome's MSE parser release complete coded samples before the entire enclosing mdat or movie fragment is present? The test appended the fMP4 initialization segment, the first moof, the mdat header, and only ~70 KiB of the first 2-second media payload. The rest of the mdat was deliberately withheld. Before the tail arrived, SourceBuffer.buffered already covered 0.066666–0.799999 s and requestVideoFrameCallback reported twelve presented frames from 0.066666 through 0.433333 s. readyState was 4 and playback had advanced to ~0.448 s. Appending the remainder extended the same range to 2.066666 s and playback continued without a media error. Implication. Demuxe does not necessarily need to materialize a complete fMP4 fragment before starting an MSE append. A streaming muxer can potentially emit fragment metadata and coded sample bytes incrementally, bounded by complete-sample availability.",
+    "source_excerpt": "Question. Can Chrome's MSE parser release complete coded samples before the entire enclosing mdat or movie fragment is present? The test appended the fMP4 initialization segment, the first moof, the mdat header, and only ~70 KiB of the first 2-second media payload. The rest of the mdat was deliberately withheld. Before the tail arrived, SourceBuffer.buffered already covered 0.066666\u20130.799999 s and requestVideoFrameCallback reported twelve presented frames from 0.066666 through 0.433333 s. readyState was 4 and playback had advanced to ~0.448 s. Appending the remainder extended the same range to 2.066666 s and playback continued without a media error. Implication. Demuxe does not necessarily need to materialize a complete fMP4 fragment before starting an MSE append. A streaming muxer can potentially emit fragment metadata and coded sample bytes incrementally, bounded by complete-sample availability.",
     "related_reports": [],
     "scope_hash": "0fa0cf9a6b571adc56c54aadcbc15236793ae74a12d71985773e2ad483486f0a",
     "legacy_guide_aliases": [
@@ -55,63 +55,78 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen.",
+      "evidence": [
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Actual Chrome emits presented video frames from12 complete coded samples while mdat tail is withheld; first sample truncated by1byte presents0frames until remainder arrives. Both complete to EOF and clean up.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified.",
+      "evidence": [
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark or owner opportunity measurement.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable positive/negative evidence and manifests registered.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R132.incremental-mdat-sample-release.report-continuity.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R132.incremental-mdat-sample-release.report-continuity.md"
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue; remaining gate and actual owner opportunity explicit.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 212,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R132.incremental-mdat-sample-release.report-continuity",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R132.incremental-mdat-sample-release.report-continuity.md"
+      "state": "pursue",
+      "reason": "Actual Chrome emits presented video frames from12 complete coded samples while mdat tail is withheld; first sample truncated by1byte presents0frames until remainder arrives. Both complete to EOF and clean up.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
+      "run_ids": [
+        "20260919T203000Z-partial-mdat"
       ],
-      "reason": "Worker emits complete rm_step batches; FFmpeg writes custom fragments after accumulated timing. Early mdat delivery requires truthful metadata before remaining payload, not merely splitting already buffered output. No streaming mux boundary is exposed.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
-      "recorded_at_utc": "2026-09-19T17:34:19.103008+00:00"
+      "evidence": [
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
+        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
+      ],
+      "next_test": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.",
+      "reopen_condition": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.",
+      "scope": "Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified."
     }
   },
-  "next_action": "First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
+  "next_action": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

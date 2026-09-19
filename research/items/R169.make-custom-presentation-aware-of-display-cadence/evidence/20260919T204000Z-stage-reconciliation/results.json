@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 88,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 63,
+    "record": {
+      "key": "R169.make-custom-presentation-aware-of-display-cadence",
+      "rank": 88,
+      "state": "HOLD_ENV",
+      "reason": "Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "environment.json",
+          "sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:32:49.625146+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/environment.json",
+      "declared_sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9",
+      "observed_sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "blocked",
+      "basis": "Headless API prerequisite run explicitly lacks physical refresh/scanout evidence; no display-cadence correctness claim."
+    },
+    "performance": {
+      "status": "blocked",
+      "basis": "Physical display diagnostic environment required, not experimental failure."
+    }
+  },
+  "passed": true
+}

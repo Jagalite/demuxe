@@ -53,9 +53,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/canonical-config-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,50 +69,64 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Exact duplicate SPS/PPS bytes canonicalize69\u219238description bytes; two48-frame browser decodes match independent pixels/timestamps; same-ID changed SPS rejects and cleanup recorded. Only byte-identical duplicates.",
+      "evidence": [
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/canonical-config-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No repeated reconfiguration cost/workload benefit measured.",
+      "evidence": [
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/canonical-config-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R119.canonicalize-equivalent-decoder-configurations.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R119.canonicalize-equivalent-decoder-configurations.md",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/canonical-config-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/canonical-config-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 87,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R119.canonicalize-equivalent-decoder-configurations",
-      "rank": 73,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Exact duplicate AVC SPS/PPS entries canonicalize to one copy, preserving48 browser-decoded frames and PTS against independent host oracle; same-ID changed SPS rejects. No semantic equivalence beyond exact duplicate parameter bytes; source reset still required.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "canonical-config-result.json",
-          "sha256": "24a6255c6fba4266e5e8a4ee6c2f58eab508b145bad7281604ae8e555e1e2002"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T19:02:15.527427+00:00"
+      "evidence": [
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R119.canonicalize-equivalent-decoder-configurations/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/canonical-config-result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Exact duplicate SPS/PPS bytes canonicalize69\u219238description bytes; two48-frame browser decodes match independent pixels/timestamps; same-ID changed SPS rejects and cleanup recorded. Only byte-identical duplicates.",
+      "performance_gate": "No repeated reconfiguration cost/workload benefit measured.",
+      "next_test": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+      "reopen_condition": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior."
     }
   },
   "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",

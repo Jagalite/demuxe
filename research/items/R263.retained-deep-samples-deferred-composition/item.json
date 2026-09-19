@@ -17,7 +17,7 @@
       "line_end": 48,
       "source_kind": "report"
     },
-    "source_excerpt": "Three synthetic 384×384 deep frames with 1–6 samples/pixel were displayed through 36 sparse 96×96 viewports. The eager baseline flattened the full frame for every view; the deferred route composited only the requested deep ROI. Result. Maximum absolute output error was 0.0. Median CPU time fell from 0.498s to 0.034s (14.8×) for this sparse-viewport workload. Blocked gate. Chromium reports WebGPU=false, WebGL=false, WebGL2=false in this environment. This proves the retained/deferred algorithm on CPU only, not the intended GPU presenter. No OpenEXR/deep-image parser or real deep sequence I/O was exercised.",
+    "source_excerpt": "Three synthetic 384\u00d7384 deep frames with 1\u20136 samples/pixel were displayed through 36 sparse 96\u00d796 viewports. The eager baseline flattened the full frame for every view; the deferred route composited only the requested deep ROI. Result. Maximum absolute output error was 0.0. Median CPU time fell from 0.498s to 0.034s (14.8\u00d7) for this sparse-viewport workload. Blocked gate. Chromium reports WebGPU=false, WebGL=false, WebGL2=false in this environment. This proves the retained/deferred algorithm on CPU only, not the intended GPU presenter. No OpenEXR/deep-image parser or real deep sequence I/O was exercised.",
     "related_reports": [],
     "scope_hash": "1bac400c006810c0dce531fe395ea7236af2c71fae560877acdd5a50911871ed",
     "legacy_guide_aliases": [],
@@ -53,62 +53,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R263.retained-deep-samples-deferred-composition.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R261-R267-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 362,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R263.retained-deep-samples-deferred-composition",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      "rank": 321,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
       "next_test": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
-      "recorded_at_utc": "2026-09-19T17:34:19.169599+00:00"
+      "reopen_condition": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",

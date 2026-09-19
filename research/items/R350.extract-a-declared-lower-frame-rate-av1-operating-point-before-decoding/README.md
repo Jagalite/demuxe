@@ -2,13 +2,13 @@
 
 # Extract a declared lower-frame-rate AV1 operating point before decoding
 
-Full identity: `R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding`. Reused R-numbers are separate mechanisms.
+Full identity: `R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding`.
 
-Current imported decision: **DEFER_FIXTURE_SETUP** (top100).
+Current decision: **pursue** (component_test).
 
-Actual local low-delay hierarchical SVT encode was inspected: only one operating point,idc0, no OBU extension temporal IDs. It is not a genuine selectable lower-rate operating-point fixture. Need matching layered encoder/source before meaningful extraction; no negative claim about AV1 mechanism.
+A genuine two-temporal-layer source advertises masks 259 and 257. Exact OBU extraction keeps 12 of 24 timestamps, drops 12 higher-layer OBUs and reduces IVF bytes 22420 to 11657. Independent FFmpeg and libaom operating-point pixels match; Chrome decodes all selected pixels/timestamps exactly. Missing keyframe fails. Restricted stable one-spatial-layer source; not arbitrary AV1 or measured CPU savings. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
+Next action: Qualify configuration/timing-header variations and decoder-boundary lifecycle before integration.
 
 ## Definition and contract
 
@@ -23,35 +23,13 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_FIXTURE_SETUP. No integration or qualification inferred. |
+|---|---|---|
+| define | passed | Selected advertised temporal subset only; reject unadvertised operating point before output. |
+| prepare | passed | Pinned inputs, actual commands, tool identities and independent references captured in run manifest. |
+| screen | passed | A genuine two-temporal-layer source advertises masks 259 and 257. Exact OBU extraction keeps 12 of 24 timestamps, drops 12 higher-layer OBUs and reduces IVF bytes 22420 to 11657. Independent FFmpeg and libaom operating-point pixels match; Chrome decodes all selected pixels/timestamps exactly. Missing keyframe fails. Restricted stable one-spatial-layer source; not arbitrary AV1 or measured CPU savings. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
+| correctness | passed | Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed. |
+| performance | not_applicable | Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness. |
+| results | passed | Positive/negative evidence and limitations captured in immutable run. |
+| decision | passed | pursue: A genuine two-temporal-layer source advertises masks 259 and 257. Exact OBU extraction keeps 12 of 24 timestamps, drops 12 higher-layer OBUs and reduces IVF bytes 22420 to 11657. Independent FFmpeg and libaom operating-point pixels match; Chrome decodes all selected pixels/timestamps exactly. Missing keyframe fails. Restricted stable one-spatial-layer source; not arbitrary AV1 or measured CPU savings. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md)
-- [results/top100/prerequisites/av1-encoder.log](../../../results/top100/prerequisites/av1-encoder.log)
-- [results/top100/prerequisites/av1-result.json](../../../results/top100/prerequisites/av1-result.json)
+[New run](../../shared/runs/20260919T202700Z-av1-guard/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

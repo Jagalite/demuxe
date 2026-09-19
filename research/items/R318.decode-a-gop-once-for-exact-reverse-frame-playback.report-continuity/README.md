@@ -2,54 +2,24 @@
 
 # Decode a GOP once for exact reverse-frame playback
 
-Full identity: `R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity`. Reused R-numbers are separate mechanisms.
+`R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity`
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current disposition: **pursue**. Component evidence; no production integration or release qualification.
 
-Playback delegates rate to the media element or persistent engine; no exact reverse-GOP frame cache/presenter is exposed. The historical 30-frame reverse hash exercise uses an intentionally repeated-seek baseline. A bounded reverse-preview owner and memory contract would be new setup.
+One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed.
 
-Next action: If exact reverse preview is requested, scope one bounded GOP cache against current persistent decode, with independent frame hashes and a long/open-GOP rejection control; include all retained plane bytes.
+Scope limits: Immutable closed GOP cache batch only; no B/open GOP, renderer cadence, long-GOP fallback, or production seek lifecycle.
 
-## Definition and contract
+- define: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- prepare: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- screen: **passed** — One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed.
+- correctness: **passed** — One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed. Immutable closed GOP cache batch only; no B/open GOP, renderer cadence, long-GOP fallback, or production seek lifecycle.
+- performance: **pending** — Not measured. Complete missing lifecycle gates and predeclare an actual workload, threshold and complete costs before benchmarking.
+- results: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- decision: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
 
-A six-second 320×180 H.264 fixture used 30-frame GOPs. For frames 120–149, the candidate decoded the GOP once in forward dependency order, retained the 30 decoded YUV420 frames, and presented their hashes in reverse. All 30 matched the independently decoded full-stream oracle exactly. This validates a reverse-preview cache, not reversal of H.264 packet order. The speed comparison intentionally represents the bad-but-realistic repeated seek/decode fallback: 1925.06 ms versus 63.24 ms. Production value depends on a hard decoded-frame memory budget and GOP length.
+Next: Add actual reverse UI presenter, cache replacement/cancellation and GOP capability parser; then compare persistent cached baseline with declared byte budget.
 
-Output contract: Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.
+[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-Primary metric: Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.
-
-Adverse control: Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
-
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity.md)
+[Shared results](../../shared/runs/20260919T200002Z-presentation/results.json) · [Analysis](../../shared/runs/20260919T200002Z-presentation/analysis.md)

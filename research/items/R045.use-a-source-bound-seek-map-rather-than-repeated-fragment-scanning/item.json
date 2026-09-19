@@ -17,7 +17,7 @@
       "line_end": 104,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New metadata/index optimization · P2 · PROPOSED / NOT TESTED Extends: R03, R09, R18. Reference primitives: S2, S9, S10. Question. Can a small reusable index bootstrap a distant seek without scanning or appending every preceding fragment? Mechanism. Index validated fragment byte spans, decode/presentation intervals, codec generations and random-access boundaries. Bind the map to source identity. Reuse an existing index where available, or build one incrementally during useful reads; this is metadata caching, not cached transcoded media. Smallest useful experiment. Start with the archived fMP4 fixture. Build a ground-truth map offline, then a bounded parser that builds/uses its own map. Compare repeated seeks against sequential discovery. Test an altered source with the same name, out-of-range offsets and a corrupted index entry.",
+    "source_excerpt": "New metadata/index optimization \u00b7 P2 \u00b7 PROPOSED / NOT TESTED Extends: R03, R09, R18. Reference primitives: S2, S9, S10. Question. Can a small reusable index bootstrap a distant seek without scanning or appending every preceding fragment? Mechanism. Index validated fragment byte spans, decode/presentation intervals, codec generations and random-access boundaries. Bind the map to source identity. Reuse an existing index where available, or build one incrementally during useful reads; this is metadata caching, not cached transcoded media. Smallest useful experiment. Start with the archived fMP4 fixture. Build a ground-truth map offline, then a bounded parser that builds/uses its own map. Compare repeated seeks against sequential discovery. Test an altered source with the same name, out-of-range offsets and a corrupted index entry.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,78 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen.",
+      "evidence": [
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Finite source-bound fragment map selects exact packet payload/timing and yields independently verified excerpt; same-name changed-source token, outside offset and corrupted offset reject. Full cold source scan cost recorded.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Scoped immutable fragment lookup correctness: source/span integrity controls plus independent packet, picture andPCM oracle. Does not qualify asynchronous index service or prove current owner opportunity.",
+      "evidence": [
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark or owner opportunity measurement.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable positive/negative evidence and manifests registered.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md"
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue; remaining gate and actual owner opportunity explicit.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 229,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      "state": "pursue",
+      "reason": "Finite source-bound fragment map selects exact packet payload/timing and yields independently verified excerpt; same-name changed-source token, outside offset and corrupted offset reject. Full cold source scan cost recorded.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
+      "run_ids": [
+        "20260919T203300Z-source-map"
       ],
-      "reason": "Range reads and identities are bounded, and FFmpeg owns demux indexes; no persistent cross-generation fragment map is exposed. Must measure actual repeated scans before adding a second index owner.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
-      "recorded_at_utc": "2026-09-19T17:34:19.107478+00:00"
+      "evidence": [
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/run.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/results.json",
+        "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260919T203300Z-source-map/manifest.json"
+      ],
+      "next_test": "Trace real repeated distant seeks and existing FFmpeg index use before adding another owner; test source-version changes during asynchronous reads, map config/RAP coverage and incremental useful-read construction.",
+      "reopen_condition": "Trace real repeated distant seeks and existing FFmpeg index use before adding another owner; test source-version changes during asynchronous reads, map config/RAP coverage and incremental useful-read construction.",
+      "scope": "Scoped immutable fragment lookup correctness: source/span integrity controls plus independent packet, picture andPCM oracle. Does not qualify asynchronous index service or prove current owner opportunity."
     }
   },
-  "next_action": "Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
+  "next_action": "Trace real repeated distant seeks and existing FFmpeg index use before adding another owner; test source-version changes during asynchronous reads, map config/RAP coverage and incremental useful-read construction.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

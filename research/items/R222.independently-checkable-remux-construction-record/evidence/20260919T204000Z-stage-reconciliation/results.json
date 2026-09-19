@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 98,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 44,
+    "record": {
+      "key": "R222.independently-checkable-remux-construction-record",
+      "rank": 98,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Independent source/output byte ranges, packet timestamps and config hashes validate214 packets and reject wrong offset, swapped range, timing, configuration and stale source. Useful reproducible remux audit artifact, not performance gain.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/r222/result.json",
+          "sha256": "6457881ccb98af3db3c88ee3c24394e32c06ae08e1c5180df40b99930ab34ff1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.662882+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/r222/result.json",
+      "declared_sha256": "6457881ccb98af3db3c88ee3c24394e32c06ae08e1c5180df40b99930ab34ff1",
+      "observed_sha256": "6457881ccb98af3db3c88ee3c24394e32c06ae08e1c5180df40b99930ab34ff1",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent byte ranges/config/timestamps validate214packets; wrongoffset, swappedrange, wrongtime/config and stale-source controls reject. Pure local construction audit, not universal mux/source authority proof."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Audit reproducibility capability, no performance gain claimed."
+    }
+  },
+  "passed": true
+}

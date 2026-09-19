@@ -17,7 +17,7 @@
       "line_end": 76,
       "source_kind": "report"
     },
-    "source_excerpt": "A 10-bit 640×360 plane was divided into 16×16 tiles. If a tile's range was ≤255, it was stored as one 16-bit local minimum plus exact 8-bit offsets; wider tiles fell back to native 16-bit values. 97.4% of tiles qualified in the controlled smooth source and total payload fell 48.3%. Recovery was exact, as was a downstream integer filter. A 0/1023 checkerboard forced wide fallback for every control tile.",
+    "source_excerpt": "A 10-bit 640\u00d7360 plane was divided into 16\u00d716 tiles. If a tile's range was \u2264255, it was stored as one 16-bit local minimum plus exact 8-bit offsets; wider tiles fell back to native 16-bit values. 97.4% of tiles qualified in the controlled smooth source and total payload fell 48.3%. Recovery was exact, as was a downstream integer filter. A 0/1023 checkerboard forced wide fallback for every control tile.",
     "related_reports": [],
     "scope_hash": "41bcce46ce1e529d94fe2a49b0d3ceb2e9455857c8c4c7be8c632ba50e1ce788",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Audit one high-bit-depth retained reference owner and compare compact/uncompact tile access including checkerboard fallback before integration.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 333,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
+      "rank": 274,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R211.exact-local-offset-storage-for-high-bit-depth-reference-tiles.md"
+      ],
       "next_test": "Audit one high-bit-depth retained reference owner and compare compact/uncompact tile access including checkerboard fallback before integration.",
       "reopen_condition": "Audit one high-bit-depth retained reference owner and compare compact/uncompact tile access including checkerboard fallback before integration.",
-      "recorded_at_utc": "2026-09-19T17:34:19.162126+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Audit one high-bit-depth retained reference owner and compare compact/uncompact tile access including checkerboard fallback before integration.",

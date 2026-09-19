@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "run_id": "20260919T202700Z-tile-scope-review",
+  "item_keys": [
+    "R275.av1-large-scale-tile-viewport-decode"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:25:33.818436+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "Review shared tile results and decoder source; no new tile experiment."
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "7e870cfba32058932f5c148adbd43f1a951f4ee54d6534a2fcc740dea7769846",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/manifest.json"
+  },
+  "candidate": {
+    "executed": false,
+    "fallback_observed": null
+  },
+  "acceptance": {
+    "contract": "Prepared large-scale AV1 tile component scope.",
+    "oracle": "Same-library full-frame decode crop; independent decoder reference not yet provided.",
+    "adverse_control": "Wrong-quadrant mismatch in prior run; malformed source/lifecycle still pending.",
+    "passed": false
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "Scientific feasibility disposition retained; full correctness no longer implies temporal-run evidence applies."
+  ],
+  "decisions": [
+    {
+      "key": "R275.av1-large-scale-tile-viewport-decode",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "Actual pinned libaom large-scale-tile decode returns a 256x256 selected tile whose Y, U and V exactly match the full 512x512 decode crop; wrong-quadrant control differs. Tile mode needs AV1D_EXT_TILE_DEBUG. Earlier zero-size and 16-bit-buffer layout mistakes are preserved as harness negatives. Prepared-source mechanism is viable; no browser, sparse transport or CPU claim. Review correction: temporal FFmpeg/Chrome evidence in the shared run does not qualify tile selection. Tile output comparison uses the same libaom implementation for selected/full decode. Keep full correctness pending an independent tile reference and malformed-input/lifecycle controls.",
+      "next_action": "Obtain an independent decoded reference for the prepared tile profile; test malformed tile selection and ownership before measuring performance.",
+      "correctness": "pending",
+      "correctness_basis": "All three selected tile planes equal full-decode crop, and wrong quadrant differs. This is a same-library component oracle only. Shared temporal-layer browser/FFmpeg evidence does not apply to R275."
+    }
+  ]
+}

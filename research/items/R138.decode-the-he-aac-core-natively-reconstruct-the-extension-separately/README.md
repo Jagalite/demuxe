@@ -2,55 +2,32 @@
 
 # Decode the HE-AAC core natively, reconstruct the extension separately
 
-Full identity: `R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately`. Reused R-numbers are separate mechanisms.
+Full identity: `R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately`. Original rank: 27.
 
-Current imported decision: **STOP_PROFILE** (top100).
+Current decision: **stop_current_profile**. Scientific verdict preserved from **STOP_PROFILE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
 
 Original HE-AAC v1 already decodes through native browser API: full 100288-frame stereo output matches independent reference within 1.68e-5 maximum sample error, malformed header rejected. Core plus separate SBR reconstruction adds no missing capability in this local profile; highband tone alone was not relied upon.
 
+## Accepted scope
+
+Local HE-AACv1 native decode capability; highband tone alone was not the oracle.
+
+Core/SBR candidate stopped because ordinary native HE-AAC already returns100288 stereo frames matching independent reference within1.67005e-5 sample error; malformed input rejects. Baseline fidelity is established, not separate-SBR correctness.
+
 Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Definition and contract
-
-Extract valid AAC-LC core data from constrained HE-AAC v1, browser-decode it, then apply retained SBR reconstruction in a controlled stage. First check full native support and preserve sample interpretation and fidelity.
-
-Output contract: Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.
-
-Primary metric: Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.
-
-Adverse control: Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred. |
+| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
+| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
+| correctness | not_applicable | Core/SBR candidate stopped because ordinary native HE-AAC already returns100288 stereo frames matching independent reference within1.67005e-5 sample error; malformed input rejects. Baseline fidelity is established, not separate-SBR correctness. |
+| performance | not_applicable | Stopped tested profile/variant; further performance work has no authorized candidate benefit. |
+| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
+| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R138.decode-the-he-aac-core-natively-reconstruct-the-extension-separately.md)
-- [results/top100/audio/native-result.json](../../../results/top100/audio/native-result.json)
+Original definitions and historical evidence remain intact. Integration and release qualification are separate.

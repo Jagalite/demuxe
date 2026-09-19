@@ -47,73 +47,82 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact mechanism and bounded profile distinguished from overlapping item keys.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R270.exact-flac-smart-cut-concat.md"
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned.",
+      "evidence": [
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Smart FLAC cut preserves 12 interior subframe payloads and reencodes only two edges. Variable sample-number headers/CRCs yield exact 63828 samples plus five libFLAC seeks; wrong fixed numbering fails two late seeks. Repeat-concat and boundary seek also match, with unknown rather than stale STREAMINFO MD5.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Exact whole cut/concat PCM, preserved interior subframes, header/frame CRC checks, five sample seeks, boundary-crossing seek and wrong-numbering control passed.",
+      "evidence": [
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No throughput/CPU/retention benchmark; packet reuse counts alone do not establish savings.",
+      "evidence": [
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "New and reused execution identities, controls, limits, manifests and commands captured.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R270.exact-flac-smart-cut-concat.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R270.exact-flac-smart-cut-concat.md"
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue disposition; integration and release qualification remain separate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 242,
+    "campaign": "audio-stage-reconciliation",
     "record": {
       "key": "R270.exact-flac-smart-cut-concat",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R270.exact-flac-smart-cut-concat.md"
+      "recorded_at_utc": "2026-09-19T20:13:17.931463+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T201317Z-flac-smart-cut"
       ],
-      "reason": "Current FLAC adaptation fully decodes/encodes selected audio; no smart-cut FLAC frame/subframe/header/CRC author exists. Correct variable sample numbering is a new authoring component, not trimming timestamps.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
-      "recorded_at_utc": "2026-09-19T17:34:19.110733+00:00"
+      "evidence_level": "component_test",
+      "profile": "Mono16 48kHz FLAC cut 41737:105565 and same-format repeat-concat, host FFmpeg baseline and independent libFLAC seeks",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Smart FLAC cut preserves 12 interior subframe payloads and reencodes only two edges. Variable sample-number headers/CRCs yield exact 63828 samples plus five libFLAC seeks; wrong fixed numbering fails two late seeks. Repeat-concat and boundary seek also match, with unknown rather than stale STREAMINFO MD5.",
+      "next_action": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
+      "reopen_condition": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
+      "evidence": [
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+      ]
     }
   },
-  "next_action": "Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
+  "next_action": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
   "integration": {
-    "status": "not_assessed_by_migration"
+    "status": "not_integrated"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "not_release_qualified"
   }
 }

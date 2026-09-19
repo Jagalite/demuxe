@@ -17,7 +17,7 @@
       "line_end": 266,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Audio · Follow-on feasibility gate · P2 · Risk: High First environment: Browser capability/source study first. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Investigate ordinary float-decoder output only against explicitly viable destinations: raw float in a direct-play container, a supported streaming representation, or an experimental raw-audio sink. This is a destination feasibility study, not another fixed-to-FLAC benchmark. Source basis. The inspected MP4/MSE audio-entry gate has no raw PCM entry. Chromium direct-source demuxing is separate. Therefore, a direct float-PCM success cannot establish float PCM in MSE. [C1, C2] First agent experiment. Enumerate exact parser/sample-entry paths in the target build, then perform tiny destination probes. Continue to progressive transport, bounded output and seeking only if an unmodified browser actually accepts the intended representation.",
+    "source_excerpt": "Audio \u00b7 Follow-on feasibility gate \u00b7 P2 \u00b7 Risk: High First environment: Browser capability/source study first. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Investigate ordinary float-decoder output only against explicitly viable destinations: raw float in a direct-play container, a supported streaming representation, or an experimental raw-audio sink. This is a destination feasibility study, not another fixed-to-FLAC benchmark. Source basis. The inspected MP4/MSE audio-entry gate has no raw PCM entry. Chromium direct-source demuxing is separate. Therefore, a direct float-PCM success cannot establish float PCM in MSE. [C1, C2] First agent experiment. Enumerate exact parser/sample-entry paths in the target build, then perform tiny destination probes. Continue to progressive transport, bounded output and seeking only if an unmodified browser actually accepts the intended representation.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,61 +64,96 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No supported tested MSE float-audio destination for streaming native A/V; finite direct Float32 WAV works.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Finite Float32 WAV preserves1.25 headroom and EOF, but four exact streaming MIME probes reject; streaming A/V correctness unavailable.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Do not build/benchmark absent streaming destination.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R010.screen-float-preserving-destinations-before-writing-adapters.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R010.screen-float-preserving-destinations-before-writing-adapters.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/r10/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 49,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R010.screen-float-preserving-destinations-before-writing-adapters",
-      "state": "HOLD_ENV",
-      "evidence": [
-        "r10/result.json"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 229,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "HOLD_ENV",
+      "evidence_level": "reconciled_prerequisite_probe",
+      "new_media_execution": false,
       "reason": "Actual finite Float32 WAV reaches EOF and preserves 1.25 sample headroom in direct audio, despite empty canPlayType hints. All four exact tested PCM/WAV streaming MIME queries reject MSE. No unified native streaming A/V float destination established; hold the streaming adapter, not float audio generally.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "recorded_at_utc": "2026-09-19T17:34:19.057458+00:00"
+      "correctness_acceptance": "Finite Float32 WAV preserves1.25 headroom and EOF, but four exact streaming MIME probes reject; streaming A/V correctness unavailable.",
+      "next_action": "Identify an actually usable streaming float-preserving A/V destination, then test full headroom/PCM/timing; do not relabel finite WAV success as streaming.",
+      "reopen_condition": "Identify an actually usable streaming float-preserving A/V destination, then test full headroom/PCM/timing; do not relabel finite WAV success as streaming.",
+      "blocker_category": "environment",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 49,
+        "record": {
+          "key": "R010.screen-float-preserving-destinations-before-writing-adapters",
+          "state": "HOLD_ENV",
+          "evidence": [
+            "r10/result.json"
+          ],
+          "reason": "Actual finite Float32 WAV reaches EOF and preserves 1.25 sample headroom in direct audio, despite empty canPlayType hints. All four exact tested PCM/WAV streaming MIME queries reject MSE. No unified native streaming A/V float destination established; hold the streaming adapter, not float audio generally.",
+          "evidence_level": "PREREQUISITE_PROBE",
+          "recorded_at_utc": "2026-09-19T17:34:19.057458+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r10/result.json"
+      ]
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Identify an actually usable streaming float-preserving A/V destination, then test full headroom/PCM/timing; do not relabel finite WAV success as streaming.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

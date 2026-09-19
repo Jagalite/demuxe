@@ -17,7 +17,7 @@
       "line_end": 319,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New selective-processing route · P3 · Risk: High · PROPOSED / NOT TESTED First environment: Host audio construction + sandbox MSE pilot; maintained Wasm cost and integration are local-only. Related cards: R35, R36, R53. Proposed mechanism. For a requested transition between compatible queue items, packet-copy the unchanged audio before and after the seam, decode/mix/encode only a bounded seam region, and preserve original video packets. Start with equal-rate integer PCM/FLAC so codec-lossy re-encoding is not required outside the intentional effect. What is new. R35 switched tracks without a requested mix, R36 concatenated items, and R53 ramped gain on one signal. This creates a small processed audio bridge for a real crossfade rather than processing every sample in both clips.",
+    "source_excerpt": "New selective-processing route \u00b7 P3 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Host audio construction + sandbox MSE pilot; maintained Wasm cost and integration are local-only. Related cards: R35, R36, R53. Proposed mechanism. For a requested transition between compatible queue items, packet-copy the unchanged audio before and after the seam, decode/mix/encode only a bounded seam region, and preserve original video packets. Start with equal-rate integer PCM/FLAC so codec-lossy re-encoding is not required outside the intentional effect. What is new. R35 switched tracks without a requested mix, R36 concatenated items, and R53 ramped gain on one signal. This creates a small processed audio bridge for a real crossfade rather than processing every sample in both clips.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 119,
         "line_end": 126,
         "source_kind": "report",
-        "reported_heading": "Selective crossfade bridge — INCONCLUSIVE"
+        "reported_heading": "Selective crossfade bridge \u2014 INCONCLUSIVE"
       }
     ],
     "scope_hash": "de03928e11091e9152dcaccaf05a7b77357e995b1c74b9a98b52aa964693e0b5",
@@ -64,60 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 199,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      "rank": 296,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ],
       "next_test": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
       "reopen_condition": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
-      "recorded_at_utc": "2026-09-19T17:34:19.099359+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",

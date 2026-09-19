@@ -17,7 +17,7 @@
       "line_end": 115,
       "source_kind": "report"
     },
-    "source_excerpt": "Loaded as a Blob, the same file exposed a seekable 0–6 s interval. Seeking to 4.2 s and playing produced frame callbacks beginning at 4.233333 s and advanced normally. Implication. Lack of an explicit random-access trailer can be acceptable for a fully local/in-memory object because there is no network byte-fetch penalty. Route choice should therefore depend on byte locality, not just container syntax.",
+    "source_excerpt": "Loaded as a Blob, the same file exposed a seekable 0\u20136 s interval. Seeking to 4.2 s and playing produced frame callbacks beginning at 4.233333 s and advanced normally. Implication. Lack of an explicit random-access trailer can be acceptable for a fully local/in-memory object because there is no network byte-fetch penalty. Route choice should therefore depend on byte locality, not just container syntax.",
     "related_reports": [],
     "scope_hash": "18058a481cedce43d0201608ef5fda692d1b2379b7b2ca3b0491934ace7fe1a9",
     "legacy_guide_aliases": [
@@ -55,9 +55,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -67,14 +69,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -87,30 +93,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: already_implemented",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 261,
-    "record": {
-      "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
-      "state": "ALREADY_IMPLEMENTED",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md"
-      ],
-      "reason": "Local File playback already goes through an object URL and direct-first policy. There is no rule rejecting local media solely for lacking mfra; the locality-dependent direct attempt exists without a new adapter.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
-      "reopen_condition": "Reopen if current direct admission begins excluding playable local no-index files or a local parsing bottleneck is observed.",
-      "recorded_at_utc": "2026-09-19T17:34:19.141426+00:00"
-    }
+    "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
+    "disposition": "already_implemented",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Local File playback already goes through an object URL and direct-first policy. There is no rule rejecting local media solely for lacking mfra; the locality-dependent direct attempt exists without a new adapter.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 261,
+      "record": {
+        "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
+        "state": "ALREADY_IMPLEMENTED",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md"
+        ],
+        "reason": "Local File playback already goes through an object URL and direct-first policy. There is no rule rejecting local media solely for lacking mfra; the locality-dependent direct attempt exists without a new adapter.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
+        "reopen_condition": "Reopen if current direct admission begins excluding playable local no-index files or a local parsing bottleneck is observed.",
+        "recorded_at_utc": "2026-09-19T17:34:19.141426+00:00"
+      }
+    },
+    "next_action": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
   "integration": {

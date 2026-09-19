@@ -2,13 +2,13 @@
 
 # Extract an AV1 operating point before decoding
 
-Full identity: `R239.extract-an-av1-operating-point-before-decoding.report-a`. Reused R-numbers are separate mechanisms.
+Full identity: `R239.extract-an-av1-operating-point-before-decoding.report-a`.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **pursue** (component_test).
 
-Current AV1 path copies complete packets; no operating-point OBU parser exposes layer dependencies or a lower-cadence permission. Historical exact extraction is strongly fixture-scoped and required real SVC authoring.
+The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.
 
-Next action: For explicitly requested lower cadence, use the identified SVC fixture and verify retained OBU/timestamp/picture identity with missing-base and truncated OBU controls.
+Next action: Test the report-specific generalized header rewriting and selected-point seek boundary before integration.
 
 ## Definition and contract
 
@@ -23,33 +23,13 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+|---|---|---|
+| define | passed | Selected advertised temporal subset only; reject unadvertised operating point before output. |
+| prepare | passed | Pinned inputs, actual commands, tool identities and independent references captured in run manifest. |
+| screen | passed | The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
+| correctness | passed | Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed. |
+| performance | not_applicable | Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness. |
+| results | passed | Positive/negative evidence and limitations captured in immutable run. |
+| decision | passed | pursue: The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md)
+[New run](../../shared/runs/20260919T202700Z-av1-guard/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

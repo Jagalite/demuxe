@@ -1,0 +1,34 @@
+Error: Unrecognized option -f
+
+Usage: build/catalogue-tools/aom-build/examples/svc_encoder_rtc <options> input_filename [input_filename ...] -o output_filename
+Options:
+  -f <arg>, --frames=<arg>              Number of frames to encode
+  -o <arg>, --output=<arg>              Output filename
+  -w <arg>, --width=<arg>               Source width
+  -h <arg>, --height=<arg>              Source height
+  -t <arg>, --timebase=<arg>            Timebase (num/den)
+  -b <arg>, --target-bitrate=<arg>      Encoding bitrate, in kilobits per second
+  -sl <arg>, --spatial-layers=<arg>     Number of spatial SVC layers
+  -k <arg>, --kf-dist=<arg>             Number of frames between keyframes
+  -r <arg>, --scale-factors=<arg>       Scale factors (lowest to highest layer)
+            --min-q=<arg>               Minimum quantizer
+            --max-q=<arg>               Maximum quantizer
+  -tl <arg>, --temporal-layers=<arg>    Number of temporal SVC layers
+  -lm <arg>, --layering-mode=<arg>      Temporal layering scheme.
+  -th <arg>, --threads=<arg>            Number of threads to use
+  -aq <arg>, --aqmode=<arg>             AQ mode off/on
+  -d <arg>, --bit-depth=<arg>           Bit depth for codec 8 or 10. 
+                                       	  8, 10
+  -sp <arg>, --speed=<arg>              Speed configuration
+  -bl <arg>, --bitrates=<arg>           Bitrates[spatial_layer * num_temporal_layer + temporal_layer]
+            --drop-frame=<arg>          Temporal resampling threshold (buf %)
+            --error-resilient=<arg>     Error resilient flag
+            --output-obu=<arg>          Write OBUs when set to 1. Otherwise write IVF files.
+            --test-decode=<arg>         Attempt to test decoding the output when set to 1. Default is 1.
+            --tune-content=<arg>        Tune content type
+                                       	  default, screen, film
+            --psnr=<arg>                Show PSNR in status line.
+Input files must be y4m or yuv.
+If multiple input files are specified, they correspond to spatial layers, and there should be as many as there are spatial layers.
+All input files must have the same width, height, frame rate and number of frames.
+If only one file is specified, it is used for all spatial layers.

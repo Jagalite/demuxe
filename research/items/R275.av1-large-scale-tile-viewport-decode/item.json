@@ -17,7 +17,7 @@
       "line_end": 83,
       "source_kind": "report"
     },
-    "source_excerpt": "A controlled 512×512 AV1 keyframe was encoded as a prepared 2×2 large-scale-tile representation. The libaom decoder was then asked for one tile at row 1, column 1. The returned 256×256 tile matched all 65,536 Y samples of the corresponding bottom-right quadrant from a full-frame decode: zero differences. The selected coded tile was 10,126 bytes out of a 40,300-byte frame (25.13%). Across 12 host runs, full decode median was 7.144 ms and selected-tile decode median 1.565 ms, a 4.57× ratio. This is strong evidence for a prepared viewport representation and a decoder capable of tile selection. It is not evidence that arbitrary AV1 can be sparsely decoded, nor a browser/GPU performance claim.",
+    "source_excerpt": "A controlled 512\u00d7512 AV1 keyframe was encoded as a prepared 2\u00d72 large-scale-tile representation. The libaom decoder was then asked for one tile at row 1, column 1. The returned 256\u00d7256 tile matched all 65,536 Y samples of the corresponding bottom-right quadrant from a full-frame decode: zero differences. The selected coded tile was 10,126 bytes out of a 40,300-byte frame (25.13%). Across 12 host runs, full decode median was 7.144 ms and selected-tile decode median 1.565 ms, a 4.57\u00d7 ratio. This is strong evidence for a prepared viewport representation and a decoder capable of tile selection. It is not evidence that arbitrary AV1 can be sparsely decoded, nor a browser/GPU performance claim.",
     "related_reports": [],
     "scope_hash": "c7b0abb0d669ea6904fbe201e73378376aa40aedf4f823074909b1ef90f9ce87",
     "legacy_guide_aliases": [],
@@ -47,71 +47,70 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Prepared large-scale AV1 tile component scope.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R275.av1-large-scale-tile-viewport-decode.md"
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Pinned inputs, actual commands, tool identities and independent references captured in run manifest.",
+      "evidence": [
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Actual pinned libaom large-scale-tile decode returns a 256x256 selected tile whose Y, U and V exactly match the full 512x512 decode crop; wrong-quadrant control differs. Tile mode needs AV1D_EXT_TILE_DEBUG. Earlier zero-size and 16-bit-buffer layout mistakes are preserved as harness negatives. Prepared-source mechanism is viable; no browser, sparse transport or CPU claim. Review correction: temporal FFmpeg/Chrome evidence in the shared run does not qualify tile selection. Tile output comparison uses the same libaom implementation for selected/full decode. Keep full correctness pending an independent tile reference and malformed-input/lifecycle controls.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "All three selected tile planes equal full-decode crop, and wrong quadrant differs. This is a same-library component oracle only. Shared temporal-layer browser/FFmpeg evidence does not apply to R275.",
+      "evidence": [
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness.",
+      "evidence": [
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive/negative evidence and limitations captured in immutable run.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R275.av1-large-scale-tile-viewport-decode.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R275.av1-large-scale-tile-viewport-decode.md",
-        "results/top100/prerequisites/media-inventory.json"
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "pursue: Actual pinned libaom large-scale-tile decode returns a 256x256 selected tile whose Y, U and V exactly match the full 512x512 decode crop; wrong-quadrant control differs. Tile mode needs AV1D_EXT_TILE_DEBUG. Earlier zero-size and 16-bit-buffer layout mistakes are preserved as harness negatives. Prepared-source mechanism is viable; no browser, sparse transport or CPU claim. Review correction: temporal FFmpeg/Chrome evidence in the shared run does not qualify tile selection. Tile output comparison uses the same libaom implementation for selected/full decode. Keep full correctness pending an independent tile reference and malformed-input/lifecycle controls.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 99,
-    "record": {
-      "key": "R275.av1-large-scale-tile-viewport-decode",
-      "rank": 41,
-      "state": "DEFER_SETUP",
-      "reason": "No matching aomenc/aomdec tile-selection build or genuine AV1 large-scale-tile fixture available. Full-frame AV1 decoding/cropping would not test sparse tile work. Requires dedicated libaom prepared fixture and selected-tile oracle; not browser codec rejection.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "evidence": [
-        {
-          "path": "prerequisites/media-inventory.json",
-          "sha256": "6e40f423bfe9c01241bd2014c8b9d70807279280956a886e8dd192a202f49682"
-        }
-      ],
-      "recorded_at_utc": "2026-09-19T19:13:23.698201+00:00"
-    }
+    "key": "R275.av1-large-scale-tile-viewport-decode",
+    "disposition": "pursue",
+    "evidence_level": "component_test",
+    "reason": "Actual pinned libaom large-scale-tile decode returns a 256x256 selected tile whose Y, U and V exactly match the full 512x512 decode crop; wrong-quadrant control differs. Tile mode needs AV1D_EXT_TILE_DEBUG. Earlier zero-size and 16-bit-buffer layout mistakes are preserved as harness negatives. Prepared-source mechanism is viable; no browser, sparse transport or CPU claim. Review correction: temporal FFmpeg/Chrome evidence in the shared run does not qualify tile selection. Tile output comparison uses the same libaom implementation for selected/full decode. Keep full correctness pending an independent tile reference and malformed-input/lifecycle controls.",
+    "next_action": "Obtain an independent decoded reference for the prepared tile profile; test malformed tile selection and ownership before measuring performance.",
+    "correctness": "pending",
+    "correctness_basis": "All three selected tile planes equal full-decode crop, and wrong quadrant differs. This is a same-library component oracle only. Shared temporal-layer browser/FFmpeg evidence does not apply to R275.",
+    "run_id": "20260919T202700Z-tile-scope-review",
+    "recorded_at_utc": "2026-09-19T20:25:33.818436+00:00",
+    "evidence": [
+      "research/items/R275.av1-large-scale-tile-viewport-decode/evidence/20260919T202700Z-tile-scope-review/run.json"
+    ],
+    "stage": "decision"
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Obtain an independent decoded reference for the prepared tile profile; test malformed tile selection and ownership before measuring performance.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

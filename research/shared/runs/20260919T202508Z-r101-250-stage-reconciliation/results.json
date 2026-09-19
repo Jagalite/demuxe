@@ -1,0 +1,1231 @@
+{
+  "scope": "Individual source/control review of remaining imported ranks101\u2013250; no new execution",
+  "items": [
+    {
+      "key": "R267.deadline-slack-before-optimization",
+      "rank": 109,
+      "old_state": "PURSUE_DIAGNOSTICS",
+      "disposition": "pursue",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "next_action": "Build only the bounded missing component: Stage-specific injected read/process/append delay observer and target-deadline witness, not existing aggregate counters.",
+      "evidence": [
+        "results/full-completion/remux-policies/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R267.deadline-slack-before-optimization.md"
+      ]
+    },
+    {
+      "key": "R334.share-one-demux-pass-across-independent-playback-and-export-timelines",
+      "rank": 118,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Immutable packet fanout component with two independent mux cursors and slow/cancel isolation.",
+      "next_action": "Scope two consumers sharing one qualified start and cloned packet wrappers; compare both complete packet/timestamp outputs with independent persistent muxers, and cancel/slow one consumer without mutating the other. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R334.share-one-demux-pass-across-independent-playback-and-export-timelines.md"
+      ]
+    },
+    {
+      "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
+      "rank": 125,
+      "old_state": "ALREADY_WORKING_IN_TESTED_PROFILE",
+      "disposition": "already_implemented",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "Maintained positive DiscardPadding preserves96000 samples; zero-padding mutation yields96648 with identical packets and PCM prefix. Existing behavior, not new trim feature.",
+      "next_action": "Keep exact packet/count/prefix regression for13.5ms WebM tail trim; independently qualify other mappings.",
+      "evidence": [
+        "results/full-completion/continuity/discard-padding.json"
+      ]
+    },
+    {
+      "key": "R133.append-moof-and-mdat-separately.report-continuity",
+      "rank": 127,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Separate moof/mdat append and whole baseline each reach marked A/V/EOF with cleanup; append count3to4, not a CPU win.",
+      "next_action": "Compare equivalent owned-buffer copy/event costs only after a real copy bottleneck is identified.",
+      "evidence": [
+        "results/full-completion/fragments/result.json"
+      ]
+    },
+    {
+      "key": "R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity",
+      "rank": 128,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "Both complete-first-video-sample and37-byte-short controls expose no early buffered range/frame, and complete after remainder; unchanged output and cleanup support scoped no-opportunity decision.",
+      "next_action": "Reopen only on an actual muxed A/V fixture exposing useful earlier joint availability.",
+      "evidence": [
+        "results/full-completion/webm-boundaries/result.json"
+      ]
+    },
+    {
+      "key": "R136.worker-owned-mse-with-mediasourcehandle.report-continuity",
+      "rank": 129,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Worker MediaSourceHandle plays A/V, seeks, EOF, detaches input and cleans up; malformed input rejects and forced worker termination control passes.",
+      "next_action": "Integrate one localized ownership transaction before responsiveness measurement.",
+      "evidence": [
+        "results/full-completion/continuity/worker-result.json"
+      ]
+    },
+    {
+      "key": "R137.transferable-compressed-buffers-into-worker-mse.report-continuity",
+      "rank": 130,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Owned compressed input detaches on transfer and worker MSE renders A/V with seek/EOF/malformed-input controls and cleanup.",
+      "next_action": "Measure real ownership/copy costs without transferring shared backing storage or coupling canceled consumers.",
+      "evidence": [
+        "results/full-completion/continuity/worker-result.json"
+      ]
+    },
+    {
+      "key": "R145.native-frame-relay-without-js-pixel-readback.report-continuity",
+      "rank": 132,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Requested media-track destination and capture/processor/generator relay with frame completeness oracle.",
+      "next_action": "Name a required second media-track destination and verify one capture/processor/generator relay with frame IDs; a dropped/delayed final frame must fail requested output completeness. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R145.native-frame-relay-without-js-pixel-readback.report-continuity.md"
+      ]
+    },
+    {
+      "key": "R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c",
+      "rank": 134,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Length-safe SPS/VUI/pasp editor for explicit aspect correction with VCL/timestamp identity controls.",
+      "next_action": "If explicit metadata correction is required, test one length-preserving avcC/pasp edit and all VCL/PTS hashes; altered SPS length or B-frame timestamps must reject or use a fully validated rewriter. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c.md"
+      ]
+    },
+    {
+      "key": "R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier",
+      "rank": 140,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation.",
+      "next_action": "Define one two-clip source-to-presentation map and compare explicit offset join to reference; a B-frame/nonzero-origin clip must retain internal timing and not double-apply bias. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier.md"
+      ]
+    },
+    {
+      "key": "R004.stream-inside-a-fragment-instead-of-making-it-smaller",
+      "rank": 141,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "not_applicable",
+      "correctness": "not_applicable",
+      "performance": "not_applicable",
+      "correctness_basis": "Existing26s producer trace has max0.320ms emission-to-flush and queue depth1; no candidate withholding optimization was justified.",
+      "next_action": "Reopen on an attributable producer/worker withholding trace; inspect actual raw timings, not summary alone.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json"
+      ]
+    },
+    {
+      "key": "R017.model-unequal-tails-as-explicit-track-lifetime-phases",
+      "rank": 144,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists.",
+      "next_action": "Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R017.model-unequal-tails-as-explicit-track-lifetime-phases.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ]
+    },
+    {
+      "key": "R037.recover-an-interrupted-partial-append-without-replacing-mse",
+      "rank": 147,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Actual SourceBuffer abort during moof or sample parsing permits complete RAP retry and A/V/EOF without replacement. Stale-generation flag is a model, not maintained message-ownership qualification.",
+      "next_action": "Exercise maintained generation/cancel/source replacement before integration.",
+      "evidence": [
+        "results/full-completion/fragments/result.json"
+      ]
+    },
+    {
+      "key": "R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place",
+      "rank": 148,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Injected one-shot quota uses real removal and one successful retry; second quota stops afterone retry, unrelated InvalidStateError is not retried, all clean up.",
+      "next_action": "Test genuine memory pressure and maintained ownership before production admission.",
+      "evidence": [
+        "results/full-completion/fragments/result.json"
+      ]
+    },
+    {
+      "key": "R054.tune-webm-cluster-production-for-early-audio-availability",
+      "rank": 153,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity.",
+      "next_action": "Next missing gate: Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-completion/continuity/maintained-webm-result.json",
+        "results/full-completion/webm-boundaries/metadata.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R054.tune-webm-cluster-production-for-early-audio-availability.md"
+      ]
+    },
+    {
+      "key": "R055.cache-bounded-decoded-previews-for-scrub-revisits",
+      "rank": 154,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Bounded approximate preview producer/cache contract with source-time keys and stale-capture rejection.",
+      "next_action": "Specify eight-image/byte-capped approximate preview API and source/time key; evaluate one reverse gesture only after producer exists, rejecting late old-source capture. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R055.cache-bounded-decoded-previews-for-scrub-revisits.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      ]
+    },
+    {
+      "key": "R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+      "rank": 156,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Explicit reduced-detail profile and codec-specific lowres candidate/oracle; no permission inferred from display size.",
+      "next_action": "Once explicit preview intent exists, query compiled MJPEG/MPEG2 max_lowres and compare one frame with full-decode scaling; unsupported codec must retain full decode and report pixel differences. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R064.decode-directly-at-reduced-resolution-for-explicit-previews.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md"
+      ]
+    },
+    {
+      "key": "R067.hibernate-long-paused-presentations-under-an-explicit-memory-policy",
+      "rank": 157,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Opt-in idle policy, complete resumable snapshot and cancellation-safe restore owner.",
+      "next_action": "Specify opt-in idle threshold and saved tracks/rate/gain/captions/authorization first; one pause-release-resume pilot must reject live/PiP and cancel restoration cleanly. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R067.hibernate-long-paused-presentations-under-an-explicit-memory-policy.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md"
+      ]
+    },
+    {
+      "key": "R072.decode-only-keyframes-for-coarse-previews",
+      "rank": 158,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Explicit coarse-only preview job with open-GOP/non-key rejection, separate from exact playback.",
+      "next_action": "Define one source-scoped coarse preview job and use existing decode harness only after that API exists; open-GOP/non-key request must not masquerade as exact seek. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R072.decode-only-keyframes-for-coarse-previews.md"
+      ]
+    },
+    {
+      "key": "R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
+      "rank": 159,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Pending-only same-GOP batch scheduler and cancellation/source-isolation oracle.",
+      "next_action": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+      ]
+    },
+    {
+      "key": "R112.supply-known-webm-durations-to-prevent-parser-holdback",
+      "rank": 161,
+      "old_state": "ALREADY_IMPLEMENTED",
+      "disposition": "already_implemented",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "DefaultDuration exists in maintained VP9/Opus; removing it does not change first-audio-block early availability. Video-only VP8 control differs; preserve truthful metadata without inferring mixed A/V benefit.",
+      "next_action": "Retain duration correctness; reopen a demonstrated mixed A/V parser-holdback profile.",
+      "evidence": [
+        "results/full-completion/webm-boundaries/result.json",
+        "results/full-completion/webm-boundaries/metadata.json"
+      ]
+    },
+    {
+      "key": "R198.bitmap-subtitles-directly-from-rle-runs",
+      "rank": 163,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Direct RLE-span composition path with palette/clear/seek lifetime and bounds controls; existing raster PGS evidence alone is insufficient.",
+      "next_action": "Build only a bounded run parser/compositor oracle for real selected PGS events before GPU integration; palette-only/clear/seek state and oversized run must be decisive controls. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R198.bitmap-subtitles-directly-from-rle-runs.md"
+      ]
+    },
+    {
+      "key": "R206.incremental-mjpeg-stripe-decode-upload",
+      "rank": 164,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Decoder stripe callback plus unpublished-texture completion fence and partial-frame rejection.",
+      "next_action": "Expose one bounded stripe callback and completion fence only if existing decoder permits it; compare complete pixels and withhold publication until final stripe, with partial-frame negative control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R206.incremental-mjpeg-stripe-decode-upload.md"
+      ]
+    },
+    {
+      "key": "R261.selective-verified-http-rescue",
+      "rank": 165,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Trusted per-chunk manifest and authorized repair substitution component with bad-response control.",
+      "next_action": "Define trusted manifest identity and one two-bad-chunk rescue component; exact whole-file hash and tampered response rejection required, keeping credentials/ETag changes separate. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R261.selective-verified-http-rescue.md"
+      ]
+    },
+    {
+      "key": "R274.virtual-webm-cues",
+      "rank": 168,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Immutable virtual-Cues byte namespace and offset authoring; first prove target lacks useful existing Cues.",
+      "next_action": "First inspect one target source for existing useful Cues; if absent, define immutable virtual Cues offsets and compare target frame/range bytes, rejecting stale identity and malformed cluster offsets. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R274.virtual-webm-cues.md"
+      ]
+    },
+    {
+      "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+      "rank": 170,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving.",
+      "next_action": "Next missing gate: Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster.md",
+        "results/full-completion/webm-boundaries/metadata.json"
+      ]
+    },
+    {
+      "key": "R090.convert-finite-fmp4-fragments-into-a-metadata-indexed-native-mp4-view",
+      "rank": 171,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "not_applicable",
+      "correctness": "not_applicable",
+      "performance": "not_applicable",
+      "correctness_basis": "Existing unchanged fMP4 native-direct playback/seeking removes the route gap; no newly authored flat-MP4 candidate to qualify.",
+      "next_action": "First demonstrate native-direct seek deficiency on a target source before building a flat view.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R090.convert-finite-fmp4-fragments-into-a-metadata-indexed-native-mp4-view.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/imported-opportunities-02-result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R88-R101-report.md"
+      ]
+    },
+    {
+      "key": "R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate",
+      "rank": 172,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.",
+      "next_action": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+      ]
+    },
+    {
+      "key": "R013.treat-intentionally-disabled-tracks-as-removable-work",
+      "rank": 173,
+      "old_state": "PURSUE_DESIGN",
+      "disposition": "pursue",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "next_action": "Build only the bounded missing component: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
+      ]
+    },
+    {
+      "key": "R034.small-startup-appends-larger-steady-state-batches",
+      "rank": 175,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "not_applicable",
+      "correctness": "not_applicable",
+      "performance": "not_applicable",
+      "correctness_basis": "Same supplied producer trace lacks material batching/trickle gap; stop limited to that opportunity profile, not universal batching rejection.",
+      "next_action": "Reopen for measured useful waiting under different producer/delivery conditions.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json"
+      ]
+    },
+    {
+      "key": "R039.prioritize-the-track-that-limits-usable-playback",
+      "rank": 176,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Independently retrievable selected-track producer topology and bounded fairness/temporary-gap policy.",
+      "next_action": "Show source representation permits independent required-track retrieval before defining asymmetric scheduling; one delayed-audio trace must preserve fairness and distinguish true tail from temporary gap. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R039.prioritize-the-track-that-limits-usable-playback.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ]
+    },
+    {
+      "key": "R042.recycle-owned-transfer-buffers-at-the-mse-boundary",
+      "rank": 177,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. An allocation-pressure trace or already-safe buffer-return infrastructure; gather-byte counts alone are not allocator pressure.",
+      "next_action": "Observed allocation pressure or an already-safe shared buffer-return infrastructure. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json"
+      ]
+    },
+    {
+      "key": "R116.mse-sequence-mode-concatenation-report-paragraph-label.report-frontier",
+      "rank": 179,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Two-source sequence-mode queue map with exact priming/lead and nonzero-origin timing oracle.",
+      "next_action": "Define a two-clip queue contract and compare sequence versus explicit-offset output including audio priming; nonzero-origin/B-frame clip must not acquire unintended timing shifts. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R116.mse-sequence-mode-concatenation-report-paragraph-label.report-frontier.md"
+      ]
+    },
+    {
+      "key": "R127.sequence-mode-cross-codec-concatenation-report-paragraph-label.report-frontier",
+      "rank": 180,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Sequence-mode cross-codec transaction with selected-audio boundary and failed-config rollback controls.",
+      "next_action": "Once queue mapping exists, test exactly one sequence-mode changeType join and compare end/start A/V identities; unsupported new config must roll back or fail rather than relabel. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R127.sequence-mode-cross-codec-concatenation-report-paragraph-label.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
+    },
+    {
+      "key": "R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier",
+      "rank": 181,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Cues relocation writer and real startup/seek request-timing oracle; no byte-saving inference from historical near-equal totals.",
+      "next_action": "Before building relocation, inspect current request timing for a real target; only if startup-versus-seek latency tradeoff matters compare front/tail Cues with unchanged cluster payloads and stale-offset control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier.md"
+      ]
+    },
+    {
+      "key": "R131.automatically-search-equivalent-representations",
+      "rank": 182,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Two explicitly vetted offline recipes with preconditions, relation oracle and bounded search budget.",
+      "next_action": "Define a two-recipe offline search only with explicit preconditions and payload/timing/seek oracle; intentionally non-equivalent recipe must be rejected and no result enters automatic routing. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R131.automatically-search-equivalent-representations.md"
+      ]
+    },
+    {
+      "key": "R143.compressed-fragment-rewind-cache.report-continuity",
+      "rank": 183,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.",
+      "next_action": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+      ]
+    },
+    {
+      "key": "R192.identity-coded-witness-media",
+      "rank": 184,
+      "old_state": "PURSUE_AS_TEST_TOOL",
+      "disposition": "pursue",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "next_action": "Build only the bounded missing component: Unified per-epoch video/channel/audio-shift witness generator; existing isolated negative oracles establish value but not this combined tool.",
+      "evidence": [
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
+      ]
+    },
+    {
+      "key": "R226.compact-exact-packet-index.report-continuity",
+      "rank": 185,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Actual required packet-index scalar contract and owner; compare with current sparse/container index rather than padded synthetic fields.",
+      "next_action": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ]
+    },
+    {
+      "key": "R141.no-index-fragmented-mp4-native-remote-seek.report-continuity",
+      "rank": 190,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "Same-length/payload index variants reach identical target picture; no-sidx and no-index each fetch6656858 bytes/102requests. Trailer removal adds no work on this trace.",
+      "next_action": "Require a longer or costlier trace before any trailer-specific optimization.",
+      "evidence": [
+        "results/full-completion/remote-index/result.json",
+        "results/full-completion/remote-index/identity.json"
+      ]
+    },
+    {
+      "key": "R240.vp9-webm-cluster-surgery.report-c",
+      "rank": 193,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Long-cluster producer trace with avoidable withholding; current captured short clusters do not justify surgery.",
+      "next_action": "Next missing gate: Long-cluster producer trace with avoidable withholding; current captured short clusters do not justify surgery. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-completion/continuity/maintained-webm-result.json",
+        "results/full-completion/webm-boundaries/metadata.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R240.vp9-webm-cluster-surgery.report-c.md"
+      ]
+    },
+    {
+      "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
+      "rank": 194,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination.",
+      "next_action": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ]
+    },
+    {
+      "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+      "rank": 195,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Bounded FLAC subframe/wasted-bit parser and truthful20-to24-bit promotion controls; new framing helper does not parse residuals.",
+      "next_action": "Prototype only independent mono 20-to-24 wasted-bit promotion and compare normalized exact samples, rejecting decorrelated stereo and malformed residual bounds. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R174.flac-bit-depth-promotion-without-sample-reconstruction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md"
+      ]
+    },
+    {
+      "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+      "rank": 197,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Exact combined effect/alpha/color contract and fused shader candidate, with context-loss and subtitle controls.",
+      "next_action": "Define one exact rotation plus simple color operation and compare a research fused presenter against existing output pixels including subtitle alpha and context loss. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
+    },
+    {
+      "key": "R085.out-of-order-gop-decode-and-reverse-presentation",
+      "rank": 198,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Single closed-GOP reverse owner with byte cap and frame-ID oracle before any concurrent decode scheduling.",
+      "next_action": "Scope a single closed-GOP reverse buffer with an explicit byte cap and exact frame IDs before parallel decode; include a non-independent GOP rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R085.out-of-order-gop-decode-and-reverse-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
+    },
+    {
+      "key": "R103.join-split-or-reorder-independent-flac-channel-subframes",
+      "rank": 203,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Independent-channel FLAC subframe bit-range parser, layout writer and decorrelated-stereo rejection.",
+      "next_action": "Parse one independently coded four-channel FLAC and copy two complete subframe bit ranges; compare every sample with decode-select-reencode and reject mid/side or mismatched blocks. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R103.join-split-or-reorder-independent-flac-channel-subframes.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ]
+    },
+    {
+      "key": "R106.recall-stored-av1-pictures-with-coded-display-instructions",
+      "rank": 204,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Legal AV1 showable-reference dictionary author and slot-lifetime oracle; generic altref decode is not this candidate.",
+      "next_action": "Author one explicit A/B/A/C schedule with legal showable reference slots and compare to a normal reference-aware encode; reject missing/overwritten slots. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R106.recall-stored-av1-pictures-with-coded-display-instructions.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ]
+    },
+    {
+      "key": "R109.expose-an-edited-mp4-as-a-virtual-byte-range-url",
+      "rank": 205,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Finite edited MP4 sample-table/range-map author with source-validator and cross-boundary byte oracle.",
+      "next_action": "Specify one video-only closed-GOP A/B/A address map, compare random cross-boundary ranges with a materialized oracle, and reject changed source validators. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R109.expose-an-edited-mp4-as-a-virtual-byte-range-url.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ]
+    },
+    {
+      "key": "R122.reservoir-aware-mp3-repacketization",
+      "rank": 206,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle.",
+      "next_action": "Use one reservoir-bearing MP3 excerpt to compare ordinary decode and reconstructed units across repeated starts, with a missing reservoir dependency control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R122.reservoir-aware-mp3-repacketization.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ]
+    },
+    {
+      "key": "R135.decode-seek-preroll-without-producing-unwanted-presentation-frames",
+      "rank": 207,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Reference-validated constrained AV1 hidden-preroll sequence with required-reference negative control.",
+      "next_action": "Prepare one reference-decoder-validated AV1 preroll sequence, compare continuing pictures and timestamps, and remove a required reference as adverse control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R135.decode-seek-preroll-without-producing-unwanted-presentation-frames.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ]
+    },
+    {
+      "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+      "rank": 208,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Intra-refresh stream with parsed recovery count and continuous-picture oracle before extending admitted access points.",
+      "next_action": "Add research metadata for access offset plus signaled recovery count on one intra-refresh fixture, compare every admitted frame to continuous decode and corrupt the count. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R150.recovery-windows-rather-than-immediate-clean-access-assumptions.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+      ]
+    },
+    {
+      "key": "R161.roll-back-speculative-audio-when-a-late-packet-arrives",
+      "rank": 210,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Copyable software Opus decoder state and provisional pre-commit output transaction; consumed samples cannot roll back.",
+      "next_action": "Define one host-only late-packet transaction before PCM publication and prove restored suffix equality; explicitly reject rollback after consumed advances. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R161.roll-back-speculative-audio-when-a-late-packet-arrives.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ]
+    },
+    {
+      "key": "R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes",
+      "rank": 212,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Authenticated BEP52 leaf-to-media provider with root/position/source-identity rejection.",
+      "next_action": "Define one read-only provider exposing only verified 16KiB leaves for an existing fMP4 prefix; reject wrong root, proof position and changed source before append. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md"
+      ]
+    },
+    {
+      "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+      "rank": 216,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Already-inflated PNG row/checkpoint component and changed-prior-row control; full DEFLATE seek state separately accounted.",
+      "next_action": "On already-inflated rows, compare band reconstruction with checkpoint versus row-zero replay and changed-prior-row rejection; account separately for full-file inflate. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R319.checkpoint-png-paeth-row-state.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md"
+      ]
+    },
+    {
+      "key": "R102.use-verbatim-flac-as-a-lightweight-integer-pcm-carrier",
+      "rank": 218,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Actual S16 verbatim-FLAC formatter, independent PCM/CRC oracle and like-for-like output-cost workload.",
+      "next_action": "Build one isolated S16 mono/stereo verbatim formatter with valid CRC/frame metadata, compare exact PCM and same-duration level0/5 output including total bytes and decoder work. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R102.use-verbatim-flac-as-a-lightweight-integer-pcm-carrier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ]
+    },
+    {
+      "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+      "rank": 219,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Self-delimiting Opus multistream component selector with whole coupled-pair, layout and pre-skip rules.",
+      "next_action": "Extract one entire independent mono component and one coupled pair from a marked fixture, compare payload/PCM and reject half-pair selection or mismatched pre-skip. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R104.select-or-assemble-whole-opus-elementary-streams-without-pcm.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ]
+    },
+    {
+      "key": "R140.turn-abbreviated-jpeg-transport-frames-into-browser-decodable-images",
+      "rank": 220,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Complete RTP/JPEG frame with explicit quantization/restart/geometry and independent decoded reference.",
+      "next_action": "Obtain one complete RTP/JPEG frame with explicit quantization/restart/geometry metadata, reconstruct its header and compare decoded pixels with an independent source, rejecting missing tables. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R140.turn-abbreviated-jpeg-transport-frames-into-browser-decodable-images.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ]
+    },
+    {
+      "key": "R147.random-access-inside-an-ordinary-zip-deflate-entry",
+      "rank": 221,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Owned zlib snapshot index and archive-to-output coordinate map, including complete initial inflate/CRC cost.",
+      "next_action": "Specify one owned inflate-state index for a bounded ZIP entry and compare random output ranges byte-for-byte, with bare compressed-cursor restart rejected. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R147.random-access-inside-an-ordinary-zip-deflate-entry.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+      ]
+    },
+    {
+      "key": "R223.flac-frame-range-microstream.report-continuity",
+      "rank": 222,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Exact complete-frame suffix writer and duration/checksum contract. R270 now supplies header/CRC/oracle tooling, but rewrites headers and does not prove original complete-frame identity for this item.",
+      "next_action": "Extract complete frames from one FLAC suffix, fix total samples/checksum policy and compare exact suffix samples plus reported duration. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R223.flac-frame-range-microstream.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/manifest.json"
+      ]
+    },
+    {
+      "key": "R245.standalone-flac-from-original-frames.report-c",
+      "rank": 225,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Complete original-frame excerpt profile with unchanged full frame hashes, truthful totals/checksum and browser duration/PCM. R270 setup is reusable but its rewritten headers are a different identity contract.",
+      "next_action": "Implement one complete-frame excerpt writer only when requested, correct total samples/checksum, and compare frame payloads, PCM, duration and corrupted CRC rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R245.standalone-flac-from-original-frames.report-c.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "research/shared/runs/20260919T201317Z-flac-smart-cut/manifest.json"
+      ]
+    },
+    {
+      "key": "R268.aac-selective-channel-element-reconstruction",
+      "rank": 226,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Independent-SCE AAC fixture with exact selected-channel oracle and rejection of coupling/CPE/SBR/prediction before parser authoring.",
+      "next_action": "Use one independent-SCE AAC fixture to select element4 and compare full source-channel PCM, rejecting CPE, SBR, prediction and coupling. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R268.aac-selective-channel-element-reconstruction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md"
+      ]
+    },
+    {
+      "key": "R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a",
+      "rank": 228,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Conforming gain-map HDR image plus pinned reconstruction reference and metadata; current GPU availability is not the blocker.",
+      "next_action": "Acquire one pinned conforming gain-map image and decoded HDR reference, then audit metadata and browser component decode before a reconstruction shader. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
+    },
+    {
+      "key": "R010.screen-float-preserving-destinations-before-writing-adapters",
+      "rank": 229,
+      "old_state": "HOLD_ENV",
+      "disposition": "blocked",
+      "blocker_category": "environment",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "Finite Float32 WAV preserves1.25 headroom and EOF, but four exact streaming MIME probes reject; streaming A/V correctness unavailable.",
+      "next_action": "Identify an actually usable streaming float-preserving A/V destination, then test full headroom/PCM/timing; do not relabel finite WAV success as streaming.",
+      "evidence": [
+        "results/full-completion/r10/result.json"
+      ]
+    },
+    {
+      "key": "R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch",
+      "rank": 230,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "pending",
+      "performance": "pending",
+      "correctness_basis": "Browser Opus produces51 packets and correct stereo tones but48648 decoded samples for48000 input leave648-sample trimming unresolved; support probe alone is not adapter correctness.",
+      "next_action": "Implement explicit Opus delay/end-padding handling and compare complete independent PCM count/boundaries before cost measurement.",
+      "evidence": [
+        "results/full-completion/audio-components/result.json"
+      ]
+    },
+    {
+      "key": "R025.try-a-generated-video-track-as-an-alternative-presenter",
+      "rank": 231,
+      "old_state": "STOP_PROFILE",
+      "disposition": "stop_current_profile",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "Legacy generated track accepts three delayed writes and renders red/green/blue order with cleanup; no existing-canvas replacement advantage or complete A/V clock demonstrated.",
+      "next_action": "Reopen only for a required MediaStream destination; preserve frame timing/EOF and measure complete ownership cost.",
+      "evidence": [
+        "results/full-completion/frame-boundaries/result.json"
+      ]
+    },
+    {
+      "key": "R022.use-document-pip-to-keep-native-subtitles-and-controls",
+      "rank": 233,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred.",
+      "next_action": "Next missing gate: ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-completion/r21/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R022.use-document-pip-to-keep-native-subtitles-and-controls.md"
+      ]
+    },
+    {
+      "key": "R008.keep-display-only-transformations-out-of-cpu-video-filters",
+      "rank": 234,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Existing retained presenter90degree rotation matches independently indexed pixels; unchanged orientation fails the oracle.",
+      "next_action": "Add explicit display-operation contract and qualify subtitle/pointer geometry, color/HDR and context loss before integration.",
+      "evidence": [
+        "results/full-completion/frame-boundaries/result.json"
+      ]
+    },
+    {
+      "key": "R053.coalesce-gain-gestures-into-audio-clock-automation",
+      "rank": 236,
+      "old_state": "PURSUE_OPTIONAL_QUALITY",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "Actual Web Audio requested10ms gain ramp reaches same final0.25 gain, reducing maximum sample step0.25 to0.00052084; abrupt baseline is intentionally different transition semantics.",
+      "next_action": "Keep opt-in transition semantics; measure gesture automation/retarget lifecycle separately, never claim identical instantaneous output or CPU gain.",
+      "evidence": [
+        "results/full-completion/audio-components/result.json"
+      ]
+    },
+    {
+      "key": "R071.tune-flac-effort-without-changing-frame-duration",
+      "rank": 239,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode.",
+      "next_action": "Next missing gate: Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R071.tune-flac-effort-without-changing-frame-duration.md"
+      ]
+    },
+    {
+      "key": "R075.compact-large-seek-maps-with-checkpoints",
+      "rank": 240,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Actual large-source index allocation/query identity; synthetic arrays are not a current dense seek-map owner.",
+      "next_action": "Inspect one large-source real FFmpeg index allocation and expose its actual query/identity contract before testing block-16 deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R075.compact-large-seek-maps-with-checkpoints.md"
+      ]
+    },
+    {
+      "key": "R095.fixed-opus-gain-through-codec-container-headers",
+      "rank": 241,
+      "old_state": "PURSUE",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "Requested-6dB plus existing+3dB header matches gain-node reference RMS within0.02%; double-attenuation control differs50%, seek and EOF pass.",
+      "next_action": "Qualify static asset-gain metadata profiles separately from dynamic volume and benchmark only if a real cost claim is needed.",
+      "evidence": [
+        "results/full-completion/r95/result.json"
+      ]
+    },
+    {
+      "key": "R107.separate-av1-base-decoding-from-film-grain-reconstruction",
+      "rank": 242,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Valid AV1 grain stream and reference pre/post-grain planes before grain-sidecar/synthesis work.",
+      "next_action": "First inventory one valid AV1 grain fixture and a reference exposing pre/post-grain planes; scope a parser-only sidecar before any external synthesis. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R107.separate-av1-base-decoding-from-film-grain-reconstruction.md"
+      ]
+    },
+    {
+      "key": "R158.structure-aware-failure-preserving-reduction",
+      "rank": 243,
+      "old_state": "PURSUE_AS_TEST_TOOL",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "pending",
+      "correctness_basis": "49 Xiph lace groups reduce to one with same exact Chrome Lacing1 unsupported predicate; unlaced control plays880Hz/EOF and packet/PTS identity matches.",
+      "next_action": "General reducer requires a new mutation/structure-preservation owner; current exact failing-fixture reduction is useful test evidence.",
+      "evidence": [
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
+    },
+    {
+      "key": "R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors",
+      "rank": 244,
+      "old_state": "PURSUE_AS_SUPPLEMENT_ONLY",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "prepare": "passed",
+      "correctness": "passed",
+      "performance": "not_applicable",
+      "correctness_basis": "2592-case actual planAdmission pool reduces to13 route-distinguishing cases, but subset misses text-track/lossy mutants caught by full pool. Only supplement contract passes, replacement claim fails.",
+      "next_action": "Retain full semantic mutation controls and use compact witnesses only as supplemental coverage.",
+      "evidence": [
+        "results/full-completion/r171/result.json"
+      ]
+    },
+    {
+      "key": "R185.progressively-refine-one-preview",
+      "rank": 246,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Image-element progressive preview owner and source-generation cancellation; canvas snapshots do not expose the reported compositor refinement.",
+      "next_action": "Specify one image-element preview owner and source-generation token before using a progressive JPEG; inspect compositor refinement and cancel before final scan. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R185.progressively-refine-one-preview.md"
+      ]
+    },
+    {
+      "key": "R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility",
+      "rank": 247,
+      "old_state": "DEFER_SETUP",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "prepare": "blocked",
+      "correctness": "blocked",
+      "performance": "blocked",
+      "correctness_basis": "No matching candidate/reference/control execution for this exact gate. Two-rendition complete-plan selection audit and scoped per-track transition contract respecting explicit representation intent.",
+      "next_action": "Audit one two-rendition manifest selection against complete-plan facts before introducing runtime switching; retain explicit representation intent. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility.md"
+      ]
+    }
+  ],
+  "count": 76,
+  "correctness_counts": {
+    "not_applicable": 3,
+    "passed": 15,
+    "blocked": 57,
+    "pending": 1
+  },
+  "skipped": [],
+  "limits": [
+    "Public production API absence is not proof that an independent component cannot work",
+    "Source report assertions remain imported unless exact execution evidence is pinned",
+    "Related FLAC framing and isolated libass availability do not automatically pass distinct item contracts",
+    "Existing scientific stops, environment gates and unperformed setups remain distinct"
+  ]
+}

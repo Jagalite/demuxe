@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200700Z-mse-transactions-tail",
+  "item_keys": [
+    "R015.make-split-buffer-audio-switching-transactional",
+    "R035.switch-same-codec-audio-at-a-future-boundary-without-pausing",
+    "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+    "R043.change-video-configuration-while-keeping-audio-running"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R015.make-split-buffer-audio-switching-transactional/tests/transactions.mjs"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256_at_registration": "368c76142297fd149b72f15e7d9976e91168d76df68eda8ad79a331059aad6ec",
+    "browser": "152.0.7977.83",
+    "capture_note": "Run evidence immutable after registration; negative execution source retained as snapshots/transactions.mjs."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Bounded separate MSE buffers: paused/future AAC audio replacement, compatible video queue, future AVC configuration changes. Frequency/color/dimension observation only, not gapless PCM or numbered-frame qualification.",
+    "passed": true,
+    "baseline": "Existing all-old audio/small video/initial red prefix and preserved exact SourceBuffer objects.",
+    "oracle": "Observed expected tones/colors/dimensions, seek/EOF and exact object identities; not sample/frame exact."
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "Feasibility and lifecycle screen; no benchmark run."
+  },
+  "limits": [
+    "No sample-exact gapless PCM or numbered-frame oracle.",
+    "Invalid MIME is preflight rejection, not failing-append rollback.",
+    "Synchronous generation check is not in-flight transport cancellation.",
+    "Explicit fixed finite queue, no measured long-run retained memory."
+  ]
+}

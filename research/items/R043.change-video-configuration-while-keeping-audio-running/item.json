@@ -17,7 +17,7 @@
       "line_end": 60,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New transition experiment · P1 · PROPOSED / NOT TESTED Extends: R15, R28, R35. Reference primitives: S1, S2, L3. Question. Can a user-requested resolution change replace only future video, instead of restarting audio and the complete player? Mechanism. Retain one media element, MediaSource and audio SourceBuffer. Supply the real new video initialization/configuration and start its media at an established random-access boundary. Begin with H.264-to-H.264 size changes; codec changes are a later, separately probed extension. Smallest useful experiment. Create synchronized 360p and 720p encodings of the same numbered frames, with aligned closed GOPs and one unchanged AAC track. Switch 360→720→360 at future boundaries; repeat while paused, during a seek and after deliberately failed preparation. Use a new init segment and changeType only where required by the actual configuration.",
+    "source_excerpt": "New transition experiment \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R15, R28, R35. Reference primitives: S1, S2, L3. Question. Can a user-requested resolution change replace only future video, instead of restarting audio and the complete player? Mechanism. Retain one media element, MediaSource and audio SourceBuffer. Supply the real new video initialization/configuration and start its media at an established random-access boundary. Begin with H.264-to-H.264 size changes; codec changes are a later, separately probed extension. Smallest useful experiment. Create synchronized 360p and 720p encodings of the same numbered frames, with aligned closed GOPs and one unchanged AAC track. Switch 360\u2192720\u2192360 at future boundaries; repeat while paused, during a seek and after deliberately failed preparation. Use a new init segment and changeType only where required by the actual configuration.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only.",
+      "evidence": [
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Actual future AVC video replacements small160x96\u2192large320x180\u2192small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+      "evidence": [
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark before relevant output correctness gates.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R043.change-video-configuration-while-keeping-audio-running.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R043.change-video-configuration-while-keeping-audio-running.md"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Pursue bounded mechanism; no integration or release qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 227,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R043.change-video-configuration-while-keeping-audio-running",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R043.change-video-configuration-while-keeping-audio-running.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      "state": "pursue",
+      "reason": "Actual future AVC video replacements small160x96\u2192large320x180\u2192small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:06:24.309553+00:00",
+      "run_ids": [
+        "20260919T200300Z-mse-transactions",
+        "20260919T200700Z-mse-transactions-tail"
       ],
-      "reason": "Split output exists but native step rejects changed video configuration; no independent future-video commit while audio stays alive exists. Configuration guards are necessary until that transaction is explicit.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
-      "recorded_at_utc": "2026-09-19T17:34:19.106971+00:00"
+      "evidence": [
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ],
+      "next_test": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+      "reopen_condition": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "case": "video-config"
     }
   },
-  "next_action": "Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
+  "next_action": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

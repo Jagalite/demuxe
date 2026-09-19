@@ -17,7 +17,7 @@
       "line_end": 380,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Timeline · New tradeoff hypothesis · P2 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: R15. Status: Untested hypothesis. Proposed mechanism. For an explicitly requested multilingual/session use case, compare copying each selected track against converting compatible integer tracks to one stable FLAC rate/layout/configuration. The aim is fewer destination reconfigurations, not less encoding. Source basis. FLAC has explicit stream properties, and MSE has reconfiguration boundaries. Stable output is a proposed policy; it is not proof that a browser keeps the same decoder instance. [F5, M1] First agent experiment. Compare repeated switches with heterogeneous native codecs versus a common permitted output. Measure conversion cost, switch latency, gaps and retained video. Require equal language/role/track intent and compatible rates/layouts.",
+    "source_excerpt": "Timeline \u00b7 New tradeoff hypothesis \u00b7 P2 \u00b7 Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: R15. Status: Untested hypothesis. Proposed mechanism. For an explicitly requested multilingual/session use case, compare copying each selected track against converting compatible integer tracks to one stable FLAC rate/layout/configuration. The aim is fewer destination reconfigurations, not less encoding. Source basis. FLAC has explicit stream properties, and MSE has reconfiguration boundaries. Stable output is a proposed policy; it is not proof that a browser keeps the same decoder instance. [F5, M1] First agent experiment. Compare repeated switches with heterogeneous native codecs versus a common permitted output. Measure conversion cost, switch latency, gaps and retained video. Require equal language/role/track intent and compatible rates/layouts.",
     "related_reports": [],
     "scope_hash": "df08a6346f330e8e87c1dd2e4f1a90cbb788bb49503190580dc5e2c54cefd6ce",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R016.keep-a-stable-audio-output-format-through-frequent-switches.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 350,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R016.keep-a-stable-audio-output-format-through-frequent-switches",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      "rank": 294,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ],
       "next_test": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
       "reopen_condition": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
-      "recorded_at_utc": "2026-09-19T17:34:19.166517+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",

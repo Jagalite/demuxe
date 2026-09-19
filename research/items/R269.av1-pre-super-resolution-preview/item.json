@@ -17,7 +17,7 @@
       "line_end": 35,
       "source_kind": "report"
     },
-    "source_excerpt": "A controlled libaom encode used fixed super-resolution denominator 12. The decoder reports frame/coded geometry 427×360 and display geometry 640×360, confirming that a lower-resolution reconstruction exists internally before display upscaling. However, the public decoder output image is already 640×360. The exact experiment requires the pre-super-resolution pixels so that they can be compared with full decode plus downscale. The public libaom surface available here does not expose those pixels. Therefore the card is BLOCKED at the required API boundary, rather than replaced with a misleading lower-resolution re-encode proxy.",
+    "source_excerpt": "A controlled libaom encode used fixed super-resolution denominator 12. The decoder reports frame/coded geometry 427\u00d7360 and display geometry 640\u00d7360, confirming that a lower-resolution reconstruction exists internally before display upscaling. However, the public decoder output image is already 640\u00d7360. The exact experiment requires the pre-super-resolution pixels so that they can be compared with full decode plus downscale. The public libaom surface available here does not expose those pixels. Therefore the card is BLOCKED at the required API boundary, rather than replaced with a misleading lower-resolution re-encode proxy.",
     "related_reports": [],
     "scope_hash": "8bfcf92772335f2fd29d8d445eecea857ade4d6029e5fe4547bd0ee9167b4509",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R269.av1-pre-super-resolution-preview.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 323,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R269.av1-pre-super-resolution-preview",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      "rank": 264,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ],
       "next_test": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
       "reopen_condition": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
-      "recorded_at_utc": "2026-09-19T17:34:19.159226+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",

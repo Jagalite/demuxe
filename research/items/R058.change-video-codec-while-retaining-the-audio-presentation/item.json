@@ -17,7 +17,7 @@
       "line_end": 79,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Follow-on transition hypothesis · P2 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox MSE pilot; exact codecs and container pair must pass availability checks. Related cards: R43, R32. Proposed mechanism. Extend the successful resolution-only switch to a genuine codec change, initially H.264 in fMP4 to VP9 in WebM and back. Keep one media element, the same MediaSource and the same audio SourceBuffer. This tests whether a codec boundary really requires replacing the whole playback owner. What is new. R43 changed dimensions inside H.264. R32 mixed video and audio containers concurrently. Neither establishes that a single video SourceBuffer can cross codec/container boundaries correctly while audio remains active.",
+    "source_excerpt": "Follow-on transition hypothesis \u00b7 P2 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox MSE pilot; exact codecs and container pair must pass availability checks. Related cards: R43, R32. Proposed mechanism. Extend the successful resolution-only switch to a genuine codec change, initially H.264 in fMP4 to VP9 in WebM and back. Keep one media element, the same MediaSource and the same audio SourceBuffer. This tests whether a codec boundary really requires replacing the whole playback owner. What is new. R43 changed dimensions inside H.264. R32 mixed video and audio containers concurrently. Neither establishes that a single video SourceBuffer can cross codec/container boundaries correctly while audio remains active.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 32,
         "line_end": 39,
         "source_kind": "report",
-        "reported_heading": "Cross-codec SourceBuffer transition — PROMISING"
+        "reported_heading": "Cross-codec SourceBuffer transition \u2014 PROMISING"
       }
     ],
     "scope_hash": "c2de12c4a6bb604dc86cd5e30a798ecc2cc959871498c0376ad2d0e2789e54e7",
@@ -64,65 +64,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Video geometry changes 160x96\u2192320x180 while original audio lane remains and tone continues to EOF. Same-codec case does not establish video codec change, sample gaplessness or independent transition timeline fidelity.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Video geometry changes 160x96\u2192320x180 while original audio lane remains and tone continues to EOF. Same-codec case does not establish video codec change, sample gaplessness or independent transition timeline fidelity.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Qualify actual codec transition, continuous sample timing, wrong-config control and affected seek/cancel ownership.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Video geometry changes 160x96\u2192320x180 while original audio lane remains and tone continues to EOF. Same-codec case does not establish video codec change, sample gaplessness or independent transition timeline fidelity.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R058.change-video-codec-while-retaining-the-audio-presentation.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R058.change-video-codec-while-retaining-the-audio-presentation.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/top100/lanes/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Video geometry changes 160x96\u2192320x180 while original audio lane remains and tone continues to EOF. Same-codec case does not establish video codec change, sample gaplessness or independent transition timeline fidelity.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 8,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R058.change-video-codec-while-retaining-the-audio-presentation",
       "rank": 49,
-      "state": "PURSUE",
-      "reason": "Video configuration/resolution changes from160x96 to320x180 while the original audio SourceBuffer remains alive and audio signal continues. Same-codec geometry case only; cross-codec and gaplessness not asserted.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "lanes/result.json",
-          "sha256": "ed7e58821a801222d62880bc6b49cacfe168f03787dfb2f7cb0a5699a57c85f2"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:14.214807+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_component_test",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Video configuration/resolution changes from160x96 to320x180 while the original audio SourceBuffer remains alive and audio signal continues. Same-codec geometry case only; cross-codec and gaplessness not asserted.",
+      "stage_acceptance": "Video geometry changes 160x96\u2192320x180 while original audio lane remains and tone continues to EOF. Same-codec case does not establish video codec change, sample gaplessness or independent transition timeline fidelity.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ],
+      "next_test": "Qualify actual codec transition, continuous sample timing, wrong-config control and affected seek/cancel ownership.",
+      "reopen_condition": "Qualify actual codec transition, continuous sample timing, wrong-config control and affected seek/cancel ownership.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Qualify actual codec transition, continuous sample timing, wrong-config control and affected seek/cancel ownership.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

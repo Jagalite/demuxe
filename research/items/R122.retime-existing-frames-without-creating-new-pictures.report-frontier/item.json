@@ -17,7 +17,7 @@
       "line_end": 79,
       "source_kind": "report"
     },
-    "source_excerpt": "The three-frame all-intra MP4 was changed from one-second to two-second sample durations by modifying timing tables and container durations only. The mdat is byte-identical. Chrome reports 6.0 s, shows red/green/blue for two seconds each, and reports only 3 total decoded video frames. This is a useful complement to R96: sparse/held presentations do not necessarily require a new video encode when the existing compressed samples already correspond to the desired visual states. R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 → 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
+    "source_excerpt": "The three-frame all-intra MP4 was changed from one-second to two-second sample durations by modifying timing tables and container durations only. The mdat is byte-identical. Chrome reports 6.0 s, shows red/green/blue for two seconds each, and reports only 3 total decoded video frames. This is a useful complement to R96: sparse/held presentations do not necessarily require a new video encode when the existing compressed samples already correspond to the desired visual states. R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 \u2192 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
     "related_reports": [],
     "scope_hash": "ce14cfe805f2cac6f8d91cf18f2ffcbbde7e3141553f9048c4548d141a77373c",
     "legacy_guide_aliases": [],
@@ -53,9 +53,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/patch-mux/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,50 +69,64 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "All24 unchanged coded samples and decoded frames match; every PTS/DTS/duration doubles. Wrong skeleton/zero duration rejected by shared constructor. Pure fixed-template retime only.",
+      "evidence": [
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/patch-mux/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Explicit altered timing capability; no performance saving claim or benchmark required for this decision.",
+      "evidence": [
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/patch-mux/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/patch-mux/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/patch-mux/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 88,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R122.retime-existing-frames-without-creating-new-pictures.report-frontier",
-      "rank": 75,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Explicit2x held/slower presentation patches timing without adding pictures:24 original compressed samples and decoded frames retained, every PTS/DTS/duration doubles. No motion interpolation or default rate change.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "patch-mux/result.json",
-          "sha256": "fbadd226f029986efb8a86bb746878a74ff92616b4cf2e0c3a7f2e2ea5ca3342"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T19:02:15.538706+00:00"
+      "evidence": [
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/patch-mux/result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "All24 unchanged coded samples and decoded frames match; every PTS/DTS/duration doubles. Wrong skeleton/zero duration rejected by shared constructor. Pure fixed-template retime only.",
+      "performance_gate": "Explicit altered timing capability; no performance saving claim or benchmark required for this decision.",
+      "next_test": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+      "reopen_condition": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior."
     }
   },
   "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",

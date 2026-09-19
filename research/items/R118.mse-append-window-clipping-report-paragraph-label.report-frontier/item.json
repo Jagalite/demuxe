@@ -74,9 +74,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -87,49 +91,63 @@
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Clip range[.5,1.5] and rendered video/EOF verified, but no wrong-edge GOP control or exact A/V trim/public lifecycle oracle.",
+      "evidence": [
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Requested trim capability screen, not source/decode saving; all6238input bytes arrive.",
+      "evidence": [
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R118.mse-append-window-clipping-report-paragraph-label.report-frontier.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R118.mse-append-window-clipping-report-paragraph-label.report-frontier.md",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/mse/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 70,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R118.mse-append-window-clipping-report-paragraph-label.report-frontier",
-      "rank": 72,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Explicit0.5-1.5s MSE window clips rendered video and buffered interval while all input bytes still received. Purpose is requested presentation trim, not decode/source-byte saving. Video-only component; current combined A/V controller not integrated.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "mse/result.json",
-          "sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:41:21.155140+00:00"
+      "evidence": [
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/mse/result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Clip range[.5,1.5] and rendered video/EOF verified, but no wrong-edge GOP control or exact A/V trim/public lifecycle oracle.",
+      "performance_gate": "Requested trim capability screen, not source/decode saving; all6238input bytes arrive.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

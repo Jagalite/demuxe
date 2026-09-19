@@ -17,7 +17,7 @@
       "line_end": 36,
       "source_kind": "report"
     },
-    "source_excerpt": "For a bounded MPEG-1 Layer III mono/no-CRC profile, every granule's global_gain was reduced by four steps while main-data/spectral payload hashes were left unchanged. Host decoded RMS became 0.500000004× the original (target 0.5); the maximum sample error versus half-amplitude was 5.31e-08. Chromium measured 0.499999757× after decoding at 48 kHz. Underflow is explicitly rejected and an MPEG-2 fixture fails this narrow admission profile instead of being patched with the wrong side-information layout. Output is intentionally changed; this is not bit-exact editing.",
+    "source_excerpt": "For a bounded MPEG-1 Layer III mono/no-CRC profile, every granule's global_gain was reduced by four steps while main-data/spectral payload hashes were left unchanged. Host decoded RMS became 0.500000004\u00d7 the original (target 0.5); the maximum sample error versus half-amplitude was 5.31e-08. Chromium measured 0.499999757\u00d7 after decoding at 48 kHz. Underflow is explicitly rejected and an MPEG-2 fixture fails this narrow admission profile instead of being patched with the wrong side-information layout. Output is intentionally changed; this is not bit-exact editing.",
     "related_reports": [],
     "scope_hash": "2054176a7d4bd1c54271a7218025ba47be0516eda9cde2833b756c23daccb447",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,30 +91,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 379,
-    "record": {
-      "key": "R204.edit-mp3-coded-gain-without-changing-spectral-payload",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R204.edit-mp3-coded-gain-without-changing-spectral-payload.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md"
-      ],
-      "reason": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
-      "reopen_condition": "Reopen for a compressed-output editing use case, not ordinary volume control; near-half decoded amplitude is not sample-exact gain.",
-      "recorded_at_utc": "2026-09-19T17:34:19.174290+00:00"
-    }
+    "key": "R204.edit-mp3-coded-gain-without-changing-spectral-payload",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 379,
+      "record": {
+        "key": "R204.edit-mp3-coded-gain-without-changing-spectral-payload",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R204.edit-mp3-coded-gain-without-changing-spectral-payload.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md"
+        ],
+        "reason": "Current real-time gain already uses one GainNode without audio re-encoding. Editing MP3 global_gain is a narrow approximate altered-output/export representation, so it offers no demonstrated advantage over the existing live gain owner.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
+        "reopen_condition": "Reopen for a compressed-output editing use case, not ordinary volume control; near-half decoded amplitude is not sample-exact gain.",
+        "recorded_at_utc": "2026-09-19T17:34:19.174290+00:00"
+      }
+    },
+    "next_action": "For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "For a requested persistent MP3 gain edit, compare bounded MPEG1 mono side-info changes with declared amplitude tolerance and unchanged main data; reject gain underflow and MPEG2.",
   "integration": {

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 90,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 76,
+    "record": {
+      "key": "R188.schedule-verified-playable-data",
+      "rank": 90,
+      "state": "PURSUE",
+      "reason": "Verified scheduling holds23 dependent packets until RAP arrives and matches trusted digest; corrupt RAP rejects. Only complete verified dependency closure publishes, with24 decoded frames exact against full-source oracle.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/result.json",
+          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.857005+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/ownership/result.json",
+      "declared_sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1",
+      "observed_sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Twenty-three dependents held until verifiedRAP; corruptRAP rejects and24complete decoded frames match full-source oracle. Scoped dependency scheduler ownership, not generic network transport."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "No representative scheduling latency/retention benefit measured."
+    }
+  },
+  "passed": true
+}

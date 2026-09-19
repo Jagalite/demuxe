@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T203000Z-partial-mdat",
+  "item_keys": [
+    "R132.incremental-mdat-sample-release.report-continuity"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -f lavfi -i testsrc2=s=160x96:r=24:d=2 -c:v libx264 -preset ultrafast -g 48 -bf 0 -movflags frag_keyframe+empty_moov+default_base_moof research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/source.mp4",
+    "node research/items/R132.incremental-mdat-sample-release.report-continuity/tests/partial.mjs"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256_at_registration": "479ee2dcd400b0c2509881beb2dd55ddaddbcc52a0535a604ff15ab2739bdd5d",
+    "browser": "152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "No equivalent-work benchmark; actual owner opportunity remains to be established."
+  },
+  "limits": [
+    "Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified.",
+    "Research component only; no production changes."
+  ],
+  "decision": "pursue",
+  "next_action": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims."
+}

@@ -17,7 +17,7 @@
       "line_end": 627,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Packaging · New fidelity-option hypothesis · P3 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. For streams with a real independently decodable compatibility core, test packet-level core extraction only when the target can play that core and the application permits discarding extensions. This avoids adding an encoder but is not full-fidelity preservation. Source basis. FFmpeg documents dca_core as extracting DTS core while dropping extensions such as DTS-HD. It does not turn DTS into a codec that every browser supports. [F2] First agent experiment. Use an actual core-plus-extension fixture, preserve video, identify what was discarded and probe the exact extracted codec/container. Compare complete output requirements and cost with decode/adapt or Hybrid.",
+    "source_excerpt": "Packaging \u00b7 New fidelity-option hypothesis \u00b7 P3 \u00b7 Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. For streams with a real independently decodable compatibility core, test packet-level core extraction only when the target can play that core and the application permits discarding extensions. This avoids adding an encoder but is not full-fidelity preservation. Source basis. FFmpeg documents dca_core as extracting DTS core while dropping extensions such as DTS-HD. It does not turn DTS into a codec that every browser supports. [F2] First agent experiment. Use an actual core-plus-extension fixture, preserve video, identify what was discarded and probe the exact extracted codec/container. Compare complete output requirements and cost with decode/adapt or Hybrid.",
     "related_reports": [],
     "scope_hash": "648e2b2b326247bc8943348ffaa105f7706662628089e1c6ad34e395637b9726",
     "legacy_guide_aliases": [],
@@ -53,64 +53,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed fixture gate: True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 263,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 194,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Current finite plans preserve requested audio or explicitly allow lossy encoding; no separate permission represents discarding compatibility extensions. DTS core is not automatically browser-supported, so extraction alone does not establish a usable route.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path.",
-      "reopen_condition": "Reopen with valid core structure, destination support and explicit extension-loss permission; never label extraction lossless full-fidelity.",
-      "recorded_at_utc": "2026-09-19T17:34:19.141896+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination.",
+      "next_action": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "fixture",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 263,
+        "record": {
+          "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+          ],
+          "reason": "Current finite plans preserve requested audio or explicitly allow lossy encoding; no separate permission represents discarding compatibility extensions. DTS core is not automatically browser-supported, so extraction alone does not establish a usable route.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path.",
+          "reopen_condition": "Reopen with valid core structure, destination support and explicit extension-loss permission; never label extraction lossless full-fidelity.",
+          "recorded_at_utc": "2026-09-19T17:34:19.141896+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ]
     }
   },
-  "next_action": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path.",
+  "next_action": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

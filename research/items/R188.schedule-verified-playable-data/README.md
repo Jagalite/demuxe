@@ -2,55 +2,20 @@
 
 # schedule verified playable data
 
-Full identity: `R188.schedule-verified-playable-data`. Reused R-numbers are separate mechanisms.
+Current decision: **pursue**. Verified scheduling holds23 dependent packets until RAP arrives and matches trusted digest; corrupt RAP rejects. Only complete verified dependency closure publishes, with24 decoded frames exact against full-source oracle.
 
-Current imported decision: **PURSUE** (top100).
-
-Verified scheduling holds23 dependent packets until RAP arrives and matches trusted digest; corrupt RAP rejects. Only complete verified dependency closure publishes, with24 decoded frames exact against full-source oracle.
-
-Next action: Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.
-
-## Definition and contract
-
-A real 12-second fragmented MP4 was divided into 16 KiB hash-verified pieces. The fixture contains twelve one-second fragments; init/fragment byte ranges were mapped to the pieces they require. One early useful piece was deliberately corrupted on its first delivery and rejected by SHA-256 verification. The first three verified fragments form a real prefix that decodes 90 frames. The measured 4.11× 3-second figure is specific to this deterministic ordering and failed-piece scenario; the durable result is that downloaded byte count and verified decodable media are different scheduling objectives.
-
-Output contract: Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.
-
-Primary metric: Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.
-
-Adverse control: Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.
-
-## Stages
+Historical stage reconciliation; no new experiment.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE. No integration or qualification inferred. |
+| correctness | passed | Twenty-three dependents held until verifiedRAP; corruptRAP rejects and24complete decoded frames match full-source oracle. Scoped dependency scheduler ownership, not generic network transport. |
+| performance | pending | No representative scheduling latency/retention benefit measured. |
+| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
+| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R188.schedule-verified-playable-data.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R188.schedule-verified-playable-data.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R188.schedule-verified-playable-data.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R188.schedule-verified-playable-data.md)
-- [results/top100/ownership/result.json](../../../results/top100/ownership/result.json)
+[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

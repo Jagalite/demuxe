@@ -17,7 +17,7 @@
       "line_end": 41,
       "source_kind": "report"
     },
-    "source_excerpt": "A real 64×64 BGR0 ZMBV stream contains four controlled frames: a keyframe, an unchanged frame, a moved-block frame and a changed-block frame. Packet sizes are [65, 10, 63, 59]; corresponding inflated payload sizes are [16384, 32, 5152, 4128]. One persistent browser DecompressionStream('deflate') received the real compressed bytes frame by frame. Without closing the stream, it emitted the exact payload at each Z_SYNC_FLUSH boundary. A CPU implementation of ZMBV motion copying and XOR residual application reconstructs the complete sequence byte-for-byte to FFmpeg (eaf06b60ccbaf2a32d28da9364d6fc8143b4fcdd48f070035108daaa54bd648a). The proposed GPU copy/XOR stage remains untested because browser GPU APIs are unavailable. The component result is that browser-owned zlib satisfies ZMBV's incremental stateful inflation requirement in this Chromium build.",
+    "source_excerpt": "A real 64\u00d764 BGR0 ZMBV stream contains four controlled frames: a keyframe, an unchanged frame, a moved-block frame and a changed-block frame. Packet sizes are [65, 10, 63, 59]; corresponding inflated payload sizes are [16384, 32, 5152, 4128]. One persistent browser DecompressionStream('deflate') received the real compressed bytes frame by frame. Without closing the stream, it emitted the exact payload at each Z_SYNC_FLUSH boundary. A CPU implementation of ZMBV motion copying and XOR residual application reconstructs the complete sequence byte-for-byte to FFmpeg (eaf06b60ccbaf2a32d28da9364d6fc8143b4fcdd48f070035108daaa54bd648a). The proposed GPU copy/XOR stage remains untested because browser GPU APIs are unavailable. The component result is that browser-owned zlib satisfies ZMBV's incremental stateful inflation requirement in this Chromium build.",
     "related_reports": [],
     "scope_hash": "1a10952ba781de895a0d2bc0e11d4e8b6924c441519982f44f4fcd0820545ef1",
     "legacy_guide_aliases": [],
@@ -53,66 +53,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Eight actual browser persistent-zlib ZMBV32 frames equal independent host BGR0, cold delta input rejects, inflater lifetime/cleanup recorded. Accepted bounded CPU reconstruction only; other bit depths and presentation absent.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Eight actual browser persistent-zlib ZMBV32 frames equal independent host BGR0, cold delta input rejects, inflater lifetime/cleanup recorded. Accepted bounded CPU reconstruction only; other bit depths and presentation absent.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Profile complete inflation/reconstruction on representative content after declaring workload; add route seek/cancel when integrating.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Eight actual browser persistent-zlib ZMBV32 frames equal independent host BGR0, cold delta input rejects, inflater lifetime/cleanup recorded. Accepted bounded CPU reconstruction only; other bit depths and presentation absent.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R194.browser-zlib-zmbv-reconstruction.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R194.browser-zlib-zmbv-reconstruction.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/top100/gpu/zmbv-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Eight actual browser persistent-zlib ZMBV32 frames equal independent host BGR0, cold delta input rejects, inflater lifetime/cleanup recorded. Accepted bounded CPU reconstruction only; other bit depths and presentation absent.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 56,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R194.browser-zlib-zmbv-reconstruction",
       "rank": 34,
-      "state": "PURSUE",
-      "reason": "Persistent browser DecompressionStream plus strict ZMBV32 motion/XOR reconstruction matches all eight host reference frames. Cold dependent frame rejects. Bounded 32x32 CPU component; other pixel formats and GPU presentation not claimed.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "gpu/zmbv-result.json",
-          "sha256": "47139eb503042fd6f725d6516253a16c22bb549bb6cfde4201801be30942db49"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:30:40.686244+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_component_test",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Persistent browser DecompressionStream plus strict ZMBV32 motion/XOR reconstruction matches all eight host reference frames. Cold dependent frame rejects. Bounded 32x32 CPU component; other pixel formats and GPU presentation not claimed.",
+      "stage_acceptance": "Eight actual browser persistent-zlib ZMBV32 frames equal independent host BGR0, cold delta input rejects, inflater lifetime/cleanup recorded. Accepted bounded CPU reconstruction only; other bit depths and presentation absent.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/gpu/zmbv-result.json"
+      ],
+      "next_test": "Profile complete inflation/reconstruction on representative content after declaring workload; add route seek/cancel when integrating.",
+      "reopen_condition": "Profile complete inflation/reconstruction on representative content after declaring workload; add route seek/cancel when integrating.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Profile complete inflation/reconstruction on representative content after declaring workload; add route seek/cancel when integrating.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

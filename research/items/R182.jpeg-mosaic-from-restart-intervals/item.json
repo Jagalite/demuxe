@@ -17,7 +17,7 @@
       "line_end": 128,
       "source_kind": "report"
     },
-    "source_excerpt": "Two 64×64 grayscale JPEGs were encoded with matching headers/tables and one restart interval per MCU row. Their entropy scans each contain eight independent row intervals. A new JPEG was authored by alternately copying row intervals from source A and B and rewriting the restart-marker sequence; no DCT coefficient or pixel-domain composition was used. The resulting 64×64 JPEG decodes pixel-for-pixel exactly to an oracle mosaic assembled from the corresponding decoded 8-pixel source rows. All eight compressed entropy intervals were reused. Integration implication: restart intervals can act as compressed composition tiles when JPEG coding parameters and MCU geometry are compatible. This is currently a grayscale, row-aligned, matching-table result—not arbitrary rectangle composition.",
+    "source_excerpt": "Two 64\u00d764 grayscale JPEGs were encoded with matching headers/tables and one restart interval per MCU row. Their entropy scans each contain eight independent row intervals. A new JPEG was authored by alternately copying row intervals from source A and B and rewriting the restart-marker sequence; no DCT coefficient or pixel-domain composition was used. The resulting 64\u00d764 JPEG decodes pixel-for-pixel exactly to an oracle mosaic assembled from the corresponding decoded 8-pixel source rows. All eight compressed entropy intervals were reused. Integration implication: restart intervals can act as compressed composition tiles when JPEG coding parameters and MCU geometry are compatible. This is currently a grayscale, row-aligned, matching-table result\u2014not arbitrary rectangle composition.",
     "related_reports": [],
     "scope_hash": "b7785a5d6cc35c26b5765a6cb4bb11bc62a95556b6d3deff16d0fc4e23b7743e",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R182.jpeg-mosaic-from-restart-intervals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 206,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R182.jpeg-mosaic-from-restart-intervals",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      "rank": 303,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ],
       "next_test": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
       "reopen_condition": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
-      "recorded_at_utc": "2026-09-19T17:34:19.101228+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",

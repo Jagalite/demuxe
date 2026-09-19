@@ -17,7 +17,7 @@
       "line_end": 60,
       "source_kind": "report"
     },
-    "source_excerpt": "The raw 6-second 30-fps AVC stream has 180 packets and IDRs at packet indexes 0, 30, 60, 90, 120, 150. x264 repeated SPS/PPS at IDRs. Starting the byte stream directly at packet 60 produces 120 decoded frames whose YUV420 bytes are exactly equal to frames 60–179 of the continuous decode. The retained coded suffix is 143,452/208,538 bytes (68.8%). This supports a qualified minimal-byte seek route for Annex-B AVC when the chosen random-access point carries everything the decoder needs.",
+    "source_excerpt": "The raw 6-second 30-fps AVC stream has 180 packets and IDRs at packet indexes 0, 30, 60, 90, 120, 150. x264 repeated SPS/PPS at IDRs. Starting the byte stream directly at packet 60 produces 120 decoded frames whose YUV420 bytes are exactly equal to frames 60\u2013179 of the continuous decode. The retained coded suffix is 143,452/208,538 bytes (68.8%). This supports a qualified minimal-byte seek route for Annex-B AVC when the chosen random-access point carries everything the decoder needs.",
     "related_reports": [],
     "scope_hash": "a3bdb7bca67298a0eeb55092b95ad6b9c5c1433d6306a6054f99793de273826c",
     "legacy_guide_aliases": [
@@ -55,61 +55,96 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Reconciled existing scoped preparation/output evidence; no new candidate execution.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Host FFmpeg 8.1.2 decodes 48-frame SPS/PPS/IDR suffix exactly against full 72-frame reference. Missing configuration returns decode failure; dependent entry exits zero but yields wrong suffix and correctly fails oracle. This is host component, not pinned-Wasm/browser seek execution.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Host FFmpeg 8.1.2 decodes 48-frame SPS/PPS/IDR suffix exactly against full 72-frame reference. Missing configuration returns decode failure; dependent entry exits zero but yields wrong suffix and correctly fails oracle. This is host component, not pinned-Wasm/browser seek execution.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No complete-work performance claim accepted; Test actual target decoder/transport while including configuration discovery and scanning costs; preserve dependent-entry wrong-output control.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Host FFmpeg 8.1.2 decodes 48-frame SPS/PPS/IDR suffix exactly against full 72-frame reference. Missing configuration returns decode failure; dependent entry exits zero but yields wrong suffix and correctly fails oracle. This is host component, not pinned-Wasm/browser seek execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R225.h-264-self-contained-idr-suffix.report-continuity.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R225.h-264-self-contained-idr-suffix.report-continuity.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-completion/r225/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Host FFmpeg 8.1.2 decodes 48-frame SPS/PPS/IDR suffix exactly against full 72-frame reference. Missing configuration returns decode failure; dependent entry exits zero but yields wrong suffix and correctly fails oracle. This is host component, not pinned-Wasm/browser seek execution.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 61,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R225.h-264-self-contained-idr-suffix.report-continuity",
-      "state": "PURSUE",
-      "evidence": [
-        "r225/result.json"
+      "rank": 280,
+      "state": "pursue",
+      "disposition": "pursue",
+      "blocker_category": null,
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
-      "reason": "Generated Annex-B SPS/PPS/IDR suffix decoded by host FFmpeg 8.1.2 yields the exact 48-picture suffix of the 72-frame reference. Missing configuration and dependent start fail. This host oracle is not execution of pinned FFmpeg 7.1.1; browser/TS scanning cost remains unmeasured.",
-      "evidence_level": "COMPONENT_TEST",
-      "recorded_at_utc": "2026-09-19T17:34:19.061042+00:00"
+      "evidence_level": "reconciled_historical_component",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Host FFmpeg 8.1.2 decodes 48-frame SPS/PPS/IDR suffix exactly against full 72-frame reference. Missing configuration returns decode failure; dependent entry exits zero but yields wrong suffix and correctly fails oracle. This is host component, not pinned-Wasm/browser seek execution.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-completion/r225/result.json"
+      ],
+      "next_test": "Test actual target decoder/transport while including configuration discovery and scanning costs; preserve dependent-entry wrong-output control.",
+      "reopen_condition": "Test actual target decoder/transport while including configuration discovery and scanning costs; preserve dependent-entry wrong-output control.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
-  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "next_action": "Test actual target decoder/transport while including configuration discovery and scanning costs; preserve dependent-entry wrong-output control.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

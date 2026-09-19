@@ -17,7 +17,7 @@
       "line_end": 28,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Type: Existing-file rendering route and memory tradeoff. Mechanism. Retain validated OpenEXR B44 blocks in a GPU storage buffer. Implement a sampling function that locates the relevant block, reconstructs the required half-float sample representation, and feeds the ordinary color/presentation operation. Compare this against separately expanding all or selected blocks into a half-float texture before sampling. Source basis. OpenEXR documents B44 HALF data as 4×4 blocks packed into 14 bytes. B44A additionally permits three-byte flat blocks. Its implementation exposes the integer unpacking steps and optional pLinear conversion. B44 is lossy encoding; this proposal targets equality with decoding the existing file, not with pixels that preceded its encoding. [S1, S2]",
+    "source_excerpt": "Type: Existing-file rendering route and memory tradeoff. Mechanism. Retain validated OpenEXR B44 blocks in a GPU storage buffer. Implement a sampling function that locates the relevant block, reconstructs the required half-float sample representation, and feeds the ordinary color/presentation operation. Compare this against separately expanding all or selected blocks into a half-float texture before sampling. Source basis. OpenEXR documents B44 HALF data as 4\u00d74 blocks packed into 14 bytes. B44A additionally permits three-byte flat blocks. Its implementation exposes the integer unpacking steps and optional pLinear conversion. B44 is lossy encoding; this proposal targets equality with decoding the existing file, not with pixels that preceded its encoding. [S1, S2]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -70,64 +70,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R313_R317_Proposals.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md"
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 372,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      "rank": 331,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
       "next_test": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
-      "recorded_at_utc": "2026-09-19T17:34:19.172408+00:00"
+      "reopen_condition": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",

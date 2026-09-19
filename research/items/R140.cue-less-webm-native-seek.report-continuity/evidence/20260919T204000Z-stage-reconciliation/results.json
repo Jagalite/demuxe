@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 84,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 108,
+    "record": {
+      "key": "R140.cue-less-webm-native-seek.report-continuity",
+      "rank": 84,
+      "state": "STOP_CURRENT_VALUE",
+      "reason": "Native cue-less seek to25s produces same exact displayed frame as indexed30s control, but transfers393216 of395474 source bytes from cold metadata acquisition. Indexed control also reads essentially whole396119-byte fixture. No scan-free remote seek benefit demonstrated; larger/source-indexed profile needed to reopen.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "cueless/fixture.json",
+          "sha256": "811631ce5f4f8ef53470cfb0d6ff02fc2d70e803b3cb2a2da42d420437647a09"
+        },
+        {
+          "path": "cueless/result.json",
+          "sha256": "49d5245f714f5e55c5f25978844e91d2caac466cf0d6785f763ce6a0a6ed232d"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:18:13.288704+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/cueless/fixture.json",
+      "declared_sha256": "811631ce5f4f8ef53470cfb0d6ff02fc2d70e803b3cb2a2da42d420437647a09",
+      "observed_sha256": "811631ce5f4f8ef53470cfb0d6ff02fc2d70e803b3cb2a2da42d420437647a09",
+      "matched": true
+    },
+    {
+      "path": "results/top100/cueless/result.json",
+      "declared_sha256": "49d5245f714f5e55c5f25978844e91d2caac466cf0d6785f763ce6a0a6ed232d",
+      "observed_sha256": "49d5245f714f5e55c5f25978844e91d2caac466cf0d6785f763ce6a0a6ed232d",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Cold native25s seek yields identical exact framehash andframeTime for indexed/cueless variants, cleanup recorded. Scoped target seek, not general remote scan-free claim."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Stop current opportunity: cue-less393216/395474bytes and indexed396119bytes mean near-full-file transfer on this fixture."
+    }
+  },
+  "passed": true
+}

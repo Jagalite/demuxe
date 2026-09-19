@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200252Z-range-diagnosis",
+  "item_keys": [
+    "R193.tiled-heic-through-browser-video-decoding"
+  ],
+  "stage": "correctness",
+  "status": "failed",
+  "recorded_at_utc": "2026-09-19T20:05:05.377493+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R193.tiled-heic-through-browser-video-decoding/tests/range-diagnosis.mjs research/items/R193.tiled-heic-through-browser-video-decoding/evidence/20260919T200252Z-range-diagnosis",
+    "python3 research/items/R193.tiled-heic-through-browser-video-decoding/tests/analyze-range.py research/items/R193.tiled-heic-through-browser-video-decoding/evidence/20260919T200252Z-range-diagnosis"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "8e6c0bed053cd82c99680a1f7b747e6b65599447a130a27ef82398443f557440",
+    "browser": "152.0.7977.83",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Exact visible full-range YUV against independent host decode; evaluate one range correction without changing acceptance",
+    "oracle": "Host FFmpeg decoded full-range yuvj420p; independent full/limited BT.601 equations for signal diagnosis",
+    "adverse_control": "Grid overlap rejected; swapped U/V materially wrong",
+    "passed": false
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "Strict fidelity failed."
+  },
+  "decision": "stop_current_profile",
+  "limits": [
+    "Scope is this ImageIO synthetic 2x2 full-range HEIC on Chrome 152/macOS. Independent BT.601 display-signal samples use declared nearest chroma and do not qualify OS color management or perceptual tolerances. Chroma conversion differences remain unqualified; no universal HEIC rejection."
+  ],
+  "next_action": "Reopen with a decoder path preserving full-range values, or explicitly define a separate display-tolerance profile and independent color-managed image oracle; do not loosen this exact-pixel contract silently."
+}

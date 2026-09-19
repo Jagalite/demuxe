@@ -17,7 +17,7 @@
       "line_end": 171,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Delivery · New execution-plan hypothesis · P1 · Risk: Medium First environment: Browser-only first; Demuxe integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Create MediaSource and append/remove scheduling in a dedicated worker, passing a MediaSourceHandle to the visible video element. Keep blocking FFmpeg execution on a different worker unless its calls genuinely suspend. Source basis. MSE defines worker construction and transferable handles. Support must be detected in the runtime; a handle is not a transferable MediaSource object. [M1] First agent experiment. Compare window-owned and worker-owned MSE under identical UI layout/animation load. Use unchanged fMP4 output first; add remux only after the ownership test passes. Include worker death, source replacement and detach during append.",
+    "source_excerpt": "Delivery \u00b7 New execution-plan hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Browser-only first; Demuxe integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Create MediaSource and append/remove scheduling in a dedicated worker, passing a MediaSourceHandle to the visible video element. Keep blocking FFmpeg execution on a different worker unless its calls genuinely suspend. Source basis. MSE defines worker construction and transferable handles. Support must be detected in the runtime; a handle is not a transferable MediaSource object. [M1] First agent experiment. Compare window-owned and worker-owned MSE under identical UI layout/animation load. Use unchanged fMP4 output first; add remux only after the ownership test passes. Include worker death, source replacement and detach during append.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,63 +64,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual worker MediaSourceHandle renders A/V to EOF, seeks, rejects malformed input and terminates after a frame; transferred input detaches and every tested case cleans up.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R005.move-mse-ownership-off-the-window-thread.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R005.move-mse-ownership-off-the-window-thread.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/full-completion/continuity/worker-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 21,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R005.move-mse-ownership-off-the-window-thread",
-      "rank": 10,
-      "state": "PURSUE",
-      "reason": "Reconciled completed prior evidence: Worker-owned MediaSourceHandle produces actual A/V through EOF with malformed-input rejection and teardown; localized scheduler integration merits testing, not proven UI/CPU improvement.",
-      "evidence_level": "REUSED_COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "../full-completion/continuity/worker-result.json",
-          "sha256": "1fb4b097b3a430c21e6b302918c1a16c55801f622ba4aaa13e99aa698bdc8751"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 10,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.243523+00:00"
+      "evidence_level": "reconciled_reused_component_test",
+      "new_media_execution": false,
+      "reason": "Reconciled completed prior evidence: Worker-owned MediaSourceHandle produces actual A/V through EOF with malformed-input rejection and teardown; localized scheduler integration merits testing, not proven UI/CPU improvement.",
+      "scope": "Worker-owned MSE component only; production scheduler and main-thread responsiveness not measured.",
+      "correctness_acceptance": "Actual worker MediaSourceHandle renders A/V to EOF, seeks, rejects malformed input and terminates after a frame; transferred input detaches and every tested case cleans up.",
+      "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+      "reopen_condition": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 21,
+        "record": {
+          "key": "R005.move-mse-ownership-off-the-window-thread",
+          "rank": 10,
+          "state": "PURSUE",
+          "reason": "Reconciled completed prior evidence: Worker-owned MediaSourceHandle produces actual A/V through EOF with malformed-input rejection and teardown; localized scheduler integration merits testing, not proven UI/CPU improvement.",
+          "evidence_level": "REUSED_COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "../full-completion/continuity/worker-result.json",
+              "sha256": "1fb4b097b3a430c21e6b302918c1a16c55801f622ba4aaa13e99aa698bdc8751"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:17:13.243523+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/full-completion/continuity/worker-result.json"
+      ]
     }
   },
   "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",

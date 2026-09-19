@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 93,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 57,
+    "record": {
+      "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+      "rank": 93,
+      "state": "PURSUE",
+      "reason": "Actual GPU atomic difference witness scans all 15360 resident RGBA pixels with four-byte readback. Equal frame and first/middle/last changed pixels match CPU oracle. Opportunity restricted to pixels already on GPU; no measured whole-player savings.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "gpu/witness-result.json",
+          "sha256": "d413d9e1a404ed3aa197dcd06cbe0b72ca4dc5102e297697e8f6a8ace136b1d7"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:30:40.721249+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/gpu/witness-result.json",
+      "declared_sha256": "d413d9e1a404ed3aa197dcd06cbe0b72ca4dc5102e297697e8f6a8ace136b1d7",
+      "observed_sha256": "d413d9e1a404ed3aa197dcd06cbe0b72ca4dc5102e297697e8f6a8ace136b1d7",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual GPU all15360resident RGBA pixels checked; equal and first/middle/last changes match CPUoracle; four-byte witness readback and cleanup/errors recorded. Resident-pixel scope only."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "No CPU/latency/transfer benchmark; uploading solely for compare could erase benefit."
+    }
+  },
+  "passed": true
+}

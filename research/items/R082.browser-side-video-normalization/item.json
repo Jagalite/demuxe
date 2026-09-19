@@ -17,7 +17,7 @@
       "line_end": 31,
       "source_kind": "report"
     },
-    "source_excerpt": "The exact proposed WebCodecs path cannot run on the permitted page because VideoEncoder/VideoDecoder are not exposed. A fallback experiment used browser-native H.264 playback as the decoder, canvas.captureStream() as the frame bridge and MediaRecorder as the browser encoder. Three runs produced 89–90 source frame callbacks from a 90-frame source. Median generated size was 276,085 bytes, versus 146,513 bytes for the source. The generated VP9/WebM appended successfully to an MSE SourceBuffer, supported a seek to 1.8 s and reached EOF. Median MSE duration was 3.032 s for the 3.000 s source. The result is not a transparent normalizer yet. Nearest-frame comparisons usually matched the generated frame to a source frame about 2 frames earlier, and downscaled RGB mean absolute error was roughly 4–5/255 at the sampled points. This proves a browser-only decode→encode→MSE loop, but also exposes timeline control as a first-class problem. A secure-context WebCodecs test should use explicit input/output timestamps rather than inheriting MediaRecorder's realtime clock.",
+    "source_excerpt": "The exact proposed WebCodecs path cannot run on the permitted page because VideoEncoder/VideoDecoder are not exposed. A fallback experiment used browser-native H.264 playback as the decoder, canvas.captureStream() as the frame bridge and MediaRecorder as the browser encoder. Three runs produced 89\u201390 source frame callbacks from a 90-frame source. Median generated size was 276,085 bytes, versus 146,513 bytes for the source. The generated VP9/WebM appended successfully to an MSE SourceBuffer, supported a seek to 1.8 s and reached EOF. Median MSE duration was 3.032 s for the 3.000 s source. The result is not a transparent normalizer yet. Nearest-frame comparisons usually matched the generated frame to a source frame about 2 frames earlier, and downscaled RGB mean absolute error was roughly 4\u20135/255 at the sampled points. This proves a browser-only decode\u2192encode\u2192MSE loop, but also exposes timeline control as a first-class problem. A secure-context WebCodecs test should use explicit input/output timestamps rather than inheriting MediaRecorder's realtime clock.",
     "related_reports": [],
     "scope_hash": "72b2c66d7c9e8e2e99bb1610ca35f3414ea191a7a5ada0c30025b5a366288a83",
     "legacy_guide_aliases": [],
@@ -53,66 +53,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. All 72 VP9\u2192AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "All 72 VP9\u2192AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Measure complete decode/encode/mux cost only for an explicit lossy-use workload; add source cancellation before integration.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. All 72 VP9\u2192AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R082.browser-side-video-normalization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R082.browser-side-video-normalization.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/top100/normalize-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. All 72 VP9\u2192AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 69,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R082.browser-side-video-normalization",
       "rank": 32,
-      "state": "PURSUE",
-      "reason": "Actual browser VP9 decode to AVC VideoEncoder to decoder: all72 frames and timestamps retained, every visible RGB frame exceeds32dB PSNR for explicitly lossy output. Wrong timestamp order rejected. Component viability only; source audio/mux/route costs not qualified.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "normalize-result.json",
-          "sha256": "e1a4aa2b6cf0a3d12f3aa9472bc4d55eb43c4794b51e6a98a312215006025e77"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:39:14.646269+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_component_test",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Actual browser VP9 decode to AVC VideoEncoder to decoder: all72 frames and timestamps retained, every visible RGB frame exceeds32dB PSNR for explicitly lossy output. Wrong timestamp order rejected. Component viability only; source audio/mux/route costs not qualified.",
+      "stage_acceptance": "All 72 VP9\u2192AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/normalize-result.json"
+      ],
+      "next_test": "Measure complete decode/encode/mux cost only for an explicit lossy-use workload; add source cancellation before integration.",
+      "reopen_condition": "Measure complete decode/encode/mux cost only for an explicit lossy-use workload; add source cancellation before integration.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Measure complete decode/encode/mux cost only for an explicit lossy-use workload; add source cancellation before integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

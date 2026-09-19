@@ -17,7 +17,7 @@
       "line_end": 342,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Audio · New optimization hypothesis · P1 · Risk: Medium First environment: Matching mpv audio path + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Account for source, mpv-filter, AudioContext and device-side rates as separate stages. Compare output policies that eliminate redundant intermediate conversion and tune bounded PCM batches to playback rather than per-packet message timing. Source basis. mpv documents insertion of swresample when its selected output rate differs from media. Web Audio has context-rate processing; Chrome’s worklet guidance separates compute workers from real-time output. [V1, A1, A2] First agent experiment. Trace the actual rate/layout at every accessible stage for 44.1 and 48 kHz files. Compare existing buffering against a small set of PCM batch sizes under seek, rate change and simulated worker delay.",
+    "source_excerpt": "Audio \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Matching mpv audio path + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Account for source, mpv-filter, AudioContext and device-side rates as separate stages. Compare output policies that eliminate redundant intermediate conversion and tune bounded PCM batches to playback rather than per-packet message timing. Source basis. mpv documents insertion of swresample when its selected output rate differs from media. Web Audio has context-rate processing; Chrome\u2019s worklet guidance separates compute workers from real-time output. [V1, A1, A2] First agent experiment. Trace the actual rate/layout at every accessible stage for 44.1 and 48 kHz files. Compare existing buffering against a small set of PCM batch sizes under seek, rate change and simulated worker delay.",
     "related_reports": [],
     "scope_hash": "111a6a6451c9b64b1341a74f2512cafa884feb5a9b626533668579b434839966",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,26 +91,46 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 53,
-    "record": {
-      "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md"
-      ],
-      "reason": "Current AO explicitly negotiates browser context rate and fixed ring transport; no duplicate resampling stage or oversized-work regression was identified in these owners. Retain required source-to-context conversion and current batching. Reopen only with a rate/occupancy trace demonstrating avoidable conversion or retained work; physical device conversion remains unobserved.",
-      "evidence_level": "SOURCE_REVIEW",
-      "recorded_at_utc": "2026-09-19T17:34:19.058454+00:00"
-    }
+    "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current AO explicitly negotiates browser context rate and fixed ring transport; no duplicate resampling stage or oversized-work regression was identified in these owners. Retain required source-to-context conversion and current batching. Reopen only with a rate/occupancy trace demonstrating avoidable conversion or retained work; physical device conversion remains unobserved.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 53,
+      "record": {
+        "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md"
+        ],
+        "reason": "Current AO explicitly negotiates browser context rate and fixed ring transport; no duplicate resampling stage or oversized-work regression was identified in these owners. Retain required source-to-context conversion and current batching. Reopen only with a rate/occupancy trace demonstrating avoidable conversion or retained work; physical device conversion remains unobserved.",
+        "evidence_level": "SOURCE_REVIEW",
+        "recorded_at_utc": "2026-09-19T17:34:19.058454+00:00"
+      }
+    },
+    "next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
   "integration": {

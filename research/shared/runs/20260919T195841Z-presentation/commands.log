@@ -1,0 +1,7 @@
+ffmpeg -hide_banner -y -f lavfi -i testsrc2=size=64x48:rate=12 -frames:v 24 -c:v libx264 -pix_fmt yuv420p -profile:v baseline -g 12 -keyint_min 12 -sc_threshold 0 -bf 0 -f h264 research/shared/runs/20260919T223000Z-presentation/gop.h264
+ffprobe -v error -show_packets -of json research/shared/runs/20260919T223000Z-presentation/gop.h264
+ffmpeg -v error -i research/shared/runs/20260919T223000Z-presentation/gop.h264 -pix_fmt yuv420p -f rawvideo -
+ffmpeg -hide_banner -y -f lavfi -i testsrc2=size=64x48:rate=12 -frames:v 6 -c:v libx264 -pix_fmt yuv420p -profile:v baseline -g 1 -keyint_min 1 -sc_threshold 0 -bf 0 -f h264 research/shared/runs/20260919T223000Z-presentation/idr.h264
+ffprobe -v error -show_packets -of json research/shared/runs/20260919T223000Z-presentation/idr.h264
+ffmpeg -v error -i research/shared/runs/20260919T223000Z-presentation/idr.h264 -pix_fmt yuv420p -f rawvideo -
+ffmpeg -version

@@ -17,7 +17,7 @@
       "line_end": 589,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Startup · New packaging/cache hypothesis · P1 · Risk: Medium First environment: Browser first; build variants later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Use single-flight loading of hash-identified Wasm modules and optional shader/font assets. Create fresh mutable instances for each source. Consider a small decode-only/prepare-only module split only when measured startup justifies its packaging complexity. Source basis. Official WebAssembly guidance discusses separating compilation from instantiation and worker reuse. Demuxe already has optional plan prerequisites; module availability should be explicit rather than an undocumented local-build dependency. [E2, D1]",
+    "source_excerpt": "Startup \u00b7 New packaging/cache hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Browser first; build variants later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Use single-flight loading of hash-identified Wasm modules and optional shader/font assets. Create fresh mutable instances for each source. Consider a small decode-only/prepare-only module split only when measured startup justifies its packaging complexity. Source basis. Official WebAssembly guidance discusses separating compilation from instantiation and worker reuse. Demuxe already has optional plan prerequisites; module availability should be explicit rather than an undocumented local-build dependency. [E2, D1]",
     "related_reports": [],
     "scope_hash": "074688dc9ff755d169698bbb3baced1bcb62970ead9d37c9751f0766eede8c00",
     "legacy_guide_aliases": [],
@@ -55,79 +55,102 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "failed",
+      "basis": "Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R027.share-immutable-compiled-code-not-live-playback-state.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
-        "results/local-screening/README.md",
-        "results/local-screening/follow-up.md",
-        "results/local-screening/full-queue-audit.md",
-        "results/local-screening/runs/module-maintained-pairs-01/summary.json"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 32,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R027.share-immutable-compiled-code-not-live-playback-state",
       "rank": 63,
-      "state": "PURSUE",
-      "reason": "Reconciled completed prior evidence: Verified local initial startup comparison remains sufficient to justify follow-up: reported 14.10% saving, 95% interval 9.89-18.39% crosses the original 10% gate. Do not repeat this benchmark merely for catalogue closure; cache identity/cancellation and production ownership remain later qualification.",
-      "evidence_level": "REUSED_IMPORTED_LOCAL_EVIDENCE",
-      "evidence": [
-        {
-          "path": "../full-completion/../local-screening/runs/module-maintained-pairs-01/summary.json",
-          "sha256": "4f91c79726e679800053ed288cef42f883d1bd96494125dd8cdecff4b13db576"
-        },
-        {
-          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
-          "sha256": "f0bf6b78733f10fb802e2e671448ea9644f5515337e76640437a96d029048b3b"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.486400+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_reused_imported_local_evidence",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Verified local initial startup comparison remains sufficient to justify follow-up: reported 14.10% saving, 95% interval 9.89-18.39% crosses the original 10% gate. Do not repeat this benchmark merely for catalogue closure; cache identity/cancellation and production ownership remain later qualification.",
+      "stage_acceptance": "Maintained startup pairs execute cold/repeat/concurrent sessions with frame progress; authority diagnostic separately exercises abandoned preparation and source replacement. Complete fidelity/cache ownership qualification remains pending. Original performance gate is not met: 14.10% point saving, 95% interval 9.887\u201318.391% crosses minimum worthwhile 10%.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/local-screening/runs/module-maintained-pairs-01/summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json"
+      ],
+      "next_test": "Keep existing inconclusive value result; complete output/cache authority lifecycle before any integration. Do not rerun merely for catalogue closure.",
+      "reopen_condition": "Keep existing inconclusive value result; complete output/cache authority lifecycle before any integration. Do not rerun merely for catalogue closure.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Later cache/asset/memory/cancellation confirmation; do not automatically start a large confirmation campaign during breadth-first screening.",
+  "next_action": "Keep existing inconclusive value result; complete output/cache authority lifecycle before any integration. Do not rerun merely for catalogue closure.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

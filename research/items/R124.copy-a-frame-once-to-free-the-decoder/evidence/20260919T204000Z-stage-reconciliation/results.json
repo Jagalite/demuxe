@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 76,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 39,
+    "record": {
+      "key": "R124.copy-a-frame-once-to-free-the-decoder",
+      "rank": 76,
+      "state": "STOP_PROFILE",
+      "reason": "Reconciled completed prior evidence: Copying one decoded frame to owned I420 preserves redraw after decoder closure, at 23040 additional copied bytes for this tiny frame. Existing held-frame ownership is bounded and no decoder surface-pressure evidence exists. Do not add routine copies without a trace showing blocked decoder surfaces.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/frame-boundaries/result.json",
+          "sha256": "b19ab33922f103b058e9d99f09d9d620e5827643ef31e2ec92bf29d8be7fd725"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.616206+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/frame-boundaries/result.json",
+      "declared_sha256": "b19ab33922f103b058e9d99f09d9d620e5827643ef31e2ec92bf29d8be7fd725",
+      "observed_sha256": "b19ab33922f103b058e9d99f09d9d620e5827643ef31e2ec92bf29d8be7fd725",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Owned I420 redraw matches reference after decoder closure, with23040copied bytes; this establishes one-frame ownership feasibility, not surface pressure relief."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Stop current profile: bounded existing held frame and no pressure trace justify no routine copy or benchmark."
+    }
+  },
+  "passed": true
+}

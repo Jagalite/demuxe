@@ -17,7 +17,7 @@
       "line_end": 214,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New retention-policy experiment · P2 · PROPOSED / NOT TESTED Extends: R38, R45. Reference primitives: S1, S9, L3. Question. Can keyframe-aware eviction retain more useful rewind coverage under the same buffer budget than arbitrary time cutoffs? Mechanism. Use the actual random-access map to choose eviction boundaries outside current decoding dependencies. Preserve a small useful rewind region and inspect the browser’s resulting ranges, since removal may discard more than the requested interval. Smallest useful experiment. Create short and long closed-GOP variants with the same content. Under a modest explicit budget, alternate forward playback and short backward seeks. Compare a safe time-based cutoff with a GOP-aware cutoff; include a boundary just before the playhead and an evicted-reference negative control.",
+    "source_excerpt": "New retention-policy experiment \u00b7 P2 \u00b7 PROPOSED / NOT TESTED Extends: R38, R45. Reference primitives: S1, S9, L3. Question. Can keyframe-aware eviction retain more useful rewind coverage under the same buffer budget than arbitrary time cutoffs? Mechanism. Use the actual random-access map to choose eviction boundaries outside current decoding dependencies. Preserve a small useful rewind region and inspect the browser\u2019s resulting ranges, since removal may discard more than the requested interval. Smallest useful experiment. Create short and long closed-GOP variants with the same content. Under a modest explicit budget, alternate forward playback and short backward seeks. Compare a safe time-based cutoff with a GOP-aware cutoff; include a boundary just before the playhead and an evicted-reference negative control.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,9 +64,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -76,14 +78,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only already_implemented decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -96,30 +102,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: already_implemented",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 299,
-    "record": {
-      "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
-      "state": "ALREADY_IMPLEMENTED",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md"
-      ],
-      "reason": "Current eviction chooses known RAPs behind playback and buffered seek checks live ranges plus retained RAP coverage. The proposed application-level boundary mechanism is already present; browser allocation opacity remains.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
-      "reopen_condition": "Reopen with measured useful coverage loss despite current RAP-aware cut or false buffered-seek acceptance.",
-      "recorded_at_utc": "2026-09-19T17:34:19.152739+00:00"
-    }
+    "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+    "disposition": "already_implemented",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current eviction chooses known RAPs behind playback and buffered seek checks live ranges plus retained RAP coverage. The proposed application-level boundary mechanism is already present; browser allocation opacity remains.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 299,
+      "record": {
+        "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+        "state": "ALREADY_IMPLEMENTED",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md"
+        ],
+        "reason": "Current eviction chooses known RAPs behind playback and buffered seek checks live ranges plus retained RAP coverage. The proposed application-level boundary mechanism is already present; browser allocation opacity remains.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
+        "reopen_condition": "Reopen with measured useful coverage loss despite current RAP-aware cut or false buffered-seek acceptance.",
+        "recorded_at_utc": "2026-09-19T17:34:19.152739+00:00"
+      }
+    },
+    "next_action": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
   "integration": {

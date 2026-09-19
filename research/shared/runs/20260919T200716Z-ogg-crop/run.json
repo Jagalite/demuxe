@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200716Z-ogg-crop",
+  "item_keys": [
+    "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata"
+  ],
+  "stage": "correctness",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/shared/tooling/audio-stage-probes/ogg_crop.py research/shared/runs/20260919T_audio_boundaries",
+    "node research/shared/tooling/audio-stage-probes/ogg_browser.mjs research/shared/runs/20260919T_audio_boundaries",
+    "ffprobe -v error -show_streams -show_packets -show_data_hash sha256 -of json research/shared/runs/20260919T_audio_boundaries/source.ogg",
+    "ffprobe -v error -show_streams -show_packets -show_data_hash sha256 -of json research/shared/runs/20260919T_audio_boundaries/crop.ogg",
+    "ffprobe -v error -show_streams -show_packets -show_data_hash sha256 -of json research/shared/runs/20260919T_audio_boundaries/wrong-packet-only.ogg"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "7ed6058d10c8adc04124b6335a36ecb52b04ce8c507325c4356fe90d14464a07",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "node": "v23.5.0",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "browser": "Chrome 152.0.7977.83"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Host and browser crop outputs match continuous source samples 12345:67890 exactly (55545 samples). Independent ffprobe confirms all 72 compressed packet SHA256 values unchanged. Wrong pre-skip control yields 67890 samples and fails the contract.",
+    "passed": true,
+    "scope": "bounded component only"
+  },
+  "performance": {
+    "measured": false
+  },
+  "limits": [
+    "All prefix audio packets retained; no minimal preroll or performance claim",
+    "Chrome decodeAudioData destination; no streaming MSE/WebM/MP4, concatenation or physical output qualification"
+  ],
+  "original_output_directory": "research/shared/runs/20260919T_audio_boundaries"
+}

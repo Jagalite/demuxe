@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 94,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 43,
+    "record": {
+      "key": "R215.upload-operation-selected-by-existing-layout",
+      "rank": 94,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: A direct stride-aware heap upload produces byte-identical GL pixels, removes120 JavaScript row-copy bytes for the tested frame, restores row state and rejects short stride. Driver copies and CPU benefit remain unmeasured.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/presentation/result.json",
+          "sha256": "96e8b73c671d0e9f977a71465e26df14a6d77fdae52d6a1a828a8952f90bf86a"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.662137+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/presentation/result.json",
+      "declared_sha256": "96e8b73c671d0e9f977a71465e26df14a6d77fdae52d6a1a828a8952f90bf86a",
+      "observed_sha256": "96e8b73c671d0e9f977a71465e26df14a6d77fdae52d6a1a828a8952f90bf86a",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual stride-awareGL pixels byte-identical to checkerboard reference; badstride rejects, row state restored and frame closes. Black/whiteSDR only."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "120JS-copy bytes removed is not CPU saving; driver copies/color/HDR remain outside scope."
+    }
+  },
+  "passed": true
+}

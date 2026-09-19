@@ -2,13 +2,13 @@
 
 # browser HEVC base + separate Dolby Vision reshaping
 
-Full identity: `R184.browser-hevc-base-separate-dolby-vision-reshaping`. Reused R-numbers are separate mechanisms.
+Full identity: `R184.browser-hevc-base-separate-dolby-vision-reshaping`.
 
-Current imported decision: **HOLD_FIXTURE_SOURCE** (top100).
+Current decision: **blocked** (prerequisite_probe).
 
-No trusted RPU-bearing source and independent Dolby reshaping/color reference found in bounded local fixture inventory. Browser HEVC decode alone cannot qualify this transform. This is a media-source gap, not missing report identity or experimental rejection.
+Trusted RPU-bearing Dolby8.1 source is now available (120 genuine RPU NALs, documented Chromium/Dolby origin). The missing-source part is resolved. Independent Dolby reshaping/color reference remains unavailable: ordinary HEVC decoding used by R099 deliberately ignores RPU and cannot validate a separate Dolby transform. Do not count HDR10-base equivalence as Dolby appearance success.
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
+Next action: Obtain an authorized independent Dolby color/reshaping oracle with a nontrivial mapping fixture; then compare browser base plus separate transform against that declared signal boundary.
 
 ## Definition and contract
 
@@ -23,35 +23,13 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: HOLD_FIXTURE_SOURCE. No integration or qualification inferred. |
+|---|---|---|
+| define | passed | Prerequisite gate for browser HEVC base plus separately applied Dolby reshaping. |
+| prepare | blocked | Genuine RPU-bearing source acquired and hashed, but independent Dolby reshaping/color oracle remains missing. |
+| screen | passed | Trusted RPU-bearing Dolby8.1 source is now available (120 genuine RPU NALs, documented Chromium/Dolby origin). The missing-source part is resolved. Independent Dolby reshaping/color reference remains unavailable: ordinary HEVC decoding used by R099 deliberately ignores RPU and cannot validate a separate Dolby transform. Do not count HDR10-base equivalence as Dolby appearance success. |
+| correctness | blocked | No candidate Dolby transform executed; required independent Dolby-rendered reference missing. |
+| performance | blocked | Performance remains blocked until the Dolby transform has an independent fidelity reference and passes correctness. |
+| results | passed | Positive/negative evidence and limitations captured in immutable run. |
+| decision | passed | blocked: Trusted RPU-bearing Dolby8.1 source is now available (120 genuine RPU NALs, documented Chromium/Dolby origin). The missing-source part is resolved. Independent Dolby reshaping/color reference remains unavailable: ordinary HEVC decoding used by R099 deliberately ignores RPU and cannot validate a separate Dolby transform. Do not count HDR10-base equivalence as Dolby appearance success. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R184.browser-hevc-base-separate-dolby-vision-reshaping.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R184.browser-hevc-base-separate-dolby-vision-reshaping.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R184.browser-hevc-base-separate-dolby-vision-reshaping.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R184.browser-hevc-base-separate-dolby-vision-reshaping.md)
-- [results/top100/prerequisites/media-inventory.json](../../../results/top100/prerequisites/media-inventory.json)
+[New run](evidence/20260919T201300Z-reference-gate/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

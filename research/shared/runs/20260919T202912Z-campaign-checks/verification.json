@@ -1,0 +1,46 @@
+{
+  "run_id": "20260919T202912Z-campaign-checks",
+  "verified_at_utc": "2026-09-19T20:29:32.588422+00:00",
+  "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "scripts/research.py",
+        "verify"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"items\": 425,\n  \"archived_artifacts\": 988,\n  \"historical_hash_mismatches_retained\": 3,\n  \"failures\": [],\n  \"passed\": true,\n  \"scope\": \"Research organization and captured byte identity only; no playback, build, or performance tests.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/check-licenses.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Core dependency boundary verified (31 source/output files)\nLicense boundaries, SPDX headers and preserved notices verified\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "research/shared/tooling/verify-research-runs.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"verified_at_utc\": \"2026-09-19T20:29:27.412147+00:00\",\n  \"new_run_manifests\": 78,\n  \"distinct_artifacts\": 1105,\n  \"python_syntax_checked\": 24,\n  \"node_syntax_checked\": 18,\n  \"failures\": [],\n  \"passed\": true,\n  \"scope\": \"Run manifest identity and harness syntax; no new media execution, quality or performance qualification.\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "preexisting_tracked_edits": {
+    "paths": [
+      "tests/audio-adaptation-lifecycle.mjs",
+      "tests/audio-adaptation.mjs",
+      "web/native-remux-worker.js"
+    ],
+    "sha256": "af5c8a5fcc95bc35619e6e33cdd092edec88d4593ced3c66825d452f60eb11de",
+    "unchanged": true
+  },
+  "passed": true,
+  "limits": "Organization, preserved artifact identity, syntax, licensing and scoped checkout preservation. Scientific outcomes and unresolved gates remain in canonical items."
+}

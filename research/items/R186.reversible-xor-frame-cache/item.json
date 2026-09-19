@@ -17,7 +17,7 @@
       "line_end": 58,
       "source_kind": "report"
     },
-    "source_excerpt": "A four-second H.264 fixture was decoded to 120 actual 320×180 grayscale frames. The cache stores a checkpoint every 15 frames plus zlib-compressed XOR deltas; bridge deltas at checkpoint boundaries preserve exact reverse stepping. All sampled random reconstructions and the complete 119-step backward traversal were byte-exact. On this deliberately coherent moving-shape source: - raw full-frame cache: 6,912,000 bytes; - XOR/checkpoint representation: 12,595 bytes; - reduction: 99.82%; - full reverse traversal: 15.9 ms median; - re-decoding the source: 78.5 ms median; - raw full-cache pointer/index traversal: 0.01 ms median. The negative control matters: random incompressible frames produced a delta cache 1.059× larger than raw. This is a content-dependent reverse-playback cache, not a universal compact frame format.",
+    "source_excerpt": "A four-second H.264 fixture was decoded to 120 actual 320\u00d7180 grayscale frames. The cache stores a checkpoint every 15 frames plus zlib-compressed XOR deltas; bridge deltas at checkpoint boundaries preserve exact reverse stepping. All sampled random reconstructions and the complete 119-step backward traversal were byte-exact. On this deliberately coherent moving-shape source: - raw full-frame cache: 6,912,000 bytes; - XOR/checkpoint representation: 12,595 bytes; - reduction: 99.82%; - full reverse traversal: 15.9 ms median; - re-decoding the source: 78.5 ms median; - raw full-cache pointer/index traversal: 0.01 ms median. The negative control matters: random incompressible frames produced a delta cache 1.059\u00d7 larger than raw. This is a content-dependent reverse-playback cache, not a universal compact frame format.",
     "related_reports": [],
     "scope_hash": "d19a1a758f92abc35cb1d2bbad6e3109b05a1defe3aeffb3d90056d23272ff2f",
     "legacy_guide_aliases": [],
@@ -53,62 +53,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R186.reversible-xor-frame-cache.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 207,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R186.reversible-xor-frame-cache",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      "rank": 304,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
-      "reason": "Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
+      "reason": "Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
       "next_test": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
       "reopen_condition": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
-      "recorded_at_utc": "2026-09-19T17:34:19.101497+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",

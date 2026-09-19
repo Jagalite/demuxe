@@ -17,7 +17,7 @@
       "line_end": 285,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Audio · New fidelity-option hypothesis · P2 · Risk: Medium First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep the normal float decoder and explicitly permit conversion to integer PCM before FLAC. This could provide a bounded-error middle option between a different fixed decoder and perceptual Opus/AAC encoding. Source basis. FLAC specifies integer sample coding, while FFmpeg exposes sample-format conversion and dithering. Float-to-integer quantization is a distinct, potentially lossy stage even when FLAC round-trips its integer input exactly. [F4, F5] First agent experiment. Compare float-to-24-bit and, only if the destination supports it, float-to-32-bit conversion against the same normal decoder reference. Measure RMS/peak error, clipping/headroom, sample counts, output size and complete playback cost.",
+    "source_excerpt": "Audio \u00b7 New fidelity-option hypothesis \u00b7 P2 \u00b7 Risk: Medium First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep the normal float decoder and explicitly permit conversion to integer PCM before FLAC. This could provide a bounded-error middle option between a different fixed decoder and perceptual Opus/AAC encoding. Source basis. FLAC specifies integer sample coding, while FFmpeg exposes sample-format conversion and dithering. Float-to-integer quantization is a distinct, potentially lossy stage even when FLAC round-trips its integer input exactly. [F4, F5] First agent experiment. Compare float-to-24-bit and, only if the destination supports it, float-to-32-bit conversion against the same normal decoder reference. Measure RMS/peak error, clipping/headroom, sample counts, output size and complete playback cost.",
     "related_reports": [],
     "scope_hash": "44b3adb2060538a07cdbe79a20c1e1fb35906246a016ebdfadb7e555638e6773",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 349,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      "rank": 293,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ],
       "next_test": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
       "reopen_condition": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
-      "recorded_at_utc": "2026-09-19T17:34:19.166265+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",

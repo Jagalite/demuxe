@@ -27,7 +27,7 @@
         "line_start": 62,
         "line_end": 67,
         "source_kind": "report",
-        "reported_heading": "VP9 codec-unit normalization — BLOCKED / INCONCLUSIVE"
+        "reported_heading": "VP9 codec-unit normalization \u2014 BLOCKED / INCONCLUSIVE"
       }
     ],
     "scope_hash": "0b2a3be1c6c0f05cd05559cb8c84fdb3a4cdae8ec06725ae5a62b2c5c4d02351",
@@ -70,65 +70,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Actual worker compares aggregate versus split VP9 units: 78 components including six hidden frames yield 72 exact visible pictures/PTS; key24 seek yields 48 exact pictures. Missing hidden frame corrupts oracle, cold dependent start rejects; all frames close and workers terminate.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual worker compares aggregate versus split VP9 units: 78 components including six hidden frames yield 72 exact visible pictures/PTS; key24 seek yields 48 exact pictures. Missing hidden frame corrupts oracle, cold dependent start rejects; all frames close and workers terminate.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Retain destination-specific framing predicate; investigate benefit only against current aggregate baseline, not generic splitting.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Actual worker compares aggregate versus split VP9 units: 78 components including six hidden frames yield 72 exact visible pictures/PTS; key24 seek yields 48 exact pictures. Missing hidden frame corrupts oracle, cold dependent start rejects; all frames close and workers terminate.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R092.normalize-vp9-codec-units-for-the-actual-destination.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R092.normalize-vp9-codec-units-for-the-actual-destination.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/full-completion/r332/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Actual worker compares aggregate versus split VP9 units: 78 components including six hidden frames yield 72 exact visible pictures/PTS; key24 seek yields 48 exact pictures. Missing hidden frame corrupts oracle, cold dependent start rejects; all frames close and workers terminate.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 58,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
       "rank": 54,
-      "state": "PURSUE",
-      "reason": "Reconciled actual existing aggregate/split VP9 superframe test against unchanged worker and fixture identities: six hidden frames retained, 72 exact visible frames/timestamps, seek passes, missing-hidden oracle and cold-dependent-start fail. Destination-specific normalized framing works; generic split policy not justified.",
-      "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
-      "evidence": [
-        {
-          "path": "../full-completion/r332/result.json",
-          "sha256": "8f91611597085c717fa2414a19ef782c04ec499597754f87e8631a79ae8be183"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:31:28.952315+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_imported_local_evidence",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Reconciled actual existing aggregate/split VP9 superframe test against unchanged worker and fixture identities: six hidden frames retained, 72 exact visible frames/timestamps, seek passes, missing-hidden oracle and cold-dependent-start fail. Destination-specific normalized framing works; generic split policy not justified.",
+      "stage_acceptance": "Actual worker compares aggregate versus split VP9 units: 78 components including six hidden frames yield 72 exact visible pictures/PTS; key24 seek yields 48 exact pictures. Missing hidden frame corrupts oracle, cold dependent start rejects; all frames close and workers terminate.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/full-completion/r332/result.json"
+      ],
+      "next_test": "Retain destination-specific framing predicate; investigate benefit only against current aggregate baseline, not generic splitting.",
+      "reopen_condition": "Retain destination-specific framing predicate; investigate benefit only against current aggregate baseline, not generic splitting.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Retain destination-specific framing predicate; investigate benefit only against current aggregate baseline, not generic splitting.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

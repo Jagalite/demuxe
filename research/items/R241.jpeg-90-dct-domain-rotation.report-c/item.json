@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "key": "R241.jpeg-90-dct-domain-rotation.report-c",
-  "title": "JPEG 90° DCT-domain rotation",
+  "title": "JPEG 90\u00b0 DCT-domain rotation",
   "definition": {
     "key": "R241.jpeg-90-dct-domain-rotation.report-c",
     "legacy_id": "R241",
     "legacy_number": 241,
     "identity_branch": "report-C",
-    "title": "JPEG 90° DCT-domain rotation",
+    "title": "JPEG 90\u00b0 DCT-domain rotation",
     "definition_status": "SOURCE_BODY_AVAILABLE",
     "definition_source": {
       "source_key": "S021",
@@ -17,7 +17,7 @@
       "line_end": 46,
       "source_kind": "report"
     },
-    "source_excerpt": "A libjpeg coefficient transformer rotates a 64×48 4:4:4 JPEG without reconstructing pixels: block geometry rotates, each 8×8 coefficient block is transposed with the required sign changes, and quantization tables are transposed consistently. An independent coefficient dump checks all 9,216 quantized coefficients: zero differences, maximum coefficient error zero, and zero quant-table differences. Chromium decodes the result as 48×64. Rotating the already-decoded RGB source is not pixel-bit-identical to decoding the coefficient-rotated JPEG: MAE is 0.0211 and maximum component difference is 2. This is the expected integer-IDCT rounding distinction. The durable claim is no coefficient requantization/generational transform loss.",
+    "source_excerpt": "A libjpeg coefficient transformer rotates a 64\u00d748 4:4:4 JPEG without reconstructing pixels: block geometry rotates, each 8\u00d78 coefficient block is transposed with the required sign changes, and quantization tables are transposed consistently. An independent coefficient dump checks all 9,216 quantized coefficients: zero differences, maximum coefficient error zero, and zero quant-table differences. Chromium decodes the result as 48\u00d764. Rotating the already-decoded RGB source is not pixel-bit-identical to decoding the coefficient-rotated JPEG: MAE is 0.0211 and maximum component difference is 2. This is the expected integer-IDCT rounding distinction. The durable claim is no coefficient requantization/generational transform loss.",
     "related_reports": [],
     "scope_hash": "79df6f173792036e19c365dfe23978306499e1b3cfd259f4a6736c74ecb8af6a",
     "legacy_guide_aliases": [
@@ -86,9 +86,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -98,14 +100,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -118,30 +124,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 296,
-    "record": {
-      "key": "R241.jpeg-90-dct-domain-rotation.report-c",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R241.jpeg-90-dct-domain-rotation.report-c.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md"
-      ],
-      "reason": "Existing display rotation operates after decode and preserves current presentation semantics. Coefficient-domain JPEG rotation is an export/representation operation with up-to-two-level IDCT differences, not an exact pixel replacement for present display rotation.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
-      "reopen_condition": "Reopen for an explicit coefficient-preserving image transformation contract; do not substitute it for bit-identical rotated pixels.",
-      "recorded_at_utc": "2026-09-19T17:34:19.151255+00:00"
-    }
+    "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Existing display rotation operates after decode and preserves current presentation semantics. Coefficient-domain JPEG rotation is an export/representation operation with up-to-two-level IDCT differences, not an exact pixel replacement for present display rotation.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 296,
+      "record": {
+        "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R241.jpeg-90-dct-domain-rotation.report-c.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md"
+        ],
+        "reason": "Existing display rotation operates after decode and preserves current presentation semantics. Coefficient-domain JPEG rotation is an export/representation operation with up-to-two-level IDCT differences, not an exact pixel replacement for present display rotation.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
+        "reopen_condition": "Reopen for an explicit coefficient-preserving image transformation contract; do not substitute it for bit-identical rotated pixels.",
+        "recorded_at_utc": "2026-09-19T17:34:19.151255+00:00"
+      }
+    },
+    "next_action": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
   "integration": {

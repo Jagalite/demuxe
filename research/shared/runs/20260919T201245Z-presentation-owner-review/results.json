@@ -1,0 +1,41 @@
+{
+  "reviews": [
+    {
+      "key": "R237.propagate-the-visible-region-backward-through-the-effects-pipeline",
+      "decision": "stop_current_profile",
+      "evidence_level": "source_review",
+      "candidate_executed": false,
+      "reason": "No effect graph or filter-footprint owner exists in the current custom presenter. The shader crops final texture sampling; CPU staging copies and uploads all three source planes first. Backward ROI propagation cannot remove effect intermediate work in this current owner because no such intermediates exist. A fixed blur demonstration would establish a different, newly invented graph.",
+      "next_action": "Reopen when an actual fixed-filter graph processes material off-viewport intermediate pixels. Then compare full graph versus halo-expanded ROI and omit the halo as a wrong-output control, with unknown/temporal effects falling back to full frame.",
+      "sources": [
+        "web/yuv-presenter.js"
+      ]
+    },
+    {
+      "key": "R330.encode-repeated-subtitle-glyph-arrangements-as-reusable-scene-objects",
+      "decision": "stop_current_profile",
+      "evidence_level": "source_review",
+      "candidate_executed": false,
+      "reason": "Current libass renderer already owns glyph caches and reports unchanged output; the native bridge exports final ASS_Image bitmap tiles, not fully shaped scene objects. Browser reuse at this boundary cannot avoid internal shaping or layout. No measured repeated-layout workload justifies introducing a new shaping API; existing bitmap reuse is a separate mechanism.",
+      "next_action": "Reopen after instrumentation of one real libass track establishes repeated expensive shaping/layout beyond existing caches. Preserve font fallback, line wrap and style/timing invalidation before exposing reusable scene objects.",
+      "sources": [
+        "native/subtitles/ass.c",
+        "web/native-ass-worker.js",
+        "src/internal/native-ass.ts"
+      ]
+    },
+    {
+      "key": "R364.reuse-gpu-command-sequences-across-changing-video-frames",
+      "decision": "stop_current_profile",
+      "evidence_level": "source_review",
+      "candidate_executed": false,
+      "reason": "The current custom presenter is WebGL2, with one video triangle and optional subtitle-overlay triangle. It has neither a WebGPU render-pass owner nor reusable owned-slot bind groups. WebGPU render bundles cannot be applied to this API owner; creating a new renderer or adding video copies solely for command caching is outside this opportunity.",
+      "next_action": "Reopen if a WebGPU renderer is independently introduced and command encoding of its existing batched layout is measured material. Test changing frame/parameter contents and atlas-generation invalidation before any bundle timing comparison.",
+      "sources": [
+        "web/yuv-presenter.js",
+        "web/software-full-engine-worker.js"
+      ]
+    }
+  ],
+  "scope": "Current implementation opportunity only; no general algorithm rejection."
+}

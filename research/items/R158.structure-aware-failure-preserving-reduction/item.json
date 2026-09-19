@@ -17,7 +17,7 @@
       "line_end": 198,
       "source_kind": "report"
     },
-    "source_excerpt": "Used the previously supplied R110 laced-Opus WebM as an explicitly known incompatibility, then independently reran it in the current browser. The predicate requires: host parsing still yields audio packets; MSE rejects the laced candidate; and the corresponding unlaced candidate is accepted. The reducer rewrites valid EBML lengths and removes irrelevant metadata and groups while retaining the target condition. Seven accepted predicate probes reduce 46,580→1,238 bytes, and 50→1 laced block, containing three original codec packets. The minimized file still decodes through the direct browser path. Laced and unlaced minimized files produce identical, nonempty host PCM. This is a reproducible reducer result, not a new browser vulnerability, a globally byte-minimal testcase, or support for arbitrary codec-aware reduction. Positive-control preservation prevents confusing a generic broken file with the targeted destination distinction.",
+    "source_excerpt": "Used the previously supplied R110 laced-Opus WebM as an explicitly known incompatibility, then independently reran it in the current browser. The predicate requires: host parsing still yields audio packets; MSE rejects the laced candidate; and the corresponding unlaced candidate is accepted. The reducer rewrites valid EBML lengths and removes irrelevant metadata and groups while retaining the target condition. Seven accepted predicate probes reduce 46,580\u21921,238 bytes, and 50\u21921 laced block, containing three original codec packets. The minimized file still decodes through the direct browser path. Laced and unlaced minimized files produce identical, nonempty host PCM. This is a reproducible reducer result, not a new browser vulnerability, a globally byte-minimal testcase, or support for arbitrary codec-aware reduction. Positive-control preservation prevents confusing a generic broken file with the targeted destination distinction.",
     "related_reports": [],
     "scope_hash": "6fe5b7ba6d695eed458249af0717978f01da5693c2aec464c89f889345f98113",
     "legacy_guide_aliases": [],
@@ -53,65 +53,112 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "49 Xiph lace groups reduce to one with same exact Chrome Lacing1 unsupported predicate; unlaced control plays880Hz/EOF and packet/PTS identity matches.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R158.structure-aware-failure-preserving-reduction.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R158.structure-aware-failure-preserving-reduction.md",
-        "results/full-completion/webm-boundaries/lace-identity.json",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
         "results/full-completion/webm-boundaries/one-lace-identity.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE_AS_TEST_TOOL. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 48,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R158.structure-aware-failure-preserving-reduction",
-      "state": "PURSUE_AS_TEST_TOOL",
-      "evidence": [
-        "webm-boundaries/lacing-result.json",
-        "webm-boundaries/lace-identity.json",
-        "webm-boundaries/one-lace-identity.json"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 243,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE_AS_TEST_TOOL",
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
       "reason": "Reducing 49 Xiph lace groups to one retains the identical Chrome CHUNK_DEMUXER_ERROR_APPEND_FAILED / Lacing 1 unsupported predicate; unlaced control plays to EOF with 880Hz audio. Independent packet hashes and PTS match across variants. Worth a structure-aware failure reducer; this controlled fixture reduction is not a generic reducer implementation.",
-      "evidence_level": "COMPONENT_TEST",
-      "recorded_at_utc": "2026-09-19T17:34:19.057192+00:00"
+      "correctness_acceptance": "49 Xiph lace groups reduce to one with same exact Chrome Lacing1 unsupported predicate; unlaced control plays880Hz/EOF and packet/PTS identity matches.",
+      "next_action": "General reducer requires a new mutation/structure-preservation owner; current exact failing-fixture reduction is useful test evidence.",
+      "reopen_condition": "General reducer requires a new mutation/structure-preservation owner; current exact failing-fixture reduction is useful test evidence.",
+      "blocker_category": null,
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 48,
+        "record": {
+          "key": "R158.structure-aware-failure-preserving-reduction",
+          "state": "PURSUE_AS_TEST_TOOL",
+          "evidence": [
+            "webm-boundaries/lacing-result.json",
+            "webm-boundaries/lace-identity.json",
+            "webm-boundaries/one-lace-identity.json"
+          ],
+          "reason": "Reducing 49 Xiph lace groups to one retains the identical Chrome CHUNK_DEMUXER_ERROR_APPEND_FAILED / Lacing 1 unsupported predicate; unlaced control plays to EOF with 880Hz audio. Independent packet hashes and PTS match across variants. Worth a structure-aware failure reducer; this controlled fixture reduction is not a generic reducer implementation.",
+          "evidence_level": "COMPONENT_TEST",
+          "recorded_at_utc": "2026-09-19T17:34:19.057192+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
     }
   },
-  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "next_action": "General reducer requires a new mutation/structure-preservation owner; current exact failing-fixture reduction is useful test evidence.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

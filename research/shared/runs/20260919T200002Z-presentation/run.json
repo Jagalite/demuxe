@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200002Z-presentation",
+  "item_keys": [
+    "R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity",
+    "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
+    "R289.share-one-native-decoder-across-unrelated-independent-picture-jobs",
+    "R323.fan-one-decoded-videoframe-into-several-workers-without-copying-its-pixels-up-front",
+    "R118.one-decode-many-views"
+  ],
+  "stage": "correctness",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:02:01.998637+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/shared/tooling/presentation/prepare.py research/shared/runs/20260919T200002Z-presentation",
+    "node research/shared/tooling/presentation/probe.mjs research/shared/runs/20260919T200002Z-presentation"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "1f24dadd0836186d3d16fec21616317e7351636ecd5941d92e9c7767a4a6a2b9",
+    "browser": "152.0.7977.83",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "decoder_hint": "prefer-software in corrected run"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Scoped pixel/timestamp component assertions; per-item lifecycle exclusions below",
+    "oracle": "host FFmpeg raw YUV passthrough; separate browser decoder and crop baselines",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "This run is correctness/opportunity only. Future performance remains pending for pursue items."
+  },
+  "limits": [
+    "Immutable closed GOP cache batch only; no B/open GOP, renderer cadence, long-GOP fallback, or production seek lifecycle.",
+    "Eligibility predicates reject backward/source changes, but their full restart paths were not executed. No user latency claim.",
+    "Same configuration synthetic IDR samples only. Configuration signature adverse check is not execution of reconfiguration recovery; no physical native/hardware identity claim.",
+    "No explicit copyTo before fanout; browser internal copying and retained native surfaces were not measured. Source generation checked but prompt cancellation of an unresponsive worker remains untested.",
+    "Two-view component only; parent source retains the bounded fixture frames. Lease count is not complete native decoder-surface accounting or zero-copy evidence."
+  ],
+  "decision": "See per-item records; whole-player qualification not established"
+}

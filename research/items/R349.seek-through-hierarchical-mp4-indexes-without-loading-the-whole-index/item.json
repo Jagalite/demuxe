@@ -79,63 +79,80 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Generated or reused hashed synthetic fixtures, executable harness and independent FFprobe/reference evidence for the bounded component.",
+      "evidence": [
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Authored two-level SIDX lazily selects leaves 20,3,21,3; exact selected bytes and independent packet payload/timing match original source. Stale source identity and out-of-source reference reject. Root is supplied and logical local reads recorded.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Exact leaf and independent packet/timing oracle pass. Complete picture/playback, cancellation and overlap controls remain pending.",
+      "evidence": [
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "Equivalent-work performance not measured; relevant complete correctness and real owner workload remain prerequisites.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive and negative variants preserved in immutable runs with manifests.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index.md"
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue decision; integration and production qualification separate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 194,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index.md"
+      "state": "pursue",
+      "reason": "Authored two-level SIDX lazily selects leaves 20,3,21,3; exact selected bytes and independent packet payload/timing match original source. Stale source identity and out-of-source reference reject. Root is supplied and logical local reads recorded.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:01:18.914201+00:00",
+      "run_ids": [
+        "20260919T200000Z-hierarchy"
       ],
-      "reason": "The cheap MP4 probe is metadata admission, not a hierarchy-aware sample/seek reader; current source transport serves demanded ranges and FFmpeg owns demux indexes. A root/child/leaf SIDX traversal contract and immutable manifest discovery are not exposed. Parsing a supplied hierarchy would be new setup, not a smaller existing array.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Use one already-authored two-level SIDX with an authoritative root location; compare selected leaf ranges against an independent full parse and reject stale, overlapping or out-of-source references before any network latency comparison.",
-      "reopen_condition": "Use one already-authored two-level SIDX with an authoritative root location; compare selected leaf ranges against an independent full parse and reject stale, overlapping or out-of-source references before any network latency comparison.",
-      "recorded_at_utc": "2026-09-19T17:34:19.098069+00:00"
+      "evidence": [
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/run.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/results.json",
+        "research/items/R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index/evidence/20260919T200000Z-hierarchy/manifest.json"
+      ],
+      "next_test": "Add actual browser output and cancellation/overlap controls; evaluate genuine already-indexed source and total cold init/discovery/transfer before network benefit claim.",
+      "reopen_condition": "Add actual browser output and cancellation/overlap controls; evaluate genuine already-indexed source and total cold init/discovery/transfer before network benefit claim.",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "scope": "Exact leaf and independent packet/timing oracle pass. Complete picture/playback, cancellation and overlap controls remain pending."
     }
   },
-  "next_action": "Use one already-authored two-level SIDX with an authoritative root location; compare selected leaf ranges against an independent full parse and reject stale, overlapping or out-of-source references before any network latency comparison.",
+  "next_action": "Add actual browser output and cancellation/overlap controls; evaluate genuine already-indexed source and total cold init/discovery/transfer before network benefit claim.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

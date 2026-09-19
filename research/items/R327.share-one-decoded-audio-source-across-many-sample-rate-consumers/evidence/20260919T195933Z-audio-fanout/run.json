@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "run_id": "20260919T195933Z-audio-fanout",
+  "item_keys": [
+    "R327.share-one-decoded-audio-source-across-many-sample-rate-consumers"
+  ],
+  "stage": "correctness",
+  "status": "pending",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "See commands.log; original executed output directory research/shared/runs/20260919T_audio_fanout, immutable copies here"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "dfedda979fad5a5287a4b530f3672af68a7858df5790987a93955a99676ef618",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "node": "v23.5.0",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "browser": "not used"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "decision": {
+    "key": "R327.share-one-decoded-audio-source-across-many-sample-rate-consumers",
+    "recorded_at_utc": "2026-09-19T19:59:33.240223+00:00",
+    "stage": "decision",
+    "disposition": "pursue",
+    "state": "pursue",
+    "run_ids": [
+      "20260919T195933Z-audio-fanout"
+    ],
+    "evidence_level": "component_test",
+    "profile": "host FFmpeg FLAC to source-rate stereo f32; three independent persistent sample-rate consumers",
+    "candidate_executed": true,
+    "fallback_observed": false,
+    "reason": "A real host FLAC decoder feeds bounded PCM queues to three persistent resamplers. Outputs at 32000/44100/48000 Hz exactly match independent decode paths (64000/88200/96000 stereo frames). Actual fanout backpressures; slow rejection and epoch tests are separate policy components, not integration proof.",
+    "next_action": "Exercise actual consumer cancellation/source replacement under one owned browser PCM broker, then benchmark equivalent independent persistent decoders including all queues and copies.",
+    "reopen_condition": "Exercise actual consumer cancellation/source replacement under one owned browser PCM broker, then benchmark equivalent independent persistent decoders including all queues and copies.",
+    "evidence": [
+      "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+    ],
+    "blocker_category": null
+  },
+  "limits": [
+    "host FFmpeg, not maintained browser decoder or player integration",
+    "blocking backpressure in actual fanout; slow-consumer rejection is separately tested policy",
+    "FFmpeg internal pipe/process memory not measured",
+    "no acoustic or performance qualification"
+  ],
+  "performance": {
+    "applicable": true,
+    "measured": false
+  }
+}

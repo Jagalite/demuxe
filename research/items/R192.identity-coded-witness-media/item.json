@@ -17,7 +17,7 @@
       "line_end": 146,
       "source_kind": "report"
     },
-    "source_excerpt": "The four-second fixture carries independent identities in multiple dimensions: - each video second has an eight-bit visual code: 0xA0, 0xA1, 0xA2, 0xA3; - left-channel tones are 320/400/480/560 Hz by second; - right-channel tones are 900/1000/1100/1200 Hz. Both FFmpeg-based and Chromium-based oracles accepted the correct file. Three decodable, believable wrong variants were then tested: 1. video timeline reorder: codes became A0, A2, A1, A3; audio still looked correct; 2. stereo channel swap: video remained correct, but the per-channel tones reversed; 3. 0.5 s audio shift: video remained correct, but time-local audio identities no longer matched their expected epochs. All three were detected by both host and browser identity checks. This demonstrates why fixtures that merely contain “moving video + audible tone” can accept convincingly wrong playback.",
+    "source_excerpt": "The four-second fixture carries independent identities in multiple dimensions: - each video second has an eight-bit visual code: 0xA0, 0xA1, 0xA2, 0xA3; - left-channel tones are 320/400/480/560 Hz by second; - right-channel tones are 900/1000/1100/1200 Hz. Both FFmpeg-based and Chromium-based oracles accepted the correct file. Three decodable, believable wrong variants were then tested: 1. video timeline reorder: codes became A0, A2, A1, A3; audio still looked correct; 2. stereo channel swap: video remained correct, but the per-channel tones reversed; 3. 0.5 s audio shift: video remained correct, but time-local audio identities no longer matched their expected epochs. All three were detected by both host and browser identity checks. This demonstrates why fixtures that merely contain \u201cmoving video + audible tone\u201d can accept convincingly wrong playback.",
     "related_reports": [],
     "scope_hash": "8312399cbad3ca408153de584704649fe47a399eddf3891a08267e0ae086c4a2",
     "legacy_guide_aliases": [],
@@ -69,67 +69,120 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Exact candidate setup not implemented: Unified per-epoch video/channel/audio-shift witness generator; existing isolated negative oracles establish value but not this combined tool.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No performance claim or equivalent candidate workload established.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R192.identity-coded-witness-media.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R192.identity-coded-witness-media.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/r332/result.json",
-        "results/full-completion/r41/result.json",
         "results/full-completion/r57/result.json",
-        "results/full-completion/r95/result.json"
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE_AS_TEST_TOOL. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 55,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R192.identity-coded-witness-media",
-      "state": "PURSUE_AS_TEST_TOOL",
-      "evidence": [
-        "r332/result.json",
-        "r57/result.json",
-        "r95/result.json",
-        "r41/result.json"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 184,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE_AS_TEST_TOOL",
+      "evidence_level": "reconciled_evidence_synthesis",
+      "new_media_execution": false,
       "reason": "Current campaign oracles reject missing hidden picture dependencies, deliberate channel loss and doubled gain, and check cue timing. These concrete failures justify identity-bearing witnesses as test infrastructure. A single unified per-epoch video/channel/audio-shift witness is still future implementation, not claimed executed here.",
-      "evidence_level": "EVIDENCE_SYNTHESIS",
-      "recorded_at_utc": "2026-09-19T17:34:19.058984+00:00"
+      "correctness_acceptance": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "next_action": "Build only the bounded missing component: Unified per-epoch video/channel/audio-shift witness generator; existing isolated negative oracles establish value but not this combined tool.",
+      "reopen_condition": "Build only the bounded missing component: Unified per-epoch video/channel/audio-shift witness generator; existing isolated negative oracles establish value but not this combined tool.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 55,
+        "record": {
+          "key": "R192.identity-coded-witness-media",
+          "state": "PURSUE_AS_TEST_TOOL",
+          "evidence": [
+            "r332/result.json",
+            "r57/result.json",
+            "r95/result.json",
+            "r41/result.json"
+          ],
+          "reason": "Current campaign oracles reject missing hidden picture dependencies, deliberate channel loss and doubled gain, and check cue timing. These concrete failures justify identity-bearing witnesses as test infrastructure. A single unified per-epoch video/channel/audio-shift witness is still future implementation, not claimed executed here.",
+          "evidence_level": "EVIDENCE_SYNTHESIS",
+          "recorded_at_utc": "2026-09-19T17:34:19.058984+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json",
+        "results/full-completion/r41/result.json"
+      ]
     }
   },
-  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "next_action": "Build only the bounded missing component: Unified per-epoch video/channel/audio-shift witness generator; existing isolated negative oracles establish value but not this combined tool.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

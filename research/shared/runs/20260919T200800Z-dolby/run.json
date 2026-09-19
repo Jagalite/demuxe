@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "run_id": "20260919T200800Z-dolby",
+  "item_keys": [
+    "R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:13:57.156037+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "Python urllib GET https://raw.githubusercontent.com/chromium/chromium/main/media/test/data/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 (3528195bytes, bounded8MiB fetch)",
+    "ffmpeg -v error -y -copyts -i research/shared/runs/20260919T200800Z-dolby/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 -map 0:v:0 -c copy -bsf:v dovi_rpu=strip=1 -tag:v hvc1 -avoid_negative_ts disabled research/shared/runs/20260919T200800Z-dolby/hdr10-copyts.mp4",
+    "ffmpeg -v error -copyts -i research/shared/runs/20260919T200800Z-dolby/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 -map 0:v:0 -vsync 0 -f framehash research/shared/runs/20260919T200800Z-dolby/source-copyts-frames.sha256",
+    "ffmpeg -v error -copyts -i research/shared/runs/20260919T200800Z-dolby/hdr10-copyts.mp4 -map 0:v:0 -vsync 0 -f framehash research/shared/runs/20260919T200800Z-dolby/candidate-copyts-frames.sha256",
+    "python3 research/shared/tooling/dolby-base-screen.py"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "223d3e5123d7f77aa8d9c92b133270f992814bbbc2da18491d3d8de63b6a27b5",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/shared/runs/20260919T200800Z-dolby/manifest.json"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Explicit HDR10-compatible base output for validated profile8/compatibility1/single-layer HEVC, unchanged coded pictures and timeline.",
+    "oracle": "Independent full HEVC base decode hashes and rational packet times; original VCL/SEI/config bytes.",
+    "adverse_control": "Profile5 guard rejects; no-copyts timestamp failure retained.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "This is not Dolby Vision appearance preservation; dynamic Dolby processing explicitly excluded by output request.",
+    "No actual HDR display/browser path or performance gate passed.",
+    "Third-party media remains NOASSERTION and local; no redistribution license asserted."
+  ],
+  "decisions": [
+    {
+      "key": "R099.expose-an-hdr10-compatible-dolby-vision-base-without-video-re-encoding",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "reason": "Genuine published Dolby8.1 fixture obtained from Chromium test corpus with documented Dolby origin. Explicit HDR10-base extraction removes120RPU NALs and DV configuration, preserves all VCL/otherSEI bytes, exact parameter-set bytes after hvcC relocation, all120packet timestamps/durations and all120decoded10-bit frame hashes. BT.2020/PQ/limited-range metadata preserved. Profile5 guard rejects. Default timestamp normalization failed and was corrected using copyts. Host adapter viable for explicitly requested HDR10; Dolby rendering, native HDR display and performance unqualified.",
+      "next_action": "Implement the strict metadata/NAL gate at a maintained destination and test actual browser HDR10 frames/seek before route admission.",
+      "correctness": "passed",
+      "correctness_basis": "Exact coded VCL/SEI and configuration identity, rational packet time comparison, complete independent HEVC decoded hashes; incompatible DV5 admission control. Host explicit HDR10-base component only."
+    }
+  ]
+}

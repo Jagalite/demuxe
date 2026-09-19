@@ -2,56 +2,24 @@
 
 # Share one native decoder across unrelated independent-picture jobs
 
-Full identity: `R289.share-one-native-decoder-across-unrelated-independent-picture-jobs`. Reused R-numbers are separate mechanisms.
+`R289.share-one-native-decoder-across-unrelated-independent-picture-jobs`
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current disposition: **pursue**. Component evidence; no production integration or release qualification.
 
-Decoder is scoped to one player generation, and the UI has no independent picture-job service. Cross-source jobs need full-configuration grouping and job/output correlation, beyond a localized playback patch.
+Six extracted independent same-configuration H.264 IDR jobs used one decoder. Full pixels equal six separately constructed decoders and host decode. Duplicate source timestamps remained distinct via dispatch identity; canceled job 2 was discarded.
 
-Next action: Define one three-IDR job API and compare persistent decoder/pool with same-config sources; duplicate source timestamps plus canceled middle job must not swap output identities.
+Scope limits: Same configuration synthetic IDR samples only. Configuration signature adverse check is not execution of reconfiguration recovery; no physical native/hardware identity claim.
 
-## Definition and contract
+- define: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- prepare: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- screen: **passed** — Six extracted independent same-configuration H.264 IDR jobs used one decoder. Full pixels equal six separately constructed decoders and host decode. Duplicate source timestamps remained distinct via dispatch identity; canceled job 2 was discarded.
+- correctness: **pending** — Scoped output checks pass; full affected lifecycle acceptance remains pending: Add malformed-job recovery, actual incompatible configuration groups and stale output after source-generation replacement; then compare a bounded pool and per-job baseline under an interactive arrival workload.
+- performance: **pending** — Not measured. Complete missing lifecycle gates and predeclare an actual workload, threshold and complete costs before benchmarking.
+- results: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
+- decision: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
 
-Mechanism. An active WebCodecs worker accepts independently decodable pictures from multiple authorized files, groups only compatible full decoder configurations, and correlates each output with a job identity. Preserve the original source timestamps and display metadata separately from internal dispatch timestamps. This is a thumbnail/inspection service, not interleaving arbitrary predictive streams or sharing live playback state. Begin with H.264 IDR-only inputs and matching parameter sets, geometry, bit depth, color interpretation, and benign prior-output semantics. First experiment. Request one independently decodable picture from each of several synthetic files. Compare one persistent service, per-job decoder construction, and a small bounded decoder pool. Do not wait to fill a batch or delay an interactive job purely for utilization. Include cancellation, duplicate original timestamps, configuration changes, a failed input, and stale outputs after a generation change.
+Next: Add malformed-job recovery, actual incompatible configuration groups and stale output after source-generation replacement; then compare a bounded pool and per-job baseline under an interactive arrival workload.
 
-Output contract: Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.
+[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-Primary metric: Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.
-
-Adverse control: Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
-
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
-
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R289.share-one-native-decoder-across-unrelated-independent-picture-jobs.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R289.share-one-native-decoder-across-unrelated-independent-picture-jobs.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R289_R294_Proposals.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R289_R294_Proposals.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R289-R294-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R289-R294-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R289.share-one-native-decoder-across-unrelated-independent-picture-jobs.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R289.share-one-native-decoder-across-unrelated-independent-picture-jobs.md)
+[Shared results](../../shared/runs/20260919T200002Z-presentation/results.json) · [Analysis](../../shared/runs/20260919T200002Z-presentation/analysis.md)

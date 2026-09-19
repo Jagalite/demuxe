@@ -17,7 +17,7 @@
       "line_end": 88,
       "source_kind": "report"
     },
-    "source_excerpt": "Question. Can multiple already-pending thumbnail requests share decoding while still returning every exact requested image? This is neither dropping superseded scrub requests nor relying on cache hits. Twelve requested frames between indices 123 and 177 lie in one closed GOP of the same H.264 source. The baseline launches twelve independent accurate-seek jobs. The candidate seeks once to that GOP and emits the requested frames. An independent full-decode-from-start path serves as a third oracle. All twelve output hashes agree across all three paths. Median CPU is 1761.90 → 213.58 ms; wall time is 1312.43 → 139.23 ms. Process count falls from twelve to one. The measured reduction combines process launch, probing, seeking and repeated decode avoidance; it is not a claim that the decoder itself becomes eight times faster. An already-persistent Wasm decoder would have a different baseline.",
+    "source_excerpt": "Question. Can multiple already-pending thumbnail requests share decoding while still returning every exact requested image? This is neither dropping superseded scrub requests nor relying on cache hits. Twelve requested frames between indices 123 and 177 lie in one closed GOP of the same H.264 source. The baseline launches twelve independent accurate-seek jobs. The candidate seeks once to that GOP and emits the requested frames. An independent full-decode-from-start path serves as a third oracle. All twelve output hashes agree across all three paths. Median CPU is 1761.90 \u2192 213.58 ms; wall time is 1312.43 \u2192 139.23 ms. Process count falls from twelve to one. The measured reduction combines process launch, probing, seeking and repeated decode avoidance; it is not a claim that the decoder itself becomes eight times faster. An already-persistent Wasm decoder would have a different baseline.",
     "related_reports": [],
     "scope_hash": "01c27389f9c776de0bb23845e02678526dc09bd9dd1459adc6b8e12e96885c82",
     "legacy_guide_aliases": [],
@@ -53,66 +53,99 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Unperformed setup gate: Pending-only same-GOP batch scheduler and cancellation/source-isolation oracle.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No matching candidate/reference/control execution for this exact gate. Pending-only same-GOP batch scheduler and cancellation/source-isolation oracle.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md",
-        "results/local-screening/README.md",
-        "results/local-screening/follow-up.md",
-        "results/local-screening/full-queue-audit.md"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 236,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 159,
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "DEFER_SETUP",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "No pending exact-preview request batch owner exists. Current decoder is single playback generation; historical twelve-process baseline is not current persistent-Wasm scheduling cost.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage.",
-      "recorded_at_utc": "2026-09-19T17:34:19.109232+00:00"
+      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Pending-only same-GOP batch scheduler and cancellation/source-isolation oracle.",
+      "next_action": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "reopen_condition": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 236,
+        "record": {
+          "key": "R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
+          "state": "DEFER_SETUP",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+          ],
+          "reason": "No pending exact-preview request batch owner exists. Current decoder is single playback generation; historical twelve-process baseline is not current persistent-Wasm scheduling cost.",
+          "evidence_level": "SOURCE_REVIEW",
+          "carried_forward": true,
+          "next_test": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage.",
+          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage.",
+          "recorded_at_utc": "2026-09-19T17:34:19.109232+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R073.decode-a-gop-once-for-a-pending-exact-preview-batch.md"
+      ]
     }
   },
-  "next_action": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage.",
+  "next_action": "Define pending-only same-GOP batching with no wait-to-fill; compare requested frames to full decode and reject sparse/different-source jobs or cancellation leakage. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

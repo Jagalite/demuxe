@@ -17,7 +17,7 @@
       "line_end": 192,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New buffer-policy experiment · P1 · PROPOSED / NOT TESTED Extends: R26, R34, R39. Reference primitives: S1, S4, L3. Question. Can rate-aware buffer targets reduce starvation at fast playback and wasted preparation at slow playback? Mechanism. Set a positive-rate media target from a bounded wall-time reserve: media seconds ≈ playbackRate × desired wall seconds. Apply hard byte caps and hysteresis, and use the shortest contiguous usable track horizon. Keep the initial-play threshold separate. Smallest useful experiment. Replay deterministic byte-release traces at 0.5×, 1×, 2× and 4×, including abrupt changes and pause/resume. Compare a fixed-media target with the new controller using identical source availability and memory caps. Charge any extra production after the viewer stops.",
+    "source_excerpt": "New buffer-policy experiment \u00b7 P1 \u00b7 PROPOSED / NOT TESTED Extends: R26, R34, R39. Reference primitives: S1, S4, L3. Question. Can rate-aware buffer targets reduce starvation at fast playback and wasted preparation at slow playback? Mechanism. Set a positive-rate media target from a bounded wall-time reserve: media seconds \u2248 playbackRate \u00d7 desired wall seconds. Apply hard byte caps and hysteresis, and use the shortest contiguous usable track horizon. Keep the initial-play threshold separate. Smallest useful experiment. Replay deterministic byte-release traces at 0.5\u00d7, 1\u00d7, 2\u00d7 and 4\u00d7, including abrupt changes and pause/resume. Compare a fixed-media target with the new controller using identical source availability and memory caps. Charge any extra production after the viewer stops.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,9 +64,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -77,49 +81,63 @@
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Actual0.5x/4x route progress, source replacement rejection and worker cleanup recorded; no complete independent picture/PCM oracle for rate-policy changes.",
+      "evidence": [
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Buffered time and fetched-byte work counts improve startup; no equivalent-work statistical latency/CPU gate.",
+      "evidence": [
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds.md",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/full-completion/remux-policies/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 35,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds",
-      "rank": 67,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Reconciled completed prior evidence: At 0.5x startup, peak buffered media changed 5.503999s to 3.007999s, fetched bytes 2359296 to 1572864. Actual 4x after seek is explicitly asserted; frame progress, source replacement rejection and worker cleanup pass. Worth a bounded rate-aware preparation policy; no generalized high-speed improvement claimed.",
-      "evidence_level": "REUSED_REAL_PATH_SCREEN",
-      "evidence": [
-        {
-          "path": "../full-completion/remux-policies/result.json",
-          "sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_reused_real_path_screen",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:17:13.491126+00:00"
+      "evidence": [
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/full-completion/remux-policies/result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Actual0.5x/4x route progress, source replacement rejection and worker cleanup recorded; no complete independent picture/PCM oracle for rate-policy changes.",
+      "performance_gate": "Buffered time and fetched-byte work counts improve startup; no equivalent-work statistical latency/CPU gate.",
+      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

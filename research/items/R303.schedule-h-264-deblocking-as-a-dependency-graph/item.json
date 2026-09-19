@@ -17,7 +17,7 @@
       "line_end": 107,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Type: Controlled GPU reconstruction experiment; exact-output follow-on distinct from R291's no-op elimination. Represent each deblocking edge operation by conservative sample read and write sets. Preserve the reference ordering between operations whenever a read-after-write, write-after-read, or write-after-write conflict exists. Execute only independent operations together; use valid dispatch-level ordering between dependent batches. FFmpeg's implementation provides explicit edge order and integer kernels. The kernels modify samples on both sides of an edge, and strong filtering can reach farther than its nearest samples. Thus merely assigning one GPU invocation per visible edge is not a correctness argument. [H1–H2]",
+    "source_excerpt": "Type: Controlled GPU reconstruction experiment; exact-output follow-on distinct from R291's no-op elimination. Represent each deblocking edge operation by conservative sample read and write sets. Preserve the reference ordering between operations whenever a read-after-write, write-after-read, or write-after-write conflict exists. Execute only independent operations together; use valid dispatch-level ordering between dependent batches. FFmpeg's implementation provides explicit edge order and integer kernels. The kernels modify samples on both sides of an edge, and strong filtering can reach farther than its nearest samples. Thus merely assigning one GPU invocation per visible edge is not a correctness argument. [H1\u2013H2]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,64 +64,107 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md"
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 364,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R303.schedule-h-264-deblocking-as-a-dependency-graph",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      "rank": 323,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
       "next_test": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
-      "recorded_at_utc": "2026-09-19T17:34:19.170117+00:00"
+      "reopen_condition": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",

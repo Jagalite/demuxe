@@ -17,7 +17,7 @@
       "line_end": 66,
       "source_kind": "report"
     },
-    "source_excerpt": "A custom 67×19 RGBA8 non-interlaced PNG alternates only filter types None, Sub and Up. Its continuous IDAT zlib payload expands to 5,111 bytes including filter bytes. Chromium's native DecompressionStream('deflate') inflated the IDAT payload. The restricted scan reconstruction then generated 5,092 RGBA bytes with zero differences versus Pillow's independent PNG decode. Sub was reconstructed as four independent byte-prefix scans and Up against the preceding reconstructed row. Average, Paeth, interlaced, wrong-bit-depth and oversized-profile controls are outside the admitted profile. WebGPU/WebGL is unavailable, so this test establishes the browser-inflate + exact scan algebra, not GPU performance.",
+    "source_excerpt": "A custom 67\u00d719 RGBA8 non-interlaced PNG alternates only filter types None, Sub and Up. Its continuous IDAT zlib payload expands to 5,111 bytes including filter bytes. Chromium's native DecompressionStream('deflate') inflated the IDAT payload. The restricted scan reconstruction then generated 5,092 RGBA bytes with zero differences versus Pillow's independent PNG decode. Sub was reconstructed as four independent byte-prefix scans and Up against the preceding reconstructed row. Average, Paeth, interlaced, wrong-bit-depth and oversized-profile controls are outside the admitted profile. WebGPU/WebGL is unavailable, so this test establishes the browser-inflate + exact scan algebra, not GPU performance.",
     "related_reports": [],
     "scope_hash": "032b458eec57e6520683d4c3c38851db600c38616376df8543a67a7449aae093",
     "legacy_guide_aliases": [],
@@ -53,62 +53,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Scope one validated IDAT-to-scanline component with independent PNG decode; preserve strict admission before GPU prefix experiments.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R218.exact-restricted-png-scans.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 408,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R218.exact-restricted-png-scans",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      "rank": 367,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current graphics path receives decoded YUV/RGB, not PNG inflated scanlines. Shared deflate correctness/API availability removes an inflate prerequisite only; a new restricted PNG parser/reconstruction destination remains setup. Historical absent GPU is not current.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R218.exact-restricted-png-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
       "next_test": "Scope one validated IDAT-to-scanline component with independent PNG decode; preserve strict admission before GPU prefix experiments.",
       "reopen_condition": "Scope one validated IDAT-to-scanline component with independent PNG decode; preserve strict admission before GPU prefix experiments.",
-      "recorded_at_utc": "2026-09-19T17:34:19.181985+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Scope one validated IDAT-to-scanline component with independent PNG decode; preserve strict admission before GPU prefix experiments.",

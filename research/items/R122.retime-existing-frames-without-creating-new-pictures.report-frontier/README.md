@@ -2,55 +2,20 @@
 
 # Retime existing frames without creating new pictures
 
-Full identity: `R122.retime-existing-frames-without-creating-new-pictures.report-frontier`. Reused R-numbers are separate mechanisms.
+Current decision: **pursue**. Explicit2x held/slower presentation patches timing without adding pictures:24 original compressed samples and decoded frames retained, every PTS/DTS/duration doubles. No motion interpolation or default rate change.
 
-Current imported decision: **PURSUE** (top100).
-
-Explicit2x held/slower presentation patches timing without adding pictures:24 original compressed samples and decoded frames retained, every PTS/DTS/duration doubles. No motion interpolation or default rate change.
-
-Next action: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
-
-## Definition and contract
-
-The three-frame all-intra MP4 was changed from one-second to two-second sample durations by modifying timing tables and container durations only. The mdat is byte-identical. Chrome reports 6.0 s, shows red/green/blue for two seconds each, and reports only 3 total decoded video frames. This is a useful complement to R96: sparse/held presentations do not necessarily require a new video encode when the existing compressed samples already correspond to the desired visual states. R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 → 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.
-
-Output contract: Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.
-
-Primary metric: Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.
-
-Adverse control: Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.
-
-## Stages
+Historical stage reconciliation; no new experiment.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE. No integration or qualification inferred. |
+| correctness | passed | All24 unchanged coded samples and decoded frames match; every PTS/DTS/duration doubles. Wrong skeleton/zero duration rejected by shared constructor. Pure fixed-template retime only. |
+| performance | not_applicable | Explicit altered timing capability; no performance saving claim or benchmark required for this decision. |
+| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
+| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md)
-- [results/top100/patch-mux/result.json](../../../results/top100/patch-mux/result.json)
+[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

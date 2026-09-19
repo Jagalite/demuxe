@@ -53,9 +53,13 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,50 +69,64 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual multipart HTTP bytes match two independent single-range bodies; truncation rejects. One request/575body bytes for384payload documented. Restricted capable-origin parser component.",
+      "evidence": [
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Origin capability, header/latency/CPU and cancellation/fallback overhead not performance-qualified.",
+      "evidence": [
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R216.one-request-for-distant-byte-ranges.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R216.one-request-for-distant-byte-ranges.md",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
         "results/top100/ownership/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 74,
+    "campaign": "canonical-stage-reconciliation",
     "record": {
       "key": "R216.one-request-for-distant-byte-ranges",
-      "rank": 95,
-      "state": "PURSUE",
+      "state": "pursue",
       "reason": "Actual HTTP multipart range response matches two independent single-range reads; truncated multipart rejects. One request replaces two for capable test origin, with575 response bytes for384 payload bytes. Production origin capability remains prerequisite.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "ownership/result.json",
-          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
-        }
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:45:08.789447+00:00"
+      "evidence": [
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "PURSUE",
+      "scope": "Actual multipart HTTP bytes match two independent single-range bodies; truncation rejects. One request/575body bytes for384payload documented. Restricted capable-origin parser component.",
+      "performance_gate": "Origin capability, header/latency/CPU and cancellation/fallback overhead not performance-qualified.",
+      "next_test": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+      "reopen_condition": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes."
     }
   },
   "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",

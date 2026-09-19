@@ -7,6 +7,8 @@ owns its definition, stages, current decision, history and evidence index.
 The [identity index](index.json) covers all 425 records, including missing
 definitions and distinct mechanisms with reused R-numbers.
 
+The [current stage summary](STATUS.md) and [latest advancement campaign](campaigns/2026-09-19-stage-advancement.md) distinguish new execution from evidence reconciliation.
+
 Read the [research process](PROCESS.md) for the seven stages: define, prepare,
 screen, correctness, performance, results and decision. Use the
 [item template](templates/item.json) and [run template](templates/run.json) for

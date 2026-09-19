@@ -70,62 +70,98 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Physical display environment absent; no candidate setup falsely accepted.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No physical overlay-promotion/compositor scanout evidence exists in headless environment. This is an environment prerequisite, not a failed overlay experiment.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Depends on unavailable physical correctness environment.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/environment.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 61,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
-      "rank": 12,
-      "state": "HOLD_ENV",
-      "reason": "Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.",
-      "evidence_level": "PREREQUISITE_PROBE",
-      "evidence": [
-        {
-          "path": "environment.json",
-          "sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "blocked",
+      "state": "blocked",
+      "previous_state": "HOLD_ENV",
+      "initial_rank": 12,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:32:49.624802+00:00"
+      "evidence_level": "reconciled_prerequisite_probe",
+      "new_media_execution": false,
+      "reason": "Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.",
+      "scope": "Fixed physical display/compositor diagnostic required.",
+      "correctness_acceptance": "No physical overlay-promotion/compositor scanout evidence exists in headless environment. This is an environment prerequisite, not a failed overlay experiment.",
+      "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+      "reopen_condition": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 61,
+        "record": {
+          "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+          "rank": 12,
+          "state": "HOLD_ENV",
+          "reason": "Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.",
+          "evidence_level": "PREREQUISITE_PROBE",
+          "evidence": [
+            {
+              "path": "environment.json",
+              "sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:32:49.624802+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/environment.json"
+      ],
+      "blocker_category": "environment"
     }
   },
   "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 68,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 36,
+    "record": {
+      "key": "R066.communicate-the-requested-start-position-before-first-data-preparation",
+      "rank": 68,
+      "state": "STOP_PROFILE",
+      "reason": "Reconciled completed prior evidence: Moving this indexed native target seek from loadeddata to loadedmetadata preserves target picture but fetches the same 6296410 bytes and 97 responses; zero-start control passes. No byte-work opportunity demonstrated by this variant; single-run timing differences are not evidence of speedup.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/remote-index/result.json",
+          "sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.507180+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/full-completion/remote-index/result.json",
+      "declared_sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9",
+      "observed_sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Loadedmetadata and loadeddata seek variants produce identical target pixel hash at20s and zero-start control succeeds with cleanup; scoped native target-seek component."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Current variant already stops: both fetch6296410bytes; single-run timing variation cannot justify further benchmark."
+    }
+  },
+  "passed": true
+}

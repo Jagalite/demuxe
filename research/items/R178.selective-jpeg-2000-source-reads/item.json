@@ -17,7 +17,7 @@
       "line_end": 90,
       "source_kind": "report"
     },
-    "source_excerpt": "The fixture is a 1,024×1,024 grayscale JPEG 2000 codestream, 65,562 bytes, with 256×256 tiles and RPCL progression. A custom OpenJPEG source callback recorded every read/seek and its unique source-byte footprint while decode-area, resolution reduction, and layer limits were applied. Each streaming-source output was compared byte-for-byte against the same decode using the whole codestream as backing. The strong result is spatial/tile selectivity: a requested region need not force all codestream bytes through the source adapter. The negative/unfinished part is equally important: this fixture did not show additional source-byte reduction from resolution or quality-layer restrictions within the same tile region.",
+    "source_excerpt": "The fixture is a 1,024\u00d71,024 grayscale JPEG 2000 codestream, 65,562 bytes, with 256\u00d7256 tiles and RPCL progression. A custom OpenJPEG source callback recorded every read/seek and its unique source-byte footprint while decode-area, resolution reduction, and layer limits were applied. Each streaming-source output was compared byte-for-byte against the same decode using the whole codestream as backing. The strong result is spatial/tile selectivity: a requested region need not force all codestream bytes through the source adapter. The negative/unfinished part is equally important: this fixture did not show additional source-byte reduction from resolution or quality-layer restrictions within the same tile region.",
     "related_reports": [],
     "scope_hash": "27ec264d5d325290cc8a820fae9f6ea28db8c73c09676497d3de4cea3d5d6340",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R178.selective-jpeg-2000-source-reads.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 356,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R178.selective-jpeg-2000-source-reads",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      "rank": 314,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ],
       "next_test": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
-      "recorded_at_utc": "2026-09-19T17:34:19.168058+00:00"
+      "reopen_condition": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",

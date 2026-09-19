@@ -17,7 +17,7 @@
       "line_end": 199,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New video-decoder adapter hypothesis · P2 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox compressed-image decode/presentation pilot; complete mpv-timed A/V integration is local-only. Related cards: R24. Proposed mechanism. For a supported Motion-JPEG subset, forward each compressed frame to createImageBitmap and present it with bounded ownership, instead of decoding JPEG in FFmpeg/Wasm. Apply only a necessary, verified MJPEG-to-JPEG header adapter. The potential gain is a different decoder implementation, not fewer decoded frames. What is new. Earlier alternative presenters started with already decoded pixels. This changes which decoder consumes the compressed video, using the image API rather than pretending WebCodecs or MSE supports the input.",
+    "source_excerpt": "New video-decoder adapter hypothesis \u00b7 P2 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox compressed-image decode/presentation pilot; complete mpv-timed A/V integration is local-only. Related cards: R24. Proposed mechanism. For a supported Motion-JPEG subset, forward each compressed frame to createImageBitmap and present it with bounded ownership, instead of decoding JPEG in FFmpeg/Wasm. Apply only a necessary, verified MJPEG-to-JPEG header adapter. The potential gain is a different decoder implementation, not fewer decoded frames. What is new. Earlier alternative presenters started with already decoded pixels. This changes which decoder consumes the compressed video, using the image API rather than pretending WebCodecs or MSE supports the input.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 72,
         "line_end": 79,
         "source_kind": "report",
-        "reported_heading": "MJPEG via ImageBitmap — INCONCLUSIVE"
+        "reported_heading": "MJPEG via ImageBitmap \u2014 INCONCLUSIVE"
       }
     ],
     "scope_hash": "f9a2e7aa0e34d85395cccf021784c3728365b7eb14b6d91612671d2b261df274",
@@ -64,62 +64,100 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Scope self-contained JPEG followed by one genuine AVI1/default-table frame through a bounded image promise adapter; compare decoded geometry/color to a fixed oracle and close stale results after source replacement, without adding an independent audio clock.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 210,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R063.use-the-browser-image-decoder-for-qualified-mjpeg-video",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      "rank": 307,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
       "next_test": "Scope self-contained JPEG followed by one genuine AVI1/default-table frame through a bounded image promise adapter; compare decoded geometry/color to a fixed oracle and close stale results after source replacement, without adding an independent audio clock.",
       "reopen_condition": "Scope self-contained JPEG followed by one genuine AVI1/default-table frame through a bounded image promise adapter; compare decoded geometry/color to a fixed oracle and close stale results after source replacement, without adding an independent audio clock.",
-      "recorded_at_utc": "2026-09-19T17:34:19.102510+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Scope self-contained JPEG followed by one genuine AVI1/default-table frame through a bounded image promise adapter; compare decoded geometry/color to a fixed oracle and close stale results after source replacement, without adding an independent audio clock.",

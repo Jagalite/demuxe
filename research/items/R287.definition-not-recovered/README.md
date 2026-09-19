@@ -4,7 +4,7 @@
 
 Full identity: `R287.definition-not-recovered`. Reused R-numbers are separate mechanisms.
 
-Current imported decision: **HOLD_SOURCE** (full-completion).
+Prior imported decision: **HOLD_SOURCE** (full-completion).
 
 R287 has no named definition in the verified v4 register or bounded authorized-checkout heading search; no mechanism inferred.
 
@@ -20,21 +20,21 @@ Primary metric: Definition and source identity recovery, not runtime performance
 
 Adverse control: Reject a same-number report with a different mechanism.
 
+## Current stage reconciliation
+
+**blocked** — retained source decision, no new experiment. [Run](../../shared/runs/20260919T200619Z-source-stage-reconciliation/run.json).
+
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | blocked | Definition unavailable. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | blocked | No readable mechanism definition: do not invent inputs, outputs, or experiments. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| correctness | blocked | No readable mechanism definition: do not invent inputs, outputs, or experiments. |
+| performance | blocked | No readable mechanism definition: do not invent inputs, outputs, or experiments. |
 | results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: HOLD_SOURCE. No integration or qualification inferred. |
-
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+| decision | passed | Prior scoped decision reconciled into the current checklist: blocked |
 
 ## Working files
 

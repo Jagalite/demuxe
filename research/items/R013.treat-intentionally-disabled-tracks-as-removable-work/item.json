@@ -17,7 +17,7 @@
       "line_end": 323,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Routing · New policy hypothesis · P1 · Risk: Medium First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. When the application explicitly disables audio or enters a declared audio-only mode, evaluate a plan that never decodes/transcodes the unused track. Retain source-scoped identities and a bounded resume strategy for re-enabling it. Source basis. mpv exposes track selection, and MSE distinguishes active tracks. Neither ordinary volume zero nor merely hiding the video element proves that decode work stops. [V1, M1] First agent experiment. Compare audio disabled versus merely muted on a Native-blocking audio source. Separately test declared audio-only playback and return to video at a random-access point. Trace actual packet/decoder/encoder activity.",
+    "source_excerpt": "Routing \u00b7 New policy hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. When the application explicitly disables audio or enters a declared audio-only mode, evaluate a plan that never decodes/transcodes the unused track. Retain source-scoped identities and a bounded resume strategy for re-enabling it. Source basis. mpv exposes track selection, and MSE distinguishes active tracks. Neither ordinary volume zero nor merely hiding the video element proves that decode work stops. [V1, M1] First agent experiment. Compare audio disabled versus merely muted on a Native-blocking audio source. Separately test declared audio-only playback and return to video at a random-access point. Trace actual packet/decoder/encoder activity.",
     "related_reports": [],
     "scope_hash": "9ae96e77574908bda770bbfca05c74c5bef89e7c36e2facbb7434076c1934581",
     "legacy_guide_aliases": [],
@@ -53,64 +53,112 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Exact candidate setup not implemented: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No performance claim or equivalent candidate workload established.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
-        "results/full-completion/r59/identity.json",
-        "results/full-completion/r59/result.json"
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE_DESIGN. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 54,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R013.treat-intentionally-disabled-tracks-as-removable-work",
-      "state": "PURSUE_DESIGN",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
-        "r59/result.json",
-        "r59/identity.json"
-      ],
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 173,
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE_DESIGN",
+      "evidence_level": "reconciled_source_review",
+      "new_media_execution": false,
       "reason": "Explicit disabled-track intent has a concrete owner gap: current Native audio=no only mutes, while negative remux selection means automatic. Selected-track metadata experiment establishes packet-preserving exclusion is feasible, but no no-audio remux sentinel was implemented. Worth a separate explicit disable/re-enable contract; ordinary mute must keep audio prepared.",
-      "evidence_level": "SOURCE_REVIEW",
-      "recorded_at_utc": "2026-09-19T17:34:19.058723+00:00"
+      "correctness_acceptance": "Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.",
+      "next_action": "Build only the bounded missing component: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.",
+      "reopen_condition": "Build only the bounded missing component: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.",
+      "blocker_category": "setup",
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 54,
+        "record": {
+          "key": "R013.treat-intentionally-disabled-tracks-as-removable-work",
+          "state": "PURSUE_DESIGN",
+          "evidence": [
+            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+            "r59/result.json",
+            "r59/identity.json"
+          ],
+          "reason": "Explicit disabled-track intent has a concrete owner gap: current Native audio=no only mutes, while negative remux selection means automatic. Selected-track metadata experiment establishes packet-preserving exclusion is feasible, but no no-audio remux sentinel was implemented. Worth a separate explicit disable/re-enable contract; ordinary mute must keep audio prepared.",
+          "evidence_level": "SOURCE_REVIEW",
+          "recorded_at_utc": "2026-09-19T17:34:19.058723+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R013.treat-intentionally-disabled-tracks-as-removable-work.md",
+        "results/full-completion/r59/result.json",
+        "results/full-completion/r59/identity.json"
+      ]
     }
   },
-  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "next_action": "Build only the bounded missing component: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

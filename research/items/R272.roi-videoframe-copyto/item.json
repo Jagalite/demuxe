@@ -17,7 +17,7 @@
       "line_end": 59,
       "source_kind": "report"
     },
-    "source_excerpt": "Chromium created a 640×360 VideoFrame from a deterministic RGBA canvas. The requested rectangle was x=112, y=73, 257×149. VideoFrame.copyTo() with that rectangle returned 153,172 bytes, exactly matching the same rectangle cropped from a 921,600-byte full-frame copy: zero differing bytes and maximum error zero. That is an 83.38% reduction in application-visible transfer bytes. Across the microprobe, median ROI copy time was ~0.1 ms versus 0.5 ms for the full copy. These are copy/transfer timings in this headless runtime only; they are not claims about full render cost, hardware residency, or all pixel formats.",
+    "source_excerpt": "Chromium created a 640\u00d7360 VideoFrame from a deterministic RGBA canvas. The requested rectangle was x=112, y=73, 257\u00d7149. VideoFrame.copyTo() with that rectangle returned 153,172 bytes, exactly matching the same rectangle cropped from a 921,600-byte full-frame copy: zero differing bytes and maximum error zero. That is an 83.38% reduction in application-visible transfer bytes. Across the microprobe, median ROI copy time was ~0.1 ms versus 0.5 ms for the full copy. These are copy/transfer timings in this headless runtime only; they are not claims about full render cost, hardware residency, or all pixel formats.",
     "related_reports": [],
     "scope_hash": "e38a753d35419be2fa2a65cf4e94f30465b01e1e0655afcb428ab2bb8cea4ba4",
     "legacy_guide_aliases": [
@@ -66,9 +66,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -78,14 +80,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -101,29 +107,49 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 217,
-    "record": {
-      "key": "R272.roi-videoframe-copyto",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R272.roi-videoframe-copyto.md"
-      ],
-      "reason": "Current retained presentation transfers complete VideoFrame resources; fallback copy reads the full visible rectangle because downstream playback needs the whole picture. There is no ROI analysis consumer to justify a cropped copy in this profile.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
-      "recorded_at_utc": "2026-09-19T17:34:19.104270+00:00"
-    }
+    "key": "R272.roi-videoframe-copyto",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current retained presentation transfers complete VideoFrame resources; fallback copy reads the full visible rectangle because downstream playback needs the whole picture. There is no ROI analysis consumer to justify a cropped copy in this profile.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 217,
+      "record": {
+        "key": "R272.roi-videoframe-copyto",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R272.roi-videoframe-copyto.md"
+        ],
+        "reason": "Current retained presentation transfers complete VideoFrame resources; fallback copy reads the full visible rectangle because downstream playback needs the whole picture. There is no ROI analysis consumer to justify a cropped copy in this profile.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+        "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+        "recorded_at_utc": "2026-09-19T17:34:19.104270+00:00"
+      }
+    },
+    "next_action": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
   "integration": {

@@ -4,7 +4,7 @@
 
 Full identity: `R333.keep-soft-telecine-as-progressive-pictures-plus-timing`. Reused R-numbers are separate mechanisms.
 
-Current imported decision: **STOP_PROFILE** (full-completion).
+Prior imported decision: **STOP_PROFILE** (full-completion).
 
 Related report found one progressive reconstruction plus repeat timing, not duplicated field pictures; current player does not explicitly enable deinterlacing and forwards complete decoded images. No removable telecine stage is identified for this default progressive profile. This is not whole-browser cadence qualification.
 
@@ -20,21 +20,21 @@ Primary metric: Correct additional admitted source/destination capability; other
 
 Adverse control: Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.
 
+## Current stage reconciliation
+
+**stop_current_profile** — retained source decision, no new experiment. [Run](../../shared/runs/20260919T200619Z-source-stage-reconciliation/run.json).
+
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| correctness | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
+| performance | not_applicable | This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition. |
 | results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred. |
-
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+| decision | passed | Prior scoped decision reconciled into the current checklist: stop_current_profile |
 
 ## Working files
 

@@ -17,7 +17,7 @@
       "line_end": 55,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New route candidate · P1 · extends R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
+    "source_excerpt": "New route candidate \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,95 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Historical outcome retained and individually reconciled. Raw AAC lane alongside fragmented AVC renders both 160x96 and 320x180 intervals with 880 Hz signal and EOF, original audio SourceBuffer retained and cleanup passes. This is not an independent exact priming/offset/gap or adverse lifecycle oracle; MP3 untested.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Raw AAC lane alongside fragmented AVC renders both 160x96 and 320x180 intervals with 880 Hz signal and EOF, original audio SourceBuffer retained and cleanup passes. This is not an independent exact priming/offset/gap or adverse lifecycle oracle; MP3 untested.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Compare required audio samples/timestamps at transitions and run canceled append/seek control; keep MP3 outside accepted scope.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Historical outcome retained and individually reconciled. Raw AAC lane alongside fragmented AVC renders both 160x96 and 320x180 intervals with 880 Hz signal and EOF, original audio SourceBuffer retained and cleanup passes. This is not an independent exact priming/offset/gap or adverse lifecycle oracle; MP3 untested.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R031.raw-aac-mp3-audio-beside-fragmented-video.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R031.raw-aac-mp3-audio-beside-fragmented-video.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
         "results/top100/lanes/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Historical outcome retained and individually reconciled. Raw AAC lane alongside fragmented AVC renders both 160x96 and 320x180 intervals with 880 Hz signal and EOF, original audio SourceBuffer retained and cleanup passes. This is not an independent exact priming/offset/gap or adverse lifecycle oracle; MP3 untested.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 6,
+    "campaign": "research-top100-31-65-acceptance",
     "record": {
       "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
       "rank": 45,
-      "state": "PURSUE",
-      "reason": "Raw AAC audio SourceBuffer beside fragmented AVC video plays marked audio through both geometry intervals and EOF. Priming/offset and production append lifecycle still need integration checks.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "lanes/result.json",
-          "sha256": "ed7e58821a801222d62880bc6b49cacfe168f03787dfb2f7cb0a5699a57c85f2"
-        }
+      "state": "pursue",
+      "disposition": "pursue",
+      "stage": "decision",
+      "run_ids": [
+        "20260919T201644Z-top100-31-65-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:14.180538+00:00"
+      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
+      "evidence_level": "reconciled_historical_component_test",
+      "new_execution": false,
+      "historical_state": "PURSUE",
+      "reason": "Raw AAC audio SourceBuffer beside fragmented AVC video plays marked audio through both geometry intervals and EOF. Priming/offset and production append lifecycle still need integration checks.",
+      "stage_acceptance": "Raw AAC lane alongside fragmented AVC renders both 160x96 and 320x180 intervals with 880 Hz signal and EOF, original audio SourceBuffer retained and cleanup passes. This is not an independent exact priming/offset/gap or adverse lifecycle oracle; MP3 untested.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/lanes/result.json"
+      ],
+      "next_test": "Compare required audio samples/timestamps at transitions and run canceled append/seek control; keep MP3 outside accepted scope.",
+      "reopen_condition": "Compare required audio samples/timestamps at transitions and run canceled append/seek control; keep MP3 outside accepted scope.",
+      "scope": "Explicit archived profile only; no runtime requalification."
     }
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Compare required audio samples/timestamps at transitions and run canceled append/seek control; keep MP3 outside accepted scope.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

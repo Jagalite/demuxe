@@ -2,55 +2,20 @@
 
 # Separate audio-clock drift from an audio-latency jump
 
-Full identity: `R170.separate-audio-clock-drift-from-an-audio-latency-jump`. Reused R-numbers are separate mechanisms.
+Current decision: **pursue**. Controlled clock observations distinguish100ppm drift from50ms output-latency step and ignore120ms callback-delivery delay. Uses actual AudioContext timestamp schema/anchor but injections are synthetic; physical device drift/jump and integrated correction remain unqualified.
 
-Current imported decision: **PURSUE_COMPONENT** (top100).
-
-Controlled clock observations distinguish100ppm drift from50ms output-latency step and ignore120ms callback-delivery delay. Uses actual AudioContext timestamp schema/anchor but injections are synthetic; physical device drift/jump and integrated correction remain unqualified.
-
-Next action: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-## Definition and contract
-
-Distinguish timing slope drift from delay offsets in a qualified split-clock route; test controlled disturbances and bounded correction without competing synchronization controllers.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
-
-## Stages
+Historical stage reconciliation; no new experiment.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE_COMPONENT. No integration or qualification inferred. |
+| correctness | passed | Controlled60s observation oracle distinguishes100ppm drift,50ms step and combined traces;120ms delayed callback leaves drift diagnosis unchanged. Pure classifier correctness only, real timestamp schema anchor. |
+| performance | not_applicable | Capability/classifier scope; physical device behavior and integrated correction separately unqualified. |
+| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
+| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R170.separate-audio-clock-drift-from-an-audio-latency-jump.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R170.separate-audio-clock-drift-from-an-audio-latency-jump.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R170.separate-audio-clock-drift-from-an-audio-latency-jump.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R170.separate-audio-clock-drift-from-an-audio-latency-jump.md)
-- [results/top100/clock/classification-result.json](../../../results/top100/clock/classification-result.json)
+[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

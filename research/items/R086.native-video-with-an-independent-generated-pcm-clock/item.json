@@ -17,7 +17,7 @@
       "line_end": 91,
       "source_kind": "report"
     },
-    "source_excerpt": "AudioContext.audioWorklet is not exposed on the permitted opaque page, so the intended AudioWorklet implementation is blocked. A ScriptProcessor fallback generated a 440 Hz PCM signal whose phase was derived from an explicit media-time mapping. Native video remained on its own media element. The controller rebased the audio mapping after the first video frame, after a seek to 5 s, and again when playback rate changed to 1.5×. Across three runs, median absolute drift summaries were: This measures agreement between the two browser clocks/models, not acoustic speaker output. ScriptProcessor is only a fallback feasibility tool. Still, the result weakens the assumption that a second browser audio clock is intrinsically unusable: with explicit synchronization transactions, the modeled drift stayed in the low-millisecond range here.",
+    "source_excerpt": "AudioContext.audioWorklet is not exposed on the permitted opaque page, so the intended AudioWorklet implementation is blocked. A ScriptProcessor fallback generated a 440 Hz PCM signal whose phase was derived from an explicit media-time mapping. Native video remained on its own media element. The controller rebased the audio mapping after the first video frame, after a seek to 5 s, and again when playback rate changed to 1.5\u00d7. Across three runs, median absolute drift summaries were: This measures agreement between the two browser clocks/models, not acoustic speaker output. ScriptProcessor is only a fallback feasibility tool. Still, the result weakens the assumption that a second browser audio clock is intrinsically unusable: with explicit synchronization transactions, the modeled drift stayed in the low-millisecond range here.",
     "related_reports": [],
     "scope_hash": "6b338b1ff85d1f01d7f50725b5399054832ab69074ba2c701c9751798dd2f680",
     "legacy_guide_aliases": [],
@@ -53,62 +53,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Maintained PCM worklet handles seek/rate epochs and stale producer rejection with generated tones. Errors approach80ms active and253ms during starvation; tighter output-time feedback and sync acceptance remain unresolved.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R086.native-video-with-an-independent-generated-pcm-clock.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R086.native-video-with-an-independent-generated-pcm-clock.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/independent-audio-result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE_CLOCK_CONTROL. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 103,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R086.native-video-with-an-independent-generated-pcm-clock",
-      "rank": 22,
-      "state": "PURSUE_CLOCK_CONTROL",
-      "reason": "Actual maintained PCM AudioWorklet with native video survives seek/rate epochs and injected producer starvation. Active phase clock errors up to80ms, starvation grows to253ms and rebase recovers below18ms; correct generated tone observed. Needs tighter output-time feedback before sync qualification; not acoustic or arbitrary decoded-audio proof.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "independent-audio-result.json",
-          "sha256": "86c71860acc0834919487505f44fb36945f2ad805138054e8e32f0e6af9b67cc"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE_CLOCK_CONTROL",
+      "initial_rank": 22,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T19:13:23.750024+00:00"
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
+      "reason": "Actual maintained PCM AudioWorklet with native video survives seek/rate epochs and injected producer starvation. Active phase clock errors up to80ms, starvation grows to253ms and rebase recovers below18ms; correct generated tone observed. Needs tighter output-time feedback before sync qualification; not acoustic or arbitrary decoded-audio proof.",
+      "scope": "Browser clocks only; no acoustic sync or arbitrary decoded-audio pitch fidelity.",
+      "correctness_acceptance": "Maintained PCM worklet handles seek/rate epochs and stale producer rejection with generated tones. Errors approach80ms active and253ms during starvation; tighter output-time feedback and sync acceptance remain unresolved.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 103,
+        "record": {
+          "key": "R086.native-video-with-an-independent-generated-pcm-clock",
+          "rank": 22,
+          "state": "PURSUE_CLOCK_CONTROL",
+          "reason": "Actual maintained PCM AudioWorklet with native video survives seek/rate epochs and injected producer starvation. Active phase clock errors up to80ms, starvation grows to253ms and rebase recovers below18ms; correct generated tone observed. Needs tighter output-time feedback before sync qualification; not acoustic or arbitrary decoded-audio proof.",
+          "evidence_level": "COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "independent-audio-result.json",
+              "sha256": "86c71860acc0834919487505f44fb36945f2ad805138054e8e32f0e6af9b67cc"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T19:13:23.750024+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/independent-audio-result.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

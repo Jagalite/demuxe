@@ -2,55 +2,20 @@
 
 # evict through a paused current position
 
-Full identity: `R144.evict-through-a-paused-current-position.report-continuity`. Reused R-numbers are separate mechanisms.
+Current decision: **pursue**. Pause at non-boundary position, remove through current position, retain paused display, reappend removed media, resume to EOF. Buffered-time shrink observed; physical memory reduction not inferred. Video-only component; current combined A/V controller not integrated.
 
-Current imported decision: **PURSUE** (top100).
-
-Pause at non-boundary position, remove through current position, retain paused display, reappend removed media, resume to EOF. Buffered-time shrink observed; physical memory reduction not inferred. Video-only component; current combined A/V controller not integrated.
-
-Next action: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-## Definition and contract
-
-Playback paused at 1.760563 s. A small canvas was used only as an oracle to fingerprint the displayed image before and after SourceBuffer.remove(0, 2.0). - currentTime stayed at 1.760563 s; - the buffered range began at 2.066666 s, so compressed media no longer covered currentTime; - the displayed-image signature was identical; - readyState remained 4 and there was no media error. Implication. Chrome retains the presently displayed decoded image beyond removal of its compressed backing range. This may let a player reclaim compressed MSE bytes more aggressively while paused. Limit. It does not prove the browser retains enough decoder state to resume from that removed point or seek back without re-appending media. It also says nothing about decoder-surface memory reclamation.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
-
-## Stages
+Historical stage reconciliation; no new experiment.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
+| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: PURSUE. No integration or qualification inferred. |
+| correctness | pending | Paused image retained exactly through range eviction and reappend/EOF; no wrong-output adverse control, complete A/V oracle or integrated lifecycle. |
+| performance | pending | Buffered-time shrink is not measured physical memory reduction; retention/rehydration cost unknown. |
+| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
+| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R144.evict-through-a-paused-current-position.report-continuity.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R144.evict-through-a-paused-current-position.report-continuity.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R144.evict-through-a-paused-current-position.report-continuity.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R144.evict-through-a-paused-current-position.report-continuity.md)
-- [results/top100/mse/result.json](../../../results/top100/mse/result.json)
+[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -17,7 +17,7 @@
       "line_end": 66,
       "source_kind": "report"
     },
-    "source_excerpt": "R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 → 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
+    "source_excerpt": "R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 \u2192 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
     "related_reports": [],
     "scope_hash": "e91c7c22fbe2ab65a335d7c8952b4b8d65a8187b7204cdddf08a7f751828e4bb",
     "legacy_guide_aliases": [],
@@ -53,58 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Maintained positive DiscardPadding preserves96000 samples; zero-padding mutation yields96648 with identical packets and PCM prefix. Existing behavior, not new trim feature.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "No performance claim required for scoped profile stop, existing behavior or optional quality/test supplement.",
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier.md",
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
         "results/full-completion/continuity/discard-padding.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: ALREADY_WORKING_IN_TESTED_PROFILE. No integration or qualification inferred.",
+      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 15,
+    "campaign": "r101-250-stage-reconciliation",
     "record": {
       "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
-      "state": "ALREADY_WORKING_IN_TESTED_PROFILE",
-      "evidence": "continuity/discard-padding.json",
+      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "stage": "decision",
+      "initial_rank": 125,
+      "disposition": "already_implemented",
+      "state": "already_implemented",
+      "previous_state": "ALREADY_WORKING_IN_TESTED_PROFILE",
+      "evidence_level": "reconciled_imported_execution",
+      "new_media_execution": false,
       "reason": "Current maintained Wasm WebM output preserves13.5ms DiscardPadding:96000 samples. Zeroing only padding yields96648 with identical coded packets and PCM prefix. Preserve this behavior/oracle; no new trimming feature needed for this profile.",
-      "recorded_at_utc": "2026-09-19T17:05:41.704809+00:00"
+      "correctness_acceptance": "Maintained positive DiscardPadding preserves96000 samples; zero-padding mutation yields96648 with identical packets and PCM prefix. Existing behavior, not new trim feature.",
+      "next_action": "Keep exact packet/count/prefix regression for13.5ms WebM tail trim; independently qualify other mappings.",
+      "reopen_condition": "Keep exact packet/count/prefix regression for13.5ms WebM tail trim; independently qualify other mappings.",
+      "blocker_category": null,
+      "run_ids": [
+        "20260919T202508Z-r101-250-stage-reconciliation"
+      ],
+      "prior_decision": {
+        "campaign": "full-completion",
+        "ledger": "results/full-completion/completion.jsonl",
+        "line": 15,
+        "record": {
+          "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
+          "state": "ALREADY_WORKING_IN_TESTED_PROFILE",
+          "evidence": "continuity/discard-padding.json",
+          "reason": "Current maintained Wasm WebM output preserves13.5ms DiscardPadding:96000 samples. Zeroing only padding yields96648 with identical coded packets and PCM prefix. Preserve this behavior/oracle; no new trimming feature needed for this profile.",
+          "recorded_at_utc": "2026-09-19T17:05:41.704809+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+        "results/full-completion/continuity/discard-padding.json"
+      ]
     }
   },
-  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "next_action": "Keep exact packet/count/prefix regression for13.5ms WebM tail trim; independently qualify other mappings.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

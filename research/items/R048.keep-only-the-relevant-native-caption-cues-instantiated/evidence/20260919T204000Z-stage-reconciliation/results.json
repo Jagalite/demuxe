@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 66,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 102,
+    "record": {
+      "key": "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+      "rank": 66,
+      "state": "PURSUE",
+      "reason": "Actual10000-cue native TextTrack versus at-most22 materialized cues yields identical active cue text at6 forward/backward seeks, including near end. Removing active cue detected. Native cue-object count reduced; total memory/CPU benefit and API-compatible player adapter unqualified.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "cue-window/result.json",
+          "sha256": "1d2151995ad7baca8633f44e510a9289e1b2f08bdfc8828e7eb05e1d7c89f657"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.749261+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/cue-window/result.json",
+      "declared_sha256": "1d2151995ad7baca8633f44e510a9289e1b2f08bdfc8828e7eb05e1d7c89f657",
+      "observed_sha256": "1d2151995ad7baca8633f44e510a9289e1b2f08bdfc8828e7eb05e1d7c89f657",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Six forward/backward native TextTrack seeks have exact active text against10000-cue baseline; removing an active cue is detected and cleanup recorded. Scope is cue selection, not renderer styling/API integration."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Native cue-object reduction measured; total memory/CPU and materialization costs unmeasured."
+    }
+  },
+  "passed": true
+}

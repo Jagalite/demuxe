@@ -53,62 +53,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Three independent VP8 color/mask frame pairs have zero alpha and visible premultiplied-color error after explicit SD matrix; wrong timestamp/dimension pairing rejects and cleanup recorded.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R183.native-color-with-separately-decoded-transparency.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R183.native-color-with-separately-decoded-transparency.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/alpha/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 60,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R183.native-color-with-separately-decoded-transparency",
-      "rank": 17,
-      "state": "PURSUE",
-      "reason": "Independent VP8 color/mask decoders pair frames by timestamp and dimensions, preserve exact alpha and reference visible color after explicit SD matrix metadata. Wrong pair rejects; implicit matrix variant failed and retained. No production two-clock owner or cost benefit claimed.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "alpha/result.json",
-          "sha256": "4d5ef21d3bc7ab8a75d6e18d7fc297e5fd8445e509e3fa8e7717ed994a670094"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 17,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:32:49.624027+00:00"
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
+      "reason": "Independent VP8 color/mask decoders pair frames by timestamp and dimensions, preserve exact alpha and reference visible color after explicit SD matrix metadata. Wrong pair rejects; implicit matrix variant failed and retained. No production two-clock owner or cost benefit claimed.",
+      "scope": "Explicit matrix metadata is required; implicit-matrix negative retained. Two-clock production owner not qualified.",
+      "correctness_acceptance": "Three independent VP8 color/mask frame pairs have zero alpha and visible premultiplied-color error after explicit SD matrix; wrong timestamp/dimension pairing rejects and cleanup recorded.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 60,
+        "record": {
+          "key": "R183.native-color-with-separately-decoded-transparency",
+          "rank": 17,
+          "state": "PURSUE",
+          "reason": "Independent VP8 color/mask decoders pair frames by timestamp and dimensions, preserve exact alpha and reference visible color after explicit SD matrix metadata. Wrong pair rejects; implicit matrix variant failed and retained. No production two-clock owner or cost benefit claimed.",
+          "evidence_level": "COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "alpha/result.json",
+              "sha256": "4d5ef21d3bc7ab8a75d6e18d7fc297e5fd8445e509e3fa8e7717ed994a670094"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:32:49.624027+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/alpha/result.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",

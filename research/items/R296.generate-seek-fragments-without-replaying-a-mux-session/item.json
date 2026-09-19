@@ -64,63 +64,80 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Generated or reused hashed synthetic fixtures, executable harness and independent FFprobe/reference evidence for the bounded component.",
+      "evidence": [
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Qualified immutable one-sample AVC fragment constructor executes requests 20,3,21,3 without previous mux replay; repeated request byte-identical, independent packet payload/timing oracle passes, every output decodes one frame. Stale identity, outside ordinal and declared non-RAP reject.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Component packet/timing and decodability pass; all-intra source and declared non-RAP control do not qualify real GOP dependencies or lifecycle.",
+      "evidence": [
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "Equivalent-work performance not measured; relevant complete correctness and real owner workload remain prerequisites.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Positive and negative variants preserved in immutable runs with manifests.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R296.generate-seek-fragments-without-replaying-a-mux-session.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R296.generate-seek-fragments-without-replaying-a-mux-session.md"
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped pursue decision; integration and production qualification separate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 184,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R296.generate-seek-fragments-without-replaying-a-mux-session",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R296.generate-seek-fragments-without-replaying-a-mux-session.md"
+      "state": "pursue",
+      "reason": "Qualified immutable one-sample AVC fragment constructor executes requests 20,3,21,3 without previous mux replay; repeated request byte-identical, independent packet payload/timing oracle passes, every output decodes one frame. Stale identity, outside ordinal and declared non-RAP reject.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:01:18.914201+00:00",
+      "run_ids": [
+        "20260919T200000Z-stateless-seek"
       ],
-      "reason": "Current seeks use FFmpeg indexed av_seek_frame then reconstruct output state; the report pure constructor reassembles already-existing immutable moof recipes. There is no current sample-addressable construction recipe service, and its microbenchmark omits cold indexing and source costs.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
-      "reopen_condition": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
-      "recorded_at_utc": "2026-09-19T17:34:19.095480+00:00"
+      "evidence": [
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/run.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/results.json",
+        "research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/evidence/20260919T200000Z-stateless-seek/manifest.json"
+      ],
+      "next_test": "Trace real repeated distant seeks including cold source/index cost; test dependent GOP rejection, configuration changes and cancel generation before player adoption.",
+      "reopen_condition": "Trace real repeated distant seeks including cold source/index cost; test dependent GOP rejection, configuration changes and cancel generation before player adoption.",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "scope": "Component packet/timing and decodability pass; all-intra source and declared non-RAP control do not qualify real GOP dependencies or lifecycle."
     }
   },
-  "next_action": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+  "next_action": "Trace real repeated distant seeks including cold source/index cost; test dependent GOP rejection, configuration changes and cancel generation before player adoption.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

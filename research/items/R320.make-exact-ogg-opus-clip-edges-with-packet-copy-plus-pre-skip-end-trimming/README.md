@@ -2,54 +2,30 @@
 
 # Make exact Ogg Opus clip edges with packet copy plus pre-skip/end trimming
 
-Full identity: `R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming`. Reused R-numbers are separate mechanisms.
+Full identity: `R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming`.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **pursue** (2026-09-19T20:13:17.931463+00:00).
 
-Current whole-source remux has no Ogg Opus clipping writer or per-cut pre-skip/end-granule owner. Packet-preserving trim is distinct from arbitrary exact state convergence.
+Exact copied-packet full-prefix Ogg crop reused from R094 retains the correct same-decoder state. Newly shortened 83.6875ms preroll keeps 55545 samples but changes 4315 samples, max absolute float error 0.00774363; do not substitute a recommended duration for an exact-state proof.
 
-Next action: Build one interior Ogg cut with copied packets/qualified preroll and compare every sample; shorten preroll as adverse control and do not treat recommended duration as universal exactness.
+## Tested contract
 
-## Definition and contract
+Mono chirp/impulse Ogg Opus crop 12345:67890; full-prefix host/browser oracle reused; shortened-prefix host adverse run
 
-Investigate format-defined trimming around copied packets with qualified decoder preroll. Test against continuous same-decoder output; a recommended preroll is not a universal bit-exact convergence guarantee.
-
-Output contract: Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.
-
-Primary metric: User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.
-
-Adverse control: Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.
+Next action: Measure practical retained-prefix costs; admit a shorter history only with an explicit non-bit-exact tolerance or a justified state equivalence proof.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| define | passed | Exact mechanism and bounded profile distinguished from overlapping item keys. |
+| prepare | passed | Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned. |
+| screen | passed | Exact copied-packet full-prefix Ogg crop reused from R094 retains the correct same-decoder state. Newly shortened 83.6875ms preroll keeps 55545 samples but changes 4315 samples, max absolute float error 0.00774363; do not substitute a recommended duration for an exact-state proof. |
+| correctness | passed | Full-prefix exact sample oracle plus meaningful same-length shortened-state failure establish bounded component contract. |
+| performance | pending | No benchmark; full-prefix preservation may remove practical seek/cut savings. |
+| results | passed | New and reused execution identities, controls, limits, manifests and commands captured. |
+| decision | passed | Scoped pursue disposition; integration and release qualification remain separate. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Shared run](../../shared/runs/20260919T201317Z-ogg-controls/run.json) · [Analysis](../../shared/runs/20260919T201317Z-ogg-controls/analysis.md) · [Manifest](../../shared/runs/20260919T201317Z-ogg-controls/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming.md)
+Historical definitions/evidence remain intact. No production integration or release qualification.

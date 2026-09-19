@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "run_id": "20260919T202600Z-containerless-order",
+  "item_keys": [
+    "R030.investigate-containerless-encoded-chunk-mse"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:26:05.901034+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/shared/tooling/containerless-mse-all-buffers.mjs"
+  ],
+  "environment": {
+    "git_revision": "9f9642e836da259c53adcb00bcea623b280da831",
+    "dirty_diff_sha256": "5cd52f73f9c5e701ade31dd72400561db5c4842564341582d5a9015c4e9ea387",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "runtime_manifest": "research/shared/runs/20260919T202600Z-containerless-order/manifest.json"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Restricted experimental VP9/Opus config-based native A/V; create all track buffers before initializing any track.",
+    "oracle": "Green-video/880Hz marker witnesses, actual seek/media clock/EOF and cleanup.",
+    "adverse_control": "AVC rejected explicitly both with and without B-frames; previous late-audio-buffer construction fails and is preserved.",
+    "passed": true
+  },
+  "performance": {
+    "applicable": false,
+    "basis": "Bounded feasibility/correctness decision; no timing or resource-saving qualification requested in this run."
+  },
+  "limits": [
+    "API enabled only in isolated experimental browser.",
+    "No claimed full pixel/PCM/timing fidelity, speedup or ordinary-browser availability."
+  ],
+  "decisions": [
+    {
+      "key": "R030.investigate-containerless-encoded-chunk-mse",
+      "disposition": "pursue",
+      "evidence_level": "component_test",
+      "performance": "pending",
+      "reason": "Independent review corrected the VP9/Opus construction order: creating both SourceBuffers before any appendEncodedChunks allows actual green video/882.9Hz audio, seek to0.8s, EOF and cleanup in explicitly flagged Chrome152. Previous quota error was harness initialization order, not environment impossibility. AVC/H265 still explicitly unsupported with either no-B or B-frame source. Default browser remains unexposed. Restricted experimental VP9/Opus feasibility only; full pixels/PCM/config/timestamp fidelity not yet compared.",
+      "next_action": "Keep frontier route gated; compare complete VP9/Opus decoded pixels/PCM/timing and reconfiguration/cancel controls before any performance study. Track AVC buffering support separately.",
+      "correctness": "pending",
+      "correctness_basis": "Real flagged native playback witnesses and seek/EOF/cleanup pass for VP9/Opus. Full output fidelity, reconfiguration and malformed chunk controls remain unqualified; AVC destination remains unsupported."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T204000Z-stage-reconciliation",
+  "item_keys": [
+    "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "Read cited JSON results and verify SHA256 identities"
+  ],
+  "candidate": {
+    "executed": false,
+    "note": "No new execution; historical candidate behavior retained separately."
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Same-size index variants preserve2002packet metadata records and identical20s target pixel hash; no-SIDX control and cleanup present. Scoped target seek only."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Local transmitted-byte saving360448bytes observed; cold network/latency distribution and deployment exposure unqualified."
+    }
+  },
+  "decision": "pursue",
+  "limits": [
+    "Imported evidence acceptance only; no new run or expanded fixture/browser qualification."
+  ],
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior."
+}

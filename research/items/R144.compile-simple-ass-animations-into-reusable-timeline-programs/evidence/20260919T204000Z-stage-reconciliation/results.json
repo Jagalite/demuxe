@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "rank": 85,
+  "prior_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 66,
+    "record": {
+      "key": "R144.compile-simple-ass-animations-into-reusable-timeline-programs",
+      "rank": 85,
+      "state": "PURSUE",
+      "reason": "Restricted fad animation reused two opacity-regime mask templates plus piecewise alpha; matches actual libass geometry/masks with at most one alpha unit at seven times including rewind. Single-mask variant fails because libass changes outline mask when fill becomes opaque. No general ASS compiler or measured gain.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "subtitles/fade-result.json",
+          "sha256": "aecdebb4743529fe43ead5da6453f69eb837060ffce80e952bc2c88061e45cad"
+        },
+        {
+          "path": "subtitles/fade-single-mask-failure.json",
+          "sha256": "3b3c52cc2c66ad86835248502d2e911603ecf8fd85e98bfcf0993ca3b8d9de8a"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:37:29.502547+00:00"
+    }
+  },
+  "evidence_identity_checks": [
+    {
+      "path": "results/top100/subtitles/fade-result.json",
+      "declared_sha256": "aecdebb4743529fe43ead5da6453f69eb837060ffce80e952bc2c88061e45cad",
+      "observed_sha256": "aecdebb4743529fe43ead5da6453f69eb837060ffce80e952bc2c88061e45cad",
+      "matched": true
+    },
+    {
+      "path": "results/top100/subtitles/fade-single-mask-failure.json",
+      "declared_sha256": "3b3c52cc2c66ad86835248502d2e911603ecf8fd85e98bfcf0993ca3b8d9de8a",
+      "observed_sha256": "3b3c52cc2c66ad86835248502d2e911603ecf8fd85e98bfcf0993ca3b8d9de8a",
+      "matched": true
+    }
+  ],
+  "contextual_prior_import_mismatches_retained": [],
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Two opacity-regime templates match real libass masks/geometry with\u22641alpha-unit error at seven times including rewind; preserved single-mask variant fails. Restricted fad program only."
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "No compilation/cache/retention/CPU workload benchmark or generalASS claim."
+    }
+  },
+  "passed": true
+}

@@ -1,0 +1,12 @@
+git ls-remote https://github.com/BinomialLLC/basis_universal.git HEAD
+git clone --depth 1 https://github.com/BinomialLLC/basis_universal.git build/catalogue-tools/basis
+cmake -S build/catalogue-tools/basis -B build/catalogue-tools/basis/out -G Ninja -DCMAKE_BUILD_TYPE=Release -DBASISU_EXAMPLES=OFF -DBASISU_BUILD_PYTHON=OFF -DBASISU_ZSTD=OFF
+cmake --build build/catalogue-tools/basis/out --target basisu -j 3
+python3 research/items/R195.prepared-texture-video-to-several-gpu-destinations/tests/generate-frames.py research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis
+build/catalogue-tools/basis/bin/basisu -basis -etc1s -tex_type video -framerate 12 -file research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis/frame0.png -file research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis/frame1.png -output_file research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis/sequence.basis -q 255
+(cwd research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis) /Volumes/seed2/Projects/demuxe/build/catalogue-tools/basis/bin/basisu -unpack sequence.basis -format_only 2
+(cwd research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis) /Volumes/seed2/Projects/demuxe/build/catalogue-tools/basis/bin/basisu -unpack sequence.basis -format_only 3
+python3 research/items/R195.prepared-texture-video-to-several-gpu-destinations/tests/prepare-gpu.py research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis
+node research/items/R195.prepared-texture-video-to-several-gpu-destinations/tests/gpu.mjs research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis # exit 1: exact native oracle mismatch
+python3 research/items/R195.prepared-texture-video-to-several-gpu-destinations/tests/rounding-diagnosis.py research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis
+PNG generator originally executed inline with identical bytes; script is reproducible capture. Initial Pillow import unavailable; no dependency installed, stdlib generator used.

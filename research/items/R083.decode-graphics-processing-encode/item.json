@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "key": "R083.decode-graphics-processing-encode",
-  "title": "Decode → graphics processing → encode",
+  "title": "Decode \u2192 graphics processing \u2192 encode",
   "definition": {
     "key": "R083.decode-graphics-processing-encode",
     "legacy_id": "R83",
     "legacy_number": 83,
     "identity_branch": "report-defined",
-    "title": "Decode → graphics processing → encode",
+    "title": "Decode \u2192 graphics processing \u2192 encode",
     "definition_status": "SOURCE_BODY_AVAILABLE",
     "definition_source": {
       "source_key": "S039",
@@ -17,7 +17,7 @@
       "line_end": 43,
       "source_kind": "report"
     },
-    "source_excerpt": "WebGPU is unavailable in the permitted origin. A headful Xvfb run did expose WebGL1 through: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device ...), SwiftShader driver) The pilot decoded the H.264 source in a media element, uploaded each presented frame directly to a WebGL texture, ran an RGB-inversion fragment shader, captured the resulting canvas and encoded VP9 through MediaRecorder. The processing path never called getImageData; pixel readback was used only after encoding as an oracle. The generated WebM was accepted by MSE and reached EOF. The final run captured 88/90 source callbacks; repeated pre-oracle runs captured 87, 87 and 88, so this environment did not sustain a perfect frame-for-frame realtime chain. Nearest-frame transformed-output error was around 4.3–5.1/255 mean absolute RGB in the final run.",
+    "source_excerpt": "WebGPU is unavailable in the permitted origin. A headful Xvfb run did expose WebGL1 through: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device ...), SwiftShader driver) The pilot decoded the H.264 source in a media element, uploaded each presented frame directly to a WebGL texture, ran an RGB-inversion fragment shader, captured the resulting canvas and encoded VP9 through MediaRecorder. The processing path never called getImageData; pixel readback was used only after encoding as an oracle. The generated WebM was accepted by MSE and reached EOF. The final run captured 88/90 source callbacks; repeated pre-oracle runs captured 87, 87 and 88, so this environment did not sustain a perfect frame-for-frame realtime chain. Nearest-frame transformed-output error was around 4.3\u20135.1/255 mean absolute RGB in the final run.",
     "related_reports": [],
     "scope_hash": "fbdfd1891d741e2349e6eda830aa36687668b6a1a1b753b36b11e29ab578fe86",
     "legacy_guide_aliases": [],
@@ -53,60 +53,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R083.decode-graphics-processing-encode.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 321,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R083.decode-graphics-processing-encode",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+      "rank": 262,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+      ],
       "next_test": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
       "reopen_condition": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
-      "recorded_at_utc": "2026-09-19T17:34:19.158721+00:00"
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",

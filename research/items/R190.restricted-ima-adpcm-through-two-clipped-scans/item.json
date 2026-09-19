@@ -17,7 +17,7 @@
       "line_end": 106,
       "source_kind": "report"
     },
-    "source_excerpt": "The tested variant is IMA ADPCM WAV. Its state dependencies are split into two associative clipped transitions: 1. step-index state i' = clip(i + adjust(code), 0, 88); 2. after the resulting per-code signed differences are known, predictor state p' = clip(p + delta, -32768, 32767). Using FFmpeg's exact integer rule delta = ((2mag+1)step)>>3, the two-scan construction is sample-exact to both a conventional sequential implementation and FFmpeg for: - mono: 8,164 samples; - stereo: 8,136 frames × 2 channels; - 25 synthetic controls covering predictor extremes and starting indices 0/1/44/87/88. The portable Hillis-Steele-style Python oracle took 59.1 ms for 8,192 nibbles versus 2.38 ms sequentially. Therefore the algebra is parallelizable and exact; a work-efficient CPU/GPU implementation must still demonstrate a complete-pass speedup after extra scans, synchronization, storage and readback.",
+    "source_excerpt": "The tested variant is IMA ADPCM WAV. Its state dependencies are split into two associative clipped transitions: 1. step-index state i' = clip(i + adjust(code), 0, 88); 2. after the resulting per-code signed differences are known, predictor state p' = clip(p + delta, -32768, 32767). Using FFmpeg's exact integer rule delta = ((2mag+1)step)>>3, the two-scan construction is sample-exact to both a conventional sequential implementation and FFmpeg for: - mono: 8,164 samples; - stereo: 8,136 frames \u00d7 2 channels; - 25 synthetic controls covering predictor extremes and starting indices 0/1/44/87/88. The portable Hillis-Steele-style Python oracle took 59.1 ms for 8,192 nibbles versus 2.38 ms sequentially. Therefore the algebra is parallelizable and exact; a work-efficient CPU/GPU implementation must still demonstrate a complete-pass speedup after extra scans, synchronization, storage and readback.",
     "related_reports": [],
     "scope_hash": "3a3785b549ad8a6a7e1c436b8dfff17b8a064b121f4d8273d3ce5dce49e0a8f9",
     "legacy_guide_aliases": [],
@@ -69,60 +69,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R190.restricted-ima-adpcm-through-two-clipped-scans.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
         "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 357,
+    "campaign": "research-ranks251-392-acceptance",
     "record": {
       "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      "rank": 315,
+      "state": "blocked",
+      "disposition": "blocked",
+      "blocker_category": "setup",
+      "secondary_blocker_categories": [],
+      "stage": "decision",
+      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "run_ids": [
+        "20260919T202334Z-ranks251-392-reconciliation"
       ],
+      "evidence_level": "reconciled_source_review",
+      "new_execution": false,
+      "historical_state": "DEFER_SETUP",
       "reason": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
+      "evidence": [
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
+        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ],
       "next_test": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
-      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
-      "recorded_at_utc": "2026-09-19T17:34:19.168319+00:00"
+      "reopen_condition": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
     }
   },
   "next_action": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",

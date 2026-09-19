@@ -17,7 +17,7 @@
       "line_end": 188,
       "source_kind": "report"
     },
-    "source_excerpt": "Used actual MPEG-2 I/P decoder-exported AVMotionVector side data, not the fixture’s known motion as the algorithm input. Native FFI output pixels are independently matched to FFmpeg CLI output. Missing vectors use zero-motion blending; vector-guided bilinear warps construct midpoint pictures. Original 30 fps synthetic frames provide ground truth while the coded input contains every other frame [S8, S9]. The interval crossing the scene cut is a clear counterexample: guided error 54.44/255, blend 53.28/255, previous-frame hold 32.83/255. Averages over mostly translating frames must not conceal that failure. Scene-cut/occlusion decisions and disoccluded-region synthesis remain necessary before a robust interpolator could be claimed.",
+    "source_excerpt": "Used actual MPEG-2 I/P decoder-exported AVMotionVector side data, not the fixture\u2019s known motion as the algorithm input. Native FFI output pixels are independently matched to FFmpeg CLI output. Missing vectors use zero-motion blending; vector-guided bilinear warps construct midpoint pictures. Original 30 fps synthetic frames provide ground truth while the coded input contains every other frame [S8, S9]. The interval crossing the scene cut is a clear counterexample: guided error 54.44/255, blend 53.28/255, previous-frame hold 32.83/255. Averages over mostly translating frames must not conceal that failure. Scene-cut/occlusion decisions and disoccluded-region synthesis remain necessary before a robust interpolator could be claimed.",
     "related_reports": [],
     "scope_hash": "33189c9f4c971df085bffddddd46263f80ded62f9731368b5fec113543298362",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,30 +91,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 387,
-    "record": {
-      "key": "R157.interpolation-guided-by-real-codec-motion-vectors",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R157.interpolation-guided-by-real-codec-motion-vectors.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
-      ],
-      "reason": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
-      "reopen_condition": "Reopen with explicit approximate-frame semantics and scene-cut handling; no exact missing-frame reconstruction or runtime saving inferred.",
-      "recorded_at_utc": "2026-09-19T17:34:19.176342+00:00"
-    }
+    "key": "R157.interpolation-guided-by-real-codec-motion-vectors",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 387,
+      "record": {
+        "key": "R157.interpolation-guided-by-real-codec-motion-vectors",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R157.interpolation-guided-by-real-codec-motion-vectors.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+        ],
+        "reason": "Current bridge exposes decoded pictures but not codec motion-vector side data, and ordinary playback does not request synthetic intermediate pictures. Historical cut control is worse than frame hold, rejecting universal guided-interpolation quality from average errors.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
+        "reopen_condition": "Reopen with explicit approximate-frame semantics and scene-cut handling; no exact missing-frame reconstruction or runtime saving inferred.",
+        "recorded_at_utc": "2026-09-19T17:34:19.176342+00:00"
+      }
+    },
+    "next_action": "For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "For requested interpolation, first expose real vectors and compare cut/occlusion cases separately against hold/blend and independent ground truth.",
   "integration": {

@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T204000Z-stage-reconciliation",
+  "item_keys": [
+    "R122.retime-existing-frames-without-creating-new-pictures.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "operation": "historical_stage_reconciliation",
+  "new_experiment": false,
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "Read cited JSON results and verify SHA256 identities"
+  ],
+  "candidate": {
+    "executed": false,
+    "note": "No new execution; historical candidate behavior retained separately."
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "All24 unchanged coded samples and decoded frames match; every PTS/DTS/duration doubles. Wrong skeleton/zero duration rejected by shared constructor. Pure fixed-template retime only."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Explicit altered timing capability; no performance saving claim or benchmark required for this decision."
+    }
+  },
+  "decision": "pursue",
+  "limits": [
+    "Imported evidence acceptance only; no new run or expanded fixture/browser qualification."
+  ],
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior."
+}

@@ -17,7 +17,7 @@
       "line_end": 165,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New session-plan candidate · P2 · extends R09, R18 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Append the next compatible clip into a continuous browser timeline instead of opening a new player for every queue item. Reuse compressed media for an explicit loop while keeping only bounded current/next output. New question versus prior work. R18 caches already-prepared intervals within a source. This targets the transition between explicitly queued items and repeat boundaries, with a logical source-to-presentation mapping. Source primitive. MSE provides timestamp offsets and append windows. Chrome has an audio gapless-playback example; it is not proof of gapless A/V queue transitions. [S3, S7] Why testable here. Compatible encoded clips, offset mapping and window MSE are sufficient for the first browser pilot.",
+    "source_excerpt": "New session-plan candidate \u00b7 P2 \u00b7 extends R09, R18 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. Append the next compatible clip into a continuous browser timeline instead of opening a new player for every queue item. Reuse compressed media for an explicit loop while keeping only bounded current/next output. New question versus prior work. R18 caches already-prepared intervals within a source. This targets the transition between explicitly queued items and repeat boundaries, with a logical source-to-presentation mapping. Source primitive. MSE provides timestamp offsets and append windows. Chrome has an audio gapless-playback example; it is not proof of gapless A/V queue transitions. [S3, S7] Why testable here. Compatible encoded clips, offset mapping and window MSE are sufficient for the first browser pilot.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -64,65 +64,93 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only.",
+      "evidence": [
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Explicit compatible video queue red/green/red maps source epochs to 0/2/4 s on one retained MSE/video presentation with continuous separate audio; played EOF and seeks back .5 and forward4.5. Stale-generation commit rejects without buffer mutation.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "Qualify source-linked A/V queue identities with independent PCM and full-frame oracle, subtitles, source replacement during actual pending read and long bounded queue eviction.",
+      "evidence": [
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "basis": "No equivalent-work benchmark before relevant output correctness gates.",
       "evidence": []
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md"
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Pursue bounded mechanism; no integration or release qualification.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 226,
+    "campaign": "canonical-stage-advancement",
     "record": {
       "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      "state": "pursue",
+      "reason": "Explicit compatible video queue red/green/red maps source epochs to 0/2/4 s on one retained MSE/video presentation with continuous separate audio; played EOF and seeks back .5 and forward4.5. Stale-generation commit rejects without buffer mutation.",
+      "evidence_level": "component_test",
+      "recorded_at_utc": "2026-09-19T20:06:24.309553+00:00",
+      "run_ids": [
+        "20260919T200300Z-mse-transactions",
+        "20260919T200700Z-mse-transactions-tail"
       ],
-      "reason": "Current source start replaces MediaSource and resets source frames/ranges. Queue-wide logical source identities, offsets, subtitle events and bounded next-item ownership are missing.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
-      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
-      "recorded_at_utc": "2026-09-19T17:34:19.106722+00:00"
+      "evidence": [
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+        "research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+      ],
+      "next_test": "Qualify source-linked A/V queue identities with independent PCM and full-frame oracle, subtitles, source replacement during actual pending read and long bounded queue eviction.",
+      "reopen_condition": "Qualify source-linked A/V queue identities with independent PCM and full-frame oracle, subtitles, source replacement during actual pending read and long bounded queue eviction.",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "case": "queue"
     }
   },
-  "next_action": "Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
+  "next_action": "Qualify source-linked A/V queue identities with independent PCM and full-frame oracle, subtitles, source replacement during actual pending read and long bounded queue eviction.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

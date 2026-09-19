@@ -58,73 +58,83 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Source-grounded contract retained; current scope and falsifier narrowed in run analysis.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R233.make-independently-resampled-audio-chunks-join-exactly.md"
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Setup: no admitted resampler job interface exists in the audited audio path.",
+      "evidence": [
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Maintained adaptation explicitly preserves sample rate without swresample and has no independent absolute-output resampling job interface. A host or rational toy would not prove production state/phase equivalence.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "Depends on selecting a faithful maintained implementation/consumer.",
+      "evidence": [
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "blocked",
+      "basis": "No executable candidate or correctness gate; not a negative numerical result.",
+      "evidence": [
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Commands, output identities, source/runtime manifest, limitations and expected adverse outcomes captured.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R233.make-independently-resampled-audio-chunks-join-exactly.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R233.make-independently-resampled-audio-chunks-join-exactly.md"
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "basis": "Scoped disposition recorded; integration and release qualification remain separate.",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 176,
+    "campaign": "audio-stage-reconciliation",
     "record": {
       "key": "R233.make-independently-resampled-audio-chunks-join-exactly",
-      "state": "DEFER_SETUP",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R233.make-independently-resampled-audio-chunks-join-exactly.md"
+      "recorded_at_utc": "2026-09-19T19:59:33.240223+00:00",
+      "stage": "decision",
+      "disposition": "blocked",
+      "state": "blocked",
+      "run_ids": [
+        "20260919T195933Z-resampler-gate"
       ],
-      "reason": "The maintained local adaptation path explicitly performs no resampling and retains continuous FIFO state. Independent absolute-output-index jobs would require a separate admitted resampler/job interface; the rational toy report does not describe libswresample state equivalence.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
-      "reopen_condition": "Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
-      "recorded_at_utc": "2026-09-19T17:34:19.093225+00:00"
+      "evidence_level": "source_review",
+      "profile": "Maintained native adaptation and PCM output ownership audit",
+      "candidate_executed": false,
+      "fallback_observed": null,
+      "reason": "Maintained adaptation explicitly preserves sample rate without swresample and has no independent absolute-output resampling job interface. A host or rational toy would not prove production state/phase equivalence.",
+      "next_action": "Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.",
+      "reopen_condition": "Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.",
+      "evidence": [
+        "research/items/R233.make-independently-resampled-audio-chunks-join-exactly/evidence/20260919T195933Z-resampler-gate/run.json"
+      ],
+      "blocker_category": "setup"
     }
   },
-  "next_action": "Identify a real independently partitioned resampling consumer; compare one irregular partition including edges, halo and global phase against that same continuous resampler.",
+  "next_action": "Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.",
   "integration": {
-    "status": "not_assessed_by_migration"
+    "status": "not_integrated"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "not_release_qualified"
   }
 }

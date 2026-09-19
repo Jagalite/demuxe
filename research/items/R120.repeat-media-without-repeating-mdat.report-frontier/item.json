@@ -17,7 +17,7 @@
       "line_end": 51,
       "source_kind": "report"
     },
-    "source_excerpt": "The original MP4 contains two seconds of red→green media. Its one edit-list entry was replaced by three identical entries. The edit metadata grew by only 24 bytes, while the mdat SHA-256 stayed identical. Chrome reports 5.966667 s and presents: This is effectively a metadata-only loop/reuse operation. It is a storage and editing win, not a decode-cache win: Chrome reported 180 total video frames versus 60 for the original, so it processed the repeated media again.",
+    "source_excerpt": "The original MP4 contains two seconds of red\u2192green media. Its one edit-list entry was replaced by three identical entries. The edit metadata grew by only 24 bytes, while the mdat SHA-256 stayed identical. Chrome reports 5.966667 s and presents: This is effectively a metadata-only loop/reuse operation. It is a storage and editing win, not a decode-cache win: Chrome reported 180 total video frames versus 60 for the original, so it processed the repeated media again.",
     "related_reports": [],
     "scope_hash": "4eaad0af4f790090145bfc9d883a774ccbbba070dcae8efd2c92300517648118",
     "legacy_guide_aliases": [],
@@ -53,9 +53,11 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "screen": {
       "status": "passed",
@@ -65,14 +67,18 @@
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
     },
     "results": {
       "status": "passed",
@@ -85,30 +91,50 @@
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
       "evidence": [
-        "results/full-completion/completion.jsonl"
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
       ]
     }
   },
   "current_decision": {
-    "campaign": "full-completion",
-    "ledger": "results/full-completion/completion.jsonl",
-    "line": 258,
-    "record": {
-      "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
-      "state": "STOP_PROFILE",
-      "evidence": [
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R120.repeat-media-without-repeating-mdat.report-frontier.md",
-        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md"
-      ],
-      "reason": "The queue opens each source independently; it does not author repeated edit-list views. Repeating mdat references saves stored bytes but still decodes repeated pictures, so it is not a decode optimization for current playback.",
-      "evidence_level": "SOURCE_REVIEW",
-      "carried_forward": true,
-      "next_test": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
-      "reopen_condition": "Reopen when a requested stored repeated timeline needs representation; do not infer decoder caching from mdat equality.",
-      "recorded_at_utc": "2026-09-19T17:34:19.114732+00:00"
-    }
+    "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "The queue opens each source independently; it does not author repeated edit-list views. Repeating mdat references saves stored bytes but still decodes repeated pictures, so it is not a decode optimization for current playback.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 258,
+      "record": {
+        "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R120.repeat-media-without-repeating-mdat.report-frontier.md",
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md"
+        ],
+        "reason": "The queue opens each source independently; it does not author repeated edit-list views. Repeating mdat references saves stored bytes but still decodes repeated pictures, so it is not a decode optimization for current playback.",
+        "evidence_level": "SOURCE_REVIEW",
+        "carried_forward": true,
+        "next_test": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
+        "reopen_condition": "Reopen when a requested stored repeated timeline needs representation; do not infer decoder caching from mdat equality.",
+        "recorded_at_utc": "2026-09-19T17:34:19.114732+00:00"
+      }
+    },
+    "next_action": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
   },
   "next_action": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
   "integration": {

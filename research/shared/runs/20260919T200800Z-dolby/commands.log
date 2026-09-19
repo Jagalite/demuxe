@@ -1,0 +1,5 @@
+Python urllib GET https://raw.githubusercontent.com/chromium/chromium/main/media/test/data/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 (3528195bytes, bounded8MiB fetch)
+ffmpeg -v error -y -copyts -i research/shared/runs/20260919T200800Z-dolby/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 -map 0:v:0 -c copy -bsf:v dovi_rpu=strip=1 -tag:v hvc1 -avoid_negative_ts disabled research/shared/runs/20260919T200800Z-dolby/hdr10-copyts.mp4
+ffmpeg -v error -copyts -i research/shared/runs/20260919T200800Z-dolby/glass-blowing2-dolby-vision-profile-8-1-frag.mp4 -map 0:v:0 -vsync 0 -f framehash research/shared/runs/20260919T200800Z-dolby/source-copyts-frames.sha256
+ffmpeg -v error -copyts -i research/shared/runs/20260919T200800Z-dolby/hdr10-copyts.mp4 -map 0:v:0 -vsync 0 -f framehash research/shared/runs/20260919T200800Z-dolby/candidate-copyts-frames.sha256
+python3 research/shared/tooling/dolby-base-screen.py

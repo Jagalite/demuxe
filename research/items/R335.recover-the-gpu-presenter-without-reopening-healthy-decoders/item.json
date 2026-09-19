@@ -64,63 +64,97 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Actual WebGPU device destruction/recreation yields exact held-frame redraw, keeps the same configured VideoDecoder and emits next timestamp1000000; errors empty and cleanup recorded.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R335.recover-the-gpu-presenter-without-reopening-healthy-decoders.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R335.recover-the-gpu-presenter-without-reopening-healthy-decoders.md",
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
         "results/top100/gpu/result.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 49,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
-      "rank": 13,
-      "state": "PURSUE",
-      "reason": "Actual WebGPU device destruction/recreation preserves held decoded-frame redraw exactly; same VideoDecoder remains configured and emits the next timestamp. Worth independent presenter recovery. This is a small GPU owner prototype, not the current player integration.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "gpu/result.json",
-          "sha256": "aa8b59231abe26c1c9c46d2d719acfaed88e2e8c75d395333431b912e8dcc338"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 13,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:23:18.459316+00:00"
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
+      "reason": "Actual WebGPU device destruction/recreation preserves held decoded-frame redraw exactly; same VideoDecoder remains configured and emits the next timestamp. Worth independent presenter recovery. This is a small GPU owner prototype, not the current player integration.",
+      "scope": "Small independent GPU presenter owner; actual platform-loss paths beyond device.destroy and player integration excluded.",
+      "correctness_acceptance": "Actual WebGPU device destruction/recreation yields exact held-frame redraw, keeps the same configured VideoDecoder and emits next timestamp1000000; errors empty and cleanup recorded.",
+      "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 49,
+        "record": {
+          "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
+          "rank": 13,
+          "state": "PURSUE",
+          "reason": "Actual WebGPU device destruction/recreation preserves held decoded-frame redraw exactly; same VideoDecoder remains configured and emits the next timestamp. Worth independent presenter recovery. This is a small GPU owner prototype, not the current player integration.",
+          "evidence_level": "COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "gpu/result.json",
+              "sha256": "aa8b59231abe26c1c9c46d2d719acfaed88e2e8c75d395333431b912e8dcc338"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:23:18.459316+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/gpu/result.json"
+      ]
     }
   },
   "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",

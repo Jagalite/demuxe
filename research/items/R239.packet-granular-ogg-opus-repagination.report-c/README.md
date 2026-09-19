@@ -2,54 +2,30 @@
 
 # packet-granular Ogg Opus repagination
 
-Full identity: `R239.packet-granular-ogg-opus-repagination.report-c`. Reused R-numbers are separate mechanisms.
+Full identity: `R239.packet-granular-ogg-opus-repagination.report-c`.
 
-Current imported decision: **DEFER_SETUP** (full-completion).
+Current decision: **pursue** (2026-09-19T20:13:17.931463+00:00).
 
-Maintained output builds/mux contracts target MP4/WebM, not Ogg page production. Historical one-packet pages preserved PCM but grew 8.52%; a parser/repage path needs a delivery-latency use case.
+One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit.
 
-Next action: Measure source-page withholding on one actual Ogg delivery trace, then reconstruct only one-packet pages with exact packet/granule/CRC checks and truncated continuation rejection.
+## Tested contract
 
-## Definition and contract
+Reused genuine 2s mono Ogg source and group-1 repagination, new independent page/packet validation; no codec frame regrouping
 
-A four-second mono Opus fixture contains 201 audio packets in seven source pages. The rerun parser reconstructs Ogg pages with valid lacing, sequence numbers, CRCs and packet-end granule positions, using one audio packet per page after the two Opus header packets. All 203 packet hashes—including OpusHead and OpusTags—match. FFmpeg PCM is byte-identical. Chromium decodeAudioData returns 192,000 samples at 48 kHz for both files with the same complete float-buffer hash and probe samples. The cost is real: 62,100→67,392 bytes (+5,292 bytes, +8.52%). This proves a finer delivery representation, not a latency improvement by itself.
-
-Output contract: Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.
-
-Primary metric: Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.
-
-Adverse control: Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.
+Next action: Require a real page-withholding delivery trace before building a production Ogg output path; compare full latency and byte cost under that policy.
 
 ## Stages
 
 | Stage | Status | Basis |
 | --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| performance | pending | Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist. |
-| results | passed | Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record. |
-| decision | passed | Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred. |
+| define | passed | Exact mechanism and bounded profile distinguished from overlapping item keys. |
+| prepare | passed | Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned. |
+| screen | passed | One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit. |
+| correctness | passed | Whole-output host/browser evidence reused with exact artifact identities; new CRC/lacing/continuation and packet-identity adverse controls pass. |
+| performance | pending | Byte overhead observed, but no equivalent actual delivery trace or latency measurement. |
+| results | passed | New and reused execution identities, controls, limits, manifests and commands captured. |
+| decision | passed | Scoped pursue disposition; integration and release qualification remain separate. |
 
-Pending preparation/correctness/performance means the historical evidence has not
-been converted into a stage acceptance record; it does not erase historical passes
-or require rerunning them. Read the evidence before updating these fields.
+[Shared run](../../shared/runs/20260919T201317Z-ogg-controls/run.json) · [Analysis](../../shared/runs/20260919T201317Z-ogg-controls/analysis.md) · [Manifest](../../shared/runs/20260919T201317Z-ogg-controls/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
-## Working files
-
-- [Item state and original definition](item.json): authoritative current metadata; update this README when changing it.
-- [Decision history](history.jsonl): imported records and their exact ledger locations; append future decisions.
-- [Evidence index](evidence/index.json): paths, hashes, and historical hash declarations.
-- [Research process](../../PROCESS.md): run layout, gates, fixture and license requirements.
-
-Create `tests/` and `fixtures/` only when this item needs its own code or data.
-Shared historical harnesses remain in `tests/` at repository root; commands and
-fixture references are in the linked evidence. No unverified harness-to-item
-association was invented during migration.
-
-## Archived evidence and definitions
-
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.packet-granular-ogg-opus-repagination.report-c.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.packet-granular-ogg-opus-repagination.report-c.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md)
-- [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.packet-granular-ogg-opus-repagination.report-c.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.packet-granular-ogg-opus-repagination.report-c.md)
+Historical definitions/evidence remain intact. No production integration or release qualification.

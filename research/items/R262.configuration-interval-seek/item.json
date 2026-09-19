@@ -17,7 +17,7 @@
       "line_end": 40,
       "source_kind": "report"
     },
-    "source_excerpt": "Two independently authored Annex-B H.264 segments were concatenated: 3 s at 320×180 followed by 3 s at 640×360, both with repeated headers and 1 s keyframe cadence. The index records SPS configuration intervals and starts the second interval at its SPS/RAP boundary. Result. FFprobe on the full stream observes the resolution switch at frame 90 and the first 640×360 frame is a keyframe. The indexed second interval begins exactly at the second authored stream boundary (280,871 bytes) and is byte-identical to that authored stream. Frame 30 from the indexed interval is pixel-identical to frame 30 decoded from the authored second segment (dc278b9cdc52751edf076f9bf98e3815705e8c39081739c9e3a31670fa1fd11f). Starting at a non-RAP slice emits missing PPS/dependency errors, proving the entry/preroll requirement matters.",
+    "source_excerpt": "Two independently authored Annex-B H.264 segments were concatenated: 3 s at 320\u00d7180 followed by 3 s at 640\u00d7360, both with repeated headers and 1 s keyframe cadence. The index records SPS configuration intervals and starts the second interval at its SPS/RAP boundary. Result. FFprobe on the full stream observes the resolution switch at frame 90 and the first 640\u00d7360 frame is a keyframe. The indexed second interval begins exactly at the second authored stream boundary (280,871 bytes) and is byte-identical to that authored stream. Frame 30 from the indexed interval is pixel-identical to frame 30 decoded from the authored second segment (dc278b9cdc52751edf076f9bf98e3815705e8c39081739c9e3a31670fa1fd11f). Starting at a non-RAP slice emits missing PPS/dependency errors, proving the entry/preroll requirement matters.",
     "related_reports": [],
     "scope_hash": "459c7e43472083a07c6bfb12a7316bb54fcd0f28b43ff7c66b209253fdf5cf03",
     "legacy_guide_aliases": [],
@@ -53,67 +53,108 @@
       ]
     },
     "prepare": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
+      ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Prior bounded screening reviewed; scientific disposition unchanged.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "status": "passed",
+      "basis": "96 full-transition and 48 interval-seek pictures match independent visible-plane hashes. Recorded timestamps also independently checked against input packets; dependent cold-start rejects and decoders close.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
+      ]
     },
     "performance": {
       "status": "pending",
-      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
-      "evidence": []
+      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R262.configuration-interval-seek.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R261-R267-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R262.configuration-interval-seek.md",
-        "results/top100/configuration/input.json",
-        "results/top100/configuration/result.json"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top100",
-    "ledger": "results/top100/decisions.jsonl",
-    "line": 2,
+    "campaign": "top30-stage-reconciliation",
     "record": {
       "key": "R262.configuration-interval-seek",
-      "rank": 2,
-      "state": "PURSUE",
-      "reason": "Explicit source-bound SPS/RAP intervals decode all96 authored pictures exactly through browser configuration change; indexed second interval matches48 pictures/timestamps, dependent cold start rejects. Container indexing and source replacement integration remain later.",
-      "evidence_level": "COMPONENT_TEST",
-      "evidence": [
-        {
-          "path": "configuration/result.json",
-          "sha256": "ef091af576e7840b4a89449accd760a9f327b0f953272210aa93abe52202bcac"
-        },
-        {
-          "path": "configuration/input.json",
-          "sha256": "421d795638a80d247146aa15ac289896140b8dcc79ef0d820210a5af10536d9b"
-        }
+      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "previous_state": "PURSUE",
+      "initial_rank": 2,
+      "run_ids": [
+        "20260919T201843Z-top30-stage-reconciliation"
       ],
-      "recorded_at_utc": "2026-09-19T18:05:13.912265+00:00"
+      "evidence_level": "reconciled_component_test",
+      "new_media_execution": false,
+      "reason": "Explicit source-bound SPS/RAP intervals decode all96 authored pictures exactly through browser configuration change; indexed second interval matches48 pictures/timestamps, dependent cold start rejects. Container indexing and source replacement integration remain later.",
+      "scope": "Explicit source-bound SPS/RAP configuration intervals; not generic container indexing.",
+      "correctness_acceptance": "96 full-transition and 48 interval-seek pictures match independent visible-plane hashes. Recorded timestamps also independently checked against input packets; dependent cold-start rejects and decoders close.",
+      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+      "prior_decision": {
+        "campaign": "top100",
+        "ledger": "results/top100/decisions.jsonl",
+        "line": 2,
+        "record": {
+          "key": "R262.configuration-interval-seek",
+          "rank": 2,
+          "state": "PURSUE",
+          "reason": "Explicit source-bound SPS/RAP intervals decode all96 authored pictures exactly through browser configuration change; indexed second interval matches48 pictures/timestamps, dependent cold start rejects. Container indexing and source replacement integration remain later.",
+          "evidence_level": "COMPONENT_TEST",
+          "evidence": [
+            {
+              "path": "configuration/result.json",
+              "sha256": "ef091af576e7840b4a89449accd760a9f327b0f953272210aa93abe52202bcac"
+            },
+            {
+              "path": "configuration/input.json",
+              "sha256": "421d795638a80d247146aa15ac289896140b8dcc79ef0d820210a5af10536d9b"
+            }
+          ],
+          "recorded_at_utc": "2026-09-19T18:05:13.912265+00:00"
+        }
+      },
+      "evidence": [
+        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
+        "results/top100/configuration/result.json",
+        "results/top100/configuration/input.json"
+      ]
     }
   },
   "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
