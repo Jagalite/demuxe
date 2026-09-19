@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R187.recover-encoder-decisions-from-the-source",
+  "title": "recover encoder decisions from the source",
+  "definition": {
+    "key": "R187.recover-encoder-decisions-from-the-source",
+    "legacy_id": "R187",
+    "legacy_number": 187,
+    "identity_branch": "report-defined",
+    "title": "recover encoder decisions from the source",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 59,
+      "line_end": 66,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The pilot encoded a controlled source with x264 first-pass statistics, then used the recovered frame-level motion-bit and intra/partition decisions to choose a constrained search radius in a separate block-matching transcoder model. The model operates on frames decoded from that H.264 source. Against a ±6 exhaustive search, the hint-driven policy reduced candidate evaluations 30.38% while increasing total prediction SSE only 0.0685% on the controlled slow/fast-motion plus scene-change fixture. This is evidence that source codec decisions can usefully steer later search. It is not an AVC→HEVC encoding benchmark: source vectors/partitions were not injected into x265, no HEVC bitrate/quality comparison was produced, and the model's residual proxy is not a complete encoder cost function.",
+    "related_reports": [],
+    "scope_hash": "557131d6a01e86512f1b2273ffcfbaea7ac13457114dfb28fed0020db6cb2161",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 363,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R187.recover-encoder-decisions-from-the-source.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R187.recover-encoder-decisions-from-the-source.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 404,
+    "record": {
+      "key": "R187.recover-encoder-decisions-from-the-source",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+      ],
+      "reason": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+      "reopen_condition": "Reopen with a producer/transcode use case and actual encoder integration; model search-count savings cannot stand in for full encoding.",
+      "recorded_at_utc": "2026-09-19T17:34:19.180963+00:00"
+    }
+  },
+  "next_action": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

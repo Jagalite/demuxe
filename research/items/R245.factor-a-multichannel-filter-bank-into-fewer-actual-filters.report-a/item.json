@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "key": "R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a",
+  "title": "Factor a multichannel filter bank into fewer actual filters",
+  "definition": {
+    "key": "R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a",
+    "legacy_id": "R245",
+    "legacy_number": 245,
+    "identity_branch": "report-A",
+    "title": "Factor a multichannel filter bank into fewer actual filters",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S022",
+      "path": "sources/reports/R239-R246-report.md",
+      "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+      "line_start": 100,
+      "line_end": 111,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A synthetic four-input/four-output FIR bank was authored with an exact rank-two constant factorization across the complete impulse responses. A separate integer direct-convolution oracle and the factored construction agreed for all 2,196 samples. Clipping the intermediate mix deliberately invalidated equivalence, producing 2,195 differing samples. Perturbing one filter coefficient was rejected by the supplied-factor equality check. For the floating implementation, the baseline is a uniform-partitioned matrix convolver that already shares each input FFT across outputs. It is not 16 isolated FFT pipelines. The candidate mixes four inputs to two, runs two independent filter paths, then mixes to four outputs. Partition size, input length, output length, zero initial state and full tails are identical. No impulse-response normalization is silently applied.",
+    "related_reports": [],
+    "scope_hash": "83e6370b3aa0b7a794c33201bd5fed0256172154d897e4b1b760087ae646a65a",
+    "legacy_guide_aliases": [
+      "R245-A"
+    ],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 224,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R304.factor-a-multichannel-effect-into-fewer-independent-filters",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R347.morph-convolution-effects-using-reusable-basis-outputs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R245.standalone-flac-from-original-frames.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 293,
+    "record": {
+      "key": "R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md"
+      ],
+      "reason": "The current admitted audio graph has no exactly factorizable FIR bank; the host rank-two win depends on supplied factors and excludes clipping. No 16-to-2 filter transformation applies to scalar volume or arbitrary filters.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If a matrix convolution bank is introduced, verify exact coefficient factorization and compare to the existing shared-FFT baseline, with perturbation and intermediate-clipping controls.",
+      "reopen_condition": "Reopen only for a verified constant factorization over complete impulse responses, including tails and setup costs.",
+      "recorded_at_utc": "2026-09-19T17:34:19.149777+00:00"
+    }
+  },
+  "next_action": "If a matrix convolution bank is introduced, verify exact coefficient factorization and compare to the existing shared-FFT baseline, with perturbation and intermediate-clipping controls.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

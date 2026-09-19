@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R270.exact-flac-smart-cut-concat",
+  "title": "exact FLAC smart-cut/concat",
+  "definition": {
+    "key": "R270.exact-flac-smart-cut-concat",
+    "legacy_id": "R270",
+    "legacy_number": 270,
+    "identity_branch": "report-defined",
+    "title": "exact FLAC smart-cut/concat",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 36,
+      "line_end": 43,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A five-second 48 kHz mono FLAC was cut at sample 41,737 and 105,565, both inside FLAC frames. Only the two intersecting edge frames were reconstructed; 14 complete interior compressed payloads were retained byte-for-byte. The first naive build exposed an important correctness issue: putting a short edge frame in a fixed-block-numbered stream decoded linearly but produced wrong seeks. The corrected output rewrites every retained frame header into FLAC variable-block strategy with exact cumulative sample numbers, repairs header CRC-8 and frame CRC-16, and keeps interior subframe payloads untouched. The final 63,828-sample output is sample-exact to the requested source interval. Four distributed seek checks match a full reference-segment encode exactly, every frame CRC validates, and the standalone result is 24,574 bytes versus the 91,875-byte source. STREAMINFO's whole-stream MD5 is truthfully left unknown rather than reusing a stale digest.",
+    "related_reports": [],
+    "scope_hash": "d4af0c9842b35dd8ac554171dac5564a46f4fc3c4ed774e13b43e675388901ab",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 166,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R270.exact-flac-smart-cut-concat.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R270.exact-flac-smart-cut-concat.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R270.exact-flac-smart-cut-concat.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 242,
+    "record": {
+      "key": "R270.exact-flac-smart-cut-concat",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R270.exact-flac-smart-cut-concat.md"
+      ],
+      "reason": "Current FLAC adaptation fully decodes/encodes selected audio; no smart-cut FLAC frame/subframe/header/CRC author exists. Correct variable sample numbering is a new authoring component, not trimming timestamps.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
+      "recorded_at_utc": "2026-09-19T17:34:19.110733+00:00"
+    }
+  },
+  "next_action": "Scope one two-edge smart cut preserving interior subframes with CRC and variable-block sample numbering; seek into short-edge/interior transition must equal reference, stale STREAMINFO MD5 forbidden.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

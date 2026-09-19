@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R084.spatially-selective-video",
+  "title": "Spatially selective video",
+  "definition": {
+    "key": "R084.spatially-selective-video",
+    "legacy_id": "R84",
+    "legacy_number": 84,
+    "identity_branch": "report-defined",
+    "title": "Spatially selective video",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S039",
+      "path": "sources/reports/R82-R87-report.md",
+      "sha256": "dcc63ab3a83f8aa8324d5f2abfe0e9baaf8e171ef3f67e524a37e3fb5efc4263",
+      "line_start": 44,
+      "line_end": 63,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 4 s, 640×360 H.264 source was represented as four independently encoded 320×180 quadrants. All four tile streams play in Chromium. At three sampled times per tile, the tile output closely matched the corresponding region of the full-frame decode; mean absolute RGB error stayed below 0.97/255 in all twelve comparisons. Compositing all four decoded tiles back into one 640×360 canvas at 2 s produced 0.509/255 mean absolute RGB error versus the full-frame source. The largest per-channel error was concentrated in local compression/boundary differences, so this is a near-equivalent prepared representation rather than byte/pixel identity. Host FFmpeg software-decode medians provide a component-cost screen:",
+    "related_reports": [],
+    "scope_hash": "8d57e6d9f907cbdf357938df6de324c039bc8f86465c2487d1be60b65ba829ba",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 310,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R084.spatially-selective-video.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R084.spatially-selective-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R82-R87-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 352,
+    "record": {
+      "key": "R084.spatially-selective-video",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R084.spatially-selective-video.md"
+      ],
+      "reason": "Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+      "recorded_at_utc": "2026-09-19T17:34:19.167026+00:00"
+    }
+  },
+  "next_action": "Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video",
+  "title": "Extend GPU reconstruction from still pictures to predictive video",
+  "definition": {
+    "key": "R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video",
+    "legacy_id": "R129",
+    "legacy_number": 129,
+    "identity_branch": "proposal",
+    "title": "Extend GPU reconstruction from still pictures to predictive video",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 59,
+      "line_end": 62,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Split a restricted MPEG-2 decoder into CPU/Wasm entropy parsing and GPU inverse transforms, motion compensation and resident references. Start progressive I/P; require exact sample reconstruction before adding B frames or interlacing.",
+    "related_reports": [],
+    "scope_hash": "de61e8c7420f5c7c8970a8316440b25bd6aec68db3ee0e54d1f6524359c396bb",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 354,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 395,
+    "record": {
+      "key": "R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Existing GPU presentation uploads reconstructed planes; browser decode outputs complete frames. A CPU entropy/GPU MPEG2 reconstruction split requires coefficient, motion, reference and synchronization interfaces absent from these owners.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Start with one progressive I picture and exact coefficient/pixel oracle, then one P reference case; defer B/interlace and full decoder replacement.",
+      "reopen_condition": "Reopen with a narrow entropy data interface and GPU reconstruction kernel; WebGPU presence only removes the device prerequisite.",
+      "recorded_at_utc": "2026-09-19T17:34:19.178410+00:00"
+    }
+  },
+  "next_action": "Start with one progressive I picture and exact coefficient/pixel oracle, then one P reference case; defer B/interlace and full decoder replacement.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

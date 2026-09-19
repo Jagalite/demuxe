@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget",
+  "title": "Derive audio-effect preroll from a guaranteed error budget",
+  "definition": {
+    "key": "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget",
+    "legacy_id": "R341",
+    "legacy_number": 341,
+    "identity_branch": "proposal",
+    "title": "Derive audio-effect preroll from a guaranteed error budget",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S049",
+      "path": "sources/proposals/Demuxe_R338_R342_Proposals.md",
+      "sha256": "5f96cbeac907f0bed8d88cc34473d4a2657f28dcc19be4eac9eabf80ca5b32fc",
+      "line_start": 149,
+      "line_end": 192,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Explicit bounded-error seeking policy for controlled DSP. Related: R191 and R329. Status: PROPOSED. Instead of always restoring a saved effect checkpoint, replaying from the beginning, or using an arbitrary warm-up duration, calculate a sufficient preroll for an explicitly permitted numerical error. For the same linear filter and identical subsequent input: Two different initial states differ after N samples by A^N delta_s[0]; their output difference is C A^N delta_s[0]. If a proven bound gives ||A^k|| <= K rho^k for all k >= 0 with rho < 1, and ||delta_s[0]|| <= E, then all output from sample N onward has ideal-arithmetic error at most ||C|| K rho^N E. Add a justified bound for the implemented arithmetic before claiming the numerical tolerance.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S033",
+        "path": "sources/reports/R338-R342-report.md",
+        "sha256": "918166306978b66ee26ab27ba09390605f339b2d405f3ab80b791ec529f6d3c9",
+        "line_start": 57,
+        "line_end": 77,
+        "source_kind": "report",
+        "reported_heading": "Derive audio-effect preroll from a guaranteed error budget"
+      }
+    ],
+    "scope_hash": "a55a461684963c67ee8b3b202b57afc1567c57a905b5d64aeae2a9830f3536a0",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 253,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R338_R342_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 312,
+    "record": {
+      "key": "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget.md"
+      ],
+      "reason": "Current output delegates processing/synchronization to mpv and exposes no controlled first-order filter state bound. The source certificate is valid only for declared bounded approximation; this must not be substituted for exact effect-seek semantics or decoder history.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one opt-in first-order DSP instance and compare calculated preroll with continuous reference; inspect the near-unit-pole fallback.",
+      "reopen_condition": "Define one opt-in first-order DSP instance and compare calculated preroll with continuous reference; inspect the near-unit-pole fallback.",
+      "recorded_at_utc": "2026-09-19T17:34:19.156468+00:00"
+    }
+  },
+  "next_action": "Define one opt-in first-order DSP instance and compare calculated preroll with continuous reference; inspect the near-unit-pole fallback.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

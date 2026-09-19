@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed",
+  "title": "Retain reference bookkeeping after pixels are no longer needed",
+  "definition": {
+    "key": "R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed",
+    "legacy_id": "R210",
+    "legacy_number": 210,
+    "identity_branch": "report-defined",
+    "title": "Retain reference bookkeeping after pixels are no longer needed",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S017",
+      "path": "sources/reports/R203-R213-report.md",
+      "sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+      "line_start": 67,
+      "line_end": 72,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A dependency-DAG codec model kept frame metadata after freeing reconstructed pixels. Pixel reads were instrumented, every reconstructed/presented frame matched the retain-all oracle, and freeing a needed reference early triggered the negative control. With decode and presentation interleaved, safe peak pixel storage was 25,920 bytes versus 171,072 bytes for retaining every frame (15.2%). All pixels were released after final consumers while all 33 bookkeeping entries remained. This is a state-lifetime model, not evidence that a browser decoder exposes or can exploit these lifetimes.",
+    "related_reports": [],
+    "scope_hash": "1ef0ff63f2ee807cca208cac0931e67184289fc1527ba68bf6068a8dcc6a1d31",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 273,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 332,
+    "record": {
+      "key": "R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+      ],
+      "reason": "Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
+      "reopen_condition": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.161836+00:00"
+    }
+  },
+  "next_action": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

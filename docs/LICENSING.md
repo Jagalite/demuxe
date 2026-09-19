@@ -55,6 +55,14 @@ mean consult those preserved notices; they are not an Apache or CC grant.
 Research harnesses may invoke GPL programs without granting rights to those
 programs. Native probes compiled into an engine remain in the integration boundary.
 
+Research item homes and the staged workflow are documented in
+[`research/PROCESS.md`](../research/PROCESS.md). Captured source files with explicit
+SPDX notices have exact-path boundary rules matching those retained grants. The
+checker rejects conflicting research headers and executable research classified
+as CC BY report data. Unannotated source-like artifacts without an established
+grant are marked `NOASSERTION`; that preserves their provenance requirements.
+Historical evidence bytes and recorded hashes are not changed to add notices.
+
 These grants cover Demuxe-controlled original material only. Relicensing another
 contributor's work requires their permission; neither SPDX nor a passing check
 establishes that permission. See `CONTRIBUTING.md` for future contributions.

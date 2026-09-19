@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R343.unwrap-aac-latm-into-a-browser-decoded-audio-route",
+  "title": "Unwrap AAC-LATM into a browser-decoded audio route",
+  "definition": {
+    "key": "R343.unwrap-aac-latm-into-a-browser-decoded-audio-route",
+    "legacy_id": "R343",
+    "legacy_number": 343,
+    "identity_branch": "proposal",
+    "title": "Unwrap AAC-LATM into a browser-decoded audio route",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S050",
+      "path": "sources/proposals/Demuxe_R343_R347_Proposals.md",
+      "sha256": "269a6469f2cddfbcb40c479658892c5e842bdd2da591d8db9c6afd1a9282a358",
+      "line_start": 9,
+      "line_end": 35,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "FFmpeg's pinned LATM implementation separates stream configuration and payload-length parsing from AAC reconstruction. The AAC WebCodecs registration expects ADTS or raw AAC; supplying AudioSpecificConfig selects the raw-AAC representation. [S1, S2] The first candidate is a small transport adapter, not a different AAC decoder. Repack unaligned payload bits correctly; this is not necessarily a fixed header removal or a zero-copy slice. Account for source-specific padding and preserve meaningful AAC syntax. Keep the native video path unchanged in a subsequent A/V integration pilot. First establish a real destination difference: the actual existing bridge fails or performs avoidable software reconstruction, while the adapted route produces the complete requested output. Audit existing normalization before adding a new component.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S034",
+        "path": "sources/reports/R343-R347-rerun-report.md",
+        "sha256": "9d331068906b791d297e4751f952072b68e5752d06ee5620bd626e956fa7b190",
+        "line_start": 21,
+        "line_end": 28,
+        "source_kind": "report",
+        "reported_heading": "Unwrap AAC-LATM into a browser-decoded audio route"
+      }
+    ],
+    "scope_hash": "9b63b2db19b9254242d725f90befef0aab42f1c092cdb75aa213e71c047598c9",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 4,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R343.unwrap-aac-latm-into-a-browser-decoded-audio-route.md",
+        "results/top100/lanes/result.json",
+        "results/top100/transport/latm-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 10,
+    "record": {
+      "key": "R343.unwrap-aac-latm-into-a-browser-decoded-audio-route",
+      "rank": 4,
+      "state": "PURSUE",
+      "reason": "Restricted bit-aligned LOAS/LATM AAC-LC extraction produces142 AAC frames with exact independent PCM; truncation/sync/missing configuration reject. Browser raw AAC lane plays marked audio beside changing video. Multi-program/layer/CRC/otherData variants deliberately reject.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "transport/latm-result.json",
+          "sha256": "1976237a5b376e638e04ef1f65e8c0dffc1df59c03a31624bbad068acd233988"
+        },
+        {
+          "path": "lanes/result.json",
+          "sha256": "ed7e58821a801222d62880bc6b49cacfe168f03787dfb2f7cb0a5699a57c85f2"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:08:23.514313+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
+  "title": "Offer explicit compatible-core extraction before audio re-encoding",
+  "definition": {
+    "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
+    "legacy_id": "R29",
+    "legacy_number": 29,
+    "identity_branch": "proposal",
+    "title": "Offer explicit compatible-core extraction before audio re-encoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 609,
+      "line_end": 627,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Packaging · New fidelity-option hypothesis · P3 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. For streams with a real independently decodable compatibility core, test packet-level core extraction only when the target can play that core and the application permits discarding extensions. This avoids adding an encoder but is not full-fidelity preservation. Source basis. FFmpeg documents dca_core as extracting DTS core while dropping extensions such as DTS-HD. It does not turn DTS into a codec that every browser supports. [F2] First agent experiment. Use an actual core-plus-extension fixture, preserve video, identify what was discarded and probe the exact extracted codec/container. Compare complete output requirements and cost with decode/adapt or Hybrid.",
+    "related_reports": [],
+    "scope_hash": "648e2b2b326247bc8943348ffaa105f7706662628089e1c6ad34e395637b9726",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 194,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 263,
+    "record": {
+      "key": "R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md"
+      ],
+      "reason": "Current finite plans preserve requested audio or explicitly allow lossy encoding; no separate permission represents discarding compatibility extensions. DTS core is not automatically browser-supported, so extraction alone does not establish a usable route.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path.",
+      "reopen_condition": "Reopen with valid core structure, destination support and explicit extension-loss permission; never label extraction lossless full-fidelity.",
+      "recorded_at_utc": "2026-09-19T17:34:19.141896+00:00"
+    }
+  },
+  "next_action": "Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

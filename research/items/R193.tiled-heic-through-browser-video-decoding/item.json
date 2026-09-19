@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R193.tiled-heic-through-browser-video-decoding",
+  "title": "tiled HEIC through browser video decoding",
+  "definition": {
+    "key": "R193.tiled-heic-through-browser-video-decoding",
+    "legacy_id": "R193",
+    "legacy_number": 193,
+    "identity_branch": "report-defined",
+    "title": "tiled HEIC through browser video decoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 26,
+      "line_end": 33,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The intended route requires a tiled HEIC item graph, extraction of independently decodable HEVC tile access units, browser VideoDecoder, and tile composition. Four controlled tile images were generated for the planned 2×2 oracle, but heif-enc --list-encoders reports no HEIC encoder plugin in this lab; the tiled HEIC construction therefore stops before the coded-media gate. Chromium on the permitted page also exposes VideoDecoder as undefined. This is BLOCKED, not a negative result about tiled HEIC or WebCodecs. No AVIF or uncompressed substitute was accepted as equivalent evidence. Evidence: results/r193.json, results/browser-capabilities.json, work/r193_enc.log.",
+    "related_reports": [],
+    "scope_hash": "dc4757fe6ff68d8e81e4afce33734279a5409a30660624c93c8a7ee591444375",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 37,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R193.tiled-heic-through-browser-video-decoding.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R193.tiled-heic-through-browser-video-decoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R193.tiled-heic-through-browser-video-decoding.md",
+        "results/top100/heic/groups.json",
+        "results/top100/heic/implicit-full-range-failure.json",
+        "results/top100/heic/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: INCONCLUSIVE_FIDELITY. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 85,
+    "record": {
+      "key": "R193.tiled-heic-through-browser-video-decoding",
+      "rank": 37,
+      "state": "INCONCLUSIVE_FIDELITY",
+      "reason": "Genuine ImageIO2x2 HEIC yields four browser-decoded HEVC tiles and valid nonoverlapping grid. All raw pixel hashes differ from host oracle; full-range source becomes limited-range NV12 even with explicit full-range config. Decoding capability exists, but color/range/chroma fidelity needs resolved display-space oracle; not an API blocker or successful faithful route.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "heic/result.json",
+          "sha256": "1bc0b901d5aaa0feaad73424280537733f8766b25620110ba86e4a373ca05048"
+        },
+        {
+          "path": "heic/implicit-full-range-failure.json",
+          "sha256": "c20f34393df38df6b7fb3d8a82b1f8e9a70e974d3cc79afae6d7243576c76c7b"
+        },
+        {
+          "path": "heic/groups.json",
+          "sha256": "4e7205c5afde1f890ec2cf2aecb44cb307d6af080c793e598c3f421694dc7355"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:55:29.547371+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

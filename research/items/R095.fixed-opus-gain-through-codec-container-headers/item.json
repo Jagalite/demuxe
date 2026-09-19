@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "key": "R095.fixed-opus-gain-through-codec-container-headers",
+  "title": "Fixed Opus gain through codec/container headers",
+  "definition": {
+    "key": "R095.fixed-opus-gain-through-codec-container-headers",
+    "legacy_id": "R95",
+    "legacy_number": 95,
+    "identity_branch": "proposal",
+    "title": "Fixed Opus gain through codec/container headers",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 235,
+      "line_end": 261,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can fixed per-asset gain be expressed without an application-created audio-processing graph? What differs from earlier work. Distinct from R53 audio-clock gain automation and R61 channel graphs: changes a static decode instruction, not the application PCM graph. Input scope. Clear Opus source with known existing gain metadata; test Ogg/WebM/MP4 independently. Mechanism to test. Adjust the encoded stream output-gain metadata while retaining the original audio packets, and let the normal decode/output path apply the requested fixed attenuation. Smallest experiment. 1. Create 0, -6 and -12 dB variants of the same packets. 2. Measure the resulting internal digital signal against a controlled gain reference. 3. Verify gain persistence across seek and reconcile existing output gain and loudness tags.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 95,
+        "line_end": 103,
+        "source_kind": "report",
+        "reported_heading": "Opus fixed gain in metadata — PROMISING"
+      }
+    ],
+    "scope_hash": "b2962def983e534408fc0485cfbf6287056a777e6c8bbf3a21036a0f31902388",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 241,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R095.fixed-opus-gain-through-codec-container-headers.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R095.fixed-opus-gain-through-codec-container-headers.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R095.fixed-opus-gain-through-codec-container-headers.md",
+        "results/full-completion/r95/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 19,
+    "record": {
+      "key": "R095.fixed-opus-gain-through-codec-container-headers",
+      "state": "PURSUE",
+      "evidence": "r95/result.json",
+      "reason": "Requested-6dB combines with existing+3dB Opus header gain. Browser header-only output RMS matches original header plus gain node within0.02%; doubled attenuation differs by50%. Seek/EOF pass. Worth static explicit asset gain, not dynamic volume or quantified CPU claim.",
+      "recorded_at_utc": "2026-09-19T17:14:02.926688+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

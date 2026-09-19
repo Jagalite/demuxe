@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier",
+  "title": "pitch preservation is a real optional processing stage",
+  "definition": {
+    "key": "R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier",
+    "legacy_id": "R129",
+    "legacy_number": 129,
+    "identity_branch": "report-frontier",
+    "title": "pitch preservation is a real optional processing stage",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 92,
+      "line_end": 97,
+      "source_kind": "report"
+    },
+    "source_excerpt": "At 2× playback, the Web Audio analyser observed ~441.43 Hz with pitch preservation enabled and ~882.86 Hz with it disabled. That matches HTML's specified semantics. A small audio-only aggregate Chromium-process screen produced median CPU of 0.080 s with pitch preservation and 0.070 s without it over ~2 s runs (apparent reduction ~12.5%). These samples overlap, CPU accounting is coarse at 10 ms increments, and no physical audio-device path was measured, so this is not a qualified performance win. It is a plausible optional-cost removal when changed pitch is explicitly acceptable.",
+    "related_reports": [],
+    "scope_hash": "d3c879101bbffaeb67b7d35703874683c41f4e0315b915cad3b20ea4f04360e8",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 189,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 260,
+    "record": {
+      "key": "R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R129.pitch-preservation-is-a-real-optional-processing-stage.report-frontier.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md"
+      ],
+      "reason": "The rate control does not expose changed-pitch permission. Disabling pitch preservation changes audible output; overlapping historical CPU samples cannot justify silently changing that contract.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "With explicit pitch-shift semantics, compare pitch-preserving and non-preserving playback on one marked tone and include 1x control before cost measurements.",
+      "reopen_condition": "Reopen for a user-requested changed-pitch mode; preserve present output semantics otherwise.",
+      "recorded_at_utc": "2026-09-19T17:34:19.141235+00:00"
+    }
+  },
+  "next_action": "With explicit pitch-shift semantics, compare pitch-preserving and non-preserving playback on one marked tone and include 1x control before cost measurements.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+  "title": "browser HEVC base + separate Dolby Vision reshaping",
+  "definition": {
+    "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+    "legacy_id": "R184",
+    "legacy_number": 184,
+    "identity_branch": "report-defined",
+    "title": "browser HEVC base + separate Dolby Vision reshaping",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 30,
+      "line_end": 35,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The exact card is BLOCKED in this lab. FFmpeg includes dovi_rpu and a libplacebo filter, but there is no trusted Dolby Vision fixture or HDR-capable physical display. Chromium returns an empty support string for the tested hvc1/hev1 configurations, and WebGPU is unavailable on the permitted non-secure page. No synthetic RPU or SDR-only visual approximation was substituted for the intended claim.",
+    "related_reports": [],
+    "scope_hash": "d88db373ff2e698ab52d5699aaccf16db96d7b0c3e9bdbd0f49916694a6519db",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 29,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R143.native-base-video-plus-an-exact-correction-stream",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.decode-an-ambisonic-sound-field-natively-then-render-its-spatial-meaning-separately",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R302.develop-ultra-hdr-gain-maps-after-native-image-decoding",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R143.compressed-fragment-rewind-cache.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R184.browser-hevc-base-separate-dolby-vision-reshaping.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R184.browser-hevc-base-separate-dolby-vision-reshaping.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R184.browser-hevc-base-separate-dolby-vision-reshaping.md",
+        "results/top100/prerequisites/media-inventory.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: HOLD_FIXTURE_SOURCE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 96,
+    "record": {
+      "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+      "rank": 29,
+      "state": "HOLD_FIXTURE_SOURCE",
+      "reason": "No trusted RPU-bearing source and independent Dolby reshaping/color reference found in bounded local fixture inventory. Browser HEVC decode alone cannot qualify this transform. This is a media-source gap, not missing report identity or experimental rejection.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "prerequisites/media-inventory.json",
+          "sha256": "6e40f423bfe9c01241bd2014c8b9d70807279280956a886e8dd192a202f49682"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.686400+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

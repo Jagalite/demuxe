@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac",
+  "title": "Extract the exact rounded mono mix already stored inside mid-side FLAC",
+  "definition": {
+    "key": "R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac",
+    "legacy_id": "R224",
+    "legacy_number": 224,
+    "identity_branch": "proposal",
+    "title": "Extract the exact rounded mono mix already stored inside mid-side FLAC",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 183,
+      "line_end": 186,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Extract mid subframes from an all-mid-side FLAC stream as an explicitly requested rounded integer mono average. Preserve residuals and regenerate truthful framing/integrity; test negative odd sums and coding-mode changes.",
+    "related_reports": [],
+    "scope_hash": "9db84269b42b6c80e2b7c8946eb7e2cfb50af3167f51da98c8143bbac7657f9b",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 337,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 378,
+    "record": {
+      "key": "R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R224.extract-the-exact-rounded-mono-mix-already-stored-inside-mid-side-flac.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ],
+      "reason": "The maintained FLAC path preserves selected integer samples and layouts through decode/encode; it does not expose mid subframes or a rounded-mono request. Mid extraction needs a bit parser and a precisely defined floor/rounding contract, especially for negative odd sums and coding-mode transitions.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Parse one all-mid-side FLAC fixture, extract only mid residuals into valid mono frames, and compare against the explicitly rounded integer average; reject a switched left/side frame.",
+      "reopen_condition": "Reopen when a rounded-mono output is requested and bounded subframe parsing exists; this is not arbitrary stereo downmix or lossless stereo preservation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.174056+00:00"
+    }
+  },
+  "next_action": "Parse one all-mid-side FLAC fixture, extract only mid residuals into valid mono frames, and compare against the explicitly rounded integer average; reject a switched left/side frame.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

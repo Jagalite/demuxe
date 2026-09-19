@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R151.parsed-coefficients-as-a-cache-tier",
+  "title": "Parsed coefficients as a cache tier",
+  "definition": {
+    "key": "R151.parsed-coefficients-as-a-cache-tier",
+    "legacy_id": "R151",
+    "legacy_number": 151,
+    "identity_branch": "report-defined",
+    "title": "Parsed coefficients as a cache tier",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 107,
+      "line_end": 122,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Used real libjpeg entropy parsing of twelve grayscale JPEGs. The three policies share an identical SciPy inverse-DCT implementation and receive 162 crop/downsample requests under a 512 KiB accounted cache budget. Every request’s final output hash matches across policies. A separate libjpeg pixel oracle differs by at most one grayscale level due to reconstruction rounding. The coefficient tier avoids repeated entropy parsing while allowing a crop to reconstruct fewer blocks. However, one coefficient image takes 153,728 bytes versus 76,800 bytes for decoded grayscale pixels. It is not intrinsically a memory-saving tier. All caches share resident fixture/oracle data outside the reported budget; object overhead and process RSS are excluded.",
+    "related_reports": [],
+    "scope_hash": "fe7824dd0290c9eb0da269ffd2613ee45e6fbc868717a51f53ee8c1b8c14ff50",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 209,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R151.parsed-coefficients-as-a-cache-tier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R151.parsed-coefficients-as-a-cache-tier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R151.parsed-coefficients-as-a-cache-tier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 278,
+    "record": {
+      "key": "R151.parsed-coefficients-as-a-cache-tier",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R151.parsed-coefficients-as-a-cache-tier.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
+      "reason": "Current retained caches hold decoded video frames, not repeated JPEG crop/downsample queries. The report itself shows coefficient storage larger than pixels and excludes object/RSS costs; it does not justify replacing this playback cache tier.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If an image ROI service is requested, compare compressed/coefficient/pixel policies with one shared byte budget and an optimized reconstruction oracle.",
+      "reopen_condition": "Reopen for repeated JPEG ROI workloads with exposed coefficient parsing; no generic memory-saving claim.",
+      "recorded_at_utc": "2026-09-19T17:34:19.145807+00:00"
+    }
+  },
+  "next_action": "If an image ROI service is requested, compare compressed/coefficient/pixel policies with one shared byte budget and an optimized reconstruction oracle.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
+  "title": "WebM positive DiscardPadding tail trim [report paragraph label]",
+  "definition": {
+    "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
+    "legacy_id": "R123",
+    "legacy_number": 123,
+    "identity_branch": "report-frontier",
+    "title": "WebM positive DiscardPadding tail trim [report paragraph label]",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 66,
+      "line_end": 66,
+      "source_kind": "report"
+    },
+    "source_excerpt": "R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 → 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
+    "related_reports": [],
+    "scope_hash": "e91c7c22fbe2ab65a335d7c8952b4b8d65a8187b7204cdddf08a7f751828e4bb",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 125,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier.md",
+        "results/full-completion/continuity/discard-padding.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_WORKING_IN_TESTED_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 15,
+    "record": {
+      "key": "R123.webm-positive-discardpadding-tail-trim-report-paragraph-label.report-frontier",
+      "state": "ALREADY_WORKING_IN_TESTED_PROFILE",
+      "evidence": "continuity/discard-padding.json",
+      "reason": "Current maintained Wasm WebM output preserves13.5ms DiscardPadding:96000 samples. Zeroing only padding yields96648 with identical coded packets and PCM prefix. Preserve this behavior/oracle; no new trimming feature needed for this profile.",
+      "recorded_at_utc": "2026-09-19T17:05:41.704809+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

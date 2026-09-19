@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R225.h-264-self-contained-idr-suffix.report-continuity",
+  "title": "H.264 self-contained IDR suffix",
+  "definition": {
+    "key": "R225.h-264-self-contained-idr-suffix.report-continuity",
+    "legacy_id": "R225",
+    "legacy_number": 225,
+    "identity_branch": "report-continuity",
+    "title": "H.264 self-contained IDR suffix",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 55,
+      "line_end": 60,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The raw 6-second 30-fps AVC stream has 180 packets and IDRs at packet indexes 0, 30, 60, 90, 120, 150. x264 repeated SPS/PPS at IDRs. Starting the byte stream directly at packet 60 produces 120 decoded frames whose YUV420 bytes are exactly equal to frames 60–179 of the continuous decode. The retained coded suffix is 143,452/208,538 bytes (68.8%). This supports a qualified minimal-byte seek route for Annex-B AVC when the chosen random-access point carries everything the decoder needs.",
+    "related_reports": [],
+    "scope_hash": "a3bdb7bca67298a0eeb55092b95ad6b9c5c1433d6306a6054f99793de273826c",
+    "legacy_guide_aliases": [
+      "R225-C"
+    ],
+    "family": "mux",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 280,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R225.h-264-self-contained-idr-suffix.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R225.h-264-self-contained-idr-suffix.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R225.h-264-self-contained-idr-suffix.report-continuity.md",
+        "results/full-completion/r225/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 61,
+    "record": {
+      "key": "R225.h-264-self-contained-idr-suffix.report-continuity",
+      "state": "PURSUE",
+      "evidence": [
+        "r225/result.json"
+      ],
+      "reason": "Generated Annex-B SPS/PPS/IDR suffix decoded by host FFmpeg 8.1.2 yields the exact 48-picture suffix of the 72-frame reference. Missing configuration and dependent start fail. This host oracle is not execution of pinned FFmpeg 7.1.1; browser/TS scanning cost remains unmeasured.",
+      "evidence_level": "COMPONENT_TEST",
+      "recorded_at_utc": "2026-09-19T17:34:19.061042+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

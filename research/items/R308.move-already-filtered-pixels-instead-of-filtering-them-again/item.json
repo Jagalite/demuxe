@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "key": "R308.move-already-filtered-pixels-instead-of-filtering-them-again",
+  "title": "Move already-filtered pixels instead of filtering them again",
+  "definition": {
+    "key": "R308.move-already-filtered-pixels-instead-of-filtering-them-again",
+    "legacy_id": "R308",
+    "legacy_number": 308,
+    "identity_branch": "proposal",
+    "title": "Move already-filtered pixels instead of filtering them again",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S046",
+      "path": "sources/proposals/Demuxe_R307_R312_Proposals.md",
+      "sha256": "7ae4dc9793e534c8339ad71994b22f8f464117ce356d8af75e98afcdbbecbf6b",
+      "line_start": 42,
+      "line_end": 73,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Class: Exact downstream video-work reuse. Output contract: Same processed picture as rerunning the specified filter graph on every decoded source frame. Related: R237's region requirements and R290's exact motion mappings; neither prior implementation is a prerequisite. A controlled ZMBV decoder exposes block motion copying and optional XOR differences [S3]. For an admitted block with no changed pixels, use the validated copy mapping to identify pixels that have already passed through the same effects. Let a source patch obey F_t(p) = F_(t-1)(p-v). For a fixed translation-equivariant local operator P, P(F_t)(p) = P(F_(t-1))(p-v), provided every source sample in the operator's full dependency footprint obeys the same mapping.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S028",
+        "path": "sources/reports/R307-R312-report.md",
+        "sha256": "33c8415c1858d6288d7498ee28937353e319cf319a4006f505b93ba3561cb44c",
+        "line_start": 26,
+        "line_end": 33,
+        "source_kind": "report",
+        "reported_heading": "Move already-filtered pixels instead of filtering them again"
+      }
+    ],
+    "scope_hash": "52d977b709f67e28f34de3e66ac2303311249e8f042bb3ad2938eee58975d01c",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 275,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R237.propagate-the-visible-region-backward-through-the-effects-pipeline",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Downstream effect work; temporal reuse, spatial demand, and GPU feedback are different."
+      },
+      {
+        "key": "R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Downstream effect work; temporal reuse, spatial demand, and GPU feedback are different."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R308.move-already-filtered-pixels-instead-of-filtering-them-again.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R308.move-already-filtered-pixels-instead-of-filtering-them-again.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R307_R312_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R308.move-already-filtered-pixels-instead-of-filtering-them-again.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 334,
+    "record": {
+      "key": "R308.move-already-filtered-pixels-instead-of-filtering-them-again",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R308.move-already-filtered-pixels-instead-of-filtering-them-again.md"
+      ],
+      "reason": "Current presenter does not receive ZMBV copy certificates or filter-footprint maps. The report exact sparse output was slower than vectorized full filtering; that is a historical implementation negative, not universal rejection. Low-overhead motion plumbing is new setup.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First expose one ZMBV motion-copy certificate without guessing from residual alone, then compare a single eligible interior plus mixed-motion boundary.",
+      "reopen_condition": "First expose one ZMBV motion-copy certificate without guessing from residual alone, then compare a single eligible interior plus mixed-motion boundary.",
+      "recorded_at_utc": "2026-09-19T17:34:19.162372+00:00"
+    }
+  },
+  "next_action": "First expose one ZMBV motion-copy certificate without guessing from residual alone, then compare a single eligible interior plus mixed-motion boundary.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

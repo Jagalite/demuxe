@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R217.exact-waveform-summaries-from-first-order-flac",
+  "title": "exact waveform summaries from first-order FLAC",
+  "definition": {
+    "key": "R217.exact-waveform-summaries-from-first-order-flac",
+    "legacy_id": "R217",
+    "legacy_number": 217,
+    "identity_branch": "report-defined",
+    "title": "exact waveform summaries from first-order FLAC",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 47,
+      "line_end": 58,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The 2-second mono fixture was actually encoded as fixed predictor order 1. FLAC's analysis output supplied the real warm-up and Rice residual values for 21 frames / 96,000 samples. The candidate traversed residuals directly and accumulated waveform summaries into 777-sample bins without materializing PCM blocks. All 124 bins matched decoded PCM exactly for count, minimum, maximum, sum and integer energy, including bins spanning FLAC frame boundaries. The relative-prefix summary identity also passed every tested composition, and the energy formula matched decoded PCM for every frame. Reference PCM occupied 192,000 bytes; the final 124-bin summary is about 4,960 bytes in the tested representation.",
+    "related_reports": [],
+    "scope_hash": "093197074646dfb8cae8f87d0dfb57062567787d0c18d36a55e297273d3963f9",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 366,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R217.exact-waveform-summaries-from-first-order-flac.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R217.exact-waveform-summaries-from-first-order-flac.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R217.exact-waveform-summaries-from-first-order-flac.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 407,
+    "record": {
+      "key": "R217.exact-waveform-summaries-from-first-order-flac",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R217.exact-waveform-summaries-from-first-order-flac.md"
+      ],
+      "reason": "FLAC decoder currently reconstructs fixed-order PCM and adaptation consumes AVFrames. Source-order-1 residual bin summaries could avoid that only for a new waveform-summary consumer; no such request/bridge exists in current playback. It does not eliminate entropy decoding.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify one waveform-bin output over an order-1 mono source and compare residual traversal with decoded-PCM summaries including a bin crossing frame boundary.",
+      "reopen_condition": "Specify one waveform-bin output over an order-1 mono source and compare residual traversal with decoded-PCM summaries including a bin crossing frame boundary.",
+      "recorded_at_utc": "2026-09-19T17:34:19.181727+00:00"
+    }
+  },
+  "next_action": "Specify one waveform-bin output over an order-1 mono source and compare residual traversal with decoded-PCM summaries including a bin crossing frame boundary.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

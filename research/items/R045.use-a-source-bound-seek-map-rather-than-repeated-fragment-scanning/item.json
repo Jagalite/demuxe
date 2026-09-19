@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+  "title": "Use a source-bound seek map rather than repeated fragment scanning",
+  "definition": {
+    "key": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+    "legacy_id": "R45",
+    "legacy_number": 45,
+    "identity_branch": "proposal",
+    "title": "Use a source-bound seek map rather than repeated fragment scanning",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 83,
+      "line_end": 104,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New metadata/index optimization · P2 · PROPOSED / NOT TESTED Extends: R03, R09, R18. Reference primitives: S2, S9, S10. Question. Can a small reusable index bootstrap a distant seek without scanning or appending every preceding fragment? Mechanism. Index validated fragment byte spans, decode/presentation intervals, codec generations and random-access boundaries. Bind the map to source identity. Reuse an existing index where available, or build one incrementally during useful reads; this is metadata caching, not cached transcoded media. Smallest useful experiment. Start with the archived fMP4 fixture. Build a ground-truth map offline, then a bounded parser that builds/uses its own map. Compare repeated seeks against sequential discovery. Test an altered source with the same name, out-of-range offsets and a corrupted index entry.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 41,
+        "line_end": 46,
+        "source_kind": "report",
+        "reported_heading": "fragment seek map"
+      }
+    ],
+    "scope_hash": "af25b6c316fcbe7211315c0f6d0c14935543c7ff4925a0e6a7b203b49f77c411",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 151,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 229,
+    "record": {
+      "key": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      ],
+      "reason": "Range reads and identities are bounded, and FFmpeg owns demux indexes; no persistent cross-generation fragment map is exposed. Must measure actual repeated scans before adding a second index owner.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
+      "recorded_at_utc": "2026-09-19T17:34:19.107478+00:00"
+    }
+  },
+  "next_action": "Record three distant seeks and existing index use; only if repeated discovery remains, build an incremental source-bound metadata map and reject a same-name changed source/corrupt offset.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

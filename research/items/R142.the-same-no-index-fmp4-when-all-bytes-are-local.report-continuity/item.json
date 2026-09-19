@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
+  "title": "the same no-index fMP4 when all bytes are local",
+  "definition": {
+    "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
+    "legacy_id": "R142",
+    "legacy_number": 142,
+    "identity_branch": "report-continuity",
+    "title": "the same no-index fMP4 when all bytes are local",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 110,
+      "line_end": 115,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Loaded as a Blob, the same file exposed a seekable 0–6 s interval. Seeking to 4.2 s and playing produced frame callbacks beginning at 4.233333 s and advanced normally. Implication. Lack of an explicit random-access trailer can be acceptable for a fully local/in-memory object because there is no network byte-fetch penalty. Route choice should therefore depend on byte locality, not just container syntax.",
+    "related_reports": [],
+    "scope_hash": "18058a481cedce43d0201608ef5fda692d1b2379b7b2ca3b0491934ace7fe1a9",
+    "legacy_guide_aliases": [
+      "R142-C"
+    ],
+    "family": "source",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 191,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 261,
+    "record": {
+      "key": "R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity",
+      "state": "ALREADY_IMPLEMENTED",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R142.the-same-no-index-fmp4-when-all-bytes-are-local.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md"
+      ],
+      "reason": "Local File playback already goes through an object URL and direct-first policy. There is no rule rejecting local media solely for lacking mfra; the locality-dependent direct attempt exists without a new adapter.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
+      "reopen_condition": "Reopen if current direct admission begins excluding playable local no-index files or a local parsing bottleneck is observed.",
+      "recorded_at_utc": "2026-09-19T17:34:19.141426+00:00"
+    }
+  },
+  "next_action": "Do not add an index solely for already-local bytes; use one no-index local fixture as a regression when changing direct admission.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

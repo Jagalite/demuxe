@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
+  "title": "Play an exact requested excerpt without re-encoding its edge GOP",
+  "definition": {
+    "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
+    "legacy_id": "R44",
+    "legacy_number": 44,
+    "identity_branch": "proposal",
+    "title": "Play an exact requested excerpt without re-encoding its edge GOP",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 61,
+      "line_end": 82,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New bounded-clip session candidate · P2 · PROPOSED / NOT TESTED Extends: R09, R37, R40. Reference primitives: S1, S4, S9. Question. Can an excerpt beginning between keyframes start correctly using only nearby original media, instead of re-encoding its first frames or preparing the whole source? Mechanism. Separate decoder preroll from the public visible interval. Supply the preceding random-access data, map source time explicitly, and seek the candidate to the requested start before presentation. Keep one A/V owner. Smallest useful experiment. Use an H.264 B-frame clip with two-second GOPs, AAC or FLAC audio and burned frame IDs. Request [3.35, 7.65) seconds. Compare full-source seek with a bounded indexed input window. Verify pause, replay, final-frame coverage and cancellation. Include a deliberately broken control that filters away needed preroll with appendWindowStart.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 35,
+        "line_end": 40,
+        "source_kind": "report",
+        "reported_heading": "bounded excerpt with preroll"
+      }
+    ],
+    "scope_hash": "dc61fa7e7085689e7ab7adfa3e70b9e31d1f6922bd7c0c0485c607fcd36dbbcc",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 150,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 228,
+    "record": {
+      "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      ],
+      "reason": "Seek already supplies preroll and checks covering frames, but public exact interval end/audio suppression contract is missing. Partial packet slicing alone cannot promise no preroll audio or exact end.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
+      "recorded_at_utc": "2026-09-19T17:34:19.107224+00:00"
+    }
+  },
+  "next_action": "Define one [3.35,7.65) playback-range contract then test bounded input against full source; appendWindowStart that removes required edge GOP is the intentional failing control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+  "title": "Unwrap Matroska track compression before choosing a decoder",
+  "definition": {
+    "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+    "legacy_id": "R358",
+    "legacy_number": 358,
+    "identity_branch": "proposal",
+    "title": "Unwrap Matroska track compression before choosing a decoder",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S053",
+      "path": "sources/proposals/Demuxe_R358_R362_Proposals.md",
+      "sha256": "4dc14c62fe748c7bc2860a9191009943c5d1708a9bd949c884e0e43ef227f1ad",
+      "line_start": 9,
+      "line_end": 34,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "For header stripping, prepend the declared shared prefix to each affected frame. For zlib, investigate a separately qualified DecompressionStream('deflate') path. That API expects a zlib wrapper; it rejects unsupported preset dictionaries, incorrect Adler-32, and extra bytes after the stream. [S3] Proposed path: source blocks -> validated encoding reversal -> ordinary codec initialization and access units -> existing qualified browser-decoded or packet-copy route. Require exact recovered access-unit bytes, unchanged source sample order/timing, identical reference decoding, then correct output in one actual browser destination. A complete browser route remains unqualified until audio/video output, seeks, continuation, and end-of-stream pass.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S036",
+        "path": "sources/reports/R358-R362-report.md",
+        "sha256": "2eaa1962f9c072a9559bc58372ec9ddd7cca0372aa44e9a7ed986fdbaea4989a",
+        "line_start": 19,
+        "line_end": 31,
+        "source_kind": "report",
+        "reported_heading": "Unwrap Matroska track compression before choosing a decoder"
+      }
+    ],
+    "scope_hash": "c64470e017f1eef09fd5a3edbb85f39582187496e72642593f1ee705195be115",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 6,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R358.unwrap-matroska-track-compression-before-choosing-a-decoder.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R358.unwrap-matroska-track-compression-before-choosing-a-decoder.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R358_R362_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R358.unwrap-matroska-track-compression-before-choosing-a-decoder.md",
+        "results/top100/destinations/result.json",
+        "results/top100/jspi/result.json",
+        "results/top100/matroska/fixture.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 48,
+    "record": {
+      "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+      "rank": 6,
+      "state": "PURSUE",
+      "reason": "Actual isolated JSPI build produced browser-playable A/V with host decoded-output oracle. Nonisolated delayed reads and cancellation passed; Matroska zlib profile passed. Ordinary AAC MP4 priming/trim negative retained separately; not general route qualification.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "matroska/fixture.json",
+          "sha256": "9d4fd30e5b683b61dad0405e95fb7b9d7c0130725ff7a3f701376e74fde32502"
+        },
+        {
+          "path": "destinations/result.json",
+          "sha256": "7c752739b3138a294419b664d2ae8d1a7cef4590dbff34f3ddbeac31de9eca4c"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:23:18.405707+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

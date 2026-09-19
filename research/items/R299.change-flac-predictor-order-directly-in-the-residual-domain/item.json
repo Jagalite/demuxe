@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R299.change-flac-predictor-order-directly-in-the-residual-domain",
+  "title": "Change FLAC predictor order directly in the residual domain",
+  "definition": {
+    "key": "R299.change-flac-predictor-order-directly-in-the-residual-domain",
+    "legacy_id": "R299",
+    "legacy_number": 299,
+    "identity_branch": "proposal",
+    "title": "Change FLAC predictor order directly in the residual domain",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S044",
+      "path": "sources/proposals/Demuxe_R295_R300_Proposals.md",
+      "sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+      "line_start": 83,
+      "line_end": 100,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Exact compressed-to-compressed audio preparation. First owner: Bitstream construction and independent PCM oracles. Related: R234; that card preserves residuals while simplifying equivalent syntax, whereas this card changes the predictor and residual representation. Hypothesis. Convert between eligible fixed-predictor orders by transforming decoded residual integers instead of reconstructing a complete PCM block and running a general-purpose encoder. Source basis. FLAC fixed predictors are specified for orders zero through four and carry order-dependent warm-up samples. LibFLAC already implements the corresponding finite-difference expressions. The mathematics is established; the proposed additional mechanism is its use in a compressed-input adapter. [S7, S8]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S026",
+        "path": "sources/reports/R295-R300-report.md",
+        "sha256": "b81f4a02cd56a68c8c9952ab0ffac7376b8ba1a2b89228d7a639958911f4ffc4",
+        "line_start": 68,
+        "line_end": 77,
+        "source_kind": "report",
+        "reported_heading": "FLAC predictor order conversion in residual space"
+      }
+    ],
+    "scope_hash": "ff7227a7cd7f48e1621ffc40874f611e858de7dfa39fe5b100b497a4bc7d9acd",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 374,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R299.change-flac-predictor-order-directly-in-the-residual-domain.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R299.change-flac-predictor-order-directly-in-the-residual-domain.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R299.change-flac-predictor-order-directly-in-the-residual-domain.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 415,
+    "record": {
+      "key": "R299.change-flac-predictor-order-directly-in-the-residual-domain",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R299.change-flac-predictor-order-directly-in-the-residual-domain.md"
+      ],
+      "reason": "Historical order-1 to order-2 transform is exact but increases fixture bytes 1.7% and provides no complete preparation/decode gain. Current adaptation uses the optimized FLAC encoder; replacing it with residual conversion lacks a demonstrated value on this profile.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for sources with a measured useful predictor tradeoff; compare leave-unchanged and restricted optimized decode/reencode including all entropy/CRC work.",
+      "reopen_condition": "Reopen for sources with a measured useful predictor tradeoff; compare leave-unchanged and restricted optimized decode/reencode including all entropy/CRC work.",
+      "recorded_at_utc": "2026-09-19T17:34:19.183794+00:00"
+    }
+  },
+  "next_action": "Reopen for sources with a measured useful predictor tradeoff; compare leave-unchanged and restricted optimized decode/reencode including all entropy/CRC work.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

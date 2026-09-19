@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R178.selective-jpeg-2000-source-reads",
+  "title": "selective JPEG 2000 source reads",
+  "definition": {
+    "key": "R178.selective-jpeg-2000-source-reads",
+    "legacy_id": "R178",
+    "legacy_number": 178,
+    "identity_branch": "report-defined",
+    "title": "selective JPEG 2000 source reads",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 73,
+      "line_end": 90,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The fixture is a 1,024×1,024 grayscale JPEG 2000 codestream, 65,562 bytes, with 256×256 tiles and RPCL progression. A custom OpenJPEG source callback recorded every read/seek and its unique source-byte footprint while decode-area, resolution reduction, and layer limits were applied. Each streaming-source output was compared byte-for-byte against the same decode using the whole codestream as backing. The strong result is spatial/tile selectivity: a requested region need not force all codestream bytes through the source adapter. The negative/unfinished part is equally important: this fixture did not show additional source-byte reduction from resolution or quality-layer restrictions within the same tile region.",
+    "related_reports": [],
+    "scope_hash": "27ec264d5d325290cc8a820fae9f6ea28db8c73c09676497d3de4cea3d5d6340",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 314,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R178.selective-jpeg-2000-source-reads.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R178.selective-jpeg-2000-source-reads.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 356,
+    "record": {
+      "key": "R178.selective-jpeg-2000-source-reads",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+      ],
+      "reason": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "recorded_at_utc": "2026-09-19T17:34:19.168058+00:00"
+    }
+  },
+  "next_action": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

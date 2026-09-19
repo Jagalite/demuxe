@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "key": "R192.identity-coded-witness-media",
+  "title": "identity-coded witness media",
+  "definition": {
+    "key": "R192.identity-coded-witness-media",
+    "legacy_id": "R192",
+    "legacy_number": 192,
+    "identity_branch": "report-defined",
+    "title": "identity-coded witness media",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 131,
+      "line_end": 146,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The four-second fixture carries independent identities in multiple dimensions: - each video second has an eight-bit visual code: 0xA0, 0xA1, 0xA2, 0xA3; - left-channel tones are 320/400/480/560 Hz by second; - right-channel tones are 900/1000/1100/1200 Hz. Both FFmpeg-based and Chromium-based oracles accepted the correct file. Three decodable, believable wrong variants were then tested: 1. video timeline reorder: codes became A0, A2, A1, A3; audio still looked correct; 2. stereo channel swap: video remained correct, but the per-channel tones reversed; 3. 0.5 s audio shift: video remained correct, but time-local audio identities no longer matched their expected epochs. All three were detected by both host and browser identity checks. This demonstrates why fixtures that merely contain “moving video + audible tone” can accept convincingly wrong playback.",
+    "related_reports": [],
+    "scope_hash": "8312399cbad3ca408153de584704649fe47a399eddf3891a08267e0ae086c4a2",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 184,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R222.independently-checkable-remux-construction-record",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R192.identity-coded-witness-media.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R192.identity-coded-witness-media.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R192.identity-coded-witness-media.md",
+        "results/full-completion/r332/result.json",
+        "results/full-completion/r41/result.json",
+        "results/full-completion/r57/result.json",
+        "results/full-completion/r95/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE_AS_TEST_TOOL. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 55,
+    "record": {
+      "key": "R192.identity-coded-witness-media",
+      "state": "PURSUE_AS_TEST_TOOL",
+      "evidence": [
+        "r332/result.json",
+        "r57/result.json",
+        "r95/result.json",
+        "r41/result.json"
+      ],
+      "reason": "Current campaign oracles reject missing hidden picture dependencies, deliberate channel loss and doubled gain, and check cue timing. These concrete failures justify identity-bearing witnesses as test infrastructure. A single unified per-epoch video/channel/audio-shift witness is still future implementation, not claimed executed here.",
+      "evidence_level": "EVIDENCE_SYNTHESIS",
+      "recorded_at_utc": "2026-09-19T17:34:19.058984+00:00"
+    }
+  },
+  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

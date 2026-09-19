@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder",
+  "title": "Carry full-resolution color planes through a 4:2:0 video decoder",
+  "definition": {
+    "key": "R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder",
+    "legacy_id": "R113",
+    "legacy_number": 113,
+    "identity_branch": "proposal",
+    "title": "Carry full-resolution color planes through a 4:2:0 video decoder",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S010",
+      "path": "sources/proposals/R102-R115-research-backlog.md",
+      "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+      "line_start": 538,
+      "line_end": 581,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Prepared representation experiment. Priority: P2. Question. Can a commonly admitted decoder preserve fine color detail that a conventional 4:2:0 representation loses? What differs from earlier work. R80 reconstructed alpha/HDR auxiliaries and R98 packed separate views. Here one image is represented as full-resolution component planes placed in the carrier luma image. Mechanism. Extract source 4:4:4 Y/Cb/Cr planes, arrange them in separate regions of one grayscale luma atlas, encode a supported 4:2:0 carrier with neutral chroma, then reconstruct the original planes in a shader. Initial source profile. Prepared small 8-bit 4:4:4 test charts and text first; explicit range/transfer definitions and no claim of direct reuse of an arbitrary existing bitstream.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S009",
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "line_start": 147,
+        "line_end": 156,
+        "source_kind": "report",
+        "reported_heading": "full-resolution planes through a 4:2:0 carrier"
+      }
+    ],
+    "scope_hash": "0e4e3f5b84d95dfcc646fa586eadee853f6179efe579ca64c27266f5619fc2f1",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 332,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R102-R115-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 373,
+    "record": {
+      "key": "R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R113.carry-full-resolution-color-planes-through-a-4-2-0-video-decoder.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R102-R115-report.md"
+      ],
+      "reason": "Current decoded YUV mapping assumes ordinary image planes and no carrier-atlas interpretation/profile exists. New prepared three-width luma atlas and shader require explicit contract and range oracle.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.172675+00:00"
+    }
+  },
+  "next_action": "Create one trusted all-byte ramp carrier and decode-plane oracle, then exact atlas shader nearest lookup; reject clipping/neutral-chroma conversion changes and count larger coded surface/preparation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

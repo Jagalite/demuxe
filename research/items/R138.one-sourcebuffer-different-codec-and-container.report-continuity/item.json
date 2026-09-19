@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+  "title": "one SourceBuffer, different codec and container",
+  "definition": {
+    "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+    "legacy_id": "R138",
+    "legacy_number": 138,
+    "identity_branch": "report-continuity",
+    "title": "one SourceBuffer, different codec and container",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 78,
+      "line_end": 83,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A single SourceBuffer began as video/mp4; codecs=\"avc1.64001e\", buffered H.264/fMP4 through ~1.067 s, then called changeType() to VP9/WebM, set timestampOffset=1, and appended WebM initialization/media bytes. The final buffered range was 0.066666–4.000 s, with no exception or video error. This is more than codec switching: the parser also crossed ISO BMFF → WebM inside one MSE presentation.",
+    "related_reports": [],
+    "scope_hash": "57546b3937b1e9a1822cbab87998dd841741128c9212593e445d98faa511f360",
+    "legacy_guide_aliases": [
+      "R138-C"
+    ],
+    "family": "lifecycle",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 9,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R138.one-sourcebuffer-different-codec-and-container.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R138.one-sourcebuffer-different-codec-and-container.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R138.one-sourcebuffer-different-codec-and-container.report-continuity.md",
+        "results/full-completion/continuity/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 20,
+    "record": {
+      "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+      "rank": 9,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Rendered pictures and selected audio survive a codec/container transition through one SourceBuffer; useful explicit continuity capability, without claiming gapless or application integration.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/continuity/result.json",
+          "sha256": "58d8e855d7c2e766da30d9210c42d037d48765222be6188cd4896730c270f85a"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.219299+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity",
+  "title": "AAC exact seek needs a tool-aware profile",
+  "definition": {
+    "key": "R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity",
+    "legacy_id": "R231",
+    "legacy_number": 231,
+    "identity_branch": "report-continuity",
+    "title": "AAC exact seek needs a tool-aware profile",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 101,
+      "line_end": 106,
+      "source_kind": "report"
+    },
+    "source_excerpt": "With the default FFmpeg AAC-LC encode, a decoder started midstream does not reproduce the continuous output bit-exactly even when fed 100 earlier ADTS frames in this fixture. The mismatches are consistent with stateful coding-tool behavior; bounded frame count alone is therefore not enough to claim exactness for arbitrary AAC-LC. The controlled profile disables PNS and TNS. Under that restriction, zero pre-roll differs only at restart, while one prior ADTS frame / 21.33 ms restores exact equality for the complete suffix. This is the correct kind of admission rule for Demuxe: qualify by concrete codec-tool state, not only codec name/profile label.",
+    "related_reports": [],
+    "scope_hash": "35bca32d8094b1779df5f834f8f2bf490a1e56f2d768827571775f8af2911717",
+    "legacy_guide_aliases": [
+      "R231-C"
+    ],
+    "family": "source",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 192,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 262,
+    "record": {
+      "key": "R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R231.aac-exact-seek-needs-a-tool-aware-profile.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ],
+      "reason": "Current adaptation does not claim arbitrary AAC sample-exact restarts. The cited default AAC-LC failure after 100 preroll frames invalidates codec-name-only or fixed-count exact-seek claims; tool-aware admission is necessary.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For an exact PCM suffix feature, inspect AAC tools and compare continuous decode with one admitted restart plus a PNS/TNS-enabled counterexample.",
+      "reopen_condition": "Reopen only with a concrete tool/state profile and full-suffix oracle; do not generalize the one-frame controlled result.",
+      "recorded_at_utc": "2026-09-19T17:34:19.141646+00:00"
+    }
+  },
+  "next_action": "For an exact PCM suffix feature, inspect AAC tools and compare continuous decode with one admitted restart plus a PNS/TNS-enabled counterexample.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+  "title": "restricted IMA ADPCM through two clipped scans",
+  "definition": {
+    "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+    "legacy_id": "R190",
+    "legacy_number": 190,
+    "identity_branch": "report-defined",
+    "title": "restricted IMA ADPCM through two clipped scans",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 92,
+      "line_end": 106,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The tested variant is IMA ADPCM WAV. Its state dependencies are split into two associative clipped transitions: 1. step-index state i' = clip(i + adjust(code), 0, 88); 2. after the resulting per-code signed differences are known, predictor state p' = clip(p + delta, -32768, 32767). Using FFmpeg's exact integer rule delta = ((2mag+1)step)>>3, the two-scan construction is sample-exact to both a conventional sequential implementation and FFmpeg for: - mono: 8,164 samples; - stereo: 8,136 frames × 2 channels; - 25 synthetic controls covering predictor extremes and starting indices 0/1/44/87/88. The portable Hillis-Steele-style Python oracle took 59.1 ms for 8,192 nibbles versus 2.38 ms sequentially. Therefore the algebra is parallelizable and exact; a work-efficient CPU/GPU implementation must still demonstrate a complete-pass speedup after extra scans, synchronization, storage and readback.",
+    "related_reports": [],
+    "scope_hash": "3a3785b549ad8a6a7e1c436b8dfff17b8a064b121f4d8273d3ce5dce49e0a8f9",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 315,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R294.parallelize-a-nonlinear-peak-release-envelope-using-composable-summaries",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R190.restricted-ima-adpcm-through-two-clipped-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 357,
+    "record": {
+      "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R190.restricted-ima-adpcm-through-two-clipped-scans.md"
+      ],
+      "reason": "Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+      "recorded_at_utc": "2026-09-19T17:34:19.168319+00:00"
+    }
+  },
+  "next_action": "Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

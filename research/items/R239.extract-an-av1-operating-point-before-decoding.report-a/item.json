@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+  "title": "Extract an AV1 operating point before decoding",
+  "definition": {
+    "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+    "legacy_id": "R239",
+    "legacy_number": 239,
+    "identity_branch": "report-A",
+    "title": "Extract an AV1 operating point before decoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S022",
+      "path": "sources/reports/R239-R246-report.md",
+      "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+      "line_start": 32,
+      "line_end": 53,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The lab driver uses the installed libaom SVC API to author a real 160×96, 120-frame, 60 fps AV1 sequence with one spatial layer and three temporal layers. Actual frame OBU counts were 30 at temporal ID 0, 30 at ID 1, and 60 at ID 2. The encoder produced operating-point masks 0x107, 0x103 and 0x101. A fixture-scoped parser extracts temporal ID 0, retains its coded frame OBUs, and rewrites the sequence header to advertise one available operating point. The IVF timing is changed from 60 ticks/second with every fourth picture retained to 15 ticks/second with sequential picture indices; presentation timestamps remain the same. The picture payload is not decoded and re-encoded by the extractor. This is not a general-purpose parser for arbitrary AV1 headers.",
+    "related_reports": [],
+    "scope_hash": "c9c05f0f569618307713020800964b3c34ce580788ce33f534d6c521b454ed2a",
+    "legacy_guide_aliases": [
+      "R239-A"
+    ],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 223,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R239.wait-for-the-required-pictures-without-draining-the-decoder",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Multiple conflicting definitions: source identity required before any continuity association."
+      },
+      {
+        "key": "R242.decompress-haps-texture-data-directly-into-gpu-owned-storage",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Multiple conflicting definitions: source identity required before any continuity association."
+      },
+      {
+        "key": "R242.keep-decoder-sessions-continuous-across-transport-and-mux-boundaries.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Multiple conflicting definitions: source identity required before any continuity association."
+      },
+      {
+        "key": "R239.packet-granular-ogg-opus-repagination.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Multiple conflicting definitions: source identity required before any continuity association."
+      },
+      {
+        "key": "R242.h-264-aspect-metadata-with-no-vcl-rewrite.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Multiple conflicting definitions: source identity required before any continuity association."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R239.extract-an-av1-operating-point-before-decoding.report-a.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 292,
+    "record": {
+      "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R239.extract-an-av1-operating-point-before-decoding.report-a.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md"
+      ],
+      "reason": "Current AV1 path copies complete packets; no operating-point OBU parser exposes layer dependencies or a lower-cadence permission. Historical exact extraction is strongly fixture-scoped and required real SVC authoring.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For explicitly requested lower cadence, use the identified SVC fixture and verify retained OBU/timestamp/picture identity with missing-base and truncated OBU controls.",
+      "reopen_condition": "Reopen with a bounded operating-point parser and explicit reduced-cadence contract; arbitrary packet dropping remains invalid.",
+      "recorded_at_utc": "2026-09-19T17:34:19.149283+00:00"
+    }
+  },
+  "next_action": "For explicitly requested lower cadence, use the identified SVC fixture and verify retained OBU/timestamp/picture identity with missing-base and truncated OBU controls.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

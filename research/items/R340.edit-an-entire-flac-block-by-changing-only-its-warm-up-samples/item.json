@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples",
+  "title": "Edit an entire FLAC block by changing only its warm-up samples",
+  "definition": {
+    "key": "R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples",
+    "legacy_id": "R340",
+    "legacy_number": 340,
+    "identity_branch": "proposal",
+    "title": "Edit an entire FLAC block by changing only its warm-up samples",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S049",
+      "path": "sources/proposals/Demuxe_R338_R342_Proposals.md",
+      "sha256": "5f96cbeac907f0bed8d88cc34473d4a2657f28dcc19be4eac9eabf80ca5b32fc",
+      "line_start": 105,
+      "line_end": 148,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Exact compressed-domain preparation for an explicitly requested signal edit. Related: R299 and R322. Status: PROPOSED. A fixed-predictor FLAC subframe stores its first p samples explicitly and then codes prediction residuals. For its order-p fixed predictor, those residuals are the p-th backward differences of the signal. The format and libFLAC implementation provide the concrete basis. [S4, S5] For a requested integer-valued correction q[n] whose polynomial degree is less than p: Delta^p (x + q) = Delta^p x, because Delta^p q = 0. Therefore the same coded residuals can reconstruct the corrected signal if the warm-up values are replaced by x[j] + q[j] for j = 0 ... p-1. The smallest case is a constant offset and order 1: (x[n] + c) - (x[n-1] + c) = x[n] - x[n-1]. Change one warm-up sample; retain the residual bits. For order 2, a constant or integer linear trend can be represented by changing two warm-ups.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S033",
+        "path": "sources/reports/R338-R342-report.md",
+        "sha256": "918166306978b66ee26ab27ba09390605f339b2d405f3ab80b791ec529f6d3c9",
+        "line_start": 41,
+        "line_end": 56,
+        "source_kind": "report",
+        "reported_heading": "Edit an entire FLAC block by changing only its warm-up samples"
+      }
+    ],
+    "scope_hash": "657b3a8c155381e7a12e0c9398d41f8c1c3db8cdd171e36a6a7c01ec8c195b17",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 387,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R338_R342_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 428,
+    "record": {
+      "key": "R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R340.edit-an-entire-flac-block-by-changing-only-its-warm-up-samples.md"
+      ],
+      "reason": "Current lossless adaptation preserves samples; constant-offset editing is a new explicit request and bitstream transformer. Historical order1 +300 proof is sound for its profile but uses an explicit unknown MD5 policy and requires interior headroom analysis.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify one opt-in offset derivative, audit real fixed-order frequency and count range-analysis cost before a bounded warm-up patcher.",
+      "reopen_condition": "Specify one opt-in offset derivative, audit real fixed-order frequency and count range-analysis cost before a bounded warm-up patcher.",
+      "recorded_at_utc": "2026-09-19T17:34:19.187184+00:00"
+    }
+  },
+  "next_action": "Specify one opt-in offset derivative, audit real fixed-order frequency and count range-analysis cost before a bounded warm-up patcher.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

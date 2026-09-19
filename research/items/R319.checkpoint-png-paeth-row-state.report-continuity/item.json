@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+  "title": "Checkpoint PNG Paeth row state",
+  "definition": {
+    "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+    "legacy_id": "R319",
+    "legacy_number": 319,
+    "identity_branch": "report-continuity",
+    "title": "Checkpoint PNG Paeth row state",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S030",
+      "path": "sources/reports/R318-R323-report.md",
+      "sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+      "line_start": 28,
+      "line_end": 33,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The test applies PNG filter type 4 (Paeth) to controlled RGBA scanlines. A checkpoint stores exactly the prior reconstructed row every 32 rows. Every queried band reconstructed from the nearest checkpoint was byte-identical to replaying from row zero. The durable result is dependency-work reduction (71.5%), not the Python timing itself. This begins after compressed bytes have been inflated; ordinary PNG DEFLATE still needs its own seek/checkpoint strategy before this becomes a file-level ROI decoder.",
+    "related_reports": [],
+    "scope_hash": "6776a7738262c41ca2dfbc16a3d0aa4e9c53a5f60291e4f910c7647fbef8f4ab",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 216,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R272.roi-videoframe-copyto",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      },
+      {
+        "key": "R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R319.checkpoint-png-paeth-row-state.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R319.checkpoint-png-paeth-row-state.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R319.checkpoint-png-paeth-row-state.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 285,
+    "record": {
+      "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R319.checkpoint-png-paeth-row-state.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md"
+      ],
+      "reason": "Current byte readers do not expose inflated PNG rows or a PNG filter decoder. Prior-row checkpoints reduce post-inflate Paeth replay only; ordinary compressed-file random access still needs independent inflate state.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "On already-inflated rows, compare band reconstruction with checkpoint versus row-zero replay and changed-prior-row rejection; account separately for full-file inflate.",
+      "reopen_condition": "Reopen when a PNG ROI path exists or inflated row reuse is requested; do not advertise file-level random access from row checkpoints.",
+      "recorded_at_utc": "2026-09-19T17:34:19.147519+00:00"
+    }
+  },
+  "next_action": "On already-inflated rows, compare band reconstruction with checkpoint versus row-zero replay and changed-prior-row rejection; account separately for full-file inflate.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

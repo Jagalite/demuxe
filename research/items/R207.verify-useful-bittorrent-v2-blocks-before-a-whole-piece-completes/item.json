@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes",
+  "title": "Verify useful BitTorrent-v2 blocks before a whole piece completes",
+  "definition": {
+    "key": "R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes",
+    "legacy_id": "R207",
+    "legacy_number": 207,
+    "identity_branch": "report-defined",
+    "title": "Verify useful BitTorrent-v2 blocks before a whole piece completes",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S017",
+      "path": "sources/reports/R203-R213-report.md",
+      "sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+      "line_start": 49,
+      "line_end": 54,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The 579,704-byte fMP4 was hashed as BEP52-style 16-KiB leaves. The first complete init+media fragment ended at byte 91,196, requiring 6 leaves / 98,304 bytes, or 37.5% of a 256-KiB logical piece. Each required leaf was verified against the file's SHA-256 Merkle pieces root; wrong proof, wrong position, and altered-file controls were rejected. Only the verified prefix was exposed to MSE. Chromium buffered about one second and presented 13 frames before the remainder of that logical piece was available. This demonstrates earlier useful verification for a clear random-access media prefix; a full peer-protocol/hash-request implementation remains outside the pilot.",
+    "related_reports": [],
+    "scope_hash": "9e1148532ed30c020528316002220f1438e4c945dae99512ef7d787cae362273",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 212,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 281,
+    "record": {
+      "key": "R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md"
+      ],
+      "reason": "Current source authority uses validated HTTP ranges or local File identity, with no BitTorrent peer/hash-request or trusted BEP52 root input. Six verified leaves are a useful primitive but need an authenticated leaf-to-media byte provider.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one read-only provider exposing only verified 16KiB leaves for an existing fMP4 prefix; reject wrong root, proof position and changed source before append.",
+      "reopen_condition": "Reopen with trusted torrent metadata and a bounded verified-byte adapter; no peer subsystem build in first pass.",
+      "recorded_at_utc": "2026-09-19T17:34:19.146541+00:00"
+    }
+  },
+  "next_action": "Define one read-only provider exposing only verified 16KiB leaves for an existing fMP4 prefix; reject wrong root, proof position and changed source before append.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

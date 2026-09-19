@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "key": "R262.configuration-interval-seek",
+  "title": "configuration-interval seek",
+  "definition": {
+    "key": "R262.configuration-interval-seek",
+    "legacy_id": "R262",
+    "legacy_number": 262,
+    "identity_branch": "report-defined",
+    "title": "configuration-interval seek",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S023",
+      "path": "sources/reports/R261-R267-report.md",
+      "sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+      "line_start": 31,
+      "line_end": 40,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two independently authored Annex-B H.264 segments were concatenated: 3 s at 320×180 followed by 3 s at 640×360, both with repeated headers and 1 s keyframe cadence. The index records SPS configuration intervals and starts the second interval at its SPS/RAP boundary. Result. FFprobe on the full stream observes the resolution switch at frame 90 and the first 640×360 frame is a keyframe. The indexed second interval begins exactly at the second authored stream boundary (280,871 bytes) and is byte-identical to that authored stream. Frame 30 from the indexed interval is pixel-identical to frame 30 decoded from the authored second segment (dc278b9cdc52751edf076f9bf98e3815705e8c39081739c9e3a31670fa1fd11f). Starting at a non-RAP slice emits missing PPS/dependency errors, proving the entry/preroll requirement matters.",
+    "related_reports": [],
+    "scope_hash": "459c7e43472083a07c6bfb12a7316bb54fcd0f28b43ff7c66b209253fdf5cf03",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 2,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R262.configuration-interval-seek.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R262.configuration-interval-seek.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R261-R267-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R262.configuration-interval-seek.md",
+        "results/top100/configuration/input.json",
+        "results/top100/configuration/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 2,
+    "record": {
+      "key": "R262.configuration-interval-seek",
+      "rank": 2,
+      "state": "PURSUE",
+      "reason": "Explicit source-bound SPS/RAP intervals decode all96 authored pictures exactly through browser configuration change; indexed second interval matches48 pictures/timestamps, dependent cold start rejects. Container indexing and source replacement integration remain later.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "configuration/result.json",
+          "sha256": "ef091af576e7840b4a89449accd760a9f327b0f953272210aa93abe52202bcac"
+        },
+        {
+          "path": "configuration/input.json",
+          "sha256": "421d795638a80d247146aa15ac289896140b8dcc79ef0d820210a5af10536d9b"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:05:13.912265+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

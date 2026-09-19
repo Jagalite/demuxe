@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R301.edit-displayed-frames-without-changing-the-prediction-history",
+  "title": "Edit displayed frames without changing the prediction history",
+  "definition": {
+    "key": "R301.edit-displayed-frames-without-changing-the-prediction-history",
+    "legacy_id": "R301",
+    "legacy_number": 301,
+    "identity_branch": "proposal",
+    "title": "Edit displayed frames without changing the prediction history",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S045",
+      "path": "sources/proposals/Demuxe_R301_R306_Proposals.md",
+      "sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+      "line_start": 20,
+      "line_end": 55,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Prepared-media construction; high-risk follow-on to R135 and R142. Preserve a source picture as a non-displayed reference-building picture, and insert an independently coded edited picture that is displayed but does not refresh the reference slots. Later source pictures could then continue using their original references rather than requiring re-encoding solely because of the visual edit. AV1 distinguishes display decisions from reference refresh decisions. Its syntax includes show_frame, INTRA_ONLY_FRAME, and refresh_frame_flags; the reference-update process stores picture and auxiliary state in the selected slots. These primitives do not establish the complete proposed edit operation. [A1–A3]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S027",
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "line_start": 19,
+        "line_end": 24,
+        "source_kind": "report",
+        "reported_heading": "Edit displayed frames without changing prediction history"
+      }
+    ],
+    "scope_hash": "07de4917c7e41d747c58ffdcd4157d6ecd3ac47566f0087890d389896055a18e",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 376,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R301.edit-displayed-frames-without-changing-the-prediction-history.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 417,
+    "record": {
+      "key": "R301.edit-displayed-frames-without-changing-the-prediction-history",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R301.edit-displayed-frames-without-changing-the-prediction-history.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Current AV1 path submits valid original packets; there is no writer for hidden original B plus independent edited no-refresh picture. Historical primitive did not construct the full sequence. Current VideoDecoder availability resolves only the historical API blocker.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
+      "reopen_condition": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
+      "recorded_at_utc": "2026-09-19T17:34:19.184308+00:00"
+    }
+  },
+  "next_action": "First implement one legal constrained intra-only no-refresh insertion with independent decoder reference-state checks; compare all later pictures before browser delivery.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

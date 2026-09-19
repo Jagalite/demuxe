@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R365.compute-gif-color-statistics-without-expanding-lzw-strings",
+  "title": "Compute GIF color statistics without expanding LZW strings",
+  "definition": {
+    "key": "R365.compute-gif-color-statistics-without-expanding-lzw-strings",
+    "legacy_id": "R365",
+    "legacy_number": 365,
+    "identity_branch": "proposal",
+    "title": "Compute GIF color statistics without expanding LZW strings",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S054",
+      "path": "sources/proposals/Demuxe_R363_R366_Proposals.md",
+      "sha256": "761db78b318158f6aec0763181fba7a16ff2a704634c94b325cb4e65167c4b27",
+      "line_start": 64,
+      "line_end": 87,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Hypothesis. Exact palette-index histograms can be calculated from a GIF's LZW dictionary and emitted-code frequencies without constructing the expanded index image or walking every expanded phrase byte. Source basis. GIF defines variable-width LZW codes and explicit clear/end behavior, including the case where the dictionary is full but no clear code has occurred. FFmpeg's pinned LZW decoder represents phrases using prefix/suffix arrays and expands them through a stack. These supply a concrete structural starting point. The occurrence-propagation algorithm below is a proposed composition, not a newly measured decoder feature. [S4, S5] Mechanism. Within one dictionary generation, a composite entry e denotes phrase(parent(e)) followed by one literal suffix(e). Count how often each entry is emitted into the decoded sequence. After the generation is complete, process composite entries in reverse creation order. For accumulated multiplicity w[e], add w[e] to the histogram of suffix(e), and add w[e] to w[parent(e)]. Finally add each literal entry's accumulated multiplicity to its own histo",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S037",
+        "path": "sources/reports/R363-R366-report.md",
+        "sha256": "2952ba48a457d11886d066496c2a6e075fdb1ef89d7a20a3edd0fc5dffb5b05b",
+        "line_start": 68,
+        "line_end": 97,
+        "source_kind": "report",
+        "reported_heading": "Compute GIF color statistics without expanding LZW strings"
+      }
+    ],
+    "scope_hash": "b90f8997ce5bb89022e0a8c2d8e0a58406acc9a9ee2214fc90fcb9b5888bf222",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 391,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R365.compute-gif-color-statistics-without-expanding-lzw-strings.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R365.compute-gif-color-statistics-without-expanding-lzw-strings.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R363_R366_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R365.compute-gif-color-statistics-without-expanding-lzw-strings.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 432,
+    "record": {
+      "key": "R365.compute-gif-color-statistics-without-expanding-lzw-strings",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R365.compute-gif-color-statistics-without-expanding-lzw-strings.md"
+      ],
+      "reason": "Historical aggregate-query kernel is exact and beneficial on repetitive GIF but slower on noise; current player requires spatial decoded pixels and has no GIF histogram request. An added aggregate parse cannot be credited as replacing rendering.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for a source-level histogram consumer; compare propagation with fused no-image-allocation decode/count on repetitive and noisy sources.",
+      "reopen_condition": "Reopen for a source-level histogram consumer; compare propagation with fused no-image-allocation decode/count on repetitive and noisy sources.",
+      "recorded_at_utc": "2026-09-19T17:34:19.188347+00:00"
+    }
+  },
+  "next_action": "Reopen for a source-level histogram consumer; compare propagation with fused no-image-allocation decode/count on repetitive and noisy sources.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

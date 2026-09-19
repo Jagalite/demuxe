@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "key": "R047.assemble-output-as-headers-plus-original-payload-views",
+  "title": "Assemble output as headers plus original payload views",
+  "definition": {
+    "key": "R047.assemble-output-as-headers-plus-original-payload-views",
+    "legacy_id": "R47",
+    "legacy_number": 47,
+    "identity_branch": "proposal",
+    "title": "Assemble output as headers plus original payload views",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 127,
+      "line_end": 148,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New copy-elimination experiment · P1 · PROPOSED / NOT TESTED Extends: R34, R42, R46. Reference primitives: S1, S10, L3. Question. Can new fragment headers and existing compressed spans reach MSE without first flattening the whole fragment into another JavaScript buffer? Mechanism. Represent output as a bounded ordered list of header bytes and views onto owned immutable source spans. Feed those bytes in precisely the same logical order; batch adjacent spans so eliminating copies does not create one append per packet. Smallest useful experiment. Take known-good fMP4 output and split it into headers and payload views. Compare concatenation, pooled concatenation and bounded scatter/gather delivery. Verify reconstructed byte equality before playback; then test cancellation, partial output, reused storage and a large backing-buffer retention case.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 61,
+        "line_end": 66,
+        "source_kind": "report",
+        "reported_heading": "header/payload-view delivery"
+      }
+    ],
+    "scope_hash": "2c5f4e7e72db2bd5802364429213a5e3ca190a45ee4394ce942e88adc6e87441",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 65,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R047.assemble-output-as-headers-plus-original-payload-views.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R047.assemble-output-as-headers-plus-original-payload-views.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__engine-baseline__r47-comparison.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__engine-baseline__r47-real-media-comparison.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__r47-endurance-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R047.assemble-output-as-headers-plus-original-payload-views.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/reconciliation/local-identity.json",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md",
+        "results/local-screening/r47-qualification.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 34,
+    "record": {
+      "key": "R047.assemble-output-as-headers-plus-original-payload-views",
+      "rank": 65,
+      "state": "ALREADY_IMPLEMENTED",
+      "reason": "Reconciled completed prior evidence: The current dirty worker reuses a sole full owned ArrayBuffer and gathers all other cases. This is only the previously adopted narrow owned-buffer slice, not general scatter/gather or elimination of native mux copies. Current worker hash matches the prior isolated qualified worker. Imported exact captured output and append sizes match for both profiles; application gather bytes decrease 96.20% on the small fixture but only 8.96% on the movie, below its 25% value gate. Prior 100-cycle/1801.927-second run is retained historical evidence, not a v4 execution. Broad scatter/gather, CPU savings and production qualification are not established.",
+      "evidence_level": "REUSED_IMPORTED_LOCAL_EVIDENCE",
+      "evidence": [
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R047.assemble-output-as-headers-plus-original-payload-views.md",
+          "sha256": "d641fee6000481539a95cb26f2d171c9970361778aa141658e7420847e506507"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+          "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/reconciliation/local-identity.json",
+          "sha256": "f90d21b6d1f468367b2be23ac75d42c679023e3a69651cc4e435ac58c95b6496"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__r47-endurance-01__result.json",
+          "sha256": "ec32eec9cd2fa7143d2f9ff929f650b4f42f8b7aa3bd2af038c225bc9226c02e"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__engine-baseline__r47-comparison.json",
+          "sha256": "58684e62950d9c0e386f4ee68ecbdf8638d00cf55d7479dcceb6d8c0359df18b"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__engine-baseline__r47-real-media-comparison.json",
+          "sha256": "efd5590ca89d5dfc6c33f8da6aeb99bb3c44d96bb74dc9344bbafcc9ac5a7258"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.490971+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

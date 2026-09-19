@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+  "title": "Transfer owned packet storage into WebCodecs chunks",
+  "definition": {
+    "key": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+    "legacy_id": "R100",
+    "legacy_number": 100,
+    "identity_branch": "proposal",
+    "title": "Transfer owned packet storage into WebCodecs chunks",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 370,
+      "line_end": 396,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can the browser retain already-owned encoded storage rather than allocating another packet copy? What differs from earlier work. Beyond R42 worker buffer recycling: target the chunk-constructor data copy rather than only postMessage ownership. Input scope. Standalone owned transferable ArrayBuffers containing complete valid codec units. Mechanism to test. Construct EncodedVideoChunk or EncodedAudioChunk with its data ArrayBuffer in the constructor transfer list, then decode normally. Smallest experiment. 1. Feature-test actual detachment and chunk contents on the target Chrome. 2. Compare copied construction and transferred construction with identical small and large packets. 3. Include subviews over oversized backing buffers to expose retained-memory tradeoffs.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 142,
+        "line_end": 158,
+        "source_kind": "report",
+        "reported_heading": "transfer owned storage into EncodedVideoChunk — PROMISING COMPONENT / decoder blocked"
+      }
+    ],
+    "scope_hash": "fcd55332a2d3a085d17b45ac371a90b93ad234ee2bd51fa8157ed719c4d33920",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 71,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R100.transfer-owned-packet-storage-into-webcodecs-chunks.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R100.transfer-owned-packet-storage-into-webcodecs-chunks.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R100.transfer-owned-packet-storage-into-webcodecs-chunks.md",
+        "results/full-completion/frame-boundaries/result.json",
+        "results/full-completion/r332/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 38,
+    "record": {
+      "key": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+      "rank": 71,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Whole-owned packet transfer detaches input, preserves chunk bytes and matches independent decoded I420. Shared heaps and oversized subviews reject at the candidate ownership guard. Normal maintained VP9 path already has zero owned packet bytes, so pursue only measured fallback/prefix branches, not global copying changes.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/frame-boundaries/result.json",
+          "sha256": "b19ab33922f103b058e9d99f09d9d620e5827643ef31e2ec92bf29d8be7fd725"
+        },
+        {
+          "path": "../full-completion/r332/result.json",
+          "sha256": "8f91611597085c717fa2414a19ef782c04ec499597754f87e8631a79ae8be183"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.616084+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R163.recover-an-interrupted-recording-from-a-committed-sample-journal",
+  "title": "Recover an interrupted recording from a committed sample journal",
+  "definition": {
+    "key": "R163.recover-an-interrupted-recording-from-a-committed-sample-journal",
+    "legacy_id": "R163",
+    "legacy_number": 163,
+    "identity_branch": "proposal",
+    "title": "Recover an interrupted recording from a committed sample journal",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 143,
+      "line_end": 146,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Retain payloads and an append-only sample journal, recover a verified committed prefix after controlled interruption, and reconstruct a valid ordinary output without repeating encoding.",
+    "related_reports": [],
+    "scope_hash": "34b808b27a51d4b0ff3a823dd611f142659b94ad928a811d8605d1b0fb9080b0",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 211,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R163.recover-an-interrupted-recording-from-a-committed-sample-journal.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R163.recover-an-interrupted-recording-from-a-committed-sample-journal.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R163.recover-an-interrupted-recording-from-a-committed-sample-journal.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 280,
+    "record": {
+      "key": "R163.recover-an-interrupted-recording-from-a-committed-sample-journal",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R163.recover-an-interrupted-recording-from-a-committed-sample-journal.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ],
+      "reason": "Current remux streams bounded transient fragments into MSE; it is not a durable recorder and has no journal/fsync commitment contract. Recovery of a recording is useful but no existing persisted-output path is being optimized.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "When recording/export is requested, define payload/journal commit ordering and recover exact committed packet prefixes after controlled truncation.",
+      "reopen_condition": "Reopen with an actual recording owner and durability requirements; synthetic truncation is not power-loss qualification.",
+      "recorded_at_utc": "2026-09-19T17:34:19.146294+00:00"
+    }
+  },
+  "next_action": "When recording/export is requested, define payload/journal commit ordering and recover exact committed packet prefixes after controlled truncation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

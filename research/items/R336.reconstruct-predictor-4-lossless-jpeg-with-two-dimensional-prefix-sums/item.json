@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "key": "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums",
+  "title": "Reconstruct predictor-4 lossless JPEG with two-dimensional prefix sums",
+  "definition": {
+    "key": "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums",
+    "legacy_id": "R336",
+    "legacy_number": 336,
+    "identity_branch": "proposal",
+    "title": "Reconstruct predictor-4 lossless JPEG with two-dimensional prefix sums",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S048",
+      "path": "sources/proposals/Demuxe_R332_R337_Proposals.md",
+      "sha256": "137a31463db79c7d4bc970a9580c409b66c847c4df0824dc63453d167ca8baa1",
+      "line_start": 148,
+      "line_end": 185,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Proposal key: 403d6f6f34a0fdb8a14338d1074f726fea9abfe82cd1c31e0ef65834524eb543 Mechanism: After independently parsing residuals from a qualified lossless-JPEG scan, reconstruct predictor-4 samples using modular row and column prefix sums, with the exact initial and boundary conditions. Initial scope: Huffman-coded lossless JPEG (SOF3), one grayscale component, predictor selection 4, one scan, eight-bit precision initially, point transform zero, no restarts, no interlacing or reversible color transform. Higher precisions and restart layouts are separate extensions. Acceptance contract: Exact residual values, exact reconstructed sample values and bit patterns after the same storage alignment, and correct malformed-input rejection within explicit resource bounds. No lossy approximation and no JPEG-LS claim.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S032",
+        "path": "sources/reports/R332-R337-report.md",
+        "sha256": "b7ab0b9084cabf3952646bd93d1b38530ba51f5d69b709226ce57ee122405815",
+        "line_start": 48,
+        "line_end": 55,
+        "source_kind": "report",
+        "reported_heading": "Reconstruct predictor-4 lossless JPEG with two-dimensional prefix sums"
+      }
+    ],
+    "scope_hash": "b3b638ecd9affac6831610fbbce8b94ecbf8e7683c178196e7f27687e13cb1af",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 379,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R294.parallelize-a-nonlinear-peak-release-envelope-using-composable-summaries",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 420,
+    "record": {
+      "key": "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums.md"
+      ],
+      "reason": "Pinned lossless JPEG decoder handles boundary seeds, precision alignment and restart state serially. Historical predictor-4 scans prove a constrained component but no current GPU residual-grid interface; source may use another predictor and cannot be re-encoded merely to hide setup.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Count eligible source usage then compare one real parsed residual grid to the pinned decoder with initial-row/column seeds before GPU passes.",
+      "reopen_condition": "Count eligible source usage then compare one real parsed residual grid to the pinned decoder with initial-row/column seeds before GPU passes.",
+      "recorded_at_utc": "2026-09-19T17:34:19.185109+00:00"
+    }
+  },
+  "next_action": "Count eligible source usage then compare one real parsed residual grid to the pinned decoder with initial-row/column seeds before GPU passes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

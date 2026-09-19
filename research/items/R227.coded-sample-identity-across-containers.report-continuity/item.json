@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R227.coded-sample-identity-across-containers.report-continuity",
+  "title": "coded-sample identity across containers",
+  "definition": {
+    "key": "R227.coded-sample-identity-across-containers.report-continuity",
+    "legacy_id": "R227",
+    "legacy_number": 227,
+    "identity_branch": "report-continuity",
+    "title": "coded-sample identity across containers",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 67,
+      "line_end": 72,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 150-packet AVC stream was encoded once in MP4 and stream-copied to Matroska. Every packet has the same payload size and SHA-256 in both containers. The first packet hash is SHA256:de4472b3c0e949b4f79e3a6a66dfbd8e925e97ea2d63e033a1287505875f6201. That supports making a prepared/cache object container-independent at the coded-sample layer when decoder configuration, dependency boundaries, color/output semantics and authorization also match. It does not imply the surrounding MP4/MKV bytes, timestamps, cue structures, or decoder configuration records are interchangeable.",
+    "related_reports": [],
+    "scope_hash": "e9f9da8fd129613ff6b2891e3e88713b456d2621fbdbb2b79cb519f9a3031778",
+    "legacy_guide_aliases": [
+      "R227-C"
+    ],
+    "family": "mux",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 281,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R227.coded-sample-identity-across-containers.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R227.coded-sample-identity-across-containers.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R227.coded-sample-identity-across-containers.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 337,
+    "record": {
+      "key": "R227.coded-sample-identity-across-containers.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R227.coded-sample-identity-across-containers.report-continuity.md"
+      ],
+      "reason": "Current cache keys are per-source byte offsets and FFmpeg copies selected packet payloads; no container-independent immutable sample cache exists. Equal AVC hashes across MP4/MKV do not identify common timestamps, codec config, color or authorization.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one canonical packet object key across two authorized containers and compare payload/config identity with a changed-color or timing control.",
+      "reopen_condition": "Define one canonical packet object key across two authorized containers and compare payload/config identity with a changed-color or timing control.",
+      "recorded_at_utc": "2026-09-19T17:34:19.163162+00:00"
+    }
+  },
+  "next_action": "Define one canonical packet object key across two authorized containers and compare payload/config identity with a changed-color or timing control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

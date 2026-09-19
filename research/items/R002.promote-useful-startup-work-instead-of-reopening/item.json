@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R002.promote-useful-startup-work-instead-of-reopening",
+  "title": "Promote useful startup work instead of reopening",
+  "definition": {
+    "key": "R002.promote-useful-startup-work-instead-of-reopening",
+    "legacy_id": "R02",
+    "legacy_number": 2,
+    "identity_branch": "proposal",
+    "title": "Promote useful startup work instead of reopening",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 96,
+      "line_end": 114,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "First environment: Demuxe source + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Let one candidate move from prepared to presented to accepted without rebuilding the same media element or repeating demux startup. Gather only the facts needed for the current request before opening; defer optional metadata and fonts until needed. Source basis. Browser acceptance and Demuxe feature admission are distinct. Chromium direct demuxing constructs supported streams and can reject individual stream configurations, so a first video image alone cannot prove required audio. [C1, D1] First agent experiment. Trace open-to-first-frame as source validation, inspection, runtime loading, candidate preparation, play request and acceptance. Compare the current path with retained-candidate promotion on ordinary MP4, unknown-audio MKV, paused open and missing-audio controls.",
+    "related_reports": [],
+    "scope_hash": "d72f6b44db055cf9e0e1abfcc7581a8de19fa0199749eb9babb58e92f21c5ac8",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 58,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R002.promote-useful-startup-work-instead-of-reopening.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R002.promote-useful-startup-work-instead-of-reopening.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__direct-local-04__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R002.promote-useful-startup-work-instead-of-reopening.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/reconciliation/local-identity.json",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 29,
+    "record": {
+      "key": "R002.promote-useful-startup-work-instead-of-reopening",
+      "rank": 58,
+      "state": "ALREADY_IMPLEMENTED",
+      "reason": "Reconciled completed prior evidence: The accepted prepared backend is retained and later play invokes the same session backend, followed by output verification. This directly addresses the retained-candidate portion; optional metadata deferral and cross-backend sharing are not established. Imported direct-local-04: retainedPreparation.surface and backend are true, direct lifecycle and missing-video rejection pass, workersAfter is zero. Confirms the narrow existing prepared-session promotion; no optional metadata or cross-backend sharing claim.",
+      "evidence_level": "REUSED_IMPORTED_LOCAL_EVIDENCE",
+      "evidence": [
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R002.promote-useful-startup-work-instead-of-reopening.md",
+          "sha256": "08dc1300b3d81340a01d81f9ffbfd516a67a17f00479963e71efeb0ecc330ffb"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+          "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/reconciliation/local-identity.json",
+          "sha256": "f90d21b6d1f468367b2be23ac75d42c679023e3a69651cc4e435ac58c95b6496"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/reconciled__runs__direct-local-04__result.json",
+          "sha256": "a8bf9bb2ff2fdae0283529086a2e99b242c2bc63b7bcc3eaa6f95eb7deb20949"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.428718+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

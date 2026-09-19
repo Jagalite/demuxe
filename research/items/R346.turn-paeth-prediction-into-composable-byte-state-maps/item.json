@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R346.turn-paeth-prediction-into-composable-byte-state-maps",
+  "title": "Turn Paeth prediction into composable byte-state maps",
+  "definition": {
+    "key": "R346.turn-paeth-prediction-into-composable-byte-state-maps",
+    "legacy_id": "R346",
+    "legacy_number": 346,
+    "identity_branch": "proposal",
+    "title": "Turn Paeth prediction into composable byte-state maps",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S050",
+      "path": "sources/proposals/Demuxe_R343_R347_Proposals.md",
+      "sha256": "269a6469f2cddfbcb40c479658892c5e842bdd2da591d8db9c6afd1a9282a358",
+      "line_start": 94,
+      "line_end": 125,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Libpng provides the reference Paeth tie-breaking and byte reconstruction implementation. Preserve its exact predictor arithmetic and modulo-256 output, not a saturated or approximate variant. [S7] For fixed above byte b_i, above-left byte c_i, and filtered byte r_i: A chunk transition T is the composition of its f_i functions and can be represented by 256 output values, one for each possible input state. For consecutive chunks A and B: Function composition is associative, including when the maps contain wraparound and discontinuities. The dense mapping is exact; it does not depend on monotonicity or floating-point approximations. Use predictor ties, byte wraparound, extreme above-row values, awkward chunk lengths, and an incorrect previous row as controls. Then compare complete PNG output. An exact compact representation of maps can be investigated only after the dense reference is established; never merge nearly equal mappings.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S034",
+        "path": "sources/reports/R343-R347-rerun-report.md",
+        "sha256": "9d331068906b791d297e4751f952072b68e5752d06ee5620bd626e956fa7b190",
+        "line_start": 43,
+        "line_end": 48,
+        "source_kind": "report",
+        "reported_heading": "Turn Paeth prediction into composable byte-state maps"
+      }
+    ],
+    "scope_hash": "0d21627228f06c4a8a098451a6a9e322bf20170ad5d3981ab57a1a3b7584e7d1",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 389,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R346.turn-paeth-prediction-into-composable-byte-state-maps.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R346.turn-paeth-prediction-into-composable-byte-state-maps.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R346.turn-paeth-prediction-into-composable-byte-state-maps.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 430,
+    "record": {
+      "key": "R346.turn-paeth-prediction-into-composable-byte-state-maps",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R346.turn-paeth-prediction-into-composable-byte-state-maps.md"
+      ],
+      "reason": "The existing Paeth owner computes one predictor per byte. Historical dense 256-state maps are exact but 252.4x slower and require 4096 logical map bytes for a 1024-byte row. No reason to replace current CPU reconstruction with this candidate.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with a compact exact map or real parallel schedule whose complete work beats serial/SIMD; retain exhaustive short-chunk state checks.",
+      "reopen_condition": "Reopen only with a compact exact map or real parallel schedule whose complete work beats serial/SIMD; retain exhaustive short-chunk state checks.",
+      "recorded_at_utc": "2026-09-19T17:34:19.187722+00:00"
+    }
+  },
+  "next_action": "Reopen only with a compact exact map or real parallel schedule whose complete work beats serial/SIMD; retain exhaustive short-chunk state checks.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

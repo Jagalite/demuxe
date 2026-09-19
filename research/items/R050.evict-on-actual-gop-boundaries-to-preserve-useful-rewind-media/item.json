@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+  "title": "Evict on actual GOP boundaries to preserve useful rewind media",
+  "definition": {
+    "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+    "legacy_id": "R50",
+    "legacy_number": 50,
+    "identity_branch": "proposal",
+    "title": "Evict on actual GOP boundaries to preserve useful rewind media",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 193,
+      "line_end": 214,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New retention-policy experiment · P2 · PROPOSED / NOT TESTED Extends: R38, R45. Reference primitives: S1, S9, L3. Question. Can keyframe-aware eviction retain more useful rewind coverage under the same buffer budget than arbitrary time cutoffs? Mechanism. Use the actual random-access map to choose eviction boundaries outside current decoding dependencies. Preserve a small useful rewind region and inspect the browser’s resulting ranges, since removal may discard more than the requested interval. Smallest useful experiment. Create short and long closed-GOP variants with the same content. Under a modest explicit budget, alternate forward playback and short backward seeks. Compare a safe time-based cutoff with a GOP-aware cutoff; include a boundary just before the playhead and an evicted-reference negative control.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 79,
+        "line_end": 82,
+        "source_kind": "report",
+        "reported_heading": "keyframe-aware removal"
+      }
+    ],
+    "scope_hash": "fec1ac215388c9f75bf76db01ee995aedbd2d306a9a64eeb0ad6914247dc7458",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 235,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 299,
+    "record": {
+      "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+      "state": "ALREADY_IMPLEMENTED",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md"
+      ],
+      "reason": "Current eviction chooses known RAPs behind playback and buffered seek checks live ranges plus retained RAP coverage. The proposed application-level boundary mechanism is already present; browser allocation opacity remains.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
+      "reopen_condition": "Reopen with measured useful coverage loss despite current RAP-aware cut or false buffered-seek acceptance.",
+      "recorded_at_utc": "2026-09-19T17:34:19.152739+00:00"
+    }
+  },
+  "next_action": "No duplicate eviction policy; add one long-GOP rewind regression only when changing retention budgets or RAP mapping.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

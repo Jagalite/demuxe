@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+  "title": "Compare whole frames on the graphics side and read back only the witness",
+  "definition": {
+    "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+    "legacy_id": "R213",
+    "legacy_number": 213,
+    "identity_branch": "report-defined",
+    "title": "Compare whole frames on the graphics side and read back only the witness",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S017",
+      "path": "sources/reports/R203-R213-report.md",
+      "sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+      "line_start": 83,
+      "line_end": 88,
+      "source_kind": "report"
+    },
+    "source_excerpt": "WebGL2/float blending compared two complete 1024×576 RGBA textures by drawing one point per pixel into three 1×1 reductions: mismatch count, maximum channel error, and first mismatch position. With 37 injected fault pixels, the graphics result exactly matched the CPU oracle: count 37, maximum error 236, first index 12345. The no-difference control also passed. Only 12 bytes of result data were read back instead of a 2,359,296-byte full frame. But SwiftShader took ~411.2 ms versus ~4.1 ms for the JS CPU oracle, so this is a readback/observer mechanism—not a performance win in this environment. Physical-GPU qualification remains open.",
+    "related_reports": [],
+    "scope_hash": "046a1812c908d1d254261faf66fd5d6ca05b1ed21d2fe24787f3ed104ed41d08",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 93,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R192.identity-coded-witness-media",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R222.independently-checkable-remux-construction-record",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md",
+        "results/top100/gpu/witness-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 57,
+    "record": {
+      "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+      "rank": 93,
+      "state": "PURSUE",
+      "reason": "Actual GPU atomic difference witness scans all 15360 resident RGBA pixels with four-byte readback. Equal frame and first/middle/last changed pixels match CPU oracle. Opportunity restricted to pixels already on GPU; no measured whole-player savings.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "gpu/witness-result.json",
+          "sha256": "d413d9e1a404ed3aa197dcd06cbe0b72ca4dc5102e297697e8f6a8ace136b1d7"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:30:40.721249+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

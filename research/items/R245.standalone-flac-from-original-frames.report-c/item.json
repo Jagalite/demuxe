@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "key": "R245.standalone-flac-from-original-frames.report-c",
+  "title": "standalone FLAC from original frames",
+  "definition": {
+    "key": "R245.standalone-flac-from-original-frames.report-c",
+    "legacy_id": "R245",
+    "legacy_number": 245,
+    "identity_branch": "report-C",
+    "title": "standalone FLAC from original frames",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S021",
+      "path": "sources/reports/R239-R245-rerun-report.md",
+      "sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+      "line_start": 71,
+      "line_end": 78,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A six-second stereo FLAC is encoded with 4,096-sample frames. Source frames 20–22 are packet-copied into a new FLAC. The STREAMINFO total-sample count is corrected to 12,288 and the MD5 is replaced with the exact bounded PCM signature. All three compressed frame hashes are unchanged and all three durations remain 4,096 samples. Decoding yields exactly the corresponding 12,288 source PCM samples. flac -t passes, FFprobe reports 0.256 s, and Chromium decodeAudioData returns exactly 12,288 samples at 48 kHz. This fixture's mini-file is 18,021 bytes, 7.63% of the stereo six-second source. The percentage is content/channel-dependent; the source-preserving frame extraction is the important result.",
+    "related_reports": [],
+    "scope_hash": "7708526ff74f13219b5147427d878179a7bba5ecd28e7e09000194d8224b9ec4",
+    "legacy_guide_aliases": [
+      "R245-C"
+    ],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 225,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R304.factor-a-multichannel-effect-into-fewer-independent-filters",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R347.morph-convolution-effects-using-reusable-basis-outputs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R245.standalone-flac-from-original-frames.report-c.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R245.standalone-flac-from-original-frames.report-c.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R245.standalone-flac-from-original-frames.report-c.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 294,
+    "record": {
+      "key": "R245.standalone-flac-from-original-frames.report-c",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R245.standalone-flac-from-original-frames.report-c.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md"
+      ],
+      "reason": "This report supplies corrected STREAMINFO and exact bounded PCM for three original FLAC frames, unlike the R223 stale-total microstream. Current player has no standalone audio-excerpt author; importing this requires that narrow framing owner.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Implement one complete-frame excerpt writer only when requested, correct total samples/checksum, and compare frame payloads, PCM, duration and corrupted CRC rejection.",
+      "reopen_condition": "Reopen for a requested standalone FLAC excerpt feature; arbitrary sample cuts remain outside complete-frame identity.",
+      "recorded_at_utc": "2026-09-19T17:34:19.150271+00:00"
+    }
+  },
+  "next_action": "Implement one complete-frame excerpt writer only when requested, correct total samples/checksum, and compare frame payloads, PCM, duration and corrupted CRC rejection.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

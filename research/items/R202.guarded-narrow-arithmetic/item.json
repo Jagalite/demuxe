@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "key": "R202.guarded-narrow-arithmetic",
+  "title": "guarded narrow arithmetic",
+  "definition": {
+    "key": "R202.guarded-narrow-arithmetic",
+    "legacy_id": "R202",
+    "legacy_number": 202,
+    "identity_branch": "report-defined",
+    "title": "guarded narrow arithmetic",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 97,
+      "line_end": 104,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The H.264-style integer 4×4 inverse-transform model derives a cheap conservative intermediate bound from the maximum absolute dequantized input. For int16 intermediates the largest admitted threshold is 2672; 2672 is admitted and 2673 rejected. Across 120,000 randomized blocks, the guard admitted 57,948. Every admitted block matched the wide-integer reference exactly and zero admitted blocks overflowed. The guard intentionally rejects 38,366 actually-safe blocks, favoring correctness over maximal admission. This validates the admission strategy; it is not yet a SIMD speed benchmark or production decoder kernel.",
+    "related_reports": [],
+    "scope_hash": "47d610c7a71058d461162693af48e1ffabb77256bfada1e9664fe24d774df3c7",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 316,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R202.guarded-narrow-arithmetic.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R202.guarded-narrow-arithmetic.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R202.guarded-narrow-arithmetic.md",
+        "results/full-completion/r202/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 22,
+    "record": {
+      "key": "R202.guarded-narrow-arithmetic",
+      "state": "PURSUE",
+      "evidence": "r202/result.json",
+      "reason": "Actual pinned8-bit IDCT bias/shifts/storage/clipping match int16 intermediate candidate for65536 threshold-corner blocks plus20000 random blocks under UBSan;2673,-2673,-32768 rejected. Arithmetic feasibility established; actual coefficient admission rates and SIMD cost still needed.",
+      "recorded_at_utc": "2026-09-19T17:14:02.927189+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

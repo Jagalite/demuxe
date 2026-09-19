@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+  "title": "Select or assemble whole Opus elementary streams without PCM",
+  "definition": {
+    "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+    "legacy_id": "R104",
+    "legacy_number": 104,
+    "identity_branch": "proposal",
+    "title": "Select or assemble whole Opus elementary streams without PCM",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S010",
+      "path": "sources/proposals/R102-R115-research-backlog.md",
+      "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+      "line_start": 141,
+      "line_end": 184,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can a multistream Opus asset expose a selected independent stream, or can aligned streams be assembled into a supported multichannel presentation without re-encoding? What differs from earlier work. R93 changed temporal packet grouping. This changes which independently coded mono/stereo streams are carried and how their channels are mapped. Mechanism. Parse self-delimiting component packets, retain chosen whole elementary streams, and author the new multistream framing and channel mapping. Initial source profile. Known channel mapping; complete mono streams or coupled stereo pairs; matching time origin, pre-skip, effective output gain and per-packet duration. Source basis. The Ogg Opus mapping places equal-duration component Opus packets in one logical packet, with explicit stream/channel mapping. [S2]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S009",
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "line_start": 55,
+        "line_end": 64,
+        "source_kind": "report",
+        "reported_heading": "compressed Opus component-stream assembly"
+      }
+    ],
+    "scope_hash": "ce360a9d5cb5460edaa3871947874646f140c9aff33efffb3ff2e8eaa67c95a6",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 219,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R104.select-or-assemble-whole-opus-elementary-streams-without-pcm.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R104.select-or-assemble-whole-opus-elementary-streams-without-pcm.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R104.select-or-assemble-whole-opus-elementary-streams-without-pcm.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 288,
+    "record": {
+      "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R104.select-or-assemble-whole-opus-elementary-streams-without-pcm.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md"
+      ],
+      "reason": "Whole-track Opus packaging exists but selected component streams and family255 mapping are not exposed; current adaptation is mono/stereo. A self-delimiting component parser plus truthful layout/trim contract is needed.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Extract one entire independent mono component and one coupled pair from a marked fixture, compare payload/PCM and reject half-pair selection or mismatched pre-skip.",
+      "reopen_condition": "Reopen with requested component selection and supported output mapping; channel selection is not downmix/source separation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.148271+00:00"
+    }
+  },
+  "next_action": "Extract one entire independent mono component and one coupled pair from a marked fixture, compare payload/PCM and reject half-pair selection or mismatched pre-skip.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

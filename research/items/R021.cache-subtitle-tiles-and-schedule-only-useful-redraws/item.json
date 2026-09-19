@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "key": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+  "title": "Cache subtitle tiles and schedule only useful redraws",
+  "definition": {
+    "key": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+    "legacy_id": "R21",
+    "legacy_number": 21,
+    "identity_branch": "proposal",
+    "title": "Cache subtitle tiles and schedule only useful redraws",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 457,
+      "line_end": 475,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Subtitles · New optimization hypothesis · P1 · Risk: Medium First environment: Existing NativeASS + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Cache unchanged alpha/color tiles and reuse surfaces instead of expanding and allocating every tile on each bitmap update. Add safe static-cue scheduling while retaining continuous rendering for unknown/animated ASS constructs. Source basis. The current NativeASS source expands tile alpha to RGBA, creates OffscreenCanvas tiles and checks media time through requestAnimationFrame. It already handles an unchanged response; the proposal targets remaining allocation/composition work. [D2] First agent experiment. Compare static dialogue, karaoke, transforms and paused resize. Record render RPCs, allocation/bitmap bytes and UI work, not only total CPU. Key invalidation by track, fonts, source geometry and render revision.",
+    "related_reports": [],
+    "scope_hash": "4032df6d1bf7b761e94c710467f762e958fa20d57380194f45aaade8c23f02d0",
+    "legacy_guide_aliases": [],
+    "family": "subtitles",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 61,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect.",
+    "minimum_probe": "One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "initial_screen": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect. One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "primary_metric": "Required caption capability or total render/extraction cost and retained cue/atlas memory.",
+    "scope_contract": "Independent rendering or browser-owned reference appropriate to the same contract, including hidden state, timing, ordering and clear events.",
+    "negative_control": "Seek into an active cue, change fonts/layout/source, or omit a required style/control. No silent simplification or stale overlay.",
+    "stop_boundary": "No new subtitle service, full shaping engine or font-subsetting system during first pass. Defer if the necessary observer is not available.",
+    "shared_prerequisite": "Same admitted subtitle renderer/assets; public cue-list/lifecycle compatibility must be addressed before virtualization.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws.md",
+        "results/full-completion/r21/result.json",
+        "results/top100/ass-build.log",
+        "results/top100/subtitles/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 5,
+    "record": {
+      "key": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+      "rank": 61,
+      "state": "PURSUE",
+      "reason": "Built isolated pinned libass runtime, then real static/karaoke tiles rendered exactly with bounded cache through time changes, rewind and resize:28 cache hits/20 misses,145496 peak retained bytes. Value is repeated-tile allocation avoidance, not proven CPU saving.",
+      "evidence_level": "REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "subtitles/result.json",
+          "sha256": "e53d39045338bf2ee979196afda98bff7621e2506a90b4cbe78761a8818b1632"
+        },
+        {
+          "path": "ass-build.log",
+          "sha256": "0d7961b8c0d9eac13edf3070070c7ed3e97dda81ab139a3eea08423dfbdb7a3e"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:05:14.180252+00:00"
+    }
+  },
+  "next_action": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

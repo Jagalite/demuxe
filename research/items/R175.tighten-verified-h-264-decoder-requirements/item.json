@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R175.tighten-verified-h-264-decoder-requirements",
+  "title": "tighten verified H.264 decoder requirements",
+  "definition": {
+    "key": "R175.tighten-verified-h-264-decoder-requirements",
+    "legacy_id": "R175",
+    "legacy_number": 175,
+    "identity_branch": "report-defined",
+    "title": "tighten verified H.264 decoder requirements",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 49,
+      "line_end": 56,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The fixture is progressive H.264 with 60 frames: 2 I and 58 P, no B pictures, one actual active reference, and no list-0 reordering flags. An intentionally overstated SPS advertises eight reference pictures. The corrected stream advertises one. Decoded frame-MD5 sequences are identical. Slice payloads are unchanged outside the SPS, and the MP4 muxed timestamps/frame types are identical for all 60 frames. Integration implication: Demuxe may safely lower advertised requirements only after deriving a certificate from actual bitstream behavior. This is not permission to rewrite arbitrary SPS constraints optimistically.",
+    "related_reports": [],
+    "scope_hash": "0f60f91430716cc9e0c90a18bb5fa1a08082e94ac7d077c5a012fcbdb503fc92",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 361,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R175.tighten-verified-h-264-decoder-requirements.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R175.tighten-verified-h-264-decoder-requirements.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R175.tighten-verified-h-264-decoder-requirements.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 402,
+    "record": {
+      "key": "R175.tighten-verified-h-264-decoder-requirements",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R175.tighten-verified-h-264-decoder-requirements.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md"
+      ],
+      "reason": "Current SPS reading establishes dimensions/reorder contract and preserves truthful configuration. It does not inspect every slice/reference operation to certify a lower advertised DPB requirement; changing SPS optimistically would weaken admission.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Audit one overstated progressive I/P stream across every reference-list operation, then rewrite only num_ref_frames with exact frame hashes and a hidden extra-reference negative.",
+      "reopen_condition": "Reopen with a full-source behavior certificate and actual destination/resource benefit; never infer one-reference use from SPS/profile labels alone.",
+      "recorded_at_utc": "2026-09-19T17:34:19.180458+00:00"
+    }
+  },
+  "next_action": "Audit one overstated progressive I/P stream across every reference-list operation, then rewrite only num_ref_frames with exact frame hashes and a hidden extra-reference negative.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

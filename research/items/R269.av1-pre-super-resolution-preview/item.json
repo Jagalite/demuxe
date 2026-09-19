@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R269.av1-pre-super-resolution-preview",
+  "title": "AV1 pre-super-resolution preview",
+  "definition": {
+    "key": "R269.av1-pre-super-resolution-preview",
+    "legacy_id": "R269",
+    "legacy_number": 269,
+    "identity_branch": "report-defined",
+    "title": "AV1 pre-super-resolution preview",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 30,
+      "line_end": 35,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A controlled libaom encode used fixed super-resolution denominator 12. The decoder reports frame/coded geometry 427×360 and display geometry 640×360, confirming that a lower-resolution reconstruction exists internally before display upscaling. However, the public decoder output image is already 640×360. The exact experiment requires the pre-super-resolution pixels so that they can be compared with full decode plus downscale. The public libaom surface available here does not expose those pixels. Therefore the card is BLOCKED at the required API boundary, rather than replaced with a misleading lower-resolution re-encode proxy.",
+    "related_reports": [],
+    "scope_hash": "8bfcf92772335f2fd29d8d445eecea857ade4d6029e5fe4547bd0ee9167b4509",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 264,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "Prerequisite-only first: Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R269.av1-pre-super-resolution-preview.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R269.av1-pre-super-resolution-preview.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 323,
+    "record": {
+      "key": "R269.av1-pre-super-resolution-preview",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+      ],
+      "reason": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+      "reopen_condition": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+      "recorded_at_utc": "2026-09-19T17:34:19.159226+00:00"
+    }
+  },
+  "next_action": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

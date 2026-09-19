@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "key": "R353.let-browser-managed-streaming-windows-control-remux-production",
+  "title": "Let browser-managed streaming windows control remux production",
+  "definition": {
+    "key": "R353.let-browser-managed-streaming-windows-control-remux-production",
+    "legacy_id": "R353",
+    "legacy_number": 353,
+    "identity_branch": "proposal",
+    "title": "Let browser-managed streaming windows control remux production",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S052",
+      "path": "sources/proposals/Demuxe_R353_R357_Proposals.md",
+      "sha256": "191a6404e892dc797e748c328ad852989dfbf2881aa208fc9a1d912b6561348d",
+      "line_start": 7,
+      "line_end": 40,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Can the preparation pipeline cooperate with ManagedMediaSource demand signals instead of only changing its network-fetch policy? ManagedMediaSource exposes startstreaming/endstreaming, and ManagedSourceBuffer exposes bufferedchange. Browser-managed eviction means that data once appended is not necessarily still resident. These are API primitives; their exact implementation must be qualified on the test browser. [S1, S2] On endstreaming, stop initiating speculative reads, demuxing, and remux jobs, while finishing or safely retaining in-flight work at valid boundaries. On renewed demand, produce the required next presentation interval. Maintain distinct records for source availability, prepared media, and actual browser-buffer residency. Repair demanded missing intervals together with their decode dependencies; do not refill every evicted interval reflexively.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S035",
+        "path": "sources/reports/R353-R357-report.md",
+        "sha256": "c53d9e99b499bad3c06b3bbfd73b803d7d0cae85f2c68d3d0ab91aae10bbf62d",
+        "line_start": 17,
+        "line_end": 20,
+        "source_kind": "report",
+        "reported_heading": "ManagedMediaSource-driven production"
+      }
+    ],
+    "scope_hash": "7fdcd9647d28473b96aed865a3b732454d5a198605a754cff999cb68715aa5f6",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 14,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "Prerequisite-only first: Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R353.let-browser-managed-streaming-windows-control-remux-production.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R353.let-browser-managed-streaming-windows-control-remux-production.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R353_R357_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R353.let-browser-managed-streaming-windows-control-remux-production.md",
+        "results/top100/environment.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 64,
+    "record": {
+      "key": "R353.let-browser-managed-streaming-windows-control-remux-production",
+      "rank": 14,
+      "state": "HOLD_ENV",
+      "reason": "ManagedMediaSource is undefined in the actual Chrome152 environment. No simulated demand events substituted for real managed window/eviction behavior.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "environment.json",
+          "sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:32:49.625371+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

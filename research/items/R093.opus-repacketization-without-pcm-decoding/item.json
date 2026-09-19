@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R093.opus-repacketization-without-pcm-decoding",
+  "title": "Opus repacketization without PCM decoding",
+  "definition": {
+    "key": "R093.opus-repacketization-without-pcm-decoding",
+    "legacy_id": "R93",
+    "legacy_number": 93,
+    "identity_branch": "proposal",
+    "title": "Opus repacketization without PCM decoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 181,
+      "line_end": 207,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can packet overhead and submission frequency be traded against availability latency without re-encoding audio? What differs from earlier work. Not MSE append batching: changes the codec packet grouping itself while preserving the constituent encoded frames. Input scope. Elementary Opus with compatible mode, bandwidth, frame size and channels; no generalized multistream claim. Mechanism to test. Group existing compatible frames into fewer packets or split a previously grouped packet back into its existing constituent frames. Smallest experiment. 1. Compare existing 20 ms frames in 20/40/60 ms packet groupings. 2. Split a valid multi-frame packet back to the original frame granularity. 3. Mux each form and compare browser and reference-decoder outputs, startup and seek behavior.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 68,
+        "line_end": 78,
+        "source_kind": "report",
+        "reported_heading": "Opus repacketization without PCM — PROMISING"
+      }
+    ],
+    "scope_hash": "5c23d0e6f1920fa351ef0e5e4294c9ca37ca98b823e90243d4a79ca976cd7eca",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 200,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R203.regroup-existing-opus-frames-without-re-encoding",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Opus packet regrouping; compare exact framing and original test settings."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R093.opus-repacketization-without-pcm-decoding.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R093.opus-repacketization-without-pcm-decoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R093.opus-repacketization-without-pcm-decoding.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 269,
+    "record": {
+      "key": "R093.opus-repacketization-without-pcm-decoding",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R093.opus-repacketization-without-pcm-decoding.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md"
+      ],
+      "reason": "Current packet-copy mux preserves packet boundaries; no Opus repacketizer owns grouping or compatible mode transitions. Historical exact PCM is promising but output packet reduction trades against arrival latency rather than meaningful file savings.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Add an isolated host/component repacketizer for one existing 20ms source, split grouped 40/60ms packets back, and compare exact trim plus configuration-change rejection.",
+      "reopen_condition": "Reopen when submission overhead is material and a bounded repacketizer can preserve pre-skip/tail timing.",
+      "recorded_at_utc": "2026-09-19T17:34:19.143542+00:00"
+    }
+  },
+  "next_action": "Add an isolated host/component repacketizer for one existing 20ms source, split grouped 40/60ms packets back, and compare exact trim plus configuration-change rejection.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

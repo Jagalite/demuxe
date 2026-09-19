@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+  "title": "Sample-accurate audio boundaries using mux trim and preroll metadata",
+  "definition": {
+    "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+    "legacy_id": "R94",
+    "legacy_number": 94,
+    "identity_branch": "proposal",
+    "title": "Sample-accurate audio boundaries using mux trim and preroll metadata",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 208,
+      "line_end": 234,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can a compressed audio excerpt have exact audible boundaries without decoding and re-encoding its edge? What differs from earlier work. Deepens excerpt/queue work: the new target is sample-domain trim semantics rather than packet alignment or visible clock continuity. Input scope. Start with Ogg Opus direct playback, whose pre-skip and end-trim semantics explicitly support encoded-stream cropping; WebM and MP4 are separately qualified mappings. Mechanism to test. Keep the encoded frames needed for decoder state, then describe which leading/trailing decoded samples should be omitted through appropriate container metadata. Smallest experiment. 1. Start with Ogg Opus whole-stream priming/end-trimming and arbitrary sample-accurate crops, then test equivalent WebM/MP4 constructions separately. 2. Cut a deterministic impulse/tone source inside a codec frame with explicit preroll. 3. Compare decoded and captured browser output lengths and boundary markers, then concatenate short excerpts.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 79,
+        "line_end": 94,
+        "source_kind": "report",
+        "reported_heading": "sample-accurate compressed Opus crop — PROMISING"
+      }
+    ],
+    "scope_hash": "7affc730fd0255b95ff85622728b53f9b8631031fc867f082c9a439621bac7f7",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 160,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R88-R101-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 237,
+    "record": {
+      "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R88-R101-report.md"
+      ],
+      "reason": "Current path preserves source delay/padding for whole playback; it lacks arbitrary sample-domain excerpt authoring and Ogg granule/preroll mapping. Element currentTime cannot supply sample-exact cut evidence.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
+      "recorded_at_utc": "2026-09-19T17:34:19.109489+00:00"
+    }
+  },
+  "next_action": "Scope one Ogg Opus interior sample cut with retained preroll and packet identity; packet-only cut is adverse control, and direct/MSE metadata mappings remain separate.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

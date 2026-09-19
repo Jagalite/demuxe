@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R214.packed-v210-without-cpu-planarization",
+  "title": "packed v210 without CPU planarization",
+  "definition": {
+    "key": "R214.packed-v210-without-cpu-planarization",
+    "legacy_id": "R214",
+    "legacy_number": 214,
+    "identity_branch": "report-defined",
+    "title": "packed v210 without CPU planarization",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 23,
+      "line_end": 28,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The fixture deliberately uses width 50, so the last v210 packing group is partial, and FFmpeg emits a 256-byte row stride even though the packed groups require only 144 bytes. The candidate unpacker interpreted the packed 10-bit words directly and recovered 400 Y, 200 U and 200 V samples exactly. Maximum error was zero on all planes. A one-byte-truncated control was rejected. This proves the packed-buffer interpretation needed by the proposed shader path. It does not establish the complete route benefit because no GPU API is available in this browser session.",
+    "related_reports": [],
+    "scope_hash": "946d6bbf12d20de2466db792557d79dd3793f27fdab2757390230a1bd5ccd874",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 258,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R214.packed-v210-without-cpu-planarization.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R214.packed-v210-without-cpu-planarization.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 317,
+    "record": {
+      "key": "R214.packed-v210-without-cpu-planarization",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
+      "reopen_condition": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
+      "recorded_at_utc": "2026-09-19T17:34:19.157739+00:00"
+    }
+  },
+  "next_action": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

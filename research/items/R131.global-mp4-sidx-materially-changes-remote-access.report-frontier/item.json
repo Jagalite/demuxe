@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+  "title": "global MP4 sidx materially changes remote access",
+  "definition": {
+    "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+    "legacy_id": "R131",
+    "legacy_number": 131,
+    "identity_branch": "report-frontier",
+    "title": "global MP4 sidx materially changes remote access",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 110,
+      "line_end": 125,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The two 60-second fMP4 files use the same codec/source construction; one contains a global sidx, the other uses skip_sidx. Without sidx, Chromium sequentially requested essentially the entire 3,362,971-byte resource before metadata became ready. With sidx, the total through the same metadata+seek operation was 1,069,611 bytes, a 68.2% reduction. This is a synthetic local Range server and one Chrome build; response cap, latency and server behavior can change the exact savings. But the qualitative result is strong: the index allows materially more selective access.",
+    "related_reports": [],
+    "scope_hash": "6864b08b8b6463d2f294ef27dc9da30336c2648ca1baa2990b8607ef6935aa55",
+    "legacy_guide_aliases": [
+      "R131 in the old 17-item seek-index queue"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 82,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R131.automatically-search-equivalent-representations",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R274.virtual-webm-cues",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R131.global-mp4-sidx-materially-changes-remote-access.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R131.global-mp4-sidx-materially-changes-remote-access.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R131.global-mp4-sidx-materially-changes-remote-access.report-frontier.md",
+        "results/full-completion/remote-index/identity.json",
+        "results/full-completion/remote-index/result.json",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 41,
+    "record": {
+      "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+      "rank": 82,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Same-size same-packet indexed and unindexed variants reach identical target pixel hashes at 20s. Global index reduces this bounded native request trace from 6656858 to 6296410 bytes. Benefit is modest on this 26-second local fixture; pursue asset-side metadata only with real remote byte/latency exposure.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/remote-index/result.json",
+          "sha256": "0fdc5789fa3b1262c098ef11f1ef2b6cf3edfeca0868ba609883d64d24992eb9"
+        },
+        {
+          "path": "../full-completion/remote-index/identity.json",
+          "sha256": "472e8955ec8902cacbf5ff16d6975b072fa4c736398108a5984f6e4b9d714095"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.660825+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

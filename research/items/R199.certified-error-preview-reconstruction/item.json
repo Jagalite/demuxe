@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R199.certified-error-preview-reconstruction",
+  "title": "certified-error preview reconstruction",
+  "definition": {
+    "key": "R199.certified-error-preview-reconstruction",
+    "legacy_id": "R199",
+    "legacy_number": 199,
+    "identity_branch": "report-defined",
+    "title": "certified-error preview reconstruction",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 70,
+      "line_end": 82,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Using libjpeg-turbo quantized coefficients and a pinned double-precision 8×8 IDCT basis, the prototype omits transform contributions only when their conservative absolute contribution plus rounding allowance remains within the requested per-pixel budget. An additional 50,000 adversarial coefficient blocks produced 0 bound violations; the worst observed error/certificate ratio was 0.999700. This validates the certificate for the pinned reconstruction model, not yet a production JPEG decoder.",
+    "related_reports": [],
+    "scope_hash": "058608843673dcfb00b1ba2ab8e4d9f127e2b457757d5141dd126dfb81282dbf",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 365,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R199.certified-error-preview-reconstruction.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R199.certified-error-preview-reconstruction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R199.certified-error-preview-reconstruction.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 406,
+    "record": {
+      "key": "R199.certified-error-preview-reconstruction",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R199.certified-error-preview-reconstruction.md"
+      ],
+      "reason": "Current UI commits seeks and presenter renders decoded pictures; there is no JPEG coefficient-preview reconstruction owner. Historical certificate applies a pinned double IDCT model rather than arbitrary browser JPEG output. Adding an approximate preview decoder needs an explicit output contract and parser.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Identify one coefficient-accessible JPEG preview consumer and compare certificate including rounding against its reference before any browser presentation.",
+      "reopen_condition": "Identify one coefficient-accessible JPEG preview consumer and compare certificate including rounding against its reference before any browser presentation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.181464+00:00"
+    }
+  },
+  "next_action": "Identify one coefficient-accessible JPEG preview consumer and compare certificate including rounding against its reference before any browser presentation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

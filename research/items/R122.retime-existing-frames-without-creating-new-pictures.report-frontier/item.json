@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R122.retime-existing-frames-without-creating-new-pictures.report-frontier",
+  "title": "Retime existing frames without creating new pictures",
+  "definition": {
+    "key": "R122.retime-existing-frames-without-creating-new-pictures.report-frontier",
+    "legacy_id": "R122",
+    "legacy_number": 122,
+    "identity_branch": "report-frontier",
+    "title": "Retime existing frames without creating new pictures",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 58,
+      "line_end": 79,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The three-frame all-intra MP4 was changed from one-second to two-second sample durations by modifying timing tables and container durations only. The mdat is byte-identical. Chrome reports 6.0 s, shows red/green/blue for two seconds each, and reports only 3 total decoded video frames. This is a useful complement to R96: sparse/held presentations do not necessarily require a new video encode when the existing compressed samples already correspond to the desired visual states. R123: FFmpeg's normal Opus WebM had positive DiscardPadding=13,500,000 ns on the final block. Zeroing that metadata changed decoded output from 96,000 → 96,648 samples, exactly 648 samples = 13.5 ms at 48 kHz. Concatenated Opus packet payload SHA-256 stayed identical. Chrome plays both files and reports the same nominal 2.008 s container duration, so output trimming and HTML timeline metadata are separate observations.",
+    "related_reports": [],
+    "scope_hash": "ce14cfe805f2cac6f8d91cf18f2ffcbbde7e3141553f9048c4548d141a77373c",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 75,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R122.retime-existing-frames-without-creating-new-pictures.report-frontier.md",
+        "results/top100/patch-mux/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 88,
+    "record": {
+      "key": "R122.retime-existing-frames-without-creating-new-pictures.report-frontier",
+      "rank": 75,
+      "state": "PURSUE",
+      "reason": "Explicit2x held/slower presentation patches timing without adding pictures:24 original compressed samples and decoded frames retained, every PTS/DTS/duration doubles. No motion interpolation or default rate change.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "patch-mux/result.json",
+          "sha256": "fbadd226f029986efb8a86bb746878a74ff92616b4cf2e0c3a7f2e2ea5ca3342"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:02:15.538706+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

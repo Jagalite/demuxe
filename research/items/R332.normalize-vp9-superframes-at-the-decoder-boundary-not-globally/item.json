@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "key": "R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally",
+  "title": "Normalize VP9 superframes at the decoder boundary, not globally",
+  "definition": {
+    "key": "R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally",
+    "legacy_id": "R332",
+    "legacy_number": 332,
+    "identity_branch": "proposal",
+    "title": "Normalize VP9 superframes at the decoder boundary, not globally",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S048",
+      "path": "sources/proposals/Demuxe_R332_R337_Proposals.md",
+      "sha256": "137a31463db79c7d4bc970a9580c409b66c847c4df0824dc63453d167ca8baa1",
+      "line_start": 26,
+      "line_end": 55,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Proposal key: 705f6f20c6e66b736ec8ce6ccb8a57171d5c7c212e815ff0109356e70580b0a7 Mechanism: Preserve the elementary VP9 frame bytes and decode order while adapting aggregate packet boundaries to a specifically qualified destination. Preserve invisible reference frames and independently map displayed-picture timestamps. Initial scope: Unencrypted VP9 profile 0, stable configuration, one spatial layer, valid superframe indexes, a genuine cold-start keyframe, and a fixture containing invisible alternate-reference pictures. Acceptance contract: Coded component-frame identity, displayed-picture identity and ordering, visible timestamps/durations, continuing reference behavior, correct seeks, and EOF. No invented display duration for an invisible picture.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S032",
+        "path": "sources/reports/R332-R337-report.md",
+        "sha256": "b7ab0b9084cabf3952646bd93d1b38530ba51f5d69b709226ce57ee122405815",
+        "line_start": 18,
+        "line_end": 25,
+        "source_kind": "report",
+        "reported_heading": "Normalize VP9 superframes at the decoder boundary, not globally"
+      }
+    ],
+    "scope_hash": "e4d42b5caa45ab1ee059b702e5cbab830dbc42ca8408f9badee6f0625a37d4cb",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 3,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "VP9 framing normalization; compare superframe and destination scope."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally.md",
+        "results/full-completion/r332/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: CLOSED_CURRENT_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 18,
+    "record": {
+      "key": "R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally",
+      "rank": 3,
+      "state": "CLOSED_CURRENT_PROFILE",
+      "reason": "Reconciled completed prior evidence: Actual maintained worker already decodes the aggregate construction exactly, including hidden altrefs; splitting adds six submissions with no repaired output. Preserve aggregate path on this qualified synthetic decoder profile. No full-player or universal performance claim.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/r332/result.json",
+          "sha256": "8f91611597085c717fa2414a19ef782c04ec499597754f87e8631a79ae8be183"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.138704+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

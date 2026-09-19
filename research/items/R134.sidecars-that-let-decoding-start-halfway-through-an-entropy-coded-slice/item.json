@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+  "title": "Sidecars that let decoding start halfway through an entropy-coded slice",
+  "definition": {
+    "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+    "legacy_id": "R134",
+    "legacy_number": 134,
+    "identity_branch": "proposal",
+    "title": "Sidecars that let decoding start halfway through an entropy-coded slice",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 79,
+      "line_end": 82,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Prepare source-bound arithmetic registers, coding contexts, positions and neighbor syntax at selected H.264 slice boundaries to permit entropy parsing restarts. Verify syntax identity before parallel reconstruction and charge sidecar preparation.",
+    "related_reports": [],
+    "scope_hash": "7c923db73d80368f1c259f0665a0da0bcdda71da9f7eac0e942837099db1e698",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 311,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 353,
+    "record": {
+      "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md"
+      ],
+      "reason": "Current H264 parser initializes CABAC contexts per slice and the browser bridge treats decode state as opaque. Mid-slice arithmetic/neighbor state restoration requires a maintained decoder instrumentation/export ABI, not source range seeking alone.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.167293+00:00"
+    }
+  },
+  "next_action": "Define one logical CABAC checkpoint at a known syntax boundary in controlled decoder; compare full suffix symbols, then corrupt one context/neighbor field and reject. Charge initial state generation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

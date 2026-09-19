@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R179.exact-subtitle-font-subsetting",
+  "title": "exact subtitle font subsetting",
+  "definition": {
+    "key": "R179.exact-subtitle-font-subsetting",
+    "legacy_id": "R179",
+    "legacy_number": 179,
+    "identity_branch": "report-defined",
+    "title": "exact subtitle font subsetting",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 91,
+      "line_end": 100,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two Noto fonts totaling 756,780 bytes were subset for the controlled ASS track to 112,164 bytes, or 14.82% of the original footprint. Tests included Latin ligatures, AV kerning, decomposed combining acute, Greek, Cyrillic, Arabic shaping, and an explicit line break. The exactness gate failed. The composite libass frame differs in 162 RGBA bytes with a maximum channel delta of 43. Isolated rendering found the mismatch in decomposed A + combining acute; the office/affine/AV/naïve/Greek/Cyrillic/Arabic controls were exact. This should be treated as a useful rejection, not rounded into a success because the visible difference is small. Integration implication: a prepared font subset is acceptable only with a track-specific shaping/raster witness suite. This current subset recipe is rejected for exact playback.",
+    "related_reports": [],
+    "scope_hash": "8ac847f21e0c832d5bd211719b6020fdc1e2d41ef4491bd339fecdbff33a0f7c",
+    "legacy_guide_aliases": [],
+    "family": "subtitles",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 245,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect.",
+    "minimum_probe": "One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "initial_screen": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect. One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "primary_metric": "Required caption capability or total render/extraction cost and retained cue/atlas memory.",
+    "scope_contract": "Independent rendering or browser-owned reference appropriate to the same contract, including hidden state, timing, ordering and clear events.",
+    "negative_control": "Seek into an active cue, change fonts/layout/source, or omit a required style/control. No silent simplification or stale overlay.",
+    "stop_boundary": "No new subtitle service, full shaping engine or font-subsetting system during first pass. Defer if the necessary observer is not available.",
+    "shared_prerequisite": "Same admitted subtitle renderer/assets; public cue-list/lifecycle compatibility must be addressed before virtualization.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R179.exact-subtitle-font-subsetting.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R179.exact-subtitle-font-subsetting.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R179.exact-subtitle-font-subsetting.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 304,
+    "record": {
+      "key": "R179.exact-subtitle-font-subsetting",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R179.exact-subtitle-font-subsetting.md"
+      ],
+      "reason": "The full report shows a concrete decomposed combining-acute mismatch for the subset recipe. Current libass receives complete supplied fonts under byte/cache limits; reducing these fonts with that failed recipe cannot preserve the exact subtitle contract. This is a historical experimental rejection, not a new test or an environment blocker.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+      "reopen_condition": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+      "recorded_at_utc": "2026-09-19T17:34:19.154468+00:00"
+    }
+  },
+  "next_action": "Reopen only with a corrected font-subset recipe retaining the missing combining-mark behavior; compare isolated glyphs and the full ASS composition.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "key": "R126.find-where-hardware-decoding-loses-on-short-jobs",
+  "title": "Find where hardware decoding loses on short jobs",
+  "definition": {
+    "key": "R126.find-where-hardware-decoding-loses-on-short-jobs",
+    "legacy_id": "R126",
+    "legacy_number": 126,
+    "identity_branch": "proposal",
+    "title": "Find where hardware decoding loses on short jobs",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 47,
+      "line_end": 50,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Compare complete thumbnail, short-preview and sustained-playback jobs across qualified decoder implementations, including configuration, output extraction and cleanup. Acceleration preferences are not hardware proof.",
+    "related_reports": [],
+    "scope_hash": "f63aa7ba12a68261f5e811f374b06ae1c129b530ea8dba196ae906a2d3a73d1d",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 80,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R126.find-where-hardware-decoding-loses-on-short-jobs.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R126.find-where-hardware-decoding-loses-on-short-jobs.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R126.find-where-hardware-decoding-loses-on-short-jobs.md",
+        "results/top100/decode-cost-qualification.json",
+        "results/top100/decode-cost-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE_PREFERENCE_ONLY. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 79,
+    "record": {
+      "key": "R126.find-where-hardware-decoding-loses-on-short-jobs",
+      "rank": 80,
+      "state": "PURSUE_PREFERENCE_ONLY",
+      "reason": "Both acceleration preferences passed exact visible-pixel and timestamp oracle before retained timing rerun. Software-preferred complete1/12/72-frame jobs were faster in this bounded profile. Hints do not prove decoder hardware identity; no universal hardware crossover claim or production policy.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "decode-cost-qualification.json",
+          "sha256": "ac7ce9f07a9ee2f9b0c83fa72eb1fb21cccce49b42bfee113ce30d7f3f7bae77"
+        },
+        {
+          "path": "decode-cost-result.json",
+          "sha256": "6e44c1d71a24c3b463aed12e7457681f07c9968110d9613129bd79731d783cf0"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:50:21.369709+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

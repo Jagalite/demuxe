@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+  "title": "Preserve hardware-overlay eligibility through subtitle and UI composition",
+  "definition": {
+    "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+    "legacy_id": "R295",
+    "legacy_number": 295,
+    "identity_branch": "proposal",
+    "title": "Preserve hardware-overlay eligibility through subtitle and UI composition",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S044",
+      "path": "sources/proposals/Demuxe_R295_R300_Proposals.md",
+      "sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+      "line_start": 9,
+      "line_end": 24,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Presentation/energy experiment. First owner: Local hardware/browser laboratory. Related: R19, R21, R23; not another subtitle decoder. Hypothesis. Two interfaces that display the same video, subtitles, and controls may cause the browser to choose different composition paths. Test whether an equivalent layer arrangement can keep the video eligible for a platform video overlay rather than forcing additional general-purpose composition. Source basis. Chromium separates overlay candidates from content requiring ordinary composition, and does so through platform-specific implementations. Its candidate construction checks such properties as transform support, clipping, mask filters, and backdrop filters. Those are implementation observations, not a portable promise that one CSS rule always enables or disables overlays. [S1, S2]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S026",
+        "path": "sources/reports/R295-R300-report.md",
+        "sha256": "b81f4a02cd56a68c8c9952ab0ffac7376b8ba1a2b89228d7a639958911f4ffc4",
+        "line_start": 19,
+        "line_end": 24,
+        "source_kind": "report",
+        "reported_heading": "preserve hardware-overlay eligibility"
+      }
+    ],
+    "scope_hash": "65130136abf0bbb5c39818235d9dfb9bf80257f8a2abd71f5b5bbcd8155e208f",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 12,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Prerequisite-only first: Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R101.keep-decoded-video-on-the-native-overlay-display-path",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Overlay eligibility; platform and requested visual features determine equivalence."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition.md",
+        "results/top100/environment.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 61,
+    "record": {
+      "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+      "rank": 12,
+      "state": "HOLD_ENV",
+      "reason": "Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "environment.json",
+          "sha256": "38f7fed3ec86aa61f53c2142faf8d36b5c57f879086c8f46bb3147508565edb9"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:32:49.624802+00:00"
+    }
+  },
+  "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

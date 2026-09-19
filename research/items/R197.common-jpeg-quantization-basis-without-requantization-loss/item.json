@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R197.common-jpeg-quantization-basis-without-requantization-loss",
+  "title": "common JPEG quantization basis without requantization loss",
+  "definition": {
+    "key": "R197.common-jpeg-quantization-basis-without-requantization-loss",
+    "legacy_id": "R197",
+    "legacy_number": 197,
+    "identity_branch": "report-defined",
+    "title": "common JPEG quantization basis without requantization loss",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 56,
+      "line_end": 63,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two 128×128 grayscale JPEGs used different quantization tables. For every coefficient position the transformer chose G=gcd(Q_A,Q_B) and replaced each quantized coefficient with C' = C·Q/G. Every transformed coefficient remained within JCOEF range (maximum absolute 513). The dequantized coefficient hashes are unchanged for both images. FFmpeg reports zero decoded-pixel differences, and Chromium createImageBitmap + canvas reports zero RGBA component differences for both transformed files. The representation is not automatically smaller: A grew 516→1494 bytes and B 1329→2292 bytes. This is a lossless compatibility/editing basis, not a compression win.",
+    "related_reports": [],
+    "scope_hash": "4b98e48c383dcc6aa740211a1f4faa4e292d745bf7ac97594248e697709d8706",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 364,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R197.common-jpeg-quantization-basis-without-requantization-loss.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R197.common-jpeg-quantization-basis-without-requantization-loss.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R197.common-jpeg-quantization-basis-without-requantization-loss.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 405,
+    "record": {
+      "key": "R197.common-jpeg-quantization-basis-without-requantization-loss",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R197.common-jpeg-quantization-basis-without-requantization-loss.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md"
+      ],
+      "reason": "Current playback consumes JPEG/video pixels without requiring a shared coefficient quantization basis. The gcd transform is exactly useful for coefficient editing but substantially grew both example files, so it is not a transparent compression/playback improvement.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For a coefficient-domain composition requirement, verify each dequantized coefficient after gcd rescaling with JCOEF overflow rejection, then charge larger entropy payloads.",
+      "reopen_condition": "Reopen when a downstream operation actually requires shared tables; no requantization loss does not imply smaller or cheaper media.",
+      "recorded_at_utc": "2026-09-19T17:34:19.181221+00:00"
+    }
+  },
+  "next_action": "For a coefficient-domain composition requirement, verify each dequantized coefficient after gcd rescaling with JCOEF overflow rejection, then charge larger entropy payloads.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

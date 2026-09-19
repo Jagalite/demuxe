@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts",
+  "title": "Integrate video exposure over real frame durations instead of frame counts",
+  "definition": {
+    "key": "R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts",
+    "legacy_id": "R352",
+    "legacy_number": 352,
+    "identity_branch": "proposal",
+    "title": "Integrate video exposure over real frame durations instead of frame counts",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S051",
+      "path": "sources/proposals/Demuxe_R348_R352_Proposals.md",
+      "sha256": "e778885a12e305271899d494b2dbf9dcf0a16ed2793a67e31db89b17672720cb",
+      "line_start": 152,
+      "line_end": 192,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Investigate an explicitly requested temporal box-exposure renderer for a variable-frame-rate timeline. FFmpeg's tmix provides an established frame-mixing baseline, but a fixed count of frames and fixed weights do not by themselves define duration-aware exposure. [S10] Model each admitted input picture F_i as held on [t_i,t_(i+1)). For output exposure [a,b): w_i = max(0, min(b,t_(i+1)) - max(a,t_i))     Y = (sum_i w_i F_i) / (b-a) For example, linear-light red held for 10 ms and blue held for 30 ms contribute 25% and 75% to a 40 ms exposure, not 50% each. The proposed optimization sweeps actual presentation events. For overlapping output exposures, subtract portions leaving the window and add portions entering it, rather than rendering many uniformly spaced temporal subframes or repeatedly visiting every contributing picture.",
+    "related_reports": [],
+    "scope_hash": "c3d2322ba8edca92a5e7eaf37c5a32396241d886c1c5ba270e5f014f75b7b06e",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 257,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 316,
+    "record": {
+      "key": "R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
+      "reason": "Existing presentation selects/draws original frames; it does not request temporal box exposure. Implementing duration-aware blend changes presentation unless explicitly requested and needs a bounded exposure-frame owner and linear-light contract.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Use one requested VFR two-color exposure with 10/30 ms holds to compare exact 25/75 weighting against a bounded accumulator.",
+      "reopen_condition": "Use one requested VFR two-color exposure with 10/30 ms holds to compare exact 25/75 weighting against a bounded accumulator.",
+      "recorded_at_utc": "2026-09-19T17:34:19.157484+00:00"
+    }
+  },
+  "next_action": "Use one requested VFR two-color exposure with 10/30 ms holds to compare exact 25/75 weighting against a bounded accumulator.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

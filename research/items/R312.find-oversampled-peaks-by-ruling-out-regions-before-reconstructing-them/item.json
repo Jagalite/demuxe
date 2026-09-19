@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them",
+  "title": "Find oversampled peaks by ruling out regions before reconstructing them",
+  "definition": {
+    "key": "R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them",
+    "legacy_id": "R312",
+    "legacy_number": 312,
+    "identity_branch": "proposal",
+    "title": "Find oversampled peaks by ruling out regions before reconstructing them",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S046",
+      "path": "sources/proposals/Demuxe_R307_R312_Proposals.md",
+      "sha256": "7ae4dc9793e534c8339ad71994b22f8f464117ce356d8af75e98afcdbbecbf6b",
+      "line_start": 184,
+      "line_end": 221,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Class: Exact-result branch-and-bound analysis relative to a specified digital reference. Output contract: Same maximum value as a pinned oversampled finite-filter reference, or the same ceiling pass/fail decision. Not a proof of the maximum of every possible analog reconstruction. Related: R199 uses a bound to permit image approximation; this uses bounds to retain the full reference analysis result. FFmpeg's true-peak measurement uses oversampling, and its pinned implementation explicitly runs the resampler and scans resulting samples [S4, S9]. Investigate computing conservative bounds on those samples before evaluating all of them. If M_B bounds absolute source values throughout every input sample needed by an output region B, then:",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S028",
+        "path": "sources/reports/R307-R312-report.md",
+        "sha256": "33c8415c1858d6288d7498ee28937353e319cf319a4006f505b93ba3561cb44c",
+        "line_start": 58,
+        "line_end": 65,
+        "source_kind": "report",
+        "reported_heading": "Find oversampled peaks by ruling out regions before reconstructing them"
+      }
+    ],
+    "scope_hash": "75e89beab38c37251d63d953eaaf2098665808b8431ee0dcca4c801a7e98550b",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 250,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R307_R312_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 309,
+    "record": {
+      "key": "R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R312.find-oversampled-peaks-by-ruling-out-regions-before-reconstructing-them.md"
+      ],
+      "reason": "Current output diagnostics do not perform a full finite-filter oversampled peak scan. The report shows a workload-dependent exact digital reference optimization, not an opportunity to replace ordinary playback or its RMS observation.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen when an actual peak-analysis operation is requested; compare sparse transient and dense high-level inputs against a contiguous full scan.",
+      "reopen_condition": "Reopen when an actual peak-analysis operation is requested; compare sparse transient and dense high-level inputs against a contiguous full scan.",
+      "recorded_at_utc": "2026-09-19T17:34:19.155716+00:00"
+    }
+  },
+  "next_action": "Reopen when an actual peak-analysis operation is requested; compare sparse transient and dense high-level inputs against a contiguous full scan.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

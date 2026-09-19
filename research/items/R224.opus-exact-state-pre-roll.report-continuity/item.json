@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R224.opus-exact-state-pre-roll.report-continuity",
+  "title": "Opus exact-state pre-roll",
+  "definition": {
+    "key": "R224.opus-exact-state-pre-roll.report-continuity",
+    "legacy_id": "R224",
+    "legacy_number": 224,
+    "identity_branch": "report-continuity",
+    "title": "Opus exact-state pre-roll",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 47,
+      "line_end": 54,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The fixture has 501 original 20-ms Opus audio packets. A fresh libopus decoder was started at increasing packet distances before target packet 250; no packet was re-encoded. Zero pre-roll differs substantially (first-target-packet maximum float difference 0.333295). At 80 ms, the first-target-packet maximum difference falls to 0.042560, but it is still not bit-exact. In this fixture the first tested window that reproduces the entire remaining decoder output exactly is 30 packets / 600 ms. This does not establish a universal 600-ms Opus requirement. It establishes that “seek with original packets” and “bit-exact decoder state” are separate properties, and a Demuxe exactness mode must measure/qualify state closure rather than treating a normal perceptual seek pre-roll as proof of bit identity.",
+    "related_reports": [],
+    "scope_hash": "87d991cac470c108cf5b77fd10aa2b2250252282353e9eda0fa41e62eb0f4c2e",
+    "legacy_guide_aliases": [
+      "R224-C"
+    ],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 306,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R224.opus-exact-state-pre-roll.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R224.opus-exact-state-pre-roll.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R224.opus-exact-state-pre-roll.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 209,
+    "record": {
+      "key": "R224.opus-exact-state-pre-roll.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R224.opus-exact-state-pre-roll.report-continuity.md"
+      ],
+      "reason": "The report contains a concrete counterexample to treating an ordinary 80 ms Opus preroll as bit-exact state restoration. Current packet-copy Opus and browser seek behavior expose no decoder-state witness; original compressed packets cannot justify an exactness claim. The report fixture first passes at 600 ms but supplies no universal bound.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For a specifically requested bit-exact Opus seek mode, establish output/state closure on that exact decoder/stream against uninterrupted PCM; do not generalize either 80 or 600 ms to all streams.",
+      "reopen_condition": "For a specifically requested bit-exact Opus seek mode, establish output/state closure on that exact decoder/stream against uninterrupted PCM; do not generalize either 80 or 600 ms to all streams.",
+      "recorded_at_utc": "2026-09-19T17:34:19.102009+00:00"
+    }
+  },
+  "next_action": "For a specifically requested bit-exact Opus seek mode, establish output/state closure on that exact decoder/stream against uninterrupted PCM; do not generalize either 80 or 600 ms to all streams.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "key": "R074.skip-redundant-packed-pcm-staging",
+  "title": "Skip redundant packed-PCM staging",
+  "definition": {
+    "key": "R074.skip-redundant-packed-pcm-staging",
+    "legacy_id": "R74",
+    "legacy_number": 74,
+    "identity_branch": "report-defined",
+    "title": "Skip redundant packed-PCM staging",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S004",
+      "path": "sources/reports/R70-R75-report.md",
+      "sha256": "246adfe566aaf3b297dd50bf62876c04e2b27f54767fa028f8a22a2a63187edc",
+      "line_start": 89,
+      "line_end": 116,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Question. Can admitted packed lossless integer audio be written directly into the existing FIFO, avoiding a temporary allocation and per-sample copy? The reviewed adaptation_frames allocates a converted AVFrame and copies sample/channel data before FIFO writing, including when data is already packed. S24 stored in S32 also requires validation that the low eight bits are zero. Planar interleaving and explicit Opus float conversion remain necessary in their respective paths. [D2] The native C prototype uses the real system libavutil FIFO API, but substitutes a malloc staging buffer for production AVFrame allocation. The packed candidate skips staging; S24 validates the entire input before publishing samples. Planar cases call the same baseline function as controls. FIFO write/read is retained, so this is not a zero-copy ownership claim. [F3]",
+    "related_reports": [],
+    "scope_hash": "cad41c56162863fbd9781b6b8d58fe212066c7ce6da534d290da03a4251aea30",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 70,
+    "local_screen_state": "USER_REPORTED_FIRST_PASS_COMPLETE",
+    "evidence_level": "USER_REPORTED_LOCAL_SCREEN_RAW_ARTIFACTS_NOT_BUNDLED",
+    "default_next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Reopen for a different demonstrated workload, memory outcome or materially changed implementation; do not repeat the same seven-pair CPU screen.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "Reopen for a different demonstrated workload, memory outcome or materially changed implementation; do not repeat the same seven-pair CPU screen.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit.",
+    "inherited_decision": "STOP_PROFILE",
+    "followup_lane": "DO_NOT_REPEAT_PROFILE"
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R074.skip-redundant-packed-pcm-staging.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R074.skip-redundant-packed-pcm-staging.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 37,
+    "record": {
+      "key": "R074.skip-redundant-packed-pcm-staging",
+      "rank": 70,
+      "state": "STOP_PROFILE",
+      "reason": "Reconciled completed prior evidence: Reported exact packed-lossless Wasm prototype; seven complete-operation pairs were -0.80% saving (95% interval -2.97% to +1.23%) against a predeclared 5% gate. Observer-free deployment not established. Actual local raw records and prior manifest identity were inspected in this v4 import.",
+      "evidence_level": "REUSED_IMPORTED_LOCAL_EVIDENCE",
+      "evidence": [
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+          "sha256": "f0bf6b78733f10fb802e2e671448ea9644f5515337e76640437a96d029048b3b"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+          "sha256": "42d1a13c5321110d6afd297b8c20ab0f072982c8c32a89b2826afd22b7bb9d2e"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+          "sha256": "657b8fb12b849b6b5b62da9ed6176bb768b1dc7518849dec1aa45a78b8235f8b"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+          "sha256": "4f91c79726e679800053ed288cef42f883d1bd96494125dd8cdecff4b13db576"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+          "sha256": "457b58773b2921cb9b6473391bd9725333c1f3e00ae97e9f43da7c0a96888060"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+          "sha256": "280e573b2c2cffd76f03c539a42dd811edcb5cd6256bd4b5d248ebe69c9777bf"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+          "sha256": "a3d9832d350e41bdd3e5e2ec26f79898a68b7239f853c680952ebec8ce6b7469"
+        },
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
+          "sha256": "dc8bcf6e914cdad494676d90746d425ffd211709451174519fdd32b529331170"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.597565+00:00"
+    }
+  },
+  "next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Reopen for a different demonstrated workload, memory outcome or materially changed implementation; do not repeat the same seven-pair CPU screen.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

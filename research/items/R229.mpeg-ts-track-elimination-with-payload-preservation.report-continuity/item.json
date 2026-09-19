@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+  "title": "MPEG-TS track elimination with payload preservation",
+  "definition": {
+    "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+    "legacy_id": "R229",
+    "legacy_number": 229,
+    "identity_branch": "report-continuity",
+    "title": "MPEG-TS track elimination with payload preservation",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 79,
+      "line_end": 84,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The source transport contains one H.264 stream and two AAC tracks. Rebuilding the TS with only video + first audio preserves all 150 video packet payload hashes and all 236 selected-audio payload hashes. The unused 236 AAC packets are absent. Transport size falls from 345,920 to 281,248 bytes, a 18.7% reduction. This validates a payload-preserving track-pruning route; the TS container itself must still be rebuilt because PAT/PMT/PID/PCR/continuity semantics belong to the output transport.",
+    "related_reports": [],
+    "scope_hash": "65bee383b75bd05577b99d3c6319bb58d18c46415edb61510f1e449063f80b5a",
+    "legacy_guide_aliases": [
+      "R229-C"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 99,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity.md",
+        "results/top100/program/browser-result.json",
+        "results/top100/program/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 68,
+    "record": {
+      "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+      "rank": 99,
+      "state": "PURSUE",
+      "reason": "Explicit program202 TS packet filter keeps selected elementary/PCR/PMT PIDs and rewrites PAT with valid CRC. Reversed PAT order produces identical selected payload/timing. Unchanged RemuxPlayer plays/seeks output, complete host decoded pixels/PCM exact. Missing program rejects; dynamic PSI/scrambled transport outside scope.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "program/result.json",
+          "sha256": "90572583d98c397b810a9cbd31bd969d7bd1b718a73e232c9e8edd4afeeb4b2d"
+        },
+        {
+          "path": "program/browser-result.json",
+          "sha256": "e50c9884492385d89cc433d75cd36837aadd7b19cb35378cfe1088b786655088"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:39:14.632391+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

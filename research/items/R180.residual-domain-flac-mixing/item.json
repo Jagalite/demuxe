@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R180.residual-domain-flac-mixing",
+  "title": "residual-domain FLAC mixing",
+  "definition": {
+    "key": "R180.residual-domain-flac-mixing",
+    "legacy_id": "R180",
+    "legacy_number": 180,
+    "identity_branch": "report-defined",
+    "title": "residual-domain FLAC mixing",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 101,
+      "line_end": 108,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two real mono FLAC frames were parsed. Both use compatible fixed predictor order 3 and Rice parameter 1. Instead of reconstructing the complete PCM signals, the prototype sums the predictor warmups and all 4,093 coded residual values directly, chooses a valid output Rice parameter, authors a new FLAC frame, and rebuilds integrity fields. The output contains 4,096 samples and decodes sample-for-sample exactly to the ordinary PCM sum. The observed output range, −6,581 to 7,887, remains safely inside signed 16-bit headroom. Integration implication: exact lossless mixing can exist below the PCM layer for carefully admitted, aligned predictor-compatible FLAC. General gain, clipping, resampling, stereo coupling, mismatched predictors, and arbitrary frame alignment remain outside the proven route.",
+    "related_reports": [],
+    "scope_hash": "098ae894f69d730be7f31d709376f202d702858e57ab38c69641803d7ca1160c",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 383,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R180.residual-domain-flac-mixing.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R180.residual-domain-flac-mixing.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 424,
+    "record": {
+      "key": "R180.residual-domain-flac-mixing",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+      ],
+      "reason": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+      "reopen_condition": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+      "recorded_at_utc": "2026-09-19T17:34:19.186128+00:00"
+    }
+  },
+  "next_action": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

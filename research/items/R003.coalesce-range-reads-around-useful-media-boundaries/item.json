@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
+  "title": "Coalesce range reads around useful media boundaries",
+  "definition": {
+    "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
+    "legacy_id": "R03",
+    "legacy_number": 3,
+    "identity_branch": "proposal",
+    "title": "Coalesce range reads around useful media boundaries",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 115,
+      "line_end": 133,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Delivery · New optimization hypothesis · P1 · Risk: Medium First environment: Host fixture server + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Use bounded adjacent-read coalescing and metadata/keyframe-aware prefetch rather than one network request per small AVIO read. Maintain separate budgets for startup metadata, active playback and speculative seek lookahead. Source basis. FFmpeg exposes probe and I/O buffering controls; increasing probe coverage may increase startup work. Streams defines consumer-driven backpressure. These do not choose Demuxe’s network chunk size for it. [F1, S1] First agent experiment. Compare fixed small chunks with adaptive coalescing on front-index MP4, tail-index MP4, MKV cues and interrupted seek scrubbing. Use the same range server with controlled latency; record received and abandoned bytes separately.",
+    "related_reports": [],
+    "scope_hash": "7adfe9f260ac515c9fc746c6a905434603522c0d8249310d85edf5e9e8abfc8c",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 59,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R003.coalesce-range-reads-around-useful-media-boundaries.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R003.coalesce-range-reads-around-useful-media-boundaries.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R003.coalesce-range-reads-around-useful-media-boundaries.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/r003-baseline-correction.md",
+        "results/full-completion/remux-policies/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 30,
+    "record": {
+      "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
+      "rank": 59,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Actual remux read-window candidate reduced requests 73 to 24 while fetched bytes changed 4784128 to 5701632. Source identity replacement rejects, decoded-frame progress and distant seek pass, workers close. Worth a latency/abandoned-byte tradeoff study; this is not boundary-indexed coalescing or a CPU benchmark.",
+      "evidence_level": "REUSED_REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "../full-completion/remux-policies/result.json",
+          "sha256": "527a0cf9d1394c3c78f72be97b39d5a474409d426cb69ddc4152017b0d1e87bb"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.449172+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

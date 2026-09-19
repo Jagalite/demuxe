@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R098.one-atlas-video-for-many-synchronized-visible-clips",
+  "title": "One atlas video for many synchronized visible clips",
+  "definition": {
+    "key": "R098.one-atlas-video-for-many-synchronized-visible-clips",
+    "legacy_id": "R98",
+    "legacy_number": 98,
+    "identity_branch": "proposal",
+    "title": "One atlas video for many synchronized visible clips",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 316,
+      "line_end": 342,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Does one aggregate decode use fewer resources than many simultaneous small decodes at the same total pixel rate? What differs from earlier work. Opposite tradeoff to R84 spatial selection: aggregate when many regions are visible instead of avoiding unneeded regions. Input scope. Prepared synchronized clips or views sharing a presentation timeline; first 4 or 9 equal-sized views. Mechanism to test. Encode a mosaic into one video stream, decode once and sample the corresponding regions for independent visual placements. Smallest experiment. 1. Prepare 4-view and 9-view atlas variants with recorded encoding cost. 2. Compare independent videos versus one atlas at equal aggregate pixels, frame rate and measured visible quality. 3. Test edge guards, all-visible and mostly-hidden cases on the same physical adapter.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 125,
+        "line_end": 137,
+        "source_kind": "report",
+        "reported_heading": "one atlas video for four synchronized clips — PROMISING / hardware pending"
+      }
+    ],
+    "scope_hash": "1e57135a6b1a3876a5996a7afc89962a065b66ec3fd48144e2abc75ad646d197",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 202,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R098.one-atlas-video-for-many-synchronized-visible-clips.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R098.one-atlas-video-for-many-synchronized-visible-clips.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R098.one-atlas-video-for-many-synchronized-visible-clips.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 271,
+    "record": {
+      "key": "R098.one-atlas-video-for-many-synchronized-visible-clips",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R098.one-atlas-video-for-many-synchronized-visible-clips.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md"
+      ],
+      "reason": "Current player presents one selected timeline, with no simultaneously visible synchronized grid. Atlas preparation requires re-encoding and forces shared seeking, so it does not preserve arbitrary independent-player behavior.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For an all-visible synchronized grid request, author four-view atlas and independent references at equal quality, then compare resources including hidden-region cost.",
+      "reopen_condition": "Reopen with an actual synchronized multi-view workload and paid preparation; physical-adapter presence alone does not supply that workload.",
+      "recorded_at_utc": "2026-09-19T17:34:19.144046+00:00"
+    }
+  },
+  "next_action": "For an all-visible synchronized grid request, author four-view atlas and independent references at equal quality, then compare resources including hidden-region cost.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

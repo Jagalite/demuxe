@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R107.separate-av1-base-decoding-from-film-grain-reconstruction",
+  "title": "Separate AV1 base decoding from film-grain reconstruction",
+  "definition": {
+    "key": "R107.separate-av1-base-decoding-from-film-grain-reconstruction",
+    "legacy_id": "R107",
+    "legacy_number": 107,
+    "identity_branch": "proposal",
+    "title": "Separate AV1 base decoding from film-grain reconstruction",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S010",
+      "path": "sources/proposals/R102-R115-research-backlog.md",
+      "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+      "line_start": 273,
+      "line_end": 316,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Video reconstruction component. Priority: P2. Question. Can base decoding stay browser-owned while grain is omitted explicitly or reproduced by a separate verified component? What differs from earlier work. Unlike the HDR gain-map proposal, this uses a reconstruction stage already represented in a real codec. Mechanism. Parse original per-frame grain state, write a valid grain-disabled coded stream without changing tile image data, retain resolved grain parameters in a sidecar, then optionally synthesize grain on decoded output. Initial source profile. Known AV1 grain-enabled fixtures with an independent pre-grain and post-grain reference. Begin with one simple 8-bit profile. Source basis. AV1 separates reconstructed intermediate pictures from output grain synthesis and specifies both reference-exact and other allowed grain implementations. [S6]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S009",
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "line_start": 81,
+        "line_end": 88,
+        "source_kind": "report",
+        "reported_heading": "separate AV1 base reconstruction from film-grain synthesis"
+      }
+    ],
+    "scope_hash": "a6fee253f6d3c99094335f1781e49250e2f597a61eb779233ac639362138404c",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 242,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R107.separate-av1-base-decoding-from-film-grain-reconstruction.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R107.separate-av1-base-decoding-from-film-grain-reconstruction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R107.separate-av1-base-decoding-from-film-grain-reconstruction.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 303,
+    "record": {
+      "key": "R107.separate-av1-base-decoding-from-film-grain-reconstruction",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R107.separate-av1-base-decoding-from-film-grain-reconstruction.md"
+      ],
+      "reason": "Browser video submission preserves AV1 coded payloads and returns reconstructed frames; no grain-disable bitstream parser or grain synthesis component exists here. Historical host grain-off CPU improvement intentionally changes pictures and is not an exact-output result.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First inventory one valid AV1 grain fixture and a reference exposing pre/post-grain planes; scope a parser-only sidecar before any external synthesis.",
+      "reopen_condition": "First inventory one valid AV1 grain fixture and a reference exposing pre/post-grain planes; scope a parser-only sidecar before any external synthesis.",
+      "recorded_at_utc": "2026-09-19T17:34:19.154224+00:00"
+    }
+  },
+  "next_action": "First inventory one valid AV1 grain fixture and a reference exposing pre/post-grain planes; scope a parser-only sidecar before any external synthesis.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

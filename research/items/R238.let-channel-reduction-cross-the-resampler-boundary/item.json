@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+  "title": "Let channel reduction cross the resampler boundary",
+  "definition": {
+    "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+    "legacy_id": "R238",
+    "legacy_number": 238,
+    "identity_branch": "proposal",
+    "title": "Let channel reduction cross the resampler boundary",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 239,
+      "line_end": 242,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "For already-requested fixed mixing and compatible linear resampling, compare mixing first with resampling every input channel. Audit libswresample's existing operation ordering; preserve delay, samples and numerical contract.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S020",
+        "path": "sources/reports/R232-R238-report.md",
+        "sha256": "a178546d432e1a1772f153a3c908c5c04aa88386fddd6094fb1d4411d5bac2e7",
+        "line_start": 67,
+        "line_end": 72,
+        "source_kind": "report",
+        "reported_heading": "channel reduction before resampling"
+      }
+    ],
+    "scope_hash": "87f8f5e9f3ccfb69f922525355d926ff991802d1c491b454e7cf597963584338",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 103,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R139.mix-channels-before-performing-all-their-output-transforms",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      },
+      {
+        "key": "R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R238.let-channel-reduction-cross-the-resampler-boundary.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R238.let-channel-reduction-cross-the-resampler-boundary.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R238.let-channel-reduction-cross-the-resampler-boundary.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 178,
+    "record": {
+      "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R238.let-channel-reduction-cross-the-resampler-boundary.md"
+      ],
+      "reason": "The audited native adaptation contract preserves channel layout and sample rate; there is neither requested channel reduction nor resampling to reorder. Adding downmixing would change output semantics rather than optimize this profile. Software filter routes require their own libswresample audit.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+      "reopen_condition": "Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+      "recorded_at_utc": "2026-09-19T17:34:19.093738+00:00"
+    }
+  },
+  "next_action": "Reopen for an explicitly requested fixed downmix plus resampling route; inspect actual library matrix ordering and compare delay/sample count/numerical output before changing it.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

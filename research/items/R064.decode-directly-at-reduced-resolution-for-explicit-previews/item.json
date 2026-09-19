@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+  "title": "Decode directly at reduced resolution for explicit previews",
+  "definition": {
+    "key": "R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+    "legacy_id": "R64",
+    "legacy_number": 64,
+    "identity_branch": "proposal",
+    "title": "Decode directly at reduced resolution for explicit previews",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S008",
+      "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+      "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+      "line_start": 200,
+      "line_end": 223,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New preview/economy decoder policy · P2 · Risk: Medium · PROPOSED / NOT TESTED First environment: Host FFmpeg decoder experiment plus sandbox presentation; verify actual installed lowres support first. Related cards: R55. Proposed mechanism. For preview thumbnails or an explicitly requested reduced-detail mode, use a decoder’s supported lowres path instead of reconstructing a full frame and then scaling it down. Never infer permission merely from a small CSS video element. What is new. R55 cached completed previews; this reduces work on a cache miss. It is also distinct from a cheaper presenter, because reconstruction resolution changes inside the decoder. Source basis. FFmpeg exposes decoder-specific max_lowres, and its versioned MJPEG and MPEG-2 decoder declarations advertise support. This is not a general H.264, HEVC or AV1 facility, nor proof of equal-quality results. [F3, F4, F5]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S038",
+        "path": "sources/reports/R58-R69-report.md",
+        "sha256": "2e43b05dd3d563d2f260db33cfecf52ba195f2b91a98904efcf8338c0a56e33d",
+        "line_start": 80,
+        "line_end": 92,
+        "source_kind": "report",
+        "reported_heading": "Decoder lowres previews — PROMISING"
+      }
+    ],
+    "scope_hash": "ba4298f711bb528dc74231c65ef318cdaaa8e60a3867eeda2ff56ceb5259fee8",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 156,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R064.decode-directly-at-reduced-resolution-for-explicit-previews.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R064.decode-directly-at-reduced-resolution-for-explicit-previews.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R064.decode-directly-at-reduced-resolution-for-explicit-previews.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 233,
+    "record": {
+      "key": "R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R064.decode-directly-at-reduced-resolution-for-explicit-previews.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R58-R69-report.md"
+      ],
+      "reason": "No preview/economy decode policy exists; software decoder options only set resource bounds. Lowres is codec-specific and intentional quality change, not permission from small display size.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Once explicit preview intent exists, query compiled MJPEG/MPEG2 max_lowres and compare one frame with full-decode scaling; unsupported codec must retain full decode and report pixel differences.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Once explicit preview intent exists, query compiled MJPEG/MPEG2 max_lowres and compare one frame with full-decode scaling; unsupported codec must retain full decode and report pixel differences.",
+      "recorded_at_utc": "2026-09-19T17:34:19.108497+00:00"
+    }
+  },
+  "next_action": "Once explicit preview intent exists, query compiled MJPEG/MPEG2 max_lowres and compare one frame with full-decode scaling; unsupported codec must retain full decode and report pixel differences.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

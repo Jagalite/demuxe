@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "key": "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+  "title": "Extract a declared lower-frame-rate AV1 operating point before decoding",
+  "definition": {
+    "key": "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+    "legacy_id": "R350",
+    "legacy_number": 350,
+    "identity_branch": "proposal",
+    "title": "Extract a declared lower-frame-rate AV1 operating point before decoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S051",
+      "path": "sources/proposals/Demuxe_R348_R352_Proposals.md",
+      "sha256": "e778885a12e305271899d494b2dbf9dcf0a16ed2793a67e31db89b17672720cb",
+      "line_start": 80,
+      "line_end": 113,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Investigate a source-native lower-frame-rate mode for a genuinely temporally scalable AV1 stream. The AV1 specification defines operating-point masks and layer-based OBU dropping. [S6, S7] Candidate: validate the selected advertised operating point, retain its required OBU payloads and global configuration, normalize the advertised configuration only where needed, construct legal output framing, and decode the extracted stream. This uses an existing independently decodable temporal subset instead of decoding everything and discarding displayed outputs afterward. One spatial layer, two temporal layers, stable dimensions and bit depth, closed qualified starting points, no decoder-model timing fields in the first header-normalization pilot, and an authored base temporal layer. For example, a fixture may offer 60 and 30 presentation instants per second. Those numbers are fixture choices, not claims about arbitrary AV1 files.",
+    "related_reports": [],
+    "scope_hash": "f7988c2c24f2b8cf972ae375bf35b95b9055b9f9c8f6bd0e0fb1357c4134502c",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 42,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding.md",
+        "results/top100/prerequisites/av1-encoder.log",
+        "results/top100/prerequisites/av1-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_FIXTURE_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 100,
+    "record": {
+      "key": "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+      "rank": 42,
+      "state": "DEFER_FIXTURE_SETUP",
+      "reason": "Actual local low-delay hierarchical SVT encode was inspected: only one operating point,idc0, no OBU extension temporal IDs. It is not a genuine selectable lower-rate operating-point fixture. Need matching layered encoder/source before meaningful extraction; no negative claim about AV1 mechanism.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "prerequisites/av1-result.json",
+          "sha256": "ac87aa7e74b801ffc86c626bf17bf72a0e8108baf40d60764173c79ebd790735"
+        },
+        {
+          "path": "prerequisites/av1-encoder.log",
+          "sha256": "09df0ed42aa0f772b8dabcafdc3b7cfd5155b8f416f1f91d0e95a8b4633e6c89"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.702514+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

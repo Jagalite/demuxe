@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "key": "R215.upload-operation-selected-by-existing-layout",
+  "title": "upload operation selected by existing layout",
+  "definition": {
+    "key": "R215.upload-operation-selected-by-existing-layout",
+    "legacy_id": "R215",
+    "legacy_number": 215,
+    "identity_branch": "report-defined",
+    "title": "upload operation selected by existing layout",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 29,
+      "line_end": 34,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A bounded layout model compared decoder rows against the constraints of a direct texture write and a 256-byte-aligned staging copy. Four layouts were legal for the direct path; an offset-misaligned control was rejected. Every staging reconstruction produced the identical visible RGBA bytes. The useful observation is structural: an uploader need not blindly normalize every row into a 256-byte staging layout when the destination operation admits the decoder's existing stride. Physical upload cost remains unmeasured here.",
+    "related_reports": [],
+    "scope_hash": "49350924adc117e43d0e3fd38795a86ba6af629f66ca1a5cae865fd84b063822",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 94,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R338.decode-into-the-layout-the-next-stage-already-needs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Layout-aware upload versus allocation before reconstruction."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R215.upload-operation-selected-by-existing-layout.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R215.upload-operation-selected-by-existing-layout.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R215.upload-operation-selected-by-existing-layout.md",
+        "results/full-completion/presentation/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 43,
+    "record": {
+      "key": "R215.upload-operation-selected-by-existing-layout",
+      "rank": 94,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: A direct stride-aware heap upload produces byte-identical GL pixels, removes120 JavaScript row-copy bytes for the tested frame, restores row state and rejects short stride. Driver copies and CPU benefit remain unmeasured.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/presentation/result.json",
+          "sha256": "96e8b73c671d0e9f977a71465e26df14a6d77fdae52d6a1a828a8952f90bf86a"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.662137+00:00"
+    }
+  },
+  "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

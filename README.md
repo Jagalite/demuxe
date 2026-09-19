@@ -79,6 +79,10 @@ and broad device/performance qualification remain follow-up work.
 
 ## Develop
 
+Research is organized by full item identity under [research/](research/README.md).
+See the [research process](research/PROCESS.md) for fixture preparation, screening,
+correctness, performance, evidence and decision gates.
+
 From the source checkout, run `npm ci`, build the engines using
 [the release recipe](docs/RELEASE.md), then run `npm run build` and `npm run dev`.
 Open http://127.0.0.1:4179/. Maintained source and issues are at

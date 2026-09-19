@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "key": "R272.roi-videoframe-copyto",
+  "title": "ROI VideoFrame.copyTo",
+  "definition": {
+    "key": "R272.roi-videoframe-copyto",
+    "legacy_id": "R272",
+    "legacy_number": 272,
+    "identity_branch": "report-defined",
+    "title": "ROI VideoFrame.copyTo",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 52,
+      "line_end": 59,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Chromium created a 640×360 VideoFrame from a deterministic RGBA canvas. The requested rectangle was x=112, y=73, 257×149. VideoFrame.copyTo() with that rectangle returned 153,172 bytes, exactly matching the same rectangle cropped from a 921,600-byte full-frame copy: zero differing bytes and maximum error zero. That is an 83.38% reduction in application-visible transfer bytes. Across the microprobe, median ROI copy time was ~0.1 ms versus 0.5 ms for the full copy. These are copy/transfer timings in this headless runtime only; they are not claims about full render cost, hardware residency, or all pixel formats.",
+    "related_reports": [],
+    "scope_hash": "e38a753d35419be2fa2a65cf4e94f30465b01e1e0655afcb428ab2bb8cea4ba4",
+    "legacy_guide_aliases": [
+      "R272 in the old 17-item queue"
+    ],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 135,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      },
+      {
+        "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R272.roi-videoframe-copyto.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R272.roi-videoframe-copyto.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R272.roi-videoframe-copyto.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 217,
+    "record": {
+      "key": "R272.roi-videoframe-copyto",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R272.roi-videoframe-copyto.md"
+      ],
+      "reason": "Current retained presentation transfers complete VideoFrame resources; fallback copy reads the full visible rectangle because downstream playback needs the whole picture. There is no ROI analysis consumer to justify a cropped copy in this profile.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+      "recorded_at_utc": "2026-09-19T17:34:19.104270+00:00"
+    }
+  },
+  "next_action": "Reopen for an actual ROI-only analysis request; then compare admitted rectangle copy against full-copy crop with subsampling-alignment negative control. Cropping playback output is not an optimization.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

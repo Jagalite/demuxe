@@ -87,6 +87,15 @@ class Policy:
                 license_id = self.classify(name)
                 source = generated_source(name)
                 historical = name.startswith('results/') or '/files/' in name
+                if name.startswith(('results/', 'research/')) and path.suffix in CODE:
+                    if license_id == CC:
+                        errors.append('Research code classified as report data: ' + name)
+                    # Captured source can keep missing legacy headers, but an actual
+                    # retained header must agree with a positive grant in the map.
+                    if license_id != 'NOASSERTION':
+                        actual = header(path.read_bytes())
+                        if actual and actual != license_id:
+                            errors.append('Research SPDX/map mismatch: ' + name)
                 if (path.suffix in CODE and license_id in [APACHE, GPL]
                         and not historical and not (source and not (self.root / source).is_file())):
                     if header(path.read_bytes()) != license_id:

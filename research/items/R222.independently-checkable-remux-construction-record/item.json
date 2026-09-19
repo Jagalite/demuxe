@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R222.independently-checkable-remux-construction-record",
+  "title": "independently checkable remux construction record",
+  "definition": {
+    "key": "R222.independently-checkable-remux-construction-record",
+    "legacy_id": "R222",
+    "legacy_number": 222,
+    "identity_branch": "report-defined",
+    "title": "independently checkable remux construction record",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 96,
+      "line_end": 117,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A normal H.264/AAC MP4 with B-frames was packet-copy remuxed to fragmented MP4. The construction record contains source/output identities, stream configuration hashes, source/output packet positions, payload hashes, DTS/PTS/duration mappings, composition offsets and top-level fragment structure. - 232/232 packet payloads correspond exactly (90 video + 142 audio); - H.264 and AAC configuration hashes match; - video composition offsets are preserved; - the output contains three moof fragments; - Chromium plays 90 frames and reaches EOF without a media error. 1. wrong source byte offset → packet_offset_mismatch; 2. swapped sample hashes → payload_hash_mismatch; 3. wrong composition/timing field → output_timing_mismatch; 4. changed codec configuration → codec_config_mismatch; 5. stale source identity → source_identity_mismatch.",
+    "related_reports": [],
+    "scope_hash": "d56a8c8201033708281170ad3e1896948eafe31a1f7e138cb3a44b2ddfeac581",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 98,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R192.identity-coded-witness-media",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      },
+      {
+        "key": "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Observation infrastructure with different truth boundaries."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R222.independently-checkable-remux-construction-record.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R222.independently-checkable-remux-construction-record.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R222.independently-checkable-remux-construction-record.md",
+        "results/full-completion/r222/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 44,
+    "record": {
+      "key": "R222.independently-checkable-remux-construction-record",
+      "rank": 98,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Independent source/output byte ranges, packet timestamps and config hashes validate214 packets and reject wrong offset, swapped range, timing, configuration and stale source. Useful reproducible remux audit artifact, not performance gain.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/r222/result.json",
+          "sha256": "6457881ccb98af3db3c88ee3c24394e32c06ae08e1c5180df40b99930ab34ff1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.662882+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

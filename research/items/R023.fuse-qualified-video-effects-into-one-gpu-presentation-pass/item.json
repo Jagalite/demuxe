@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+  "title": "Fuse qualified video effects into one GPU presentation pass",
+  "definition": {
+    "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+    "legacy_id": "R23",
+    "legacy_number": 23,
+    "identity_branch": "proposal",
+    "title": "Fuse qualified video effects into one GPU presentation pass",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 495,
+      "line_end": 513,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Presentation · Follow-on optimization experiment · P2 · Risk: High First environment: WebGPU/WebGL browser + matching frames. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. For supported retained-frame effects, combine scaling, rotation/mirror, a simple color operation and subtitle composition into one render graph rather than returning pixels to Wasm for each stage. Keep a strict supported-operation subset. Source basis. WebGPU can sample external textures from VideoFrame or a video element; the official Chrome description calls zero-copy a possibility, not a promise. [G1] First agent experiment. Compare existing copy-back/filter behavior with a single-pass implementation for one operation at a time, then a combined plan. Match reference pixels, color range, transfer and alpha behavior before timing.",
+    "related_reports": [],
+    "scope_hash": "a806aa70da87de1a8783f69e07fb24034a0001e3c039e85914503b8569f7657a",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 197,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 266,
+    "record": {
+      "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Retained output uses canvas and current YUV presentation combines geometry/color conversion but subtitles remain a separate draw; requested video filters still require Software. GPU capability exists, yet a retained-frame effect contract/shader registry is not implemented.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one exact rotation plus simple color operation and compare a research fused presenter against existing output pixels including subtitle alpha and context loss.",
+      "reopen_condition": "Reopen when a narrow supported effect has a reference oracle; no arbitrary FFmpeg filter or HDR claim.",
+      "recorded_at_utc": "2026-09-19T17:34:19.142710+00:00"
+    }
+  },
+  "next_action": "Define one exact rotation plus simple color operation and compare a research fused presenter against existing output pixels including subtitle alpha and context loss.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

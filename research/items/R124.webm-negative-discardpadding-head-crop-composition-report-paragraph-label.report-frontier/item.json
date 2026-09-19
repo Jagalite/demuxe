@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "key": "R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier",
+  "title": "WebM negative DiscardPadding head-crop composition [report paragraph label]",
+  "definition": {
+    "key": "R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier",
+    "legacy_id": "R124",
+    "legacy_number": 124,
+    "identity_branch": "report-frontier",
+    "title": "WebM negative DiscardPadding head-crop composition [report paragraph label]",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 68,
+      "line_end": 68,
+      "source_kind": "report"
+    },
+    "source_excerpt": "R124: RFC 9559 defines negative DiscardPadding as beginning padding. However, naively adding -5 ms to the first Opus block on top of the file's existing Opus CodecDelay/pre-skip state did not compose as an extra 240-sample crop: output became 96,072 samples instead of 96,000. The encoded packets remained identical. Do not treat arbitrary negative DiscardPadding insertion as a standalone head-trim operation without reconciling the codec's existing delay model.",
+    "related_reports": [],
+    "scope_hash": "85bd1fbbe81a5409e6ee23afc63d5ae77105df4e3f3897395f3afdcd5d22d1d3",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 77,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier.md",
+        "results/top100/head-trim/browser-result.json",
+        "results/top100/head-trim/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE_BROWSER_ORACLE_DIVERGENCE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 107,
+    "record": {
+      "key": "R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier",
+      "rank": 77,
+      "state": "PURSUE_BROWSER_ORACLE_DIVERGENCE",
+      "reason": "Corrected prior transcription: Chrome native decode applies requested additional480-sample head trim exactly, output95520 samples; host FFmpeg output stays unchanged96000 despite identical packet payloads. Browser composition is viable for this profile, but cross-decoder trim semantics/oracle divergence must be resolved before integration. No universal trimming rule.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "head-trim/result.json",
+          "sha256": "4e39353549e92867125e38b9d856d3b9b7c44030530d73ab53eebb1fa14afa8d"
+        },
+        {
+          "path": "head-trim/browser-result.json",
+          "sha256": "03f11f81df3865c8836dde777a85a3130ea7c8b17d1e59011db1d88fd4bd2b5f"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:17:57.637277+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

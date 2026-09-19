@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R223.flac-frame-range-microstream.report-continuity",
+  "title": "FLAC frame-range microstream",
+  "definition": {
+    "key": "R223.flac-frame-range-microstream.report-continuity",
+    "legacy_id": "R223",
+    "legacy_number": 223,
+    "identity_branch": "report-continuity",
+    "title": "FLAC frame-range microstream",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 39,
+      "line_end": 46,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The 8-second stereo FLAC contains 84 demuxed FLAC frames. The selected restart begins at frame 42 / sample 193536. The microstream was built by keeping the original 8286 metadata/header bytes and appending only complete coded frames from that point onward. It decodes to exactly the same 1,523,712 PCM bytes as the corresponding original suffix (SHA-256 0515cc1f8b3d5f2e12ee7b8a65f3ec94414dfa7f32ec51885ef72bcde1d20ff5). Source size is 236,881 bytes; microstream is 121,751 bytes (51.4%). This is a strong byte-range/restart primitive for whole FLAC-frame boundaries. Production use still needs truthful duration/STREAMINFO handling instead of relying on stale original totals in a synthetic microfile.",
+    "related_reports": [],
+    "scope_hash": "6937e040e7c5cbc348532f48a25e0ec515b067aee11ffa72fdb215869888d269",
+    "legacy_guide_aliases": [
+      "R223-C"
+    ],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 222,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R223.flac-frame-range-microstream.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R223.flac-frame-range-microstream.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R223.flac-frame-range-microstream.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 291,
+    "record": {
+      "key": "R223.flac-frame-range-microstream.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R223.flac-frame-range-microstream.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ],
+      "reason": "Current playback copies/muxes FLAC packets but does not create standalone range microfiles. The cited suffix kept stale STREAMINFO totals, so its exact PCM is not a truthful standalone metadata contract.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Extract complete frames from one FLAC suffix, fix total samples/checksum policy and compare exact suffix samples plus reported duration.",
+      "reopen_condition": "Reopen with a standalone-range use case and corrected metadata; do not duplicate R245 report-C by number or import its separate result implicitly.",
+      "recorded_at_utc": "2026-09-19T17:34:19.149026+00:00"
+    }
+  },
+  "next_action": "Extract complete frames from one FLAC suffix, fix total samples/checksum policy and compare exact suffix samples plus reported duration.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

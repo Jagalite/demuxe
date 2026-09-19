@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R364.reuse-gpu-command-sequences-across-changing-video-frames",
+  "title": "Reuse GPU command sequences across changing video frames",
+  "definition": {
+    "key": "R364.reuse-gpu-command-sequences-across-changing-video-frames",
+    "legacy_id": "R364",
+    "legacy_number": 364,
+    "identity_branch": "proposal",
+    "title": "Reuse GPU command sequences across changing video frames",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S054",
+      "path": "sources/proposals/Demuxe_R363_R366_Proposals.md",
+      "sha256": "761db78b318158f6aec0763181fba7a16ff2a704634c94b325cb4e65167c4b27",
+      "line_start": 40,
+      "line_end": 63,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Hypothesis. In a renderer with a stable sequence of draw operations, repeatedly encoding equivalent commands may be avoidable even though texture contents and effect parameters change each frame. Source basis. WebGPU render bundles are reusable recorded render-command sequences, unlike ordinary one-use command buffers. executeBundles does not inherit the surrounding pass's bindings and clears relevant pass state afterward. Video-backed external textures have their own identity and expiration rules; an imported frame is not a permanently live view that automatically follows future video frames. [S3] Proposed construction. Record rendering portions that bind stable, Demuxe-owned texture slots, stable glyph atlases, geometry, and parameter buffers. Update the contents of the selected slot and parameter buffer, then execute the corresponding compatible render bundle. Keep a bounded bundle per relevant resource slot and layout generation. This caches commands, not completed images, subtitle semantics, or decoded video.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S037",
+        "path": "sources/reports/R363-R366-report.md",
+        "sha256": "2952ba48a457d11886d066496c2a6e075fdb1ef89d7a20a3edd0fc5dffb5b05b",
+        "line_start": 60,
+        "line_end": 67,
+        "source_kind": "report",
+        "reported_heading": "Reuse GPU command sequences across changing video frames"
+      }
+    ],
+    "scope_hash": "bc4864e27b57c19a03ec3c93eb80c7dafc0161e24196062d08dfcb67168c0463",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 123,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R364.reuse-gpu-command-sequences-across-changing-video-frames.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R364.reuse-gpu-command-sequences-across-changing-video-frames.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R363_R366_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R364.reuse-gpu-command-sequences-across-changing-video-frames.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 197,
+    "record": {
+      "key": "R364.reuse-gpu-command-sequences-across-changing-video-frames",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R364.reuse-gpu-command-sequences-across-changing-video-frames.md"
+      ],
+      "reason": "Current custom plane presentation is WebGL2 with a video triangle and optional overlay draw, not a stable multi-draw WebGPU renderer using owned slot bind groups. WebGPU availability does not make render bundles usable by this owner. Rewriting the presenter just to test bundles exceeds first-pass scope.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If a WebGPU owned-slot renderer is introduced for independent reasons, compare one existing batched layout with recorded bundles using alternating pictures/parameters and atlas-generation invalidation; never add a video copy solely for caching commands.",
+      "reopen_condition": "If a WebGPU owned-slot renderer is introduced for independent reasons, compare one existing batched layout with recorded bundles using alternating pictures/parameters and atlas-generation invalidation; never add a video copy solely for caching commands.",
+      "recorded_at_utc": "2026-09-19T17:34:19.098829+00:00"
+    }
+  },
+  "next_action": "If a WebGPU owned-slot renderer is introduced for independent reasons, compare one existing batched layout with recorded bundles using alternating pictures/parameters and atlas-generation invalidation; never add a video copy solely for caching commands.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

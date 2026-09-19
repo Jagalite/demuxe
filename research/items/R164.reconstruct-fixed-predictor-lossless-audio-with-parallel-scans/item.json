@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans",
+  "title": "Reconstruct fixed-predictor lossless audio with parallel scans",
+  "definition": {
+    "key": "R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans",
+    "legacy_id": "R164",
+    "legacy_number": 164,
+    "identity_branch": "proposal",
+    "title": "Reconstruct fixed-predictor lossless audio with parallel scans",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 147,
+      "line_end": 150,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Treat restricted FLAC fixed-predictor residual reconstruction as prefix sums with exact integer boundaries. Include entropy decoding and complete transfer/output costs.",
+    "related_reports": [],
+    "scope_hash": "1f46763ef323e9cdbeaa71e7979f61c65bccc6aebd9b7826ed15e9befb11c7c7",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 358,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 399,
+    "record": {
+      "key": "R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ],
+      "reason": "The decoder delivers already reconstructed samples to the maintained adapter; fixed-predictor residuals are not exposed. Parallel exact scans require a decoder-internal stage plus entropy parsing/transfer accounting, not replacing the sample-copy loop.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Extract one admitted fixed-order residual block, perform bounded exact prefix reconstruction against a scalar integer oracle and include overflow/end-boundary controls.",
+      "reopen_condition": "Reopen with a trustworthy residual interface and measured reconstruction cost; include entropy decoding and output transfers before any speed claim.",
+      "recorded_at_utc": "2026-09-19T17:34:19.179460+00:00"
+    }
+  },
+  "next_action": "Extract one admitted fixed-order residual block, perform bounded exact prefix reconstruction against a scalar integer oracle and include overflow/end-boundary controls.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

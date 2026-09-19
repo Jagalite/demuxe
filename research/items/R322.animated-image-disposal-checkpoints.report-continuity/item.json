@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R322.animated-image-disposal-checkpoints.report-continuity",
+  "title": "Animated-image disposal checkpoints",
+  "definition": {
+    "key": "R322.animated-image-disposal-checkpoints.report-continuity",
+    "legacy_id": "R322",
+    "legacy_number": 322,
+    "identity_branch": "report-continuity",
+    "title": "Animated-image disposal checkpoints",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S030",
+      "path": "sources/reports/R318-R323-report.md",
+      "sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+      "line_start": 46,
+      "line_end": 51,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The controlled compositor exercised GIF-style keep, restore-to-background, and restore-to-previous semantics over 120 frames. Checkpoints store the canvas after prior disposal and before the checkpoint frame. Random seeks from those states reproduced the uninterrupted oracle exactly. The workload reduced frame compositions from 23,361 to 2,171, at a retained-state cost of 294,912 bytes. This proves the state-checkpoint concept; parsing palettes, transparency, interlace, timing, and malformed real GIF streams remain separate qualification.",
+    "related_reports": [],
+    "scope_hash": "2ae99826511dc768c97e8d1e5ccbf1c849950a3baa3e38f0d8a548252a1c1f6a",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 4,
+    "initial_rank": 350,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R322.animated-image-disposal-checkpoints.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R322.animated-image-disposal-checkpoints.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R322.animated-image-disposal-checkpoints.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 391,
+    "record": {
+      "key": "R322.animated-image-disposal-checkpoints.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R322.animated-image-disposal-checkpoints.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md"
+      ],
+      "reason": "Current retained state contains video frames and generations, not an animated-image compositor with disposal transactions. A checkpoint must capture post-disposal canvas state; historical controlled commands do not parse real GIF palettes/interlace/transparency.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one tiny real disposal fixture and reference compositor, checkpoint after prior disposal and compare random seeks, with restore-to-previous incorrectly timed as adverse control.",
+      "reopen_condition": "Reopen for a requested animated-image seek path and bounded parser; decoded-frame caching alone does not supply disposal state.",
+      "recorded_at_utc": "2026-09-19T17:34:19.177365+00:00"
+    }
+  },
+  "next_action": "Define one tiny real disposal fixture and reference compositor, checkpoint after prior disposal and compare random seeks, with restore-to-previous incorrectly timed as adverse control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

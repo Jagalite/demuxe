@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R296.generate-seek-fragments-without-replaying-a-mux-session",
+  "title": "Generate seek fragments without replaying a mux session",
+  "definition": {
+    "key": "R296.generate-seek-fragments-without-replaying-a-mux-session",
+    "legacy_id": "R296",
+    "legacy_number": 296,
+    "identity_branch": "proposal",
+    "title": "Generate seek fragments without replaying a mux session",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S044",
+      "path": "sources/proposals/Demuxe_R295_R300_Proposals.md",
+      "sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+      "line_start": 25,
+      "line_end": 42,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Packet-copy mux architecture. First owner: Indexed-source construction harness, then browser integration. Related: R109, R162, R222. Hypothesis. Construct an output fragment from explicit immutable inputs: source identity, track configuration, source sample interval, output timeline mapping, fragment identity, and the required sample bytes. A seek should not require replaying unrelated earlier samples merely to rebuild a writer's mutable counters. Source basis. The ISO BMFF MSE byte-stream specification defines initialization segments, fragment-relative sample addressing, track-fragment decode times, and the requirement that referenced samples be present. MP4Box.js demonstrates fragment construction from sample descriptions, while also relying on session values such as a sequence counter and first decode time. Those values would need to become explicit inputs in this experiment. [S3, S4]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S026",
+        "path": "sources/reports/R295-R300-report.md",
+        "sha256": "b81f4a02cd56a68c8c9952ab0ffac7376b8ba1a2b89228d7a639958911f4ffc4",
+        "line_start": 25,
+        "line_end": 36,
+        "source_kind": "report",
+        "reported_heading": "seek fragments without replaying mux state"
+      }
+    ],
+    "scope_hash": "5597aae7738205fcb648a0a3c5a1a46f42076725bef8dda1f6c65f27d1b976bc",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 110,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R296.generate-seek-fragments-without-replaying-a-mux-session.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R296.generate-seek-fragments-without-replaying-a-mux-session.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R296.generate-seek-fragments-without-replaying-a-mux-session.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 184,
+    "record": {
+      "key": "R296.generate-seek-fragments-without-replaying-a-mux-session",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R296.generate-seek-fragments-without-replaying-a-mux-session.md"
+      ],
+      "reason": "Current seeks use FFmpeg indexed av_seek_frame then reconstruct output state; the report pure constructor reassembles already-existing immutable moof recipes. There is no current sample-addressable construction recipe service, and its microbenchmark omits cold indexing and source costs.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+      "reopen_condition": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+      "recorded_at_utc": "2026-09-19T17:34:19.095480+00:00"
+    }
+  },
+  "next_action": "First trace one repeated distant seek to isolate mux reconstruction cost; only then compare a single explicit recipe generated in order 50,3,51,3 with a mid-GOP rejection.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

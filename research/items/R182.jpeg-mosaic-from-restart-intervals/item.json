@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R182.jpeg-mosaic-from-restart-intervals",
+  "title": "JPEG mosaic from restart intervals",
+  "definition": {
+    "key": "R182.jpeg-mosaic-from-restart-intervals",
+    "legacy_id": "R182",
+    "legacy_number": 182,
+    "identity_branch": "report-defined",
+    "title": "JPEG mosaic from restart intervals",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 121,
+      "line_end": 128,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two 64×64 grayscale JPEGs were encoded with matching headers/tables and one restart interval per MCU row. Their entropy scans each contain eight independent row intervals. A new JPEG was authored by alternately copying row intervals from source A and B and rewriting the restart-marker sequence; no DCT coefficient or pixel-domain composition was used. The resulting 64×64 JPEG decodes pixel-for-pixel exactly to an oracle mosaic assembled from the corresponding decoded 8-pixel source rows. All eight compressed entropy intervals were reused. Integration implication: restart intervals can act as compressed composition tiles when JPEG coding parameters and MCU geometry are compatible. This is currently a grayscale, row-aligned, matching-table result—not arbitrary rectangle composition.",
+    "related_reports": [],
+    "scope_hash": "b7785a5d6cc35c26b5765a6cb4bb11bc62a95556b6d3deff16d0fc4e23b7743e",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 303,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R182.jpeg-mosaic-from-restart-intervals.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R182.jpeg-mosaic-from-restart-intervals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 206,
+    "record": {
+      "key": "R182.jpeg-mosaic-from-restart-intervals",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R182.jpeg-mosaic-from-restart-intervals.md"
+      ],
+      "reason": "There is no JPEG restart-interval compositor or JPEG table/MCU identity parser in the current video boundary. The historical grayscale row-mosaic is a narrowly authored compressed composition capability, not arbitrary crop or a maintained delivery bottleneck.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
+      "reopen_condition": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
+      "recorded_at_utc": "2026-09-19T17:34:19.101228+00:00"
+    }
+  },
+  "next_action": "For a requested compressed row mosaic, admit only matching tables/geometry and complete restart intervals, compare exact decoded selected rows, and reject a table mismatch or partial-MCU boundary.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

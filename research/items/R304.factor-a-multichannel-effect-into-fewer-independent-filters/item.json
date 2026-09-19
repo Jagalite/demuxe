@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "key": "R304.factor-a-multichannel-effect-into-fewer-independent-filters",
+  "title": "Factor a multichannel effect into fewer independent filters",
+  "definition": {
+    "key": "R304.factor-a-multichannel-effect-into-fewer-independent-filters",
+    "legacy_id": "R304",
+    "legacy_number": 304,
+    "identity_branch": "proposal",
+    "title": "Factor a multichannel effect into fewer independent filters",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S045",
+      "path": "sources/proposals/Demuxe_R301_R306_Proposals.md",
+      "sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+      "line_start": 108,
+      "line_end": 143,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Linear DSP structure optimization; mathematical derivation, not a new convolution identity. Let H[k] be the matrix of filter coefficients at delay k. For a filter bank admitting with the same constant matrices A and B at every delay, calculate 1. u[n] = B x[n], 2. vj[n] = sum_k gj[k] uj[n-k], 3. y[n] = A v[n]. Expanding the equations gives y[n] = sum_k H[k] x[n-k]. The result is the same linear operation in exact arithmetic. For an authored eight-input/eight-output bank with r = 2, this means two shared filtered signals surrounded by input/output mixes, rather than treating all 64 input-output responses as unrelated filters. This is a count of logical filtering paths, not a predicted speedup. The correct baseline is an optimized multi-input/multi-output convolver already sharing transforms.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S027",
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "line_start": 39,
+        "line_end": 44,
+        "source_kind": "report",
+        "reported_heading": "factored multichannel filter bank"
+      }
+    ],
+    "scope_hash": "eea7974518b070ec668ae3b973d726e92cf1fd9b3faedd95c13a5d8c91727eef",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 248,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R347.morph-convolution-effects-using-reusable-basis-outputs",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R245.factor-a-multichannel-filter-bank-into-fewer-actual-filters.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      },
+      {
+        "key": "R245.standalone-flac-from-original-frames.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Linear DSP composition at distinct state/basis boundaries."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R304.factor-a-multichannel-effect-into-fewer-independent-filters.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R304.factor-a-multichannel-effect-into-fewer-independent-filters.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R304.factor-a-multichannel-effect-into-fewer-independent-filters.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 307,
+    "record": {
+      "key": "R304.factor-a-multichannel-effect-into-fewer-independent-filters",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R304.factor-a-multichannel-effect-into-fewer-independent-filters.md"
+      ],
+      "reason": "The scoped Native/Hybrid admitted effect is scalar gain, and FLAC adaptation preserves channels without an 8x8 FIR bank. The exact factorization report is useful algebra, but no current MIMO convolution workload exists in these owners.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for a real requested fixed MIMO bank; compare against a shared-transform optimized convolver and full-rank control.",
+      "reopen_condition": "Reopen for a real requested fixed MIMO bank; compare against a shared-transform optimized convolver and full-rank control.",
+      "recorded_at_utc": "2026-09-19T17:34:19.155204+00:00"
+    }
+  },
+  "next_action": "Reopen for a real requested fixed MIMO bank; compare against a shared-transform optimized convolver and full-rank control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

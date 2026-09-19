@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "key": "R071.tune-flac-effort-without-changing-frame-duration",
+  "title": "Tune FLAC effort without changing frame duration",
+  "definition": {
+    "key": "R071.tune-flac-effort-without-changing-frame-duration",
+    "legacy_id": "R71",
+    "legacy_number": 71,
+    "identity_branch": "report-defined",
+    "title": "Tune FLAC effort without changing frame duration",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S004",
+      "path": "sources/reports/R70-R75-report.md",
+      "sha256": "246adfe566aaf3b297dd50bf62876c04e2b27f54767fa028f8a22a2a63187edc",
+      "line_start": 44,
+      "line_end": 64,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Question. Does lower compression effort materially reduce preparation cost without an excessive byte penalty? This isolates encoder effort, rather than claiming another lossless audio route. The reviewed source already defaults DEMUXE_FLAC_LEVEL to 5. [D2] Two deterministic 30-second, 48 kHz stereo S16 signals were encoded at levels 0, 5 and 8 with a fixed 4,608-sample frame size. One is tonal; the other adds seeded noise. This fixed-frame-size host setup is not a matching production encoder configuration. All six decoded PCM hashes exactly match their source samples. Each output has 313 packets: full frames and a final 2,304-sample frame. The three tonal FLAC-in-MP4 browser variants pass playback, seeking and near-end/EOF observations. Their short stream-copy extracts are 4.032 seconds, not exact four-second cuts. Browser signal presence is not a complete bit-exact digital-output or physical-device audit.",
+    "related_reports": [],
+    "scope_hash": "82a6c6e5165bf42bd63699808dc52c1ff2a68e5d4065b22bb94e88afde55653f",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 239,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R071.tune-flac-effort-without-changing-frame-duration.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R071.tune-flac-effort-without-changing-frame-duration.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R071.tune-flac-effort-without-changing-frame-duration.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 60,
+    "record": {
+      "key": "R071.tune-flac-effort-without-changing-frame-duration",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R071.tune-flac-effort-without-changing-frame-duration.md"
+      ],
+      "reason": "No new matched Wasm compression-level experiment was run. Historical host level0 trades more bytes for little CPU saving and does not match maintained frame_size, so it cannot select the production level. Defer until preparation CPU is an actual bottleneck and level0/5 can be compared at identical frame duration including browser decode and bytes.",
+      "evidence_level": "SOURCE_REVIEW",
+      "recorded_at_utc": "2026-09-19T17:34:19.060805+00:00"
+    }
+  },
+  "next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

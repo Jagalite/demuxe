@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R147.random-access-inside-an-ordinary-zip-deflate-entry",
+  "title": "Random access inside an ordinary ZIP DEFLATE entry",
+  "definition": {
+    "key": "R147.random-access-inside-an-ordinary-zip-deflate-entry",
+    "legacy_id": "R147",
+    "legacy_number": 147,
+    "identity_branch": "report-defined",
+    "title": "Random access inside an ordinary ZIP DEFLATE entry",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 56,
+      "line_end": 67,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Generated one conventional ZIP-compressed fMP4 entry. The index preserves native zlib inflate-state snapshots at 32 KiB uncompressed intervals; it does not replace the file with independently compressed chunks. A snapshot includes more than a compressed byte position [S3]. The index construction verifies the complete entry CRC and necessarily processes the whole entry once. Afterwards, all 100 random range extractions match the original MP4 byte-for-byte. Mean replayed uncompressed bytes per requested range are 20,912.28, compared with 213,260.44 for restarting at byte zero for the same requests. This is a replay-work count, not a network or complete-session speedup. An initialization range plus the fragment at source time 5 seconds was retrieved through the index, reassembled and supplied to MSE. Its sampled output matches the corresponding full-source MSE frame exactly. The direct-file-versus-MSE RGB comparison differs (mean RGBA error 5.918/255, maximum 42); it remains visible in the evidence and is not attributed to archive corruption or to a proven color-conversion cause. Byte e",
+    "related_reports": [],
+    "scope_hash": "fc40de7dd118e973d62e83dd6128a203e51e60285355190761a1ddca747d5f9f",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 221,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R147.random-access-inside-an-ordinary-zip-deflate-entry.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R147.random-access-inside-an-ordinary-zip-deflate-entry.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R147.random-access-inside-an-ordinary-zip-deflate-entry.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 290,
+    "record": {
+      "key": "R147.random-access-inside-an-ordinary-zip-deflate-entry",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R147.random-access-inside-an-ordinary-zip-deflate-entry.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+      ],
+      "reason": "Source readers expose literal file/range bytes with no archive coordinate mapping. Historical zlib snapshots are opaque process-local state and require a full initial inflate/CRC pass; browser DecompressionStream presence supplies no snapshot API.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify one owned inflate-state index for a bounded ZIP entry and compare random output ranges byte-for-byte, with bare compressed-cursor restart rejected.",
+      "reopen_condition": "Reopen with an actual archive source requirement, matching stateful inflater and explicit inflated-size/dictionary budgets.",
+      "recorded_at_utc": "2026-09-19T17:34:19.148779+00:00"
+    }
+  },
+  "next_action": "Specify one owned inflate-state index for a bounded ZIP entry and compare random output ranges byte-for-byte, with bare compressed-cursor restart rejected.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

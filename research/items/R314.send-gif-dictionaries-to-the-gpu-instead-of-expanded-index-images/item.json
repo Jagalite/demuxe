@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images",
+  "title": "Send GIF dictionaries to the GPU instead of expanded index images",
+  "definition": {
+    "key": "R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images",
+    "legacy_id": "R314",
+    "legacy_number": 314,
+    "identity_branch": "proposal",
+    "title": "Send GIF dictionaries to the GPU instead of expanded index images",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S047",
+      "path": "sources/proposals/Demuxe_R313_R317_Proposals.md",
+      "sha256": "9d25bf8cf87cb6a7a0dd4cb7784e6603048ea36dc8370e8b57db7f870c580f31",
+      "line_start": 29,
+      "line_end": 50,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Mechanism. Let a CPU/Wasm parser read GIF LZW codes and construct immutable dictionary nodes containing a parent, final palette index, phrase length, and first index. Emit bounded jobs specifying dictionary node, dictionary generation, output position, and length. Expand independent phrases on the GPU, then apply the palette and image composition. A first implementation may use one GPU invocation per phrase, writing the phrase in reverse while following its parent chain. Source basis. GIF specifies variable-width LZW codes, clear codes, end codes, and deferred clearing of a full dictionary. FFmpeg's decoder explicitly stores prefix/suffix arrays and expands codes through a stack. Those are the existing stages being divided differently. [S3, S4]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S029",
+        "path": "sources/reports/R313-R317-report.md",
+        "sha256": "420712b2a80378d02680e01d901d72753aae948d8587f93fcebcba03580a21f3",
+        "line_start": 26,
+        "line_end": 31,
+        "source_kind": "report",
+        "reported_heading": "GIF LZW dictionary jobs"
+      }
+    ],
+    "scope_hash": "667ad98628bdc0277fd32ed9aef0228c8e20a70f0beab8e019c15833d9d7c343",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 377,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R313_R317_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 418,
+    "record": {
+      "key": "R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R314.send-gif-dictionaries-to-the-gpu-instead-of-expanded-index-images.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Historical per-phrase descriptors already exceed complete index bytes by 29.7% before dictionary traffic. Current rendering has no GIF dictionary job consumer. GPU availability does not rescue the failed initial layout economics without a separately specified coarser executor.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only for coarser job aggregation with credible total traffic savings; compare optimized/native decode before building full GPU path.",
+      "reopen_condition": "Reopen only for coarser job aggregation with credible total traffic savings; compare optimized/native decode before building full GPU path.",
+      "recorded_at_utc": "2026-09-19T17:34:19.184566+00:00"
+    }
+  },
+  "next_action": "Reopen only for coarser job aggregation with credible total traffic savings; compare optimized/native decode before building full GPU path.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

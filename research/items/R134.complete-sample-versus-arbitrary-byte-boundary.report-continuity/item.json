@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity",
+  "title": "complete-sample versus arbitrary byte boundary",
+  "definition": {
+    "key": "R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity",
+    "legacy_id": "R134",
+    "legacy_number": 134,
+    "identity_branch": "report-continuity",
+    "title": "complete-sample versus arbitrary byte boundary",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 48,
+      "line_end": 57,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 2-second fragment was cut once exactly after the first H.264 sample and once 37 bytes before that point. - Complete-sample cut: buffered 0.066666–0.099999 s. - Truncated-sample cut: no buffered range. - Neither case emitted a frame callback within 350 ms; both remained parser-clean with no media error. This is useful because it separates two facts: Chrome can account for a complete compressed sample before the enclosing mdat completes, but one sample may still be insufficient to present a picture because of decode/reorder dependencies or presentation readiness.",
+    "related_reports": [],
+    "scope_hash": "48ca664d2af032477079cf57bfa56d918a59f7f8bcb0a0d4628a4d7089ed64b7",
+    "legacy_guide_aliases": [
+      "R134-C"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 128,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity.md",
+        "results/full-completion/webm-boundaries/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 44,
+    "record": {
+      "key": "R134.complete-sample-versus-arbitrary-byte-boundary.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "webm-boundaries/result.json"
+      ],
+      "reason": "For this actual A/V fMP4, neither complete first video sample nor 37-byte-truncated cut exposes a buffered range or early frame; both complete correctly after remaining data arrives. A complete video sample alone is insufficient for early muxed A/V output. No partial-delivery optimization justified on this fixture.",
+      "evidence_level": "COMPONENT_TEST",
+      "recorded_at_utc": "2026-09-19T17:34:19.056166+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

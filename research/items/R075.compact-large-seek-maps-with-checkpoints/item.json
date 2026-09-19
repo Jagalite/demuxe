@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R075.compact-large-seek-maps-with-checkpoints",
+  "title": "Compact large seek maps with checkpoints",
+  "definition": {
+    "key": "R075.compact-large-seek-maps-with-checkpoints",
+    "legacy_id": "R75",
+    "legacy_number": 75,
+    "identity_branch": "report-defined",
+    "title": "Compact large seek maps with checkpoints",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S004",
+      "path": "sources/reports/R70-R75-report.md",
+      "sha256": "246adfe566aaf3b297dd50bf62876c04e2b27f54767fa028f8a22a2a63187edc",
+      "line_start": 117,
+      "line_end": 137,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Question. Can a source-bound immutable seek map retain less array storage by encoding time/byte deltas between absolute checkpoints? This extends R45's representation, not its cache or scan-avoidance claim. The Node pilot constructs 100,000 synthetic monotonic time/offset entries. Offsets begin above 4 GiB and extend beyond 156 GB; times use a 90 kHz tick scale with variable intervals. The baseline uses two Float64Arrays, totaling 1,600,000 bytes. The candidate keeps absolute checkpoints, byte pointers and unsigned variable-length deltas at checkpoint sizes 16, 32, 64 and 128. Query figures are averages derived from the median 100,000-query batch, not individual-call medians or p95 latency. Exact array byte counts exclude object overhead, source arrays used by the oracle, process RSS and peak construction memory. Single observed construction times are retained in JSON but not treated as stable repeated benchmarks.",
+    "related_reports": [],
+    "scope_hash": "7d5569e6874b88145ea772fc552bb8b0136f42ea4859ce5dd5da82dc0a18853f",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 240,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R075.compact-large-seek-maps-with-checkpoints.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R075.compact-large-seek-maps-with-checkpoints.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R075.compact-large-seek-maps-with-checkpoints.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 302,
+    "record": {
+      "key": "R075.compact-large-seek-maps-with-checkpoints",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R075.compact-large-seek-maps-with-checkpoints.md"
+      ],
+      "reason": "The current JS metadata probe is bounded and does not retain a dense 100000-entry seek map; FFmpeg owns the live demux index under a 4 MiB cap. The reported delta/checkpoint representation saves synthetic array bytes but does not identify a current array owner to replace.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Inspect one large-source real FFmpeg index allocation and expose its actual query/identity contract before testing block-16 deltas.",
+      "reopen_condition": "Inspect one large-source real FFmpeg index allocation and expose its actual query/identity contract before testing block-16 deltas.",
+      "recorded_at_utc": "2026-09-19T17:34:19.153968+00:00"
+    }
+  },
+  "next_action": "Inspect one large-source real FFmpeg index allocation and expose its actual query/identity contract before testing block-16 deltas.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

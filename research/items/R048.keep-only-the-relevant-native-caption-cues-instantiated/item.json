@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "key": "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+  "title": "Keep only the relevant native caption cues instantiated",
+  "definition": {
+    "key": "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+    "legacy_id": "R48",
+    "legacy_number": 48,
+    "identity_branch": "proposal",
+    "title": "Keep only the relevant native caption cues instantiated",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 149,
+      "line_end": 170,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New subtitle memory/startup optimization · P1 · PROPOSED / NOT TESTED Question. Can large simple-caption tracks remain Native without creating every browser cue object before playback? Mechanism. Keep a bounded logical text/interval index and instantiate VTTCue objects only for the current window, including every cue overlapping its edges. Evict unneeded native objects, not the underlying subtitle text or transcript semantics. Smallest useful experiment. Generate 10,000 simple cues with overlaps, Unicode and several long cues. Compare eager insertion with an indexed moving window. Exercise distant/backward seeks, pause on a boundary, rate changes, hide/show and source replacement. Ensure the required cues are present before the new presentation becomes visible.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 67,
+        "line_end": 72,
+        "source_kind": "report",
+        "reported_heading": "native-cue virtualization"
+      }
+    ],
+    "scope_hash": "87e925ac1b9403d2320c458fc4ad8fd50751d11728118731b15489fe66bf7868",
+    "legacy_guide_aliases": [],
+    "family": "subtitles",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 66,
+    "local_screen_state": "USER_REPORTED_FIRST_PASS_COMPLETE",
+    "evidence_level": "USER_REPORTED_LOCAL_SCREEN_RAW_ARTIFACTS_NOT_BUNDLED",
+    "default_next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Real large-cue overhead plus a bounded API-compatible design; do not re-open the explained boundary mismatch as a bug.",
+    "minimum_probe": "One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "initial_screen": "Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect. One authored cue/scene plus an overlapping or stateful boundary, using identical fonts, sizes and output semantics; reuse a maintained test.",
+    "primary_metric": "Required caption capability or total render/extraction cost and retained cue/atlas memory.",
+    "scope_contract": "Independent rendering or browser-owned reference appropriate to the same contract, including hidden state, timing, ordering and clear events.",
+    "negative_control": "Seek into an active cue, change fonts/layout/source, or omit a required style/control. No silent simplification or stale overlay.",
+    "stop_boundary": "No new subtitle service, full shaping engine or font-subsetting system during first pass. Defer if the necessary observer is not available.",
+    "shared_prerequisite": "Same admitted subtitle renderer/assets; public cue-list/lifecycle compatibility must be addressed before virtualization.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "Real large-cue overhead plus a bounded API-compatible design; do not re-open the explained boundary mismatch as a bug.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit.",
+    "inherited_decision": "DEFER_SETUP",
+    "followup_lane": "DO_NOT_REPEAT_PROFILE"
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R048.keep-only-the-relevant-native-caption-cues-instantiated.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R048.keep-only-the-relevant-native-caption-cues-instantiated.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md",
+        "results/top100/cue-window/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 102,
+    "record": {
+      "key": "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+      "rank": 66,
+      "state": "PURSUE",
+      "reason": "Actual10000-cue native TextTrack versus at-most22 materialized cues yields identical active cue text at6 forward/backward seeks, including near end. Removing active cue detected. Native cue-object count reduced; total memory/CPU benefit and API-compatible player adapter unqualified.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "cue-window/result.json",
+          "sha256": "1d2151995ad7baca8633f44e510a9289e1b2f08bdfc8828e7eb05e1d7c89f657"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.749261+00:00"
+    }
+  },
+  "next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Real large-cue overhead plus a bounded API-compatible design; do not re-open the explained boundary mismatch as a bug.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

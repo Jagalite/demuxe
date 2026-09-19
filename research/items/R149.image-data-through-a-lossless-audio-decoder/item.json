@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R149.image-data-through-a-lossless-audio-decoder",
+  "title": "Image data through a lossless audio decoder",
+  "definition": {
+    "key": "R149.image-data-through-a-lossless-audio-decoder",
+    "legacy_id": "R149",
+    "legacy_number": 149,
+    "identity_branch": "report-defined",
+    "title": "Image data through a lossless audio decoder",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 78,
+      "line_end": 94,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two 128×96 RGB images were serialized as three channel-major planes, giving 36,864 carrier samples each. The integer packing is int16 = (uint8 - 128) × 128, encoded as mono 48 kHz FLAC. The native decoded PCM matches exactly. Chromium decodeAudioData at 48 kHz produces floats that are not exact multiples of the ideal scale in every case. Nearest-grid recovery, round(sample × 256 + 128), recovers every original byte. The maximum pre-rounding value error is below 0.0039, safely below half a data level on these fixtures. The earlier raw-float equality check was intentionally retained in browser_initial.json; the final claim is reversible integer recovery, not bit-identical floating-point PCM. At a 44.1 kHz context rate, resampling changes both count (36,864→33,868) and values, and the carrier is rejected. Context-rate resampling is part of the documented decoding contract [S6]. No carrier signal is connected to speakers.",
+    "related_reports": [],
+    "scope_hash": "8bf60571a5143af8ec5df75dc91825a0d86050916a89a74568bb95fd2cb6ea7f",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 382,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R149.image-data-through-a-lossless-audio-decoder.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R149.image-data-through-a-lossless-audio-decoder.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R149.image-data-through-a-lossless-audio-decoder.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 423,
+    "record": {
+      "key": "R149.image-data-through-a-lossless-audio-decoder",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R149.image-data-through-a-lossless-audio-decoder.md"
+      ],
+      "reason": "Image-as-FLAC is unrelated to current audio output contract and both historical fixtures are larger than PNG. Browser recovery relies on a matched sample rate and nearest-grid decoding, not exact float PCM. No image carrier consumer exists and speakers must not receive carrier data.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+      "reopen_condition": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+      "recorded_at_utc": "2026-09-19T17:34:19.185870+00:00"
+    }
+  },
+  "next_action": "Reopen only with a concrete available-decoder constraint and a corpus showing useful complete-cost advantage over ordinary image formats.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

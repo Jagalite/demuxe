@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
+  "title": "Normalize VP9 codec units for the actual destination",
+  "definition": {
+    "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
+    "legacy_id": "R92",
+    "legacy_number": 92,
+    "identity_branch": "proposal",
+    "title": "Normalize VP9 codec units for the actual destination",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 154,
+      "line_end": 180,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Are some rejected or inefficient pipelines a framing mismatch rather than an unsupported codec? What differs from earlier work. Distinct from temporal-layer removal: preserve every coded dependency while changing packet grouping or superframe framing. Input scope. VP9 streams containing hidden reference frames and superframes; fixed codec profile first. Mechanism to test. Inspect codec frame boundaries and use lossless superframe split/merge operations where the target container or codec API requires them. Smallest experiment. 1. Prepare equivalent VP9 single-frame and superframe representations using a pinned bitstream filter. 2. Feed each destination only its defined chunk/sample format; test muxed media and WebCodecs separately. 3. Compare against full ordered decode, including hidden-frame dependencies and seeking.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 62,
+        "line_end": 67,
+        "source_kind": "report",
+        "reported_heading": "VP9 codec-unit normalization — BLOCKED / INCONCLUSIVE"
+      }
+    ],
+    "scope_hash": "0b2a3be1c6c0f05cd05559cb8c84fdb3a4cdae8ec06725ae5a62b2c5c4d02351",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 54,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R332.normalize-vp9-superframes-at-the-decoder-boundary-not-globally",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "VP9 framing normalization; compare superframe and destination scope."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R092.normalize-vp9-codec-units-for-the-actual-destination.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R092.normalize-vp9-codec-units-for-the-actual-destination.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R092.normalize-vp9-codec-units-for-the-actual-destination.md",
+        "results/full-completion/r332/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 58,
+    "record": {
+      "key": "R092.normalize-vp9-codec-units-for-the-actual-destination",
+      "rank": 54,
+      "state": "PURSUE",
+      "reason": "Reconciled actual existing aggregate/split VP9 superframe test against unchanged worker and fixture identities: six hidden frames retained, 72 exact visible frames/timestamps, seek passes, missing-hidden oracle and cold-dependent-start fail. Destination-specific normalized framing works; generic split policy not justified.",
+      "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+      "evidence": [
+        {
+          "path": "../full-completion/r332/result.json",
+          "sha256": "8f91611597085c717fa2414a19ef782c04ec499597754f87e8631a79ae8be183"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:31:28.952315+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

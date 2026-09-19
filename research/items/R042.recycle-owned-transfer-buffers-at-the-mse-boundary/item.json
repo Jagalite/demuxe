@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "key": "R042.recycle-owned-transfer-buffers-at-the-mse-boundary",
+  "title": "Recycle owned transfer buffers at the MSE boundary",
+  "definition": {
+    "key": "R042.recycle-owned-transfer-buffers-at-the-mse-boundary",
+    "legacy_id": "R42",
+    "legacy_number": 42,
+    "identity_branch": "proposal",
+    "title": "Recycle owned transfer buffers at the MSE boundary",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 276,
+      "line_end": 297,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Follow-on allocation optimization · P2 · extends R04, R26 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Use a bounded pool of owned ArrayBuffer slabs between a producer worker and the main-thread append controller. After a safe acknowledgment, return storage for reuse instead of allocating a fresh fragment buffer every time. New question versus prior work. R26 limits messages and credits. This examines storage ownership and reuse under the append protocol; it is not another claim of zero-copy browser decoding. Source primitive. HTML defines transferable ArrayBuffer ownership. MSE has an asynchronous append lifecycle; the safe reuse point must be verified for the actual implementation and protocol. [S11, S3]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 154,
+        "line_end": 164,
+        "source_kind": "report",
+        "reported_heading": "Recycle transferred append buffers"
+      }
+    ],
+    "scope_hash": "3ffe76f2c4eda3f00b7a6c581f9f571e2d4c0b2449e44b00e1c409fa55ba4e8e",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 177,
+    "local_screen_state": "USER_REPORTED_FIRST_PASS_COMPLETE",
+    "evidence_level": "USER_REPORTED_LOCAL_SCREEN_RAW_ARTIFACTS_NOT_BUNDLED",
+    "default_next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. Observed allocation pressure or an already-safe shared buffer-return infrastructure.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "Observed allocation pressure or an already-safe shared buffer-return infrastructure.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit.",
+    "inherited_decision": "DEFER_SETUP",
+    "followup_lane": "DO_NOT_REPEAT_PROFILE"
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R042.recycle-owned-transfer-buffers-at-the-mse-boundary.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R042.recycle-owned-transfer-buffers-at-the-mse-boundary.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 65,
+    "record": {
+      "key": "R042.recycle-owned-transfer-buffers-at-the-mse-boundary",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json"
+      ],
+      "reason": "Gather bytes remain, but no observed GC/allocator pressure justifies a new buffer-return protocol on the supplied trace. Actual local raw records and prior manifest identity were inspected in this v4 import.",
+      "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+      "carried_forward": true,
+      "next_test": "Observed allocation pressure or an already-safe shared buffer-return infrastructure.",
+      "reopen_condition": "Observed allocation pressure or an already-safe shared buffer-return infrastructure.",
+      "recorded_at_utc": "2026-09-19T17:34:19.062213+00:00"
+    }
+  },
+  "next_action": "Observed allocation pressure or an already-safe shared buffer-return infrastructure.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

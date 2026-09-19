@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R141.no-index-fragmented-mp4-native-remote-seek.report-continuity",
+  "title": "no-index fragmented MP4 native remote seek",
+  "definition": {
+    "key": "R141.no-index-fragmented-mp4-native-remote-seek.report-continuity",
+    "legacy_id": "R141",
+    "legacy_number": 141,
+    "identity_branch": "report-continuity",
+    "title": "no-index fragmented MP4 native remote seek",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 102,
+      "line_end": 109,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 6-second fragmented MP4 was authored without the usual mfra trailer/random-access index. Under the same 64 KiB capped Range harness, Chrome learned the 6-second duration, accepted a seek to 4.2 s, and played to ~4.65 s with readyState=4 and no error. But requests were sequential from bytes=0- through bytes=524288-; capped responses therefore served the full 579,542-byte file. Verdict. Correct seeking is not the same as efficient seeking. For remote bytes, this is a negative result and strengthens the case for Demuxe's own source-bound fragment/index map rather than relying on parser scanning.",
+    "related_reports": [],
+    "scope_hash": "44186284d9fd25ba411e70763fafd4188bf12710e9c0bf182f4910d93b85f092",
+    "legacy_guide_aliases": [
+      "R141-C"
+    ],
+    "family": "source",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 190,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R141.no-index-fragmented-mp4-native-remote-seek.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R141.no-index-fragmented-mp4-native-remote-seek.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R141.no-index-fragmented-mp4-native-remote-seek.report-continuity.md",
+        "results/full-completion/remote-index/identity.json",
+        "results/full-completion/remote-index/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 42,
+    "record": {
+      "key": "R141.no-index-fragmented-mp4-native-remote-seek.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "remote-index/result.json",
+        "remote-index/identity.json"
+      ],
+      "reason": "Removing only the random-access trailer after sidx removal adds no requests or bytes in this tested native seek: both fetch 6656858 bytes and the same target picture. Do not build a trailer-specific optimization from this profile; reopen a longer/costlier trace.",
+      "evidence_level": "COMPONENT_TEST",
+      "recorded_at_utc": "2026-09-19T17:34:19.055671+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+  "title": "FLAC bit-depth promotion without sample reconstruction",
+  "definition": {
+    "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+    "legacy_id": "R174",
+    "legacy_number": 174,
+    "identity_branch": "report-defined",
+    "title": "FLAC bit-depth promotion without sample reconstruction",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 41,
+      "line_end": 48,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A valid one-frame mono 20-bit FLAC was transformed into 24-bit by declaring four wasted low bits and rebuilding framing/checksums while preserving the coded fixed-predictor payload bits. The destination therefore represents x24 = 16x20 exactly. Both files contain 4,096 samples; the normalized WAVE bytes are identical, and Chromium decodeAudioData() reports zero normalized difference over all samples. The source frame is 3,652 bytes and the promoted frame 3,653 bytes. This is genuine bitstream surgery, not a decode/re-encode round trip. Integration implication: bit-depth promotion can be metadata/framing work for admitted independent FLAC subframes. The current evidence is deliberately narrow: one mono profile, not stereo decorrelation or arbitrary FLAC frame forms.",
+    "related_reports": [],
+    "scope_hash": "a3960b9a4b5067b277e4afa51f5d2591107a22f65116c060f67a5b633dadf562",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 195,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R174.flac-bit-depth-promotion-without-sample-reconstruction.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R174.flac-bit-depth-promotion-without-sample-reconstruction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R174.flac-bit-depth-promotion-without-sample-reconstruction.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 264,
+    "record": {
+      "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R174.flac-bit-depth-promotion-without-sample-reconstruction.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md"
+      ],
+      "reason": "Current FLAC admission requires established 16/24-bit integer precision and ordinary encode, so 20-bit framing promotion is not present. The one-frame mono result needs a bounded subframe parser and truthful STREAMINFO/CRC rewriting.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Prototype only independent mono 20-to-24 wasted-bit promotion and compare normalized exact samples, rejecting decorrelated stereo and malformed residual bounds.",
+      "reopen_condition": "Reopen with a feature-bearing 20-bit source and narrow bit-boundary parser; do not weaken precision guards to admit arbitrary forms.",
+      "recorded_at_utc": "2026-09-19T17:34:19.142209+00:00"
+    }
+  },
+  "next_action": "Prototype only independent mono 20-to-24 wasted-bit promotion and compare normalized exact samples, rejecting decorrelated stereo and malformed residual bounds.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

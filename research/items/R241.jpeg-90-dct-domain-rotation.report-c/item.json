@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+  "title": "JPEG 90° DCT-domain rotation",
+  "definition": {
+    "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+    "legacy_id": "R241",
+    "legacy_number": 241,
+    "identity_branch": "report-C",
+    "title": "JPEG 90° DCT-domain rotation",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S021",
+      "path": "sources/reports/R239-R245-rerun-report.md",
+      "sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+      "line_start": 39,
+      "line_end": 46,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A libjpeg coefficient transformer rotates a 64×48 4:4:4 JPEG without reconstructing pixels: block geometry rotates, each 8×8 coefficient block is transposed with the required sign changes, and quantization tables are transposed consistently. An independent coefficient dump checks all 9,216 quantized coefficients: zero differences, maximum coefficient error zero, and zero quant-table differences. Chromium decodes the result as 48×64. Rotating the already-decoded RGB source is not pixel-bit-identical to decoding the coefficient-rotated JPEG: MAE is 0.0211 and maximum component difference is 2. This is the expected integer-IDCT rounding distinction. The durable claim is no coefficient requantization/generational transform loss.",
+    "related_reports": [],
+    "scope_hash": "79df6f173792036e19c365dfe23978306499e1b3cfd259f4a6736c74ecb8af6a",
+    "legacy_guide_aliases": [
+      "R241-C"
+    ],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q4",
+    "priority_band": 2,
+    "initial_rank": 227,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R143.native-base-video-plus-an-exact-correction-stream",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.decode-an-ambisonic-sound-field-natively-then-render-its-spatial-meaning-separately",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R302.develop-ultra-hdr-gain-maps-after-native-image-decoding",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R143.compressed-fragment-rewind-cache.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R241.jpeg-90-dct-domain-rotation.report-c.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R241.jpeg-90-dct-domain-rotation.report-c.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R241.jpeg-90-dct-domain-rotation.report-c.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 296,
+    "record": {
+      "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R241.jpeg-90-dct-domain-rotation.report-c.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md"
+      ],
+      "reason": "Existing display rotation operates after decode and preserves current presentation semantics. Coefficient-domain JPEG rotation is an export/representation operation with up-to-two-level IDCT differences, not an exact pixel replacement for present display rotation.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
+      "reopen_condition": "Reopen for an explicit coefficient-preserving image transformation contract; do not substitute it for bit-identical rotated pixels.",
+      "recorded_at_utc": "2026-09-19T17:34:19.151255+00:00"
+    }
+  },
+  "next_action": "For requested JPEG export without requantization, compare all coefficients/quantization tables and report decoded rounding difference separately.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

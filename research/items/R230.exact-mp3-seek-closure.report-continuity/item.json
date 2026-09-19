@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "key": "R230.exact-mp3-seek-closure.report-continuity",
+  "title": "exact MP3 seek closure",
+  "definition": {
+    "key": "R230.exact-mp3-seek-closure.report-continuity",
+    "legacy_id": "R230",
+    "legacy_number": 230,
+    "identity_branch": "report-continuity",
+    "title": "exact MP3 seek closure",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 85,
+      "line_end": 100,
+      "source_kind": "report"
+    },
+    "source_excerpt": "At target packet 220, beginning with no earlier MP3 frames or only one earlier frame does not reproduce the continuous decoder PCM. With two prior MP3 frames / 48 ms, every remaining decoded float sample is identical to the continuous decode. This is fixture/profile evidence, not a universal two-frame MP3 theorem. It shows the useful design: seek admission should be expressed as a coded dependency/recovery window and measured against an exact oracle.",
+    "related_reports": [],
+    "scope_hash": "5817b6e57486bdcb8feb4c384ea5aef36e2ac9eca4e3dca4ef5311da157d5411",
+    "legacy_guide_aliases": [
+      "R230-C"
+    ],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 100,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R230.exact-mp3-seek-closure.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R230.exact-mp3-seek-closure.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R230.exact-mp3-seek-closure.report-continuity.md",
+        "results/top100/mp3/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 90,
+    "record": {
+      "key": "R230.exact-mp3-seek-closure.report-continuity",
+      "rank": 100,
+      "state": "PURSUE",
+      "reason": "Actual MP3 continuous PCM suffix oracle at two targets distinguishes insufficient cold/preroll windows from exact recovery. Validated closure is tied to authored48k stereo128k fixture without Xing trimming; not a universal2-frame rule or browser seek feature.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "mp3/result.json",
+          "sha256": "de2be828443005a9533cf90086d13064459c2429838562ca881c453767108a3e"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:02:15.584063+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

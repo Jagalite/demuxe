@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "key": "R303.schedule-h-264-deblocking-as-a-dependency-graph",
+  "title": "Schedule H.264 deblocking as a dependency graph",
+  "definition": {
+    "key": "R303.schedule-h-264-deblocking-as-a-dependency-graph",
+    "legacy_id": "R303",
+    "legacy_number": 303,
+    "identity_branch": "proposal",
+    "title": "Schedule H.264 deblocking as a dependency graph",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S045",
+      "path": "sources/proposals/Demuxe_R301_R306_Proposals.md",
+      "sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+      "line_start": 82,
+      "line_end": 107,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Controlled GPU reconstruction experiment; exact-output follow-on distinct from R291's no-op elimination. Represent each deblocking edge operation by conservative sample read and write sets. Preserve the reference ordering between operations whenever a read-after-write, write-after-read, or write-after-write conflict exists. Execute only independent operations together; use valid dispatch-level ordering between dependent batches. FFmpeg's implementation provides explicit edge order and integer kernels. The kernels modify samples on both sides of an edge, and strong filtering can reach farther than its nearest samples. Thus merely assigning one GPU invocation per visible edge is not a correctness argument. [H1–H2]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S027",
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "line_start": 31,
+        "line_end": 38,
+        "source_kind": "report",
+        "reported_heading": "H.264 deblocking dependency graph"
+      }
+    ],
+    "scope_hash": "73d91f5d0bb8720fbe328b28c2c36cc2656b053b6e06222f5279badfc620f266",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 323,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R303.schedule-h-264-deblocking-as-a-dependency-graph.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 364,
+    "record": {
+      "key": "R303.schedule-h-264-deblocking-as-a-dependency-graph",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R303.schedule-h-264-deblocking-as-a-dependency-graph.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R301-R306-report.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Maintained Wasm SIMD deblocks CPU-resident samples with existing kernel ordering. No captured full edge graph or GPU-resident reconstruction owner exists, and readback may erase GPU benefit. Historical schedule graph is component-only.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "carried_forward": true,
+      "next_test": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+      "recorded_at_utc": "2026-09-19T17:34:19.170117+00:00"
+    }
+  },
+  "next_action": "Capture one actual single-slice edge trace with unfiltered plane and parameters; verify dependency schedule against optimized output plus unsafe reverse-order control before any GPU dispatch pipeline.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R200.content-addressed-reuse-across-different-files",
+  "title": "content-addressed reuse across different files",
+  "definition": {
+    "key": "R200.content-addressed-reuse-across-different-files",
+    "legacy_id": "R200",
+    "legacy_number": 200,
+    "identity_branch": "report-defined",
+    "title": "content-addressed reuse across different files",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 83,
+      "line_end": 90,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 30-frame closed H.264 group was encoded once and stream-concatenated between different pre/post groups to create two different 90-frame files. The exact shared coded byte sequence appears at byte offsets 17051 and 1420. Frames 30–59 extracted from both complete files match the independent shared-group decode exactly and match each other exactly. The cache identity also changes when color metadata, dependency-boundary identity or decoder configuration changes. This supports caching verified immutable work for closed dependency groups across authorized files while keeping current-file timestamps/timeline semantics outside the cached object. It does not justify sharing mutable live decoder state.",
+    "related_reports": [],
+    "scope_hash": "b2aac4416c65e92443dbbfc76f2d33829c0f818a159dbcdd5246922c41e13d18",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 92,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      },
+      {
+        "key": "R334.share-one-demux-pass-across-independent-playback-and-export-timelines",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R200.content-addressed-reuse-across-different-files.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R200.content-addressed-reuse-across-different-files.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R200.content-addressed-reuse-across-different-files.md",
+        "results/top100/ownership/content-cache-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 82,
+    "record": {
+      "key": "R200.content-addressed-reuse-across-different-files",
+      "rank": 92,
+      "state": "PURSUE",
+      "reason": "Two different owned file wrappers share exact coded packets/configuration through bounded content-addressed entries, retaining source timelines separately. Poisoned digest entry rejects, changed configuration misses, all references released. No workload benefit or cross-authority reuse claim.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/content-cache-result.json",
+          "sha256": "2e9bcff852bdf39ccfe30b558d61a4d0ea1c6c36e7ec6a650f0cb98b6ba6f4af"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:50:21.466461+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

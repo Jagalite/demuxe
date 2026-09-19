@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "key": "R005.move-mse-ownership-off-the-window-thread",
+  "title": "Move MSE ownership off the window thread",
+  "definition": {
+    "key": "R005.move-mse-ownership-off-the-window-thread",
+    "legacy_id": "R05",
+    "legacy_number": 5,
+    "identity_branch": "proposal",
+    "title": "Move MSE ownership off the window thread",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 153,
+      "line_end": 171,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Delivery · New execution-plan hypothesis · P1 · Risk: Medium First environment: Browser-only first; Demuxe integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Create MediaSource and append/remove scheduling in a dedicated worker, passing a MediaSourceHandle to the visible video element. Keep blocking FFmpeg execution on a different worker unless its calls genuinely suspend. Source basis. MSE defines worker construction and transferable handles. Support must be detected in the runtime; a handle is not a transferable MediaSource object. [M1] First agent experiment. Compare window-owned and worker-owned MSE under identical UI layout/animation load. Use unchanged fMP4 output first; add remux only after the ownership test passes. Include worker death, source replacement and detach during append.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S005",
+        "path": "sources/reports/RESULTS.md",
+        "sha256": "21a756a374dfcfc6a39896af78a3b54ce52eb73b3cca735581ccbe883acf65d7",
+        "line_start": 81,
+        "line_end": 88,
+        "source_kind": "report",
+        "reported_heading": "Worker-owned MSE: SURFACE PRESENT, ATTACHMENT BLOCKED BY THIS SANDBOX"
+      }
+    ],
+    "scope_hash": "af0b764e82a299a9ea352652f15f54f493755a084aca89a76344e47a0995299c",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q2",
+    "priority_band": 1,
+    "initial_rank": 10,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Prerequisite-only first: Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R005.move-mse-ownership-off-the-window-thread.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R005.move-mse-ownership-off-the-window-thread.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R005.move-mse-ownership-off-the-window-thread.md",
+        "results/full-completion/continuity/worker-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 21,
+    "record": {
+      "key": "R005.move-mse-ownership-off-the-window-thread",
+      "rank": 10,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Worker-owned MediaSourceHandle produces actual A/V through EOF with malformed-input rejection and teardown; localized scheduler integration merits testing, not proven UI/CPU improvement.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/continuity/worker-result.json",
+          "sha256": "1fb4b097b3a430c21e6b302918c1a16c55801f622ba4aaa13e99aa698bdc8751"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.243523+00:00"
+    }
+  },
+  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

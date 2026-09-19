@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R043.change-video-configuration-while-keeping-audio-running",
+  "title": "Change video configuration while keeping audio running",
+  "definition": {
+    "key": "R043.change-video-configuration-while-keeping-audio-running",
+    "legacy_id": "R43",
+    "legacy_number": 43,
+    "identity_branch": "proposal",
+    "title": "Change video configuration while keeping audio running",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 39,
+      "line_end": 60,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New transition experiment · P1 · PROPOSED / NOT TESTED Extends: R15, R28, R35. Reference primitives: S1, S2, L3. Question. Can a user-requested resolution change replace only future video, instead of restarting audio and the complete player? Mechanism. Retain one media element, MediaSource and audio SourceBuffer. Supply the real new video initialization/configuration and start its media at an established random-access boundary. Begin with H.264-to-H.264 size changes; codec changes are a later, separately probed extension. Smallest useful experiment. Create synchronized 360p and 720p encodings of the same numbered frames, with aligned closed GOPs and one unchanged AAC track. Switch 360→720→360 at future boundaries; repeat while paused, during a seek and after deliberately failed preparation. Use a new init segment and changeType only where required by the actual configuration.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 29,
+        "line_end": 34,
+        "source_kind": "report",
+        "reported_heading": "video-only configuration transaction"
+      }
+    ],
+    "scope_hash": "079abb9be919e7da3c8ed35a4bd32ba406fe7a3434e6de29132647039ce9feca",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 149,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R043.change-video-configuration-while-keeping-audio-running.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R043.change-video-configuration-while-keeping-audio-running.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R043.change-video-configuration-while-keeping-audio-running.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 227,
+    "record": {
+      "key": "R043.change-video-configuration-while-keeping-audio-running",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R043.change-video-configuration-while-keeping-audio-running.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md"
+      ],
+      "reason": "Split output exists but native step rejects changed video configuration; no independent future-video commit while audio stays alive exists. Configuration guards are necessary until that transaction is explicit.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.106971+00:00"
+    }
+  },
+  "next_action": "Define one H264 360-to-720 closed-GOP transaction with actual new init; retain audio marker identity and reject failed/misaligned replacement without corrupting prior presentation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "key": "R302.develop-ultra-hdr-gain-maps-after-native-image-decoding",
+  "title": "Develop Ultra HDR gain maps after native image decoding",
+  "definition": {
+    "key": "R302.develop-ultra-hdr-gain-maps-after-native-image-decoding",
+    "legacy_id": "R302",
+    "legacy_number": 302,
+    "identity_branch": "proposal",
+    "title": "Develop Ultra HDR gain maps after native image decoding",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S045",
+      "path": "sources/proposals/Demuxe_R301_R306_Proposals.md",
+      "sha256": "1e0f8814d5014cadc7445adec37b28df29c836d847443c4b2561948835a909dd",
+      "line_start": 56,
+      "line_end": 81,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Existing-image capability; source-specific extension of split reconstruction ownership. Use a small parser to extract a qualified Ultra HDR image's compressed base, compressed gain map, and metadata. Decode the component images with browser image decoding, then apply gain-map reconstruction in a GPU stage. Retain the decoded components so changing the declared output HDR capacity does not repeat JPEG decoding. Libultrahdr exposes a probe that parses information without decompressing the images, accessors for both compressed images and gain-map metadata, and an output-display-capacity parameter. Its reference implementation performs metadata-dependent gain reconstruction, including gamma, offsets, and gain-map weighting. [U1–U3]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S027",
+        "path": "sources/reports/R301-R306-report.md",
+        "sha256": "600870344aa7de787da2536905739a98e65eec3029ca6b3744da31a7378ab92f",
+        "line_start": 25,
+        "line_end": 30,
+        "source_kind": "report",
+        "reported_heading": "Ultra HDR split reconstruction"
+      }
+    ],
+    "scope_hash": "216132f244a7cf47ececcfa087a7e5036de495642dbf0cce06923b60bb73d20d",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 2,
+    "initial_rank": 266,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R143.native-base-video-plus-an-exact-correction-stream",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.decode-an-ambisonic-sound-field-natively-then-render-its-spatial-meaning-separately",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R143.compressed-fragment-rewind-cache.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      },
+      {
+        "key": "R241.jpeg-90-dct-domain-rotation.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Richer representation reconstruction; verify source format and output contract."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R302.develop-ultra-hdr-gain-maps-after-native-image-decoding.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R302.develop-ultra-hdr-gain-maps-after-native-image-decoding.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R301_R306_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R302.develop-ultra-hdr-gain-maps-after-native-image-decoding.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 325,
+    "record": {
+      "key": "R302.develop-ultra-hdr-gain-maps-after-native-image-decoding",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R302.develop-ultra-hdr-gain-maps-after-native-image-decoding.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Current YUV branch excludes PQ/HLG and supplies no Ultra HDR component parser or gain-map reconstruction oracle. Historical lack of WebGPU is obsolete in the shared probe; pinned libultrahdr and component-value fidelity still need a real setup inventory. No current missing-install claim is inferred from the old host.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Provision/identify one pinned libultrahdr reference and compare identical arrays for one grayscale map before browser decode/shader integration.",
+      "reopen_condition": "Provision/identify one pinned libultrahdr reference and compare identical arrays for one grayscale map before browser decode/shader integration.",
+      "recorded_at_utc": "2026-09-19T17:34:19.159721+00:00"
+    }
+  },
+  "next_action": "Provision/identify one pinned libultrahdr reference and compare identical arrays for one grayscale map before browser decode/shader integration.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

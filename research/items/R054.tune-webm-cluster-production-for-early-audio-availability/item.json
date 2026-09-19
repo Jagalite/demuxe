@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R054.tune-webm-cluster-production-for-early-audio-availability",
+  "title": "Tune WebM cluster production for early audio availability",
+  "definition": {
+    "key": "R054.tune-webm-cluster-production-for-early-audio-availability",
+    "legacy_id": "R54",
+    "legacy_number": 54,
+    "identity_branch": "proposal",
+    "title": "Tune WebM cluster production for early audio availability",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 281,
+      "line_end": 302,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New container-specific delivery experiment · P2 · PROPOSED / NOT TESTED Extends: R04, R32, R34. Reference primitives: S3, S6, L3, E1. Question. Does the working mixed-container route become more useful when Opus WebM bytes are emitted incrementally by the actual producer? Mechanism. Vary only a few supported WebM cluster-time/size and flush choices, keeping the same Opus packets and source timeline. Distinguish bytes FFmpeg has emitted from a prebuilt file artificially dripped into MSE. Smallest useful experiment. Feed existing Opus packets through a native FFmpeg pipe with default and bounded cluster policies. Record actual byte-release times, then append alongside identical fMP4 video. Test startup, delayed delivery, cancellation and EOF. First prove packet count, delay and tail equivalence for every candidate.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 103,
+        "line_end": 108,
+        "source_kind": "report",
+        "reported_heading": "WebM cluster release"
+      }
+    ],
+    "scope_hash": "b9340aa229cdaadb718fe2d4d5e3835c89d2ae40856e97fa93494451392892ed",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 153,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R054.tune-webm-cluster-production-for-early-audio-availability.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R054.tune-webm-cluster-production-for-early-audio-availability.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R43_R57.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R054.tune-webm-cluster-production-for-early-audio-availability.md",
+        "results/full-completion/continuity/maintained-webm-result.json",
+        "results/full-completion/webm-boundaries/metadata.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 57,
+    "record": {
+      "key": "R054.tune-webm-cluster-production-for-early-audio-availability",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "continuity/maintained-webm-result.json",
+        "webm-boundaries/metadata.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R054.tune-webm-cluster-production-for-early-audio-availability.md"
+      ],
+      "reason": "Actual two-second VP9/Opus output releases two roughly one-second clusters and retains all packets/trim. It does not expose an expensive long-GOP withholding case. A cluster-policy rebuild and representative long-GOP trace are needed before choosing smaller clusters; no negative policy experiment was run.",
+      "evidence_level": "REAL_PATH_OBSERVATION",
+      "recorded_at_utc": "2026-09-19T17:34:19.059490+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

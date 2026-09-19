@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R290.compose-exact-motion-copy-chains-before-reconstructing-pixels",
+  "title": "Compose exact motion-copy chains before reconstructing pixels",
+  "definition": {
+    "key": "R290.compose-exact-motion-copy-chains-before-reconstructing-pixels",
+    "legacy_id": "R290",
+    "legacy_number": 290,
+    "identity_branch": "proposal",
+    "title": "Compose exact motion-copy chains before reconstructing pixels",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S043",
+      "path": "sources/proposals/Demuxe_R289_R294_Proposals.md",
+      "sha256": "7574d087e49ed723033238ec3a379db6bb7c353412b20f0b8856baf96c47f32a",
+      "line_start": 27,
+      "line_end": 47,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Mechanism. In a controlled software decoder, represent eligible predictions as mappings to immutable anchor pixels or reconstructed patches. For a pure-copy picture, F_t(p) = F_(t-1)(g_t(p)); compose the maps across several pictures instead of copying full intermediate planes. This is a pull-back coordinate map, not an estimate of physical motion. Syntax and reference bookkeeping still advance normally. First scope. Restricted progressive MPEG-2 I/P video, one forward reference, no coded residual in eligible blocks, and motion that is an integer sample displacement on every affected plane. Integer luma motion alone is insufficient when chroma is subsampled. No bidirectional averaging, fractional interpolation, or unmodeled filtering. Unsupported blocks are eagerly reconstructed as materialized leaves or cause a conservative fallback.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S025",
+        "path": "sources/reports/R289-R294-report.md",
+        "sha256": "6cc7322c2bb0c42e76c2c2d9a04a250888c1edb9cbc593b7f6528b50ce8a77f5",
+        "line_start": 27,
+        "line_end": 41,
+        "source_kind": "report",
+        "reported_heading": "symbolic motion-copy composition"
+      }
+    ],
+    "scope_hash": "5ad096b17872f5e2afe2c80804ccc6c6919b0db8c6154110a9d366311bc292b6",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 322,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R289_R294_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R289-R294-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 363,
+    "record": {
+      "key": "R290.compose-exact-motion-copy-chains-before-reconstructing-pixels",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R289-R294-report.md"
+      ],
+      "reason": "Current software/browser bridge returns reconstructed planes or frames, not symbolic prediction maps. Historical matches were detected after full decode, so they did not eliminate real MPEG2 reconstruction.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+      "recorded_at_utc": "2026-09-19T17:34:19.169851+00:00"
+    }
+  },
+  "next_action": "Expose eligible no-residual integer-motion syntax from controlled MPEG2 decoder; compare one composed-chain suffix and chroma misalignment/changing-boundary fallback before performance claims.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

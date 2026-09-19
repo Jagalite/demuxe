@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries",
+  "title": "Parallelize phase-vocoder accumulation without resetting phase at job boundaries",
+  "definition": {
+    "key": "R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries",
+    "legacy_id": "R351",
+    "legacy_number": 351,
+    "identity_branch": "proposal",
+    "title": "Parallelize phase-vocoder accumulation without resetting phase at job boundaries",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S051",
+      "path": "sources/proposals/Demuxe_R348_R352_Proposals.md",
+      "sha256": "e778885a12e305271899d494b2dbf9dcf0a16ed2793a67e31db89b17672720cb",
+      "line_start": 114,
+      "line_end": 151,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Investigate a parallel implementation of one precisely specified phase-vocoder algorithm. Librosa's pinned reference computes increments from adjacent input spectra and then accumulates output phase. It also explicitly warns that its simple reference does not handle transients. [S9] For output analysis step m and frequency bin k, determine increment d[m,k] from the same input columns, expected phase advance, and wrap/tie rules as the chosen reference. Then: The exclusive prefix sum gives each job the correct phase rather than restarting that job at an arbitrary local phase. Magnitude interpolation remains input-local. Subsequent inverse transforms and overlap-add need their own correct boundary handling.",
+    "related_reports": [],
+    "scope_hash": "81c9c8ee927d1c66feeb4e985396fc73ebccecbf5593f86515efff48ad1934c7",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 329,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 370,
+    "record": {
+      "key": "R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries.md"
+      ],
+      "reason": "Playback rate delegates to mpv speed; no selected simple phase-vocoder algorithm or exposed phase/OLA state exists. Replacing a production stretcher with a teaching algorithm changes semantics.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+      "recorded_at_utc": "2026-09-19T17:34:19.171889+00:00"
+    }
+  },
+  "next_action": "Specify one fixed FFT/hop/stretch/padding recipe before irregular-chunk prefix oracle; test pi-wrap ties, tiny magnitudes and impulse at chunk boundary, charging complete transforms/OLA.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

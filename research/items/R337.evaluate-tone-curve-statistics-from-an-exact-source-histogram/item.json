@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram",
+  "title": "Evaluate tone-curve statistics from an exact source histogram",
+  "definition": {
+    "key": "R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram",
+    "legacy_id": "R337",
+    "legacy_number": 337,
+    "identity_branch": "proposal",
+    "title": "Evaluate tone-curve statistics from an exact source histogram",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S048",
+      "path": "sources/proposals/Demuxe_R332_R337_Proposals.md",
+      "sha256": "137a31463db79c7d4bc970a9580c409b66c847c4df0824dc63453d167ca8baa1",
+      "line_start": 186,
+      "line_end": 222,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Proposal key: 9b12cf0f5ee09f1916436e6a92ba10b0473e8d361d8942e9e654c589f284e0ee Mechanism: For an immutable sample plane and a declared pointwise integer lookup-table transform, compute candidate output histograms and aggregate statistics by mapping histogram counts instead of rendering and rescanning all samples. Initial scope: One exactly represented 10-bit grayscale or luma-code plane, 1,024 source bins, one fixed ROI per histogram, and pointwise 10-bit integer output LUTs. No spatial filters, local tone mapping, cross-channel transforms, dithering, or temporal adaptation. Acceptance contract: Exact output-bin counts, sample count, integer sums and squared sums where requested, and correctly defined threshold counts relative to a per-pixel application of the same LUT. Perceptual quality and full-color gamut are not inferred.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S032",
+        "path": "sources/reports/R332-R337-report.md",
+        "sha256": "b7ab0b9084cabf3952646bd93d1b38530ba51f5d69b709226ce57ee122405815",
+        "line_start": 56,
+        "line_end": 65,
+        "source_kind": "report",
+        "reported_heading": "Evaluate tone-curve statistics from an exact source histogram"
+      }
+    ],
+    "scope_hash": "7051de2009bc8439102770b20255aced69420100faa71684e76d0163a1997184",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 186,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 257,
+    "record": {
+      "key": "R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md"
+      ],
+      "reason": "Histogram push-forward is exact for declared pointwise integer LUT statistics, but the current player renders requested images and has no repeated candidate-statistics query stage. It cannot substitute for spatial effects or final rendering.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If an analysis UI is requested, validate one immutable 10-bit ROI histogram against per-pixel LUT output, with equal-histogram spatial permutations as the limitation control.",
+      "reopen_condition": "Reopen for many aggregate-statistic queries over one unchanged plane/ROI; changed frame or spatial transform invalidates reuse.",
+      "recorded_at_utc": "2026-09-19T17:34:19.114486+00:00"
+    }
+  },
+  "next_action": "If an analysis UI is requested, validate one immutable 10-bit ROI histogram against per-pixel LUT output, with equal-histogram spatial permutations as the limitation control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

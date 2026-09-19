@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
+  "title": "Recover the GPU presenter without reopening healthy decoders",
+  "definition": {
+    "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
+    "legacy_id": "R335",
+    "legacy_number": 335,
+    "identity_branch": "proposal",
+    "title": "Recover the GPU presenter without reopening healthy decoders",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S048",
+      "path": "sources/proposals/Demuxe_R332_R337_Proposals.md",
+      "sha256": "137a31463db79c7d4bc970a9580c409b66c847c4df0824dc63453d167ca8baa1",
+      "line_start": 116,
+      "line_end": 147,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Proposal key: a246fb6ea7330c8dc6f9b8b354dc85a53e61eca8e83b71ad7b630aca72a435c0 Mechanism: Treat presentation-device loss as its own recovery scope. Recreate device-bound presentation resources while retaining independently verified healthy audio and decoding state, within strict frame-retention limits. Initial scope: One WebCodecs video path, a separately controlled audio clock, a WebGPU presenter, and test-injected presentation-device destruction. The initial contract permits a measured visible recovery gap and resumption at the current audio timeline. Acceptance contract: No stale-device resources or stale-source frames are published; surviving audio is not unnecessarily restarted; recovery output has the correct frame/time/configuration. All missed presentation intervals are counted. Decoder survival is observed, never assumed.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S032",
+        "path": "sources/reports/R332-R337-report.md",
+        "sha256": "b7ab0b9084cabf3952646bd93d1b38530ba51f5d69b709226ce57ee122405815",
+        "line_start": 44,
+        "line_end": 47,
+        "source_kind": "report",
+        "reported_heading": "Recover the GPU presenter without reopening healthy decoders"
+      }
+    ],
+    "scope_hash": "82131c83c537599e0a32396e3c108ab58c44b8e514176a53de2fc51e53fbce3f",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 13,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "Prerequisite-only first: Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R335.recover-the-gpu-presenter-without-reopening-healthy-decoders.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R335.recover-the-gpu-presenter-without-reopening-healthy-decoders.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R332_R337_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R335.recover-the-gpu-presenter-without-reopening-healthy-decoders.md",
+        "results/top100/gpu/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 49,
+    "record": {
+      "key": "R335.recover-the-gpu-presenter-without-reopening-healthy-decoders",
+      "rank": 13,
+      "state": "PURSUE",
+      "reason": "Actual WebGPU device destruction/recreation preserves held decoded-frame redraw exactly; same VideoDecoder remains configured and emits the next timestamp. Worth independent presenter recovery. This is a small GPU owner prototype, not the current player integration.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "gpu/result.json",
+          "sha256": "aa8b59231abe26c1c9c46d2d719acfaed88e2e8c75d395333431b912e8dcc338"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:23:18.459316+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

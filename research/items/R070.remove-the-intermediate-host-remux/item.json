@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R070.remove-the-intermediate-host-remux",
+  "title": "Remove the intermediate host remux",
+  "definition": {
+    "key": "R070.remove-the-intermediate-host-remux",
+    "legacy_id": "R70",
+    "legacy_number": 70,
+    "identity_branch": "report-defined",
+    "title": "Remove the intermediate host remux",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S004",
+      "path": "sources/reports/R70-R75-report.md",
+      "sha256": "246adfe566aaf3b297dd50bf62876c04e2b27f54767fa028f8a22a2a63187edc",
+      "line_start": 30,
+      "line_end": 43,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Question. Can selected H.264/AAC from a two-program transport stream be packaged directly into fragmented MP4 instead of first producing an ordinary MP4? This extends R65's construction rather than introducing a new player route. The six-second fixture contains red H.264 video plus a 440 Hz AAC signal in program 100, with unrelated blue video and 880 Hz AC-3 in program 200. The candidate selects program 100, applies aac_adtstoasc and uses delay_moov with fragmentation. The negative control removes delay_moov from that CLI construction. FFmpeg documents that this flag postpones the initial movie header until the first fragment cut or flush; it does not promise faster first-frame presentation. [F1]",
+    "related_reports": [],
+    "scope_hash": "1522e4db8f2ad9b2520439b67147f5107b0474af0af0bad2468bbf245e5d8312",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 238,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R070.remove-the-intermediate-host-remux.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R070.remove-the-intermediate-host-remux.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R070.remove-the-intermediate-host-remux.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 301,
+    "record": {
+      "key": "R070.remove-the-intermediate-host-remux",
+      "state": "ALREADY_IMPLEMENTED",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R070.remove-the-intermediate-host-remux.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R70-R75-report.md"
+      ],
+      "reason": "Maintained rm_open already bounded-prefetches AAC and derives initialization before direct fragmented output; there is no intermediate host MP4 stage in runtime. The lab two-pass removal is therefore not a missing production optimization.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Retain AAC initialization negative control when changing TS preparation; no duplicated pipeline simplification needed.",
+      "reopen_condition": "Reopen if an actual maintained route introduces a redundant ordinary-MP4 intermediate or AAC init generation regresses.",
+      "recorded_at_utc": "2026-09-19T17:34:19.153725+00:00"
+    }
+  },
+  "next_action": "Retain AAC initialization negative control when changing TS preparation; no duplicated pipeline simplification needed.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

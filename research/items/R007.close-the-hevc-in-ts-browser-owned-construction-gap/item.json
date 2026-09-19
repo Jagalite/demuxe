@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
+  "title": "Close the HEVC-in-TS browser-owned construction gap",
+  "definition": {
+    "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
+    "legacy_id": "R07",
+    "legacy_number": 7,
+    "identity_branch": "proposal",
+    "title": "Close the HEVC-in-TS browser-owned construction gap",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 191,
+      "line_end": 209,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Packaging · Follow-on route expansion · P1 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Construct a qualified HEVC/AAC TS-to-fMP4 plan rather than falling to Hybrid solely because the maintained TS repair is AVC-specific. Preserve original video/audio and extend only the missing timestamp/configuration logic. Source basis. FFmpeg supports codec configuration extraction and fragmented MP4 controls; the previous user-supplied comparison identified a working competitor MSE alternative. Neither establishes correctness of Demuxe’s HEVC adaptation. [F1, F2; prior qualification report]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S005",
+        "path": "sources/reports/RESULTS.md",
+        "sha256": "21a756a374dfcfc6a39896af78a3b54ce52eb73b3cca735581ccbe883acf65d7",
+        "line_start": 89,
+        "line_end": 92,
+        "source_kind": "report",
+        "reported_heading": "HEVC/AAC TS → browser MSE: BLOCKED ON THIS LINUX CHROMIUM"
+      }
+    ],
+    "scope_hash": "77be3d3449438b073420ba2a305189ddf5ada0b6e520761c3287f306c37aa656",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 1,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R007.close-the-hevc-in-ts-browser-owned-construction-gap.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R007.close-the-hevc-in-ts-browser-owned-construction-gap.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R007.close-the-hevc-in-ts-browser-owned-construction-gap.md",
+        "results/top100/transport/browser-result.json",
+        "results/top100/transport/build-commands.json",
+        "results/top100/transport/hevc-remux.c"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 1,
+    "record": {
+      "key": "R007.close-the-hevc-in-ts-browser-owned-construction-gap",
+      "rank": 1,
+      "state": "PURSUE",
+      "reason": "Actual isolated Wasm gate extension plays HEVC/AAC TS and seeks; current bridge rejects it. Complete output video and PCM match independent host decode with passthrough frame timing; AVC control still passes. Additional codec-aware adverse timestamp/configuration cases remain before integration.",
+      "evidence_level": "REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "transport/browser-result.json",
+          "sha256": "8bf33f3353cf001e5efc878ac228c987cfb12c84dd7fcceffbf14275f1b3cfc6"
+        },
+        {
+          "path": "transport/hevc-remux.c",
+          "sha256": "102644cf509c1558eccc2855b757c9743a7577767addd5f0be346d79175be264"
+        },
+        {
+          "path": "transport/build-commands.json",
+          "sha256": "e3b6a5df73bce7d5c57ecd5b32495c99b1cef04ab6bd314b7befdf68d88f177c"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:05:13.846821+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

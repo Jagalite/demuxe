@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "key": "R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity",
+  "title": "continuous playback through H.264/fMP4 → VP9/WebM",
+  "definition": {
+    "key": "R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity",
+    "legacy_id": "R139",
+    "legacy_number": 139,
+    "identity_branch": "report-continuity",
+    "title": "continuous playback through H.264/fMP4 → VP9/WebM",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 84,
+      "line_end": 91,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The stronger follow-up put two H.264 fragments first, switched the same SourceBuffer to VP9/WebM at a 2-second offset, appended the VP9 media, ended the MediaSource, and played continuously. Frame callbacks cover H.264 through 1.900 s, then VP9 begins at 2.000 s and continues through 4.967 s. The element reached ended=true at 5.000 s with no exception or media error. Implication. A Demuxe route need not necessarily tear down the MediaSource or video element when a playlist/asset boundary changes codec/container, provided the exact browser/codecs admit changeType() and the application authors a valid continuous timeline.",
+    "related_reports": [],
+    "scope_hash": "b7f0d2b367984fe6394f744e615d8d96899b191816cddc727048356591aaddcc",
+    "legacy_guide_aliases": [
+      "R139-C"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 131,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R139.mix-channels-before-performing-all-their-output-transforms",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      },
+      {
+        "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 213,
+    "record": {
+      "key": "R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Every start recreates MediaSource and packet processing rejects changed extradata. changeType support alone does not supply a source-queue timeline, two codec epochs or rollback transaction.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "carried_forward": true,
+      "next_test": "Define a two-asset mapping/commit boundary and test exactly one H264-to-VP9 changeType join with numbered frames; failed second init must preserve old source ownership, not relabel payloads.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define a two-asset mapping/commit boundary and test exactly one H264-to-VP9 changeType join with numbered frames; failed second init must preserve old source ownership, not relabel payloads.",
+      "recorded_at_utc": "2026-09-19T17:34:19.103266+00:00"
+    }
+  },
+  "next_action": "Define a two-asset mapping/commit boundary and test exactly one H264-to-VP9 changeType join with numbered frames; failed second init must preserve old source ownership, not relabel payloads.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

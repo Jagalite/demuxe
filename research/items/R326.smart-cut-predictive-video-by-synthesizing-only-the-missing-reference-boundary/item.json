@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "key": "R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary",
+  "title": "Smart-cut predictive video by synthesizing only the missing reference boundary",
+  "definition": {
+    "key": "R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary",
+    "legacy_id": "R326",
+    "legacy_number": 326,
+    "identity_branch": "proposal",
+    "title": "Smart-cut predictive video by synthesizing only the missing reference boundary",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 303,
+      "line_end": 306,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Prepare a constrained synthetic exact reference boundary for a copied predictive suffix instead of re-encoding its full edge GOP. Verify all reference numbering/filter/state semantics, suffix pictures and preparation cost.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S031",
+        "path": "sources/reports/R324-R331-report.md",
+        "sha256": "64b889b47d6c6f12f088e2d2113aef8b44d2d2072e3dcc379b268b4903aa547b",
+        "line_start": 35,
+        "line_end": 40,
+        "source_kind": "report",
+        "reported_heading": "synthetic predictive reference boundary"
+      }
+    ],
+    "scope_hash": "e2861f6d205ef20f46e815bb8f9e48e8e7ec18932628ed04d0d40e402e00668f",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 325,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R121.native-reference-state-capsules-for-fast-seeking",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Synthetic reference seeding; seeking versus exported-cut requirements."
+      },
+      {
+        "key": "R121.insert-a-freeze-with-an-empty-edit.report-frontier",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Synthetic reference seeding; seeking versus exported-cut requirements."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R324-R331-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 366,
+    "record": {
+      "key": "R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R324-R331-report.md"
+      ],
+      "reason": "Current pipeline consumes original packets and legal keyframe boundaries; no exact synthetic-reference encoder/state validator exists. Matching one MPEG2 reference pixel plane does not establish hidden reference equivalence for other codecs.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+      "recorded_at_utc": "2026-09-19T17:34:19.170880+00:00"
+    }
+  },
+  "next_action": "Scope one no-B MPEG2 constant-block boundary in an isolated encoder oracle; preserve all suffix payloads and compare complete suffix, with missing synthetic reference as fail control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

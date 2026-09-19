@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R181.dependency-aware-corruption-tracking",
+  "title": "dependency-aware corruption tracking",
+  "definition": {
+    "key": "R181.dependency-aware-corruption-tracking",
+    "legacy_id": "R181",
+    "legacy_number": 181,
+    "identity_branch": "report-defined",
+    "title": "dependency-aware corruption tracking",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 109,
+      "line_end": 120,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The test H.264 stream has 36 access units: 3 I, 18 P, and 15 B. Three perturbations were tested. - Removing a chosen non-reference B picture yields 35 decoded frames, and every emitted remaining frame matches the intact stream. - Removing a reference P picture yields 35 frames; the final 12-frame GOP beginning at the next IDR is exact to the intact stream. - Flipping a slice-header bit that changes reference/frame-number handling produces one decoder warning; the final IDR GOP is again exact. This supports a conservative model: non-reference loss contaminates that picture only; reference loss contaminates dependent output until a reset point; malformed reference management should be considered unknown until the next certified reset.",
+    "related_reports": [],
+    "scope_hash": "1c44d265d4b25261d0059b860dee4f00a2d0f4083645e27dffd2991a49b76352",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 289,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R181.dependency-aware-corruption-tracking.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R181.dependency-aware-corruption-tracking.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R181.dependency-aware-corruption-tracking.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 345,
+    "record": {
+      "key": "R181.dependency-aware-corruption-tracking",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R181.dependency-aware-corruption-tracking.md"
+      ],
+      "reason": "Current bridge retains recovery packets and waits for key entry after reset but has no per-picture contamination provenance graph. Historical exact output after next IDR supports conservative recovery, not certification inside arbitrary damaged GOPs.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define a source-generation trust flag for one lost nonreference picture and one reference loss before adding per-picture provenance.",
+      "reopen_condition": "Define a source-generation trust flag for one lost nonreference picture and one reference loss before adding per-picture provenance.",
+      "recorded_at_utc": "2026-09-19T17:34:19.165239+00:00"
+    }
+  },
+  "next_action": "Define a source-generation trust flag for one lost nonreference picture and one reference loss before adding per-picture provenance.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

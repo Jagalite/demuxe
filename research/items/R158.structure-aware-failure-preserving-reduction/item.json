@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R158.structure-aware-failure-preserving-reduction",
+  "title": "Structure-aware failure-preserving reduction",
+  "definition": {
+    "key": "R158.structure-aware-failure-preserving-reduction",
+    "legacy_id": "R158",
+    "legacy_number": 158,
+    "identity_branch": "report-defined",
+    "title": "Structure-aware failure-preserving reduction",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 189,
+      "line_end": 198,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Used the previously supplied R110 laced-Opus WebM as an explicitly known incompatibility, then independently reran it in the current browser. The predicate requires: host parsing still yields audio packets; MSE rejects the laced candidate; and the corresponding unlaced candidate is accepted. The reducer rewrites valid EBML lengths and removes irrelevant metadata and groups while retaining the target condition. Seven accepted predicate probes reduce 46,580→1,238 bytes, and 50→1 laced block, containing three original codec packets. The minimized file still decodes through the direct browser path. Laced and unlaced minimized files produce identical, nonempty host PCM. This is a reproducible reducer result, not a new browser vulnerability, a globally byte-minimal testcase, or support for arbitrary codec-aware reduction. Positive-control preservation prevents confusing a generic broken file with the targeted destination distinction.",
+    "related_reports": [],
+    "scope_hash": "6fe5b7ba6d695eed458249af0717978f01da5693c2aec464c89f889345f98113",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 243,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R158.structure-aware-failure-preserving-reduction.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R158.structure-aware-failure-preserving-reduction.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R158.structure-aware-failure-preserving-reduction.md",
+        "results/full-completion/webm-boundaries/lace-identity.json",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/one-lace-identity.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE_AS_TEST_TOOL. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 48,
+    "record": {
+      "key": "R158.structure-aware-failure-preserving-reduction",
+      "state": "PURSUE_AS_TEST_TOOL",
+      "evidence": [
+        "webm-boundaries/lacing-result.json",
+        "webm-boundaries/lace-identity.json",
+        "webm-boundaries/one-lace-identity.json"
+      ],
+      "reason": "Reducing 49 Xiph lace groups to one retains the identical Chrome CHUNK_DEMUXER_ERROR_APPEND_FAILED / Lacing 1 unsupported predicate; unlaced control plays to EOF with 880Hz audio. Independent packet hashes and PTS match across variants. Worth a structure-aware failure reducer; this controlled fixture reduction is not a generic reducer implementation.",
+      "evidence_level": "COMPONENT_TEST",
+      "recorded_at_utc": "2026-09-19T17:34:19.057192+00:00"
+    }
+  },
+  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

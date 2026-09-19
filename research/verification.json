@@ -1,0 +1,45 @@
+{
+  "verified_at_utc": "2026-09-19T19:50:01.765325+00:00",
+  "scope": "Research organization, evidence preservation and license-policy checks; no playback or performance reruns.",
+  "checks": [
+    {
+      "command": "python3 -B scripts/research.py verify",
+      "passed": true,
+      "items": 425,
+      "archived_artifacts": 988,
+      "historical_hash_mismatches_retained": 3
+    },
+    {
+      "command": "python3 -B scripts/check-licenses.py",
+      "passed": true
+    },
+    {
+      "command": "python3 -B tests/research-organization.py",
+      "passed": true,
+      "tests": 9
+    },
+    {
+      "command": "python3 -B tests/licenses.py",
+      "passed": true,
+      "tests": 13
+    },
+    {
+      "command": "git diff --check",
+      "passed": true
+    },
+    {
+      "check": "All local Markdown links under research/ resolve",
+      "passed": true
+    },
+    {
+      "check": "Preexisting tracked player/test diff matches top100 campaign base_diff_sha256",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Historical declared-hash discrepancies are retained, not repaired or certified.",
+    "Active results/catalogue-current work is unmodified and not assigned a final research decision.",
+    "Historical files retain their original physical paths; canonical item state and evidence indexes are under research/items.",
+    "No commit or push performed."
+  ]
+}

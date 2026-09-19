@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R226.compact-exact-packet-index.report-continuity",
+  "title": "compact exact packet index",
+  "definition": {
+    "key": "R226.compact-exact-packet-index.report-continuity",
+    "legacy_id": "R226",
+    "legacy_number": 226,
+    "identity_branch": "report-continuity",
+    "title": "compact exact packet index",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 61,
+      "line_end": 66,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 20-second 29.97-fps H.264/MP4 with B-frames yields 600 packets. The prototype stores packet byte gaps, sizes, DTS deltas, signed PTS−DTS offsets, durations, and a key flag using unsigned/zig-zag varints. Decoding that sidecar reconstructs every original scalar exactly, including the six observed CTS offsets [0, 1001, 2002, 3003, 4004, 5005] and duration 1001. The compact form is 5,913 bytes versus 28,800 bytes for six padded 64-bit fields per packet — 79.5% smaller. This is a representation result, not yet a browser seek benchmark or a comparison to MP4's own optimized sample tables.",
+    "related_reports": [],
+    "scope_hash": "2c714055b5c809cf17dd89ad96c0e901c3172dc528dd5ebd8f76ac63dfcd3994",
+    "legacy_guide_aliases": [
+      "R226-C"
+    ],
+    "family": "source",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 185,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R226.compact-exact-packet-index.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R226.compact-exact-packet-index.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 256,
+    "record": {
+      "key": "R226.compact-exact-packet-index.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R226.compact-exact-packet-index.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ],
+      "reason": "Current owner retains only bounded RAP times and live segment metadata, not a full six-scalar packet index. The reported 79.5% saving compares padded fields, not current MP4 tables; a persistent source-bound index owner is prerequisite.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas.",
+      "reopen_condition": "Reopen when a packet sidecar is actually required and its construction/lookup/retention costs are specified.",
+      "recorded_at_utc": "2026-09-19T17:34:19.114240+00:00"
+    }
+  },
+  "next_action": "Define the actual required seek fields and compare a bounded varint sidecar against existing container index plus sparse RAP records, including signed CTS and malformed deltas.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

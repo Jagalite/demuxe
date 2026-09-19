@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R219.shared-spectral-analysis",
+  "title": "shared spectral analysis",
+  "definition": {
+    "key": "R219.shared-spectral-analysis",
+    "legacy_id": "R219",
+    "legacy_number": 219,
+    "identity_branch": "report-defined",
+    "title": "shared spectral analysis",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 67,
+      "line_end": 72,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The host experiment processed 192,000 float64 samples through four 513-tap impulse responses using identical 2,048-point overlap-save blocks. The separate path recomputed the source FFT four times per block; the candidate computed it once and reused X for four IFFT(X  H_k) outputs. The outputs had 0.0 maximum absolute difference. Median times over seven alternating runs were 17.80 ms separate versus 12.33 ms shared, a 1.44× speedup, with the same 512-sample algorithmic history/latency. This is a host numerical component result, not a browser audio-device benchmark.",
+    "related_reports": [],
+    "scope_hash": "a165f962f2461fa0a559d24ac60539fff6745f479d254b3d911bd263b444b5f6",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 196,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R219.shared-spectral-analysis.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R219.shared-spectral-analysis.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R219.shared-spectral-analysis.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 265,
+    "record": {
+      "key": "R219.shared-spectral-analysis",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R219.shared-spectral-analysis.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md"
+      ],
+      "reason": "The current browser audio stage is a PCM consumer; the qualified filter subset is scalar volume, with no repeated source FFT across multiple FIR outputs. Shared FFT algebra is valid but there is no duplicated transform at this owner to remove.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
+      "reopen_condition": "Reopen when an actual filter bank recomputes the same source FFT; do not compare against artificially separate pipelines.",
+      "recorded_at_utc": "2026-09-19T17:34:19.142409+00:00"
+    }
+  },
+  "next_action": "If a multichannel convolution plan is requested, audit its baseline FFT sharing first and compare complete identical tails, latency and sample error.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

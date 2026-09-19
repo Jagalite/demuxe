@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "key": "R144.evict-through-a-paused-current-position.report-continuity",
+  "title": "evict through a paused current position",
+  "definition": {
+    "key": "R144.evict-through-a-paused-current-position.report-continuity",
+    "legacy_id": "R144",
+    "legacy_number": 144,
+    "identity_branch": "report-continuity",
+    "title": "evict through a paused current position",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 124,
+      "line_end": 138,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Playback paused at 1.760563 s. A small canvas was used only as an oracle to fingerprint the displayed image before and after SourceBuffer.remove(0, 2.0). - currentTime stayed at 1.760563 s; - the buffered range began at 2.066666 s, so compressed media no longer covered currentTime; - the displayed-image signature was identical; - readyState remained 4 and there was no media error. Implication. Chrome retains the presently displayed decoded image beyond removal of its compressed backing range. This may let a player reclaim compressed MSE bytes more aggressively while paused. Limit. It does not prove the browser retains enough decoder state to resume from that removed point or seek back without re-appending media. It also says nothing about decoder-surface memory reclamation.",
+    "related_reports": [],
+    "scope_hash": "44dfea603f91c5b96a99bbb2cf46180c871bddb922d4202c7d39b8bb76b60984",
+    "legacy_guide_aliases": [
+      "R144-C"
+    ],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 86,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R144.evict-through-a-paused-current-position.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R144.evict-through-a-paused-current-position.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R144.evict-through-a-paused-current-position.report-continuity.md",
+        "results/top100/mse/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 72,
+    "record": {
+      "key": "R144.evict-through-a-paused-current-position.report-continuity",
+      "rank": 86,
+      "state": "PURSUE",
+      "reason": "Pause at non-boundary position, remove through current position, retain paused display, reappend removed media, resume to EOF. Buffered-time shrink observed; physical memory reduction not inferred. Video-only component; current combined A/V controller not integrated.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "mse/result.json",
+          "sha256": "3b69784dff6c678971a5f685a6780cdc1db54cf33aec7b089f2ca3fa3a8369c6"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:41:21.249324+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

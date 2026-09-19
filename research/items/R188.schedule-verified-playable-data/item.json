@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R188.schedule-verified-playable-data",
+  "title": "schedule verified playable data",
+  "definition": {
+    "key": "R188.schedule-verified-playable-data",
+    "legacy_id": "R188",
+    "legacy_number": 188,
+    "identity_branch": "report-defined",
+    "title": "schedule verified playable data",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 67,
+      "line_end": 79,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A real 12-second fragmented MP4 was divided into 16 KiB hash-verified pieces. The fixture contains twelve one-second fragments; init/fragment byte ranges were mapped to the pieces they require. One early useful piece was deliberately corrupted on its first delivery and rejected by SHA-256 verification. The first three verified fragments form a real prefix that decodes 90 frames. The measured 4.11× 3-second figure is specific to this deterministic ordering and failed-piece scenario; the durable result is that downloaded byte count and verified decodable media are different scheduling objectives.",
+    "related_reports": [],
+    "scope_hash": "f609a0b4c1640529951b884f9ae91d954859e9030dd12a6fd1ca1ecede77e234",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 90,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R188.schedule-verified-playable-data.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R188.schedule-verified-playable-data.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R188.schedule-verified-playable-data.md",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 76,
+    "record": {
+      "key": "R188.schedule-verified-playable-data",
+      "rank": 90,
+      "state": "PURSUE",
+      "reason": "Verified scheduling holds23 dependent packets until RAP arrives and matches trusted digest; corrupt RAP rejects. Only complete verified dependency closure publishes, with24 decoded frames exact against full-source oracle.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/result.json",
+          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.857005+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

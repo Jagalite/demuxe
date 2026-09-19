@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R152.copy-on-write-tiled-retained-pictures",
+  "title": "Copy-on-write tiled retained pictures",
+  "definition": {
+    "key": "R152.copy-on-write-tiled-retained-pictures",
+    "legacy_id": "R152",
+    "legacy_number": 152,
+    "identity_branch": "report-defined",
+    "title": "Copy-on-write tiled retained pictures",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 123,
+      "line_end": 132,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Decoded a real MPEG-2 I/P clip with a mostly static background. Its Y/U/V planes were divided into corresponding 16×16/8×8 tiles. Tiles are shared only after byte equality with the previous decoded tile is established; a copied tile table plus a new immutable tile implements a COW edit. All 60 complete planar frames reconstruct byte-exactly, and the edit does not mutate previous references. For the final three retained pictures, unique tile payload is 94,208 bytes, versus 276,480 bytes for dense planes, plus 17,280 bytes of assumed eight-byte pointer tables. Python object/allocator overhead is not included. This is postdecode retained-storage sharing, not the proposed full decoder-internal optimization. Every source picture was still fully reconstructed, read and compared. Inferring unchanged tiles from valid codec dependency/residual state, avoiding reference writes, proving filter-boundary safety, and measuring presentation flattening remain unimplemented.",
+    "related_reports": [],
+    "scope_hash": "2f668bded5c9bfb160579f0dae14d51c26b5dc6ec2682c79cd868729c5de1bce",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 288,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R152.copy-on-write-tiled-retained-pictures.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R152.copy-on-write-tiled-retained-pictures.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R152.copy-on-write-tiled-retained-pictures.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 344,
+    "record": {
+      "key": "R152.copy-on-write-tiled-retained-pictures",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R152.copy-on-write-tiled-retained-pictures.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
+      "reason": "Current frames are full AVFrame/VideoFrame surfaces and downstream draw expects them. Historical tiled sharing is postdecode after full comparisons, not decoder-internal COW. Tile table ownership plus flattening would be new representation work.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Profile one actual multi-frame retained owner, then compare postdecode tile sharing including equality scans and flattening before decoder changes.",
+      "reopen_condition": "Profile one actual multi-frame retained owner, then compare postdecode tile sharing including equality scans and flattening before decoder changes.",
+      "recorded_at_utc": "2026-09-19T17:34:19.164990+00:00"
+    }
+  },
+  "next_action": "Profile one actual multi-frame retained owner, then compare postdecode tile sharing including equality scans and flattening before decoder changes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

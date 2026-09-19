@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "key": "R172.keep-hap-bc1-compressed-to-presentation",
+  "title": "keep Hap BC1 compressed to presentation",
+  "definition": {
+    "key": "R172.keep-hap-bc1-compressed-to-presentation",
+    "legacy_id": "R172",
+    "legacy_number": 172,
+    "identity_branch": "report-defined",
+    "title": "keep Hap BC1 compressed to presentation",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S014",
+      "path": "sources/reports/R172-R182-report.md",
+      "sha256": "404873aa6ac01a5acc682eb9e448027466498b808524e81b54efc8fed9bfc3e1",
+      "line_start": 25,
+      "line_end": 32,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two four-frame Hap fixtures were authored with the same BC1 image sequence: one used uncompressed Hap texture payloads and one used Hap's Snappy wrapper. Parsing and Snappy-unwrapping the compressed form produced exactly the same 1,536 BC1 bytes per frame as the raw form for all four frames. FFmpeg RGBA decodes match, and the 0.5-second seek control resolves to the same decoded frame. This proves the useful source-side component: Demuxe can unwrap Hap compression while retaining GPU-compressed BC1 rather than expanding it on the CPU. It does not prove the browser texture-upload/presentation half. On the permitted Chromium page, navigator.gpu and WebGL are both unavailable; S3TC therefore cannot be qualified here.",
+    "related_reports": [],
+    "scope_hash": "5364fbf5c8f6c41a7423d45a59c74539e712231d2e909693664e1698c4cec671",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 36,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R172.keep-hap-bc1-compressed-to-presentation.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R172.keep-hap-bc1-compressed-to-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R172-R182-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R172.keep-hap-bc1-compressed-to-presentation.md",
+        "results/top100/gpu/input.json",
+        "results/top100/gpu/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 50,
+    "record": {
+      "key": "R172.keep-hap-bc1-compressed-to-presentation",
+      "rank": 36,
+      "state": "PURSUE",
+      "reason": "Actual Hap1 packet with BC1 texture payload renders through WebGPU compression support and matches independently decoded host RGBA:16 compressed bytes vs128 RGBA bytes for tiny fixture. Uncompressed Hap transport only; Snappy/larger corpus/seek/cost not qualified.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "gpu/result.json",
+          "sha256": "aa8b59231abe26c1c9c46d2d719acfaed88e2e8c75d395333431b912e8dcc338"
+        },
+        {
+          "path": "gpu/input.json",
+          "sha256": "442868a4aae33310f2ce23c98850cdeaacaca00c421fbacfa689c73109e7a0cc"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:23:18.460139+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

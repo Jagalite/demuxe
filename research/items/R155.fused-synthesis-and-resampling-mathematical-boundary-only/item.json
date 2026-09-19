@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R155.fused-synthesis-and-resampling-mathematical-boundary-only",
+  "title": "Fused synthesis and resampling: mathematical boundary only",
+  "definition": {
+    "key": "R155.fused-synthesis-and-resampling-mathematical-boundary-only",
+    "legacy_id": "R155",
+    "legacy_number": 155,
+    "identity_branch": "report-defined",
+    "title": "Fused synthesis and resampling: mathematical boundary only",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 153,
+      "line_end": 162,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Composed the same long-window synthesis/overlap operator with a 31-tap, fixed 2:1 downsampling operator. Zero, random, impulse, previous-tail and tiny-input cases produce the same 1,024 output samples as the separate operations, with maximum absolute floating-point difference 1.39e-16. The comparison uses identical centered-filter delay and zero-padding conventions. The fused dense matrix occupies 25,165,824 bytes (24 MiB) and took 186.72 ms to prepare in this run. It is not proposed as a competitive decoder implementation. There is no comparison against a fast transform, no real AAC decoder modification and no proof of streaming boundary/future-sample handling. This verifies linear composition for a restricted model. Actual AAC fusion remains not tested, and there is no performance win to report.",
+    "related_reports": [],
+    "scope_hash": "32673c5f58f57cf3cd147cf7ec0df32f59ab045b315facb193e876bfa8c0b968",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 344,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R155.fused-synthesis-and-resampling-mathematical-boundary-only.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R155.fused-synthesis-and-resampling-mathematical-boundary-only.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R155.fused-synthesis-and-resampling-mathematical-boundary-only.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 385,
+    "record": {
+      "key": "R155.fused-synthesis-and-resampling-mathematical-boundary-only",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R155.fused-synthesis-and-resampling-mathematical-boundary-only.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+      ],
+      "reason": "The maintained adaptation contract forbids resampling, and the historical dense 24MiB matrix only verifies linear composition. It lacks real AAC transforms, streaming edge handling and comparison against a fast implementation; no optimization is supported.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Only after a requested fixed-rate conversion exists, inspect an actual synthesis/resample boundary and derive a structured fused kernel with identical delay/tails.",
+      "reopen_condition": "Reopen with a real repeated operator and efficient implementation hypothesis; do not benchmark the dense identity as a decoder speedup.",
+      "recorded_at_utc": "2026-09-19T17:34:19.175829+00:00"
+    }
+  },
+  "next_action": "Only after a requested fixed-rate conversion exists, inspect an actual synthesis/resample boundary and derive a structured fused kernel with identical delay/tails.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

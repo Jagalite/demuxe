@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R015.make-split-buffer-audio-switching-transactional",
+  "title": "Make split-buffer audio switching transactional",
+  "definition": {
+    "key": "R015.make-split-buffer-audio-switching-transactional",
+    "legacy_id": "R15",
+    "legacy_number": 15,
+    "identity_branch": "proposal",
+    "title": "Make split-buffer audio switching transactional",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 343,
+      "line_end": 361,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Timeline · Follow-on architecture experiment · P1 · Risk: High First environment: Browser-only; adaptation integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep one MediaSource/video element and a retained video SourceBuffer while replacing only the selected audio stream. Use prepare/validate/commit/retire around a defined switch time rather than treating successful appends as a seamless switch. Source basis. MSE supplies changeType, timestamp offsets and append windows. It permits, but does not guarantee, a particular multiple-SourceBuffer combination or continuous codec switch. [M1] First agent experiment. Exercise same-codec switching first, then AAC/FLAC/Opus transitions only where accepted. Test pause, seek-before-commit, encoder preroll and failed preparation. Compare video identity and digital audio markers around the boundary.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S005",
+        "path": "sources/reports/RESULTS.md",
+        "sha256": "21a756a374dfcfc6a39896af78a3b54ce52eb73b3cca735581ccbe883acf65d7",
+        "line_start": 34,
+        "line_end": 53,
+        "source_kind": "report",
+        "reported_heading": "Transactional split-buffer audio switching: STRONG PROMISE"
+      }
+    ],
+    "scope_hash": "85ee50a4573e2e3e23bc1e06889b59fca8b48051a29553a40074e5ba0b2c86cb",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 143,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R015.make-split-buffer-audio-switching-transactional.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R015.make-split-buffer-audio-switching-transactional.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R015.make-split-buffer-audio-switching-transactional.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 223,
+    "record": {
+      "key": "R015.make-split-buffer-audio-switching-transactional",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R015.make-split-buffer-audio-switching-transactional.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS.md"
+      ],
+      "reason": "Track selection restarts entire remux with rollback; split buffers currently support unequal tails only, not prepare/commit/retire audio switching. Transaction and source generations need design before same-object reuse.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Specify one paused same-codec audio transaction retaining video; compare digital markers and covering frame, then cancel before commit and verify old track remains authoritative.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Specify one paused same-codec audio transaction retaining video; compare digital markers and covering frame, then cancel before commit and verify old track remains authoritative.",
+      "recorded_at_utc": "2026-09-19T17:34:19.105974+00:00"
+    }
+  },
+  "next_action": "Specify one paused same-codec audio transaction retaining video; compare digital markers and covering frame, then cancel before commit and verify old track remains authoritative.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

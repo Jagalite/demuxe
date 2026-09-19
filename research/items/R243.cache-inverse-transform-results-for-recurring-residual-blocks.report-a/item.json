@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a",
+  "title": "Cache inverse-transform results for recurring residual blocks",
+  "definition": {
+    "key": "R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a",
+    "legacy_id": "R243",
+    "legacy_number": 243,
+    "identity_branch": "report-A",
+    "title": "Cache inverse-transform results for recurring residual blocks",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S022",
+      "path": "sources/reports/R239-R246-report.md",
+      "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+      "line_start": 72,
+      "line_end": 89,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A standalone bounded 4×4 integer-transform/cache prototype was built in native C++. The transform arithmetic was checked against an independent Python wide-integer oracle for 8- and 10-bit predictions, coefficient values in [-512,512], forced hash collisions, clipping and buffer clearing. 160,000 output-sample comparisons had zero mismatches; no coefficients remained uncleared. A separate ASan/UBSan smoke run completed with empty stderr. The cached item is the residual block, not final prediction-added pixels. Actual coefficients and declared bit depth participate in the key and full key equality is checked. Zero/DC-only cases bypass the cache in both constructions. Capacity was 256 entries. No real encoded-corpus transform trace or actual FFmpeg decoder hook was available. Performance tests therefore use explicitly synthetic distributions, not purported real hit rates. Seven measured runs per construction followed one warmup, with rotated order and 200,000 blocks per run:",
+    "related_reports": [],
+    "scope_hash": "36641b8e4bc7b9205f5f30e50807c1f7ea11fd96b2e48f333cb866066f841850",
+    "legacy_guide_aliases": [
+      "R243-A"
+    ],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 215,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 284,
+    "record": {
+      "key": "R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R243.cache-inverse-transform-results-for-recurring-residual-blocks.report-a.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md"
+      ],
+      "reason": "Browser decoding exposes packets and frames, not residual transforms. The historical cache is slower on unique/mixed synthetic traces and approximately tied on repetitive pools; no real decoder trace or hook establishes opportunity.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Collect a representative transform histogram from an existing software decoder only if cheap; compare against its actual SIMD/zero/DC paths before building a cache.",
+      "reopen_condition": "Reopen with a real repeated-residual trace showing potential beyond cache/hash overhead; historical synthetic correctness is not a speed win.",
+      "recorded_at_utc": "2026-09-19T17:34:19.147282+00:00"
+    }
+  },
+  "next_action": "Collect a representative transform histogram from an existing software decoder only if cheap; compare against its actual SIMD/zero/DC paths before building a cache.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

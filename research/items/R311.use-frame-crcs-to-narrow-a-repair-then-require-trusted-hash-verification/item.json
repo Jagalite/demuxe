@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+  "title": "Use frame CRCs to narrow a repair, then require trusted-hash verification",
+  "definition": {
+    "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+    "legacy_id": "R311",
+    "legacy_number": 311,
+    "identity_branch": "proposal",
+    "title": "Use frame CRCs to narrow a repair, then require trusted-hash verification",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S046",
+      "path": "sources/proposals/Demuxe_R307_R312_Proposals.md",
+      "sha256": "7ae4dc9793e534c8339ad71994b22f8f464117ce356d8af75e98afcdbbecbf6b",
+      "line_start": 152,
+      "line_end": 183,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Class: Bounded recovery from sparse corruption; no weakened integrity admission. Output contract: Only bytes matching an independently trusted expected identity can be admitted as repaired. Related: R181 identifies contaminated output; this investigates repairing compressed bytes before decoding. FLAC specifies a frame CRC with a fixed polynomial and zero initialization [S7]. For a known frame length and an explicitly single-bit candidate model, precompute how each possible bit flip changes the observed CRC mismatch. The mismatch can then nominate candidate error locations much more efficiently than repeated full-frame CRC scans. CRC agreement is only a candidate filter. After applying a candidate to a temporary view, verify the exact frame or containing verified chunk against an independently trusted SHA-256 value or equivalent authenticated identity. Web Crypto provides the digest primitive, not trust in the expected digest [S8].",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S028",
+        "path": "sources/reports/R307-R312-report.md",
+        "sha256": "33c8415c1858d6288d7498ee28937353e319cf319a4006f505b93ba3561cb44c",
+        "line_start": 50,
+        "line_end": 57,
+        "source_kind": "report",
+        "reported_heading": "Use frame CRCs to narrow a repair, then require trusted-hash verification"
+      }
+    ],
+    "scope_hash": "edbfd6c040e6938c23a7e47dee7a0134da8ae0e990cb2f6c458d9bf51e1c82ed",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 341,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R307_R312_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 382,
+    "record": {
+      "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R307_R312_Proposals.md"
+      ],
+      "reason": "Current readers validate range identity and retry transport but have no independently trusted compressed-frame hashes or FLAC frame-length index. Related report CRC32 localization/collision filtering is not the proposed FLAC single-bit syndrome implementation.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Provide a tiny frame extent plus separately trusted SHA256, then enumerate bounded single-bit candidates on a temporary copy and reject CRC-valid hash-invalid, missing-identity and two-bit controls.",
+      "reopen_condition": "Reopen with trusted expected compressed-byte identity and a bounded repair advantage over reread; never mutate source files or treat CRC as authentication.",
+      "recorded_at_utc": "2026-09-19T17:34:19.175062+00:00"
+    }
+  },
+  "next_action": "Provide a tiny frame extent plus separately trusted SHA256, then enumerate bounded single-bit candidates on a temporary copy and reject CRC-valid hash-invalid, missing-identity and two-bit controls.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

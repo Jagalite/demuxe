@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R110.choose-a-destination-aware-lacing-or-unlacing-representation",
+  "title": "Choose a destination-aware lacing or unlacing representation",
+  "definition": {
+    "key": "R110.choose-a-destination-aware-lacing-or-unlacing-representation",
+    "legacy_id": "R110",
+    "legacy_number": 110,
+    "identity_branch": "proposal",
+    "title": "Choose a destination-aware lacing or unlacing representation",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S010",
+      "path": "sources/proposals/R102-R115-research-backlog.md",
+      "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+      "line_start": 405,
+      "line_end": 448,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Container-specific routing. Priority: P2. Question. Can the same coded audio use compact native-file packaging or a minimal MSE-compatible rewrite, depending on its parser? What differs from earlier work. R93 repacketized codec frames inside Opus packets. Lacing groups already distinct codec packets only at the container level. Mechanism. Compare bounded Matroska/WebM audio lacing for a direct-file route against an unlacer that emits separate blocks for an MSE route without changing codec packets. Initial source profile. Small contiguous same-track audio packets with known durations. No lacing across discontinuities or configuration changes. Source basis. Matroska defines lacing. The reviewed Chromium main WebMClusterParser explicitly rejects it, so MSE lacing is not proposed as a supported fast path. Direct-file behavior remains a runtime probe. [S10, S11]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S009",
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "line_start": 111,
+        "line_end": 123,
+        "source_kind": "report",
+        "reported_heading": "route based on WebM lacing"
+      }
+    ],
+    "scope_hash": "7495ad38dfd604f1f6678329ae15b464144247114f72ee6e9731bac425837061",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 55,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R110.choose-a-destination-aware-lacing-or-unlacing-representation.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R110.choose-a-destination-aware-lacing-or-unlacing-representation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R110.choose-a-destination-aware-lacing-or-unlacing-representation.md",
+        "results/full-completion/webm-boundaries/lacing-result.json",
+        "results/full-completion/webm-boundaries/maintained-lace-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 27,
+    "record": {
+      "key": "R110.choose-a-destination-aware-lacing-or-unlacing-representation",
+      "rank": 55,
+      "state": "ALREADY_IMPLEMENTED",
+      "reason": "Reconciled completed prior evidence: Chrome rejects Xiph-laced Opus; current actual Wasm remux emits a playable representation with all 101 packet payloads, exact decoded PCM and 648-sample final trim preserved. Seek and cleanup pass. Preserve this existing normalization and add regression coverage; no new unlacing subsystem needed for this profile.",
+      "evidence_level": "REUSED_REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "../full-completion/webm-boundaries/lacing-result.json",
+          "sha256": "550ed0125b922a715630a2384c96e1b712fa854ff5dcbc5faf043b60805d10f8"
+        },
+        {
+          "path": "../full-completion/webm-boundaries/maintained-lace-result.json",
+          "sha256": "90237d5fa1f58a6eea0fabacd4b7de1cf4b55243bb47db2b675270bab3f1d71d"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.378313+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

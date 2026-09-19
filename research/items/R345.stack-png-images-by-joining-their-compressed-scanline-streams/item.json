@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R345.stack-png-images-by-joining-their-compressed-scanline-streams",
+  "title": "Stack PNG images by joining their compressed scanline streams",
+  "definition": {
+    "key": "R345.stack-png-images-by-joining-their-compressed-scanline-streams",
+    "legacy_id": "R345",
+    "legacy_number": 345,
+    "identity_branch": "proposal",
+    "title": "Stack PNG images by joining their compressed scanline streams",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S050",
+      "path": "sources/proposals/Demuxe_R343_R347_Proposals.md",
+      "sha256": "269a6469f2cddfbcb40c479658892c5e842bdd2da591d8db9c6afd1a9282a358",
+      "line_start": 63,
+      "line_end": 93,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "DEFLATE supplies independently described blocks with a last-block marker and dictionary-referenced payloads. Zlib's gzjoin demonstrates joining compressed streams without recompression, but its implementation still decompresses input to locate splice boundaries. That distinction is central: no recompression and no decompression are separate hypotheses. [S4, S5] Then investigate a token-walking construction that reads Huffman symbols and lengths/distances but does not expand every dictionary copy. It must preserve the original compressed tokens, modify termination/framing correctly, and align the next stream legally. Empty alignment blocks can avoid arbitrarily shifting an entire following stream, but their exact serialization must be validated.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S034",
+        "path": "sources/reports/R343-R347-rerun-report.md",
+        "sha256": "9d331068906b791d297e4751f952072b68e5752d06ee5620bd626e956fa7b190",
+        "line_start": 35,
+        "line_end": 42,
+        "source_kind": "report",
+        "reported_heading": "Stack PNG images by joining their compressed scanline streams"
+      }
+    ],
+    "scope_hash": "40901deb1167802bd84a8ac44416931ba20239309645528b65d0e3c6280cea44",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 388,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R345.stack-png-images-by-joining-their-compressed-scanline-streams.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R345.stack-png-images-by-joining-their-compressed-scanline-streams.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R345.stack-png-images-by-joining-their-compressed-scanline-streams.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 429,
+    "record": {
+      "key": "R345.stack-png-images-by-joining-their-compressed-scanline-streams",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R345.stack-png-images-by-joining-their-compressed-scanline-streams.md"
+      ],
+      "reason": "Current player does not batch PNG previews into atlases. Historical splice is exact but cold assembly is slower than the tiny baseline; cached-metadata advantage would require repeated prepared-image reuse absent here. This is scoped no current profile, not unsupported deflate.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for a repeated prepared-preview atlas consumer with cached validated block metadata and compare full final-image decode/latency.",
+      "reopen_condition": "Reopen for a repeated prepared-preview atlas consumer with cached validated block metadata and compare full final-image decode/latency.",
+      "recorded_at_utc": "2026-09-19T17:34:19.187440+00:00"
+    }
+  },
+  "next_action": "Reopen for a repeated prepared-preview atlas consumer with cached validated block metadata and compare full final-image decode/latency.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

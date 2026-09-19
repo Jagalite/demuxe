@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+  "title": "In-band video configuration changes with avc3, and qualified hev1",
+  "definition": {
+    "key": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+    "legacy_id": "R91",
+    "legacy_number": 91,
+    "identity_branch": "proposal",
+    "title": "In-band video configuration changes with avc3, and qualified hev1",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 127,
+      "line_end": 153,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can the same destination accept configuration epochs through media samples rather than a new initialization segment each time? What differs from earlier work. Extends R43/R58 but changes the configuration carriage: test whether an in-band epoch removes extra initialization-segment work. Input scope. Initially H.264 with one profile/bit depth and independently decodable resolution-change boundaries; declared level must remain truthful. Mechanism to test. Use legal avc3 parameter-set carriage at random-access boundaries, preserving coded pictures while varying SPS/PPS configuration. Smallest experiment. 1. Compare a known-working avc1/new-init sequence against the properly authored avc3 form. 2. Change dimensions within the admitted profile and seek to both sides. 3. Probe HEVC hev1 separately only on a supported destination.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 49,
+        "line_end": 61,
+        "source_kind": "report",
+        "reported_heading": "in-band H.264 configuration epochs — PROMISING"
+      }
+    ],
+    "scope_hash": "089d1ccb6a024a63b1819b93e3915ebd43f6ab69b8284acf4528581d2987081c",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 53,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1.md",
+        "results/top100/lanes/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 9,
+    "record": {
+      "key": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+      "rank": 53,
+      "state": "PURSUE",
+      "reason": "avc3 source-authored parameter change with fresh init and in-band headers renders both exact geometries, retained separate audio and EOF. This validates bounded AVC transition, not arbitrary no-init changes or HEVC hev1.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "lanes/result.json",
+          "sha256": "ed7e58821a801222d62880bc6b49cacfe168f03787dfb2f7cb0a5699a57c85f2"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:05:14.215073+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+  "title": "Expose prepared fragments as a native HLS presentation",
+  "definition": {
+    "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+    "legacy_id": "R363",
+    "legacy_number": 363,
+    "identity_branch": "proposal",
+    "title": "Expose prepared fragments as a native HLS presentation",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S054",
+      "path": "sources/proposals/Demuxe_R363_R366_Proposals.md",
+      "sha256": "761db78b318158f6aec0763181fba7a16ff2a704634c94b325cb4e65167c4b27",
+      "line_start": 18,
+      "line_end": 39,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Hypothesis. A source already transformable into compatible fragmented MP4 may be delivered through a generated HLS presentation rather than through an application-managed MSE append queue. The experiment changes the destination and delivery ownership, not the codec or the selected media. Source basis. Apple documents HLS for its platforms and Safari. RFC 8216 defines fragmented-MP4 segments, initialization references through EXT-X-MAP, explicit segment durations, and end-of-list semantics. These are existing mechanisms. Neither source qualifies arbitrary Demuxe output or promises lower energy use. [S1, S2] Proposed construction. Source inspection and packet-copy preparation produce the same qualified initialization and media fragments used by a baseline route. A small manifest adapter publishes a truthful playlist and stable fragment resources. A browser with qualified native HLS support obtains those resources and owns the presentation. Demuxe retains source authorization, exact track intent, and resource-generation identity.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S037",
+        "path": "sources/reports/R363-R366-report.md",
+        "sha256": "2952ba48a457d11886d066496c2a6e075fdb1ef89d7a20a3edd0fc5dffb5b05b",
+        "line_start": 26,
+        "line_end": 59,
+        "source_kind": "report",
+        "reported_heading": "Expose prepared fragments as a native HLS presentation"
+      }
+    ],
+    "scope_hash": "c6c3f600c2c97c8fc58364f0dbf4e862aa38b9e5bceeeb01b2176a5bc8070f2c",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 7,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R088.native-hls-playlist-views-over-compatible-existing-media",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Native HLS over compatible fragments; compare actual deployment/demand contract."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R363.expose-prepared-fragments-as-a-native-hls-presentation.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R363.expose-prepared-fragments-as-a-native-hls-presentation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R363_R366_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root/audits/R363.expose-prepared-fragments-as-a-native-hls-presentation.md",
+        "results/top100/hls/maintained-result.json",
+        "results/top100/hls/native-delivery.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 14,
+    "record": {
+      "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+      "rank": 7,
+      "state": "PURSUE",
+      "reason": "Actual Demuxe-produced fMP4 fragments served as native HLS byte ranges reach marked A/V, seek and EOF; misaligned ranges fail. Tiny loopback delivery prototype only; not a generic source-authorized production resource service.",
+      "evidence_level": "REAL_PATH_SCREEN",
+      "evidence": [
+        {
+          "path": "hls/maintained-result.json",
+          "sha256": "5d7d37f5dcd7a76bce1389cb53721c4e8ea1a4aee9ba9232b4b56ab8a76013d2"
+        },
+        {
+          "path": "hls/native-delivery.json",
+          "sha256": "5fbf259e77cedff5d6b2f186b240375a522135645faab3269dfbac92bba87494"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.090720+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

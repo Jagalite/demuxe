@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "key": "R159.remux-encrypted-media-without-decrypting-its-samples",
+  "title": "Remux encrypted media without decrypting its samples",
+  "definition": {
+    "key": "R159.remux-encrypted-media-without-decrypting-its-samples",
+    "legacy_id": "R159",
+    "legacy_number": 159,
+    "identity_branch": "proposal",
+    "title": "Remux encrypted media without decrypting its samples",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 127,
+      "line_end": 130,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Container-only adaptation of synthetic application-controlled encrypted samples; preserve every encryption auxiliary record and require authorized destination playback. No decryption bypass.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S013",
+        "path": "sources/reports/R159-R171-report.md",
+        "sha256": "bfddec44829c936a90c523fe3a516364c9444a7e02bb46267c0992d0d43b6ce1",
+        "line_start": 25,
+        "line_end": 30,
+        "source_kind": "report",
+        "reported_heading": "encrypted MP4 → fMP4 without decrypting"
+      }
+    ],
+    "scope_hash": "ead5d1916a4848daa3fce5350aea0cc48e4e07f5b5a70c7860ece2a8171f0705",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 28,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R159.remux-encrypted-media-without-decrypting-its-samples.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R159.remux-encrypted-media-without-decrypting-its-samples.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R159.remux-encrypted-media-without-decrypting-its-samples.md",
+        "results/top100/cenc/browser-result.json",
+        "results/top100/cenc/original-browser-result.json",
+        "results/top100/cenc/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE_COMPONENT_EME_UNVERIFIED. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 78,
+    "record": {
+      "key": "R159.remux-encrypted-media-without-decrypting-its-samples",
+      "rank": 28,
+      "state": "PURSUE_COMPONENT_EME_UNVERIFIED",
+      "reason": "Restricted owned CENC container relocation preserves ciphertext, IV/subsamples and repaired sample/auxiliary offsets; independent decryption matches all reference pixels and wrong-IV mutation fails. Both original and relocated direct ClearKey playback reach EOF but yield no observed decoded frames: browser destination unverified. Generic fragmented encrypted remux remains further work.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "cenc/result.json",
+          "sha256": "844bc1649ec38a20d554b0a6ac35cced60453be2778fd0d61aaed618b2e36b42"
+        },
+        {
+          "path": "cenc/browser-result.json",
+          "sha256": "f0ed5b316bc32ccf56ce411fadd6ec66363199b9ec865777cce2d7619b3d3989"
+        },
+        {
+          "path": "cenc/original-browser-result.json",
+          "sha256": "bf9a78eb5d331a52a89e9d9eff8ad97cc6df57612e890b5a6b58661d7a8c9451"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.895440+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

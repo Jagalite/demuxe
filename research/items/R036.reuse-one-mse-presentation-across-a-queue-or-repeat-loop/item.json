@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+  "title": "Reuse one MSE presentation across a queue or repeat loop",
+  "definition": {
+    "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+    "legacy_id": "R36",
+    "legacy_number": 36,
+    "identity_branch": "proposal",
+    "title": "Reuse one MSE presentation across a queue or repeat loop",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 144,
+      "line_end": 165,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New session-plan candidate · P2 · extends R09, R18 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Append the next compatible clip into a continuous browser timeline instead of opening a new player for every queue item. Reuse compressed media for an explicit loop while keeping only bounded current/next output. New question versus prior work. R18 caches already-prepared intervals within a source. This targets the transition between explicitly queued items and repeat boundaries, with a logical source-to-presentation mapping. Source primitive. MSE provides timestamp offsets and append windows. Chrome has an audio gapless-playback example; it is not proof of gapless A/V queue transitions. [S3, S7] Why testable here. Compatible encoded clips, offset mapping and window MSE are sufficient for the first browser pilot.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 82,
+        "line_end": 93,
+        "source_kind": "report",
+        "reported_heading": "Reuse one MSE presentation across queue items"
+      }
+    ],
+    "scope_hash": "e2d75b624a3872593abe4521f2e6bcbfa2dd351635011d5fba5e0f42bb281eda",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 146,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 226,
+    "record": {
+      "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ],
+      "reason": "Current source start replaces MediaSource and resets source frames/ranges. Queue-wide logical source identities, offsets, subtitle events and bounded next-item ownership are missing.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
+      "recorded_at_utc": "2026-09-19T17:34:19.106722+00:00"
+    }
+  },
+  "next_action": "Define a two-clip queue mapping before one continuous-MSE join; use matching H264/AAC configuration and test cross-boundary seek, with changed queued source invalidating late bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "key": "R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place",
+  "title": "Recover from a full buffer by evicting and retrying in place",
+  "definition": {
+    "key": "R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place",
+    "legacy_id": "R38",
+    "legacy_number": 38,
+    "identity_branch": "proposal",
+    "title": "Recover from a full buffer by evicting and retrying in place",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 188,
+      "line_end": 209,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Follow-on resource optimization · P1 · extends R17, R26 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Treat an append capacity shortage as a buffer-management event: remove a safe expendable interval, reduce forward production if appropriate, then retry the still-owned media once instead of rebuilding the player. New question versus prior work. The prior lab encountered a SourceBuffer-count limit. This proposal targets append capacity and controller behavior, not adding/removing more SourceBuffers or promising a fixed browser quota. Source primitive. Chrome documents QuotaExceededError recovery through removal and retry, with cautions about the current GOP. Its published quota sizes are historical and are not used here. [S8]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 102,
+        "line_end": 114,
+        "source_kind": "report",
+        "reported_heading": "Real quota recovery"
+      }
+    ],
+    "scope_hash": "1188353b2dcda639aa19dc6db59ed8432fede026eab90c76d7ab23668c09b2ce",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 148,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place.md",
+        "results/full-completion/fragments/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 26,
+    "record": {
+      "key": "R038.recover-from-a-full-buffer-by-evicting-and-retrying-in-place",
+      "state": "PURSUE",
+      "evidence": "fragments/result.json",
+      "reason": "After an injected one-shot quota refusal, real buffered removal plus one retry reaches marked A/V/EOF; second quota fails afterone retry and InvalidStateError is not retried. No genuine memory-pressure or production controller qualification claimed.",
+      "recorded_at_utc": "2026-09-19T17:14:02.927207+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R297.query-mp4-timing-tables-without-expanding-every-sample-record",
+  "title": "Query MP4 timing tables without expanding every sample record",
+  "definition": {
+    "key": "R297.query-mp4-timing-tables-without-expanding-every-sample-record",
+    "legacy_id": "R297",
+    "legacy_number": 297,
+    "identity_branch": "proposal",
+    "title": "Query MP4 timing tables without expanding every sample record",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S044",
+      "path": "sources/proposals/Demuxe_R295_R300_Proposals.md",
+      "sha256": "32b8e310a1f233be0108004e0a470bf3a04a187e37eb1cafc53c03ed7b337a04",
+      "line_start": 43,
+      "line_end": 62,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Metadata representation/query optimization. First owner: Parser/index component. Related: R45, R75; distinct from compressing a derived sparse keyframe index. Hypothesis. Keep source metadata in its original run structure and generate detailed per-sample records only for an active window. Build compact cumulative indexes over timing and chunk runs to support random queries. Source basis. MP4Box.js stores stts timing as sample counts and duration deltas and provides an unpack operation that assigns timestamps to individual sample records. This is a concrete representation contrast, not evidence that Demuxe uses that exact expansion. [S5] For a run beginning at sample ordinal s with decode time t and constant delta d, an ordinal s+j has decode time t+jd. A cumulative run index can locate the relevant run without materializing a timestamp for every sample.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S026",
+        "path": "sources/reports/R295-R300-report.md",
+        "sha256": "b81f4a02cd56a68c8c9952ab0ffac7376b8ba1a2b89228d7a639958911f4ffc4",
+        "line_start": 37,
+        "line_end": 50,
+        "source_kind": "report",
+        "reported_heading": "query MP4 tables without full sample expansion"
+      }
+    ],
+    "scope_hash": "edcbef37e497d8ff3581bdf162af231bcff557db465bda60a3f900a7fd194f2d",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 111,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R297.query-mp4-timing-tables-without-expanding-every-sample-record.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R297.query-mp4-timing-tables-without-expanding-every-sample-record.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R297.query-mp4-timing-tables-without-expanding-every-sample-record.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 185,
+    "record": {
+      "key": "R297.query-mp4-timing-tables-without-expanding-every-sample-record",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R297.query-mp4-timing-tables-without-expanding-every-sample-record.md"
+      ],
+      "reason": "The cheap JS probe reads bounded track metadata rather than expanding all timing samples. Real demux indexing resides inside FFmpeg with a 4 MiB index cap. The reported million-sample run index is a new parser representation and is not evidence that the current owner expands 22 MB of JS objects.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+      "reopen_condition": "Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+      "recorded_at_utc": "2026-09-19T17:34:19.095758+00:00"
+    }
+  },
+  "next_action": "Inspect the pinned FFmpeg MOV timing/index allocation on one long constant-timing source before implementing an index; compare real memory with an optimized typed-array oracle and preserve signed composition offsets as a separate gate.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

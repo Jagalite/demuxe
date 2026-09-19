@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "key": "R244.make-dithering-reproducible-at-any-sample-position",
+  "title": "Make dithering reproducible at any sample position",
+  "definition": {
+    "key": "R244.make-dithering-reproducible-at-any-sample-position",
+    "legacy_id": "R244",
+    "legacy_number": 244,
+    "identity_branch": "proposal",
+    "title": "Make dithering reproducible at any sample position",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 263,
+      "line_end": 266,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Define a counter-addressed dither recipe keyed by track, channel, sample position and seed, so independent jobs reproduce the same quantized output. Exclude noise shaping and preserve the specific altered-output contract.",
+    "related_reports": [],
+    "scope_hash": "3492abc8fdf94dfbed7e8e0881463df941cb1a7130d6b7fd50a7dba3d4460bbb",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 339,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R244.recompute-video-effects-only-where-the-input-actually-changed.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R244.reservoir-independent-prepared-mp3.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R244.make-dithering-reproducible-at-any-sample-position.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R244.make-dithering-reproducible-at-any-sample-position.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R244.make-dithering-reproducible-at-any-sample-position.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 380,
+    "record": {
+      "key": "R244.make-dithering-reproducible-at-any-sample-position",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R244.make-dithering-reproducible-at-any-sample-position.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+      ],
+      "reason": "Current lossless preparation rejects quantization and copies integer values; its optional S16/S24-to-float conversion is exact. There is no dithered parallel quantizer at this boundary, so adding counter noise would change required output rather than remove work.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If explicit quantized export is added, define track/channel/absolute-sample seed mapping and compare shuffled chunks with a serial oracle, including chunk-index reset failure.",
+      "reopen_condition": "Reopen with an explicitly dithered quantization recipe; exclude stateful noise shaping and preserve lossless playback unchanged.",
+      "recorded_at_utc": "2026-09-19T17:34:19.174541+00:00"
+    }
+  },
+  "next_action": "If explicit quantized export is added, define track/channel/absolute-sample seed mapping and compare shuffled chunks with a serial oracle, including chunk-index reset failure.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

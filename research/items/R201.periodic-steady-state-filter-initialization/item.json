@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R201.periodic-steady-state-filter-initialization",
+  "title": "periodic steady-state filter initialization",
+  "definition": {
+    "key": "R201.periodic-steady-state-filter-initialization",
+    "legacy_id": "R201",
+    "legacy_number": 201,
+    "identity_branch": "report-defined",
+    "title": "periodic steady-state filter initialization",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S016",
+      "path": "sources/reports/R193-R202-report.md",
+      "sha256": "c0fb362908f07ec363fdda612bb7d2e2f6eb3c63573fc4fdd33642913dad57bb",
+      "line_start": 91,
+      "line_end": 96,
+      "source_kind": "report"
+    },
+    "source_excerpt": "For the scalar stable IIR model y[n]=a·y[n−1]+(1−a)·x[n], one loop is represented as s_next=M·s+b. The prototype solves the fixed point and starts the first requested loop there. Across a=0.8, 0.98, 0.999, 0.9999, end-state closure is within 2.220e-16; maximum output difference from a 5,000–20,000-loop converged reference is 2.220e-16. This is strong evidence for periodic-state initialization on a controlled stable linear filter, not a general solution for nonlinear or time-varying filter graphs.",
+    "related_reports": [],
+    "scope_hash": "db305036b64770d1cb68ae54fb96e4c58b7e7d9d118a4b6a8b5b39ad8d7b95bf",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 305,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R201.periodic-steady-state-filter-initialization.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R201.periodic-steady-state-filter-initialization.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R193-R202-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 208,
+    "record": {
+      "key": "R201.periodic-steady-state-filter-initialization",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R201.periodic-steady-state-filter-initialization.md"
+      ],
+      "reason": "The inspected audio output and native adaptation do not expose a requested periodic IIR loop recurrence or complete filter state. Solving the reported scalar fixed point cannot initialize arbitrary nonlinear/time-varying software filter graphs.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
+      "reopen_condition": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
+      "recorded_at_utc": "2026-09-19T17:34:19.101731+00:00"
+    }
+  },
+  "next_action": "Select one explicit stable linear periodic filter and expose its full state/coefficient/rounding contract; compare first-loop output with converged reference and reject unstable or changing coefficients.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

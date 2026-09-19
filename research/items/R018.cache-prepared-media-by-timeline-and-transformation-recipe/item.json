@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+  "title": "Cache prepared media by timeline and transformation recipe",
+  "definition": {
+    "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+    "legacy_id": "R18",
+    "legacy_number": 18,
+    "identity_branch": "proposal",
+    "title": "Cache prepared media by timeline and transformation recipe",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 400,
+      "line_end": 418,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Caching · New optimization hypothesis · P2 · Risk: Medium First environment: Demuxe source + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Cache bounded already-generated fragments and initialization data for repeated seeks/replays. Key by immutable source identity, selected tracks, decoder/encoder profile, timeline origin and exact runtime recipe; do not reuse only by URL and time. Source basis. FFmpeg exposes fragmented output, while MSE can reuse valid media segments in a reconstructed presentation. The cache policy and correctness key are proposed Demuxe work. [F1, M1] First agent experiment. Replay a recently converted interval, switch away/back to the same audio, and replace a source at the same URL. Compare generated work, seek delay and total retained bytes against the uncached path.",
+    "related_reports": [],
+    "scope_hash": "4c139e055bc51f1b1d7893eaa5e8a70252449d1597bfde68127a59ff6a0c6d56",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 60,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R200.content-addressed-reuse-across-different-files",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      },
+      {
+        "key": "R334.share-one-demux-pass-across-independent-playback-and-export-timelines",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R018.cache-prepared-media-by-timeline-and-transformation-recipe.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R018.cache-prepared-media-by-timeline-and-transformation-recipe.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R018.cache-prepared-media-by-timeline-and-transformation-recipe.md",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 75,
+    "record": {
+      "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+      "rank": 60,
+      "state": "PURSUE",
+      "reason": "Prepared fragment cache hit preserves actual artifact bytes; changed source ETag, tracks, interval, recipe, or runtime cause miss. Corrupt entry rejects within1MiB budget. No production cache integration or benefit measurement.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/result.json",
+          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.835195+00:00"
+    }
+  },
+  "next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R154.silence-certification-mathematical-boundary-only",
+  "title": "Silence certification: mathematical boundary only",
+  "definition": {
+    "key": "R154.silence-certification-mathematical-boundary-only",
+    "legacy_id": "R154",
+    "legacy_number": 154,
+    "identity_branch": "report-defined",
+    "title": "Silence certification: mathematical boundary only",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 143,
+      "line_end": 152,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Implemented a long-sine-window IMDCT/overlap model. A conservative bound for the current output interval is (2/N) × sum(abs(coefficients)) + max(abs(previous_overlap)). Across 48 generated cases, all observed peaks lie below the bound: eight cases are certified exactly silent, eight have a small bound, and 32 remain unknown. A zero-current-coefficient/nonzero-overlap case produces nonzero samples, disproving the naïve zero-coefficients rule. Short windows, window transitions, PNS, SBR and unresolved coupling/prediction are deliberately outside the certificate profile. An actual AAC-LC tone/impulse/silence fixture was encoded and decoded as ancillary evidence, but its coded coefficients and overlap state were not extracted or certified.",
+    "related_reports": [],
+    "scope_hash": "5f3c9d447610377e28f3debc0867a8cc8969cfb16e280c494f0437f812e1d5f4",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 301,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R154.silence-certification-mathematical-boundary-only.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R154.silence-certification-mathematical-boundary-only.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R154.silence-certification-mathematical-boundary-only.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 204,
+    "record": {
+      "key": "R154.silence-certification-mathematical-boundary-only",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R154.silence-certification-mathematical-boundary-only.md"
+      ],
+      "reason": "The report itself disproves zero-current-coefficients implying silence when prior overlap is nonzero; no coded AAC coefficients or overlap state were certified. Current native adaptation does not admit AAC for this decode path and exposes no AAC synthesis-state certificate. Skipping synthesis from packet silence assumptions is unsupported in this profile.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+      "reopen_condition": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+      "recorded_at_utc": "2026-09-19T17:34:19.100643+00:00"
+    }
+  },
+  "next_action": "Reopen only with an actual admitted AAC tool/state extractor and conservative certificate spanning previous overlap, transitions and coupling; require nonzero-overlap/zero-current coefficients to remain non-silent.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

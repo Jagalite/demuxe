@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R186.reversible-xor-frame-cache",
+  "title": "reversible XOR frame cache",
+  "definition": {
+    "key": "R186.reversible-xor-frame-cache",
+    "legacy_id": "R186",
+    "legacy_number": 186,
+    "identity_branch": "report-defined",
+    "title": "reversible XOR frame cache",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 44,
+      "line_end": 58,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A four-second H.264 fixture was decoded to 120 actual 320×180 grayscale frames. The cache stores a checkpoint every 15 frames plus zlib-compressed XOR deltas; bridge deltas at checkpoint boundaries preserve exact reverse stepping. All sampled random reconstructions and the complete 119-step backward traversal were byte-exact. On this deliberately coherent moving-shape source: - raw full-frame cache: 6,912,000 bytes; - XOR/checkpoint representation: 12,595 bytes; - reduction: 99.82%; - full reverse traversal: 15.9 ms median; - re-decoding the source: 78.5 ms median; - raw full-cache pointer/index traversal: 0.01 ms median. The negative control matters: random incompressible frames produced a delta cache 1.059× larger than raw. This is a content-dependent reverse-playback cache, not a universal compact frame format.",
+    "related_reports": [],
+    "scope_hash": "d19a1a758f92abc35cb1d2bbad6e3109b05a1defe3aeffb3d90056d23272ff2f",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 304,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R186.reversible-xor-frame-cache.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R186.reversible-xor-frame-cache.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 207,
+    "record": {
+      "key": "R186.reversible-xor-frame-cache",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R186.reversible-xor-frame-cache.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/active-owner-reconciliation.md"
+      ],
+      "reason": "Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
+      "reopen_condition": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
+      "recorded_at_utc": "2026-09-19T17:34:19.101497+00:00"
+    }
+  },
+  "next_action": "If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

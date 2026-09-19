@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals",
+  "title": "Repack independent stereo FLAC as mid-side using parity-state residuals",
+  "definition": {
+    "key": "R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals",
+    "legacy_id": "R356",
+    "legacy_number": 356,
+    "identity_branch": "proposal",
+    "title": "Repack independent stereo FLAC as mid-side using parity-state residuals",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S052",
+      "path": "sources/proposals/Demuxe_R353_R357_Proposals.md",
+      "sha256": "191a6404e892dc797e748c328ad852989dfbf2881aa208fc9a1d912b6561348d",
+      "line_start": 103,
+      "line_end": 151,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Can stereo decorrelation be performed on prediction residuals without reconstructing both full-amplitude channels? FLAC defines independent stereo and reversible mid-side stereo. Its mid channel uses a right-shifted sum, and its side channel needs an additional precision bit. Fixed predictors and residuals provide a precise restricted input profile. [S6] Define e[n] = (L[n] + R[n]) mod 2, with e in {0,1}, including for negative sums. Then: The parity state can be advanced without reconstructing L or R: rM[n] = (rL[n] + rR[n] - e[n] + e[n-1]) / 2 rS[n] = rL[n] - rR[n] The numerator for rM is even. The parity correction preserves the floor behavior that a naive average of residuals would lose. Convert the first warm-up samples into M[0], S[0], and e[0]; then Rice-encode the transformed residuals and construct truthful mid-side framing.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S035",
+        "path": "sources/reports/R353-R357-report.md",
+        "sha256": "c53d9e99b499bad3c06b3bbfd73b803d7d0cae85f2c68d3d0ab91aae10bbf62d",
+        "line_start": 37,
+        "line_end": 44,
+        "source_kind": "report",
+        "reported_heading": "parity-state residual mid/side conversion"
+      }
+    ],
+    "scope_hash": "0434664db39f4ed97b106f98ac0b571d849591944fd511eac5911bc0eef10bf3",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 390,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R353_R357_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 431,
+    "record": {
+      "key": "R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R356.repack-independent-stereo-flac-as-mid-side-using-parity-state-residuals.md"
+      ],
+      "reason": "Current encoder can choose stereo representation; no residual-domain adapter exists. Historical parity conversion saves correlated-fixture bytes but is slightly slower than PCM M/S arithmetic, and source was forced to independent order1. Natural occurrence and total destination value are unproven.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Count independently coded order1 stereo frames in one real input; compare leave-unchanged, restricted encoder and parity transform including entropy and scratch costs.",
+      "reopen_condition": "Count independently coded order1 stereo frames in one real input; compare leave-unchanged, restricted encoder and parity transform including entropy and scratch costs.",
+      "recorded_at_utc": "2026-09-19T17:34:19.187953+00:00"
+    }
+  },
+  "next_action": "Count independently coded order1 stereo frames in one real input; compare leave-unchanged, restricted encoder and parity transform including entropy and scratch costs.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

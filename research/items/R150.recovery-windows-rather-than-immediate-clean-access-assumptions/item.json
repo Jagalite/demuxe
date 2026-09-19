@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+  "title": "Recovery windows rather than immediate clean-access assumptions",
+  "definition": {
+    "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+    "legacy_id": "R150",
+    "legacy_number": 150,
+    "identity_branch": "report-defined",
+    "title": "Recovery windows rather than immediate clean-access assumptions",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 95,
+      "line_end": 106,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Encoded six seconds of H.264 with periodic intra refresh, no B frames and one reference frame. Parsed recovery-point SEI directly. Cuts at source packet indices 30, 60, 90 and 120 each advertise recovery_frame_cnt=18 and exact_match_flag=1 [S7]. For each cut, a fresh decoder receives source parameter sets plus the remaining compressed packets. showall is used to expose imperfect warm-up frames instead of hiding them. Frame hashes are compared with uninterrupted decoding of the same source. All four cuts have incorrect warm-up frames and first reach a permanently identical suffix at offset 18 frames. The tested conservative admission rule suppresses through the signaled count, admitting at offset 19. Every admitted suffix is exact. At 30 frames/s, the observed first exact suffix starts 0.6 seconds after the cut; this is a fixture-specific media recovery interval, not a startup-time benchmark.",
+    "related_reports": [],
+    "scope_hash": "9341c2c62b69e50a032380b9c2f9aa07bae385b44bb90cf68c171bc99e4910c6",
+    "legacy_guide_aliases": [],
+    "family": "preview",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 208,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse.",
+    "minimum_probe": "One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "initial_screen": "Identify the preview operation and current service. Separate sparse previews, exact scrubbing and ordinary playback; inspect prior frame/history reuse. One short owned source and a few target requests under equal memory budgets, with an independent full-decode/reference result.",
+    "primary_metric": "Time to the requested exact or explicitly approximate preview, total prerequisite work and retained state.",
+    "scope_contract": "Correct source/time/target and agreed fidelity. Approximate results cannot populate exact caches or qualify normal playback.",
+    "negative_control": "Move backward, request a non-RAP dependency, change source or cancel a pending request; stale previews must never become current.",
+    "stop_boundary": "Stop at E3 preview/index/state infrastructure. Keep proof of a bounded mechanism distinct from a production preview implementation.",
+    "shared_prerequisite": "Existing preview or decoder access path. Its absence is setup cost, not permission to create a complete preview service.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R150.recovery-windows-rather-than-immediate-clean-access-assumptions.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R150.recovery-windows-rather-than-immediate-clean-access-assumptions.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R150.recovery-windows-rather-than-immediate-clean-access-assumptions.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 277,
+    "record": {
+      "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R150.recovery-windows-rather-than-immediate-clean-access-assumptions.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md"
+      ],
+      "reason": "The current packet route requires IDR start and buffered seeking requires a retained RAP. Recovery-point SEI could widen admission only with a separately represented verified recovery boundary; no such owner exists.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Add research metadata for access offset plus signaled recovery count on one intra-refresh fixture, compare every admitted frame to continuous decode and corrupt the count.",
+      "reopen_condition": "Reopen with decoder-specific recovery evidence and suppression semantics; keep IDR guards until then.",
+      "recorded_at_utc": "2026-09-19T17:34:19.145548+00:00"
+    }
+  },
+  "next_action": "Add research metadata for access offset plus signaled recovery count on one intra-refresh fixture, compare every admitted frame to continuous decode and corrupt the count.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

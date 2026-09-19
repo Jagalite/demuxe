@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R016.keep-a-stable-audio-output-format-through-frequent-switches",
+  "title": "Keep a stable audio output format through frequent switches",
+  "definition": {
+    "key": "R016.keep-a-stable-audio-output-format-through-frequent-switches",
+    "legacy_id": "R16",
+    "legacy_number": 16,
+    "identity_branch": "proposal",
+    "title": "Keep a stable audio output format through frequent switches",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 362,
+      "line_end": 380,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Timeline · New tradeoff hypothesis · P2 · Risk: High First environment: Host FFmpeg + browser; Wasm later. Dependencies: R15. Status: Untested hypothesis. Proposed mechanism. For an explicitly requested multilingual/session use case, compare copying each selected track against converting compatible integer tracks to one stable FLAC rate/layout/configuration. The aim is fewer destination reconfigurations, not less encoding. Source basis. FLAC has explicit stream properties, and MSE has reconfiguration boundaries. Stable output is a proposed policy; it is not proof that a browser keeps the same decoder instance. [F5, M1] First agent experiment. Compare repeated switches with heterogeneous native codecs versus a common permitted output. Measure conversion cost, switch latency, gaps and retained video. Require equal language/role/track intent and compatible rates/layouts.",
+    "related_reports": [],
+    "scope_hash": "df08a6346f330e8e87c1dd2e4f1a90cbb788bb49503190580dc5e2c54cefd6ce",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 294,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R016.keep-a-stable-audio-output-format-through-frequent-switches.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 350,
+    "record": {
+      "key": "R016.keep-a-stable-audio-output-format-through-frequent-switches",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+      ],
+      "reason": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+      "reopen_condition": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+      "recorded_at_utc": "2026-09-19T17:34:19.166517+00:00"
+    }
+  },
+  "next_action": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

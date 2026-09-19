@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+  "title": "Seek through APNG by resolving the last writer of each region",
+  "definition": {
+    "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+    "legacy_id": "R344",
+    "legacy_number": 344,
+    "identity_branch": "proposal",
+    "title": "Seek through APNG by resolving the last writer of each region",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S050",
+      "path": "sources/proposals/Demuxe_R343_R347_Proposals.md",
+      "sha256": "269a6469f2cddfbcb40c479658892c5e842bdd2da591d8db9c6afd1a9282a358",
+      "line_start": 36,
+      "line_end": 62,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "APNG distinguishes region replacement (SOURCE), alpha compositing (OVER), and disposal operations. Its frame payloads form per-frame compressed image datastreams with inherited image properties. [S3] Start with SOURCE plus NONE disposal. Maintain an unresolved-region set, initially the complete requested canvas. Walking backward, a frame contributes only where its rectangle intersects the unresolved set; those intersections are assigned to that frame and removed from the set. Remaining regions at the beginning are transparent black. A transparent SOURCE pixel still replaces earlier contents; opacity is not required for this initial rule. Create standalone PNG views for selected frame payloads only through a validated reconstruction of dimensions and inherited properties. Decoder capability and pixel access are separate gates. Resolving a small contributing region does not prove the selected image decoder reconstructs only that region; initially count every selected frame image as fully decoded.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S034",
+        "path": "sources/reports/R343-R347-rerun-report.md",
+        "sha256": "9d331068906b791d297e4751f952072b68e5752d06ee5620bd626e956fa7b190",
+        "line_start": 29,
+        "line_end": 34,
+        "source_kind": "report",
+        "reported_heading": "Seek through APNG by resolving the last writer of each region"
+      }
+    ],
+    "scope_hash": "083e4b9fe8e285954ffc9d5d0e1b7e54a4a4f60367dbac8288c798add9092b84",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 328,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R344.seek-through-apng-by-resolving-the-last-writer-of-each-region.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R344.seek-through-apng-by-resolving-the-last-writer-of-each-region.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R343_R347_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R343-R347-rerun-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R344.seek-through-apng-by-resolving-the-last-writer-of-each-region.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 369,
+    "record": {
+      "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R344.seek-through-apng-by-resolving-the-last-writer-of-each-region.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R343-R347-rerun-report.md"
+      ],
+      "reason": "Current software decoder yields complete animation frames; no APNG operation index, standalone per-frame PNG view or bounded unresolved-region planner exists. Historical checkpoint was faster than planner at different retention cost, so use equal memory baseline.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+      "recorded_at_utc": "2026-09-19T17:34:19.171650+00:00"
+    }
+  },
+  "next_action": "Define one validated APNG index/region planner with cap; test overlapping/transparent SOURCE and default-image exclusion, reject OVER/PREVIOUS and charge all selected-image decode/index reads.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

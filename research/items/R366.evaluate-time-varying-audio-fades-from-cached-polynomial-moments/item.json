@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "key": "R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments",
+  "title": "Evaluate time-varying audio fades from cached polynomial moments",
+  "definition": {
+    "key": "R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments",
+    "legacy_id": "R366",
+    "legacy_number": 366,
+    "identity_branch": "proposal",
+    "title": "Evaluate time-varying audio fades from cached polynomial moments",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S054",
+      "path": "sources/proposals/Demuxe_R363_R366_Proposals.md",
+      "sha256": "761db78b318158f6aec0763181fba7a16ff2a704634c94b325cb4e65167c4b27",
+      "line_start": 88,
+      "line_end": 121,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Hypothesis. Repeated energy/RMS queries for fixed-alignment audio sources with piecewise-polynomial gain automation can reuse a small family of source cross-moments instead of rerendering every candidate waveform. Source basis. Web Audio defines a precise linear-ramp interpolation rule, giving one familiar automation shape. The proposed moment representation and equations are algebraic constructions; they do not establish bit identity with a browser's floating-point audio engine or extend to every automation mode. [S6] Initial gain model. On one query interval I, let source i have g_i[n] = a_i + b_in and y[n] = sum_i g_i[n]x_i[n], with a declared absolute sample grid and fixed source alignment. Cache M_ij,r(I) = sum_(n in I) n^rx_i[n]x_j[n] for r in {0,1,2}.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S037",
+        "path": "sources/reports/R363-R366-report.md",
+        "sha256": "2952ba48a457d11886d066496c2a6e075fdb1ef89d7a20a3edd0fc5dffb5b05b",
+        "line_start": 98,
+        "line_end": 132,
+        "source_kind": "report",
+        "reported_heading": "Evaluate time-varying audio fades from cached polynomial moments"
+      }
+    ],
+    "scope_hash": "a2887efe7b3a28abe48e8ee8441b4b20a6d231629ddff178cb1e9211227c8802",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 5,
+    "initial_rank": 392,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R309.recalculate-mix-loudness-from-cached-cross-products",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Aggregate mix/loudness/automation queries; gates and filter placement differ."
+      },
+      {
+        "key": "R357.evaluate-gain-only-loudness-changes-from-a-sorted-energy-index",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Aggregate mix/loudness/automation queries; gates and filter placement differ."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R363_R366_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 433,
+    "record": {
+      "key": "R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R366.evaluate-time-varying-audio-fades-from-cached-polynomial-moments.md"
+      ],
+      "reason": "Current player uses scalar playback gain and diagnostic RMS, not repeated fixed-alignment polynomial fade energy queries. Historical result needs about 48 queries plus retained source arrays for cancellation fallback; it does not render chosen audio or compute loudness.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for an actual many-query fade-analysis consumer and compare build plus guarded queries with fused persistent mix-energy loop.",
+      "reopen_condition": "Reopen for an actual many-query fade-analysis consumer and compare build plus guarded queries with fused persistent mix-energy loop.",
+      "recorded_at_utc": "2026-09-19T17:34:19.188614+00:00"
+    }
+  },
+  "next_action": "Reopen for an actual many-query fade-analysis consumer and compare build plus guarded queries with fused persistent mix-energy loop.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

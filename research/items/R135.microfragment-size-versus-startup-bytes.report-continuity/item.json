@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R135.microfragment-size-versus-startup-bytes.report-continuity",
+  "title": "microfragment size versus startup bytes",
+  "definition": {
+    "key": "R135.microfragment-size-versus-startup-bytes.report-continuity",
+    "legacy_id": "R135",
+    "legacy_number": 135,
+    "identity_branch": "report-continuity",
+    "title": "microfragment size versus startup bytes",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 58,
+      "line_end": 63,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The first complete 2-second fragment required 182,325 B including init; the first complete 500-ms fragment required 47,919 B. Both presented H.264 frames in Chrome. The smaller fragment therefore reduced the first complete playable region by 73.7% in this fixture. This is a byte-to-first-region result, not a universal startup-latency win. Smaller fragments increase box/append frequency and may worsen overhead elsewhere. R132 also shows that a streaming partial-mdat strategy can weaken the need to choose very small physical fragments.",
+    "related_reports": [],
+    "scope_hash": "48acada8bc5d15910bcd4dde24dcb39120986e31d45319ac0f9ea13e10974954",
+    "legacy_guide_aliases": [
+      "R135-C"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 83,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R135.microfragment-size-versus-startup-bytes.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R135.microfragment-size-versus-startup-bytes.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R135.microfragment-size-versus-startup-bytes.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 42,
+    "record": {
+      "key": "R135.microfragment-size-versus-startup-bytes.report-continuity",
+      "rank": 83,
+      "state": "ALREADY_IMPLEMENTED",
+      "reason": "Reconciled completed prior evidence: Current maintained native mux defaults its first fragment to 0.5 s and subsequent fragments to 0.5 s, with actual packet-boundary constraints. The report compares 2 s with 500 ms; adopting that exact interval is not a new missing change here. This does not assert every output fragment has exact 500 ms duration.",
+      "evidence_level": "REUSED_SOURCE_REVIEW",
+      "evidence": [
+        {
+          "path": "../full-completion/../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R135.microfragment-size-versus-startup-bytes.report-continuity.md",
+          "sha256": "7be1489271c9fa0ac6d9521886c91736c783d20cf3d07bca90be2089bc64b748"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.662031+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+  "title": "Separate decoder compatibility from per-source initialization identity",
+  "definition": {
+    "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+    "legacy_id": "R69",
+    "legacy_number": 69,
+    "identity_branch": "proposal",
+    "title": "Separate decoder compatibility from per-source initialization identity",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S008",
+      "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+      "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+      "line_start": 320,
+      "line_end": 343,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Reconfiguration-avoidance hypothesis · P2 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox decision/sequence checks; a meaningful production saving requires local reconfiguration instrumentation. Related cards: R36, R43, R27. Proposed mechanism. Use a strict decoder-configuration fingerprint to recognize when a new wrapper or initialization segment does not require replacing an entire playback backend. Maintain a DIFFERENT source/track/timeline identity and still append required initialization data. Begin with exact codec-extra-data equality, not speculative semantic rewriting of parameter sets. What is new. R27 shared immutable compiled code, while R43 crossed a real video configuration change. This asks whether harmless wrapper-level differences or object identity cause avoidable application reconfiguration when the complete codec contract is unchanged.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S038",
+        "path": "sources/reports/R58-R69-report.md",
+        "sha256": "2e43b05dd3d563d2f260db33cfecf52ba195f2b91a98904efcf8338c0a56e33d",
+        "line_start": 127,
+        "line_end": 134,
+        "source_kind": "report",
+        "reported_heading": "Configuration fingerprints — NOT WORTH COMPLEXITY"
+      }
+    ],
+    "scope_hash": "54430fe49e2cfce088e8e70598f19e3e640ffaefff6d0e584612820ff6d59f50",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 69,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R069.separate-decoder-compatibility-from-per-source-initialization-identity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R069.separate-decoder-compatibility-from-per-source-initialization-identity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R069.separate-decoder-compatibility-from-per-source-initialization-identity.md",
+        "results/top100/audits/R069.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 91,
+    "record": {
+      "key": "R069.separate-decoder-compatibility-from-per-source-initialization-identity",
+      "rank": 69,
+      "state": "STOP_PROFILE",
+      "reason": "Same-configuration configure occurs within semantic seek/reset clearing software buffers, replay, delivered/recovery and keyframe state. No redundant wrapper-only configure boundary exists in inspected owner. Do not suppress this reset.",
+      "evidence_level": "SOURCE_REVIEW",
+      "evidence": [
+        {
+          "path": "audits/R069.json",
+          "sha256": "f8f1edd7d9a5d7595b96c5b753dd29def0f37ac12e16fcdf90a21a9bdf18a4f8"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:03:40.737091+00:00"
+    }
+  },
+  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

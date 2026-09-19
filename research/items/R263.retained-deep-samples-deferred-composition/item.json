@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R263.retained-deep-samples-deferred-composition",
+  "title": "retained deep samples / deferred composition",
+  "definition": {
+    "key": "R263.retained-deep-samples-deferred-composition",
+    "legacy_id": "R263",
+    "legacy_number": 263,
+    "identity_branch": "report-defined",
+    "title": "retained deep samples / deferred composition",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S023",
+      "path": "sources/reports/R261-R267-report.md",
+      "sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+      "line_start": 41,
+      "line_end": 48,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Three synthetic 384×384 deep frames with 1–6 samples/pixel were displayed through 36 sparse 96×96 viewports. The eager baseline flattened the full frame for every view; the deferred route composited only the requested deep ROI. Result. Maximum absolute output error was 0.0. Median CPU time fell from 0.498s to 0.034s (14.8×) for this sparse-viewport workload. Blocked gate. Chromium reports WebGPU=false, WebGL=false, WebGL2=false in this environment. This proves the retained/deferred algorithm on CPU only, not the intended GPU presenter. No OpenEXR/deep-image parser or real deep sequence I/O was exercised.",
+    "related_reports": [],
+    "scope_hash": "1bac400c006810c0dce531fe395ea7236af2c71fae560877acdd5a50911871ed",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 321,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R263.retained-deep-samples-deferred-composition.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R263.retained-deep-samples-deferred-composition.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R261-R267-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 362,
+    "record": {
+      "key": "R263.retained-deep-samples-deferred-composition",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R263.retained-deep-samples-deferred-composition.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Current surfaces represent flat images; no deep-sample parser, retained sample lists or ROI compositor exists. Historical CPU synthetic deep result does not supply OpenEXR I/O or GPU implementation.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "carried_forward": true,
+      "next_test": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+      "recorded_at_utc": "2026-09-19T17:34:19.169599+00:00"
+    }
+  },
+  "next_action": "Define one bounded real deep input/sample-list adapter and independent ROI oracle; test sparse and full-frame views and reject changed depth/sample order. Charge initial parsing and storage.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+  "title": "Raw AAC/MP3 audio beside fragmented video",
+  "definition": {
+    "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "legacy_id": "R31",
+    "legacy_number": 31,
+    "identity_branch": "proposal",
+    "title": "Raw AAC/MP3 audio beside fragmented video",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 34,
+      "line_end": 55,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New route candidate · P1 · extends R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 24,
+        "line_end": 37,
+        "source_kind": "report",
+        "reported_heading": "Raw compressed audio beside fMP4 video"
+      }
+    ],
+    "scope_hash": "edaf7bd6ee1a2530b6514ea671f112cd8e77a74170e6359b1debd0686afda719",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 45,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R031.raw-aac-mp3-audio-beside-fragmented-video.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R031.raw-aac-mp3-audio-beside-fragmented-video.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R031.raw-aac-mp3-audio-beside-fragmented-video.md",
+        "results/top100/lanes/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 6,
+    "record": {
+      "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+      "rank": 45,
+      "state": "PURSUE",
+      "reason": "Raw AAC audio SourceBuffer beside fragmented AVC video plays marked audio through both geometry intervals and EOF. Priming/offset and production append lifecycle still need integration checks.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "lanes/result.json",
+          "sha256": "ed7e58821a801222d62880bc6b49cacfe168f03787dfb2f7cb0a5699a57c85f2"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:05:14.180538+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R132.incremental-mdat-sample-release.report-continuity",
+  "title": "incremental mdat sample release",
+  "definition": {
+    "key": "R132.incremental-mdat-sample-release.report-continuity",
+    "legacy_id": "R132",
+    "legacy_number": 132,
+    "identity_branch": "report-continuity",
+    "title": "incremental mdat sample release",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 30,
+      "line_end": 41,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Question. Can Chrome's MSE parser release complete coded samples before the entire enclosing mdat or movie fragment is present? The test appended the fMP4 initialization segment, the first moof, the mdat header, and only ~70 KiB of the first 2-second media payload. The rest of the mdat was deliberately withheld. Before the tail arrived, SourceBuffer.buffered already covered 0.066666–0.799999 s and requestVideoFrameCallback reported twelve presented frames from 0.066666 through 0.433333 s. readyState was 4 and playback had advanced to ~0.448 s. Appending the remainder extended the same range to 2.066666 s and playback continued without a media error. Implication. Demuxe does not necessarily need to materialize a complete fMP4 fragment before starting an MSE append. A streaming muxer can potentially emit fragment metadata and coded sample bytes incrementally, bounded by complete-sample availability.",
+    "related_reports": [],
+    "scope_hash": "0fa0cf9a6b571adc56c54aadcbc15236793ae74a12d71985773e2ad483486f0a",
+    "legacy_guide_aliases": [
+      "R132-C"
+    ],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 126,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R132.incremental-mdat-sample-release.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R132.incremental-mdat-sample-release.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R132.incremental-mdat-sample-release.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 212,
+    "record": {
+      "key": "R132.incremental-mdat-sample-release.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R132.incremental-mdat-sample-release.report-continuity.md"
+      ],
+      "reason": "Worker emits complete rm_step batches; FFmpeg writes custom fragments after accumulated timing. Early mdat delivery requires truthful metadata before remaining payload, not merely splitting already buffered output. No streaming mux boundary is exposed.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
+      "recorded_at_utc": "2026-09-19T17:34:19.103008+00:00"
+    }
+  },
+  "next_action": "First expose a bounded moof/header-plus-complete-sample production interface; withhold remaining mdat and verify actual early A/V, then truncate one sample to disprove false readiness.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

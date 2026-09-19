@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder",
+  "title": "Test an explicit quantized-FLAC policy using the normal decoder",
+  "definition": {
+    "key": "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder",
+    "legacy_id": "R11",
+    "legacy_number": 11,
+    "identity_branch": "proposal",
+    "title": "Test an explicit quantized-FLAC policy using the normal decoder",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 267,
+      "line_end": 285,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Audio · New fidelity-option hypothesis · P2 · Risk: Medium First environment: Host FFmpeg + browser; Wasm later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep the normal float decoder and explicitly permit conversion to integer PCM before FLAC. This could provide a bounded-error middle option between a different fixed decoder and perceptual Opus/AAC encoding. Source basis. FLAC specifies integer sample coding, while FFmpeg exposes sample-format conversion and dithering. Float-to-integer quantization is a distinct, potentially lossy stage even when FLAC round-trips its integer input exactly. [F4, F5] First agent experiment. Compare float-to-24-bit and, only if the destination supports it, float-to-32-bit conversion against the same normal decoder reference. Measure RMS/peak error, clipping/headroom, sample counts, output size and complete playback cost.",
+    "related_reports": [],
+    "scope_hash": "44b3adb2060538a07cdbe79a20c1e1fb35906246a016ebdfadb7e555638e6773",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 293,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 349,
+    "record": {
+      "key": "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+      ],
+      "reason": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+      "reopen_condition": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+      "recorded_at_utc": "2026-09-19T17:34:19.166265+00:00"
+    }
+  },
+  "next_action": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R273.jpeg-xl-dc-preview",
+  "title": "JPEG XL DC preview",
+  "definition": {
+    "key": "R273.jpeg-xl-dc-preview",
+    "legacy_id": "R273",
+    "legacy_number": 273,
+    "identity_branch": "report-defined",
+    "title": "JPEG XL DC preview",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 60,
+      "line_end": 67,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A 1024×768 JPEG XL image (29,564 bytes) was decoded directly through libjxl's progressive API. At the first FRAME_PROGRESSION event, FlushImage produced the 1:8 intended-downsampling-ratio DC image after only 6,926 bytes had been consumed—23.43% of the codestream. The flushed preview measured 22.09 dB PSNR against the final decoded image. A separate cancellation run destroyed the decoder at that exact progression point and consumed no later codestream bytes. Completing the decode yielded RGB bytes identical to FFmpeg's libjxl output. The result is an actual codec-progressive preview, not a truncated-file heuristic. It is intentionally a lower-fidelity preview and must be labeled as such.",
+    "related_reports": [],
+    "scope_hash": "78b14052b48358d7d7c687997cecaa5941003a6585702277d32004a566ebd1c9",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 265,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R273.jpeg-xl-dc-preview.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R273.jpeg-xl-dc-preview.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R273.jpeg-xl-dc-preview.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 324,
+    "record": {
+      "key": "R273.jpeg-xl-dc-preview",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R273.jpeg-xl-dc-preview.md"
+      ],
+      "reason": "The report uses libjxl progressive events and intentionally approximate DC output. Current player has no JPEG XL decoder/event bridge or progressive still-preview consumer, so a new codec service exceeds a first-pass candidate patch.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Identify an existing libjxl runtime and scope only progression event/FlushImage plus cancel on a tiny image before UI integration.",
+      "reopen_condition": "Identify an existing libjxl runtime and scope only progression event/FlushImage plus cancel on a tiny image before UI integration.",
+      "recorded_at_utc": "2026-09-19T17:34:19.159469+00:00"
+    }
+  },
+  "next_action": "Identify an existing libjxl runtime and scope only progression event/FlushImage plus cancel on a tiny image before UI integration.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

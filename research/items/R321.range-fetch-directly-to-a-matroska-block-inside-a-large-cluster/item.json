@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+  "title": "Range-fetch directly to a Matroska block inside a large Cluster",
+  "definition": {
+    "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+    "legacy_id": "R321",
+    "legacy_number": 321,
+    "identity_branch": "proposal",
+    "title": "Range-fetch directly to a Matroska block inside a large Cluster",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 283,
+      "line_end": 286,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Combine validated cue cluster/relative positions with required timestamp, track and codec context to fetch the seek target without an unrelated cluster prefix. Preserve source identity and dependency reads.",
+    "related_reports": [],
+    "scope_hash": "0a8944658ba500a4a7b58b70512854b38b3999c4b2fca309851a77c35a13d4df",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 170,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R131.automatically-search-equivalent-representations",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R274.virtual-webm-cues",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster.md",
+        "results/full-completion/webm-boundaries/metadata.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 59,
+    "record": {
+      "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster.md",
+        "webm-boundaries/metadata.json"
+      ],
+      "reason": "Current small-cluster fixture has no expensive prefix worth bypassing. The current reader already starts misses at requested offsets; demonstrating additional value needs an exact large-Cluster CueRelativePosition seek trace and dependent-frame control. Defer that fixture/index setup; do not treat unknown opportunity as a failed block-relative seek.",
+      "evidence_level": "SOURCE_REVIEW",
+      "recorded_at_utc": "2026-09-19T17:34:19.059997+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R111.factor-repeated-fmp4-sample-metadata-into-defaults",
+  "title": "Factor repeated fMP4 sample metadata into defaults",
+  "definition": {
+    "key": "R111.factor-repeated-fmp4-sample-metadata-into-defaults",
+    "legacy_id": "R111",
+    "legacy_number": 111,
+    "identity_branch": "proposal",
+    "title": "Factor repeated fMP4 sample metadata into defaults",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S010",
+      "path": "sources/proposals/R102-R115-research-backlog.md",
+      "sha256": "794cf3777137ac811c2c9fdf16e2cedf9c8f352b156ae7436b368257d8508207",
+      "line_start": 449,
+      "line_end": 493,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. How much metadata can be removed from short fragments without changing sample semantics or availability? What differs from earlier work. Different from append batching or fragment-size changes: preserve sample and fragment boundaries and change only redundant metadata representation. Mechanism. Use valid trex/tfhd defaults for fields that really repeat, retaining trun entries for exceptions such as sizes, composition offsets, first-keyframe flags and final audio duration. Initial source profile. Clear qualified fMP4, fixed-rate control first; variable-rate and B-frame fixtures as adversarial controls. Source basis. Chromium PopulateSampleInfo implements trun/tfhd/trex fallback. Its run iterator still allocates a per-sample representation, so wire savings do not imply elimination of browser metadata objects. [S12, S13]",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S009",
+        "path": "sources/reports/R102-R115-report.md",
+        "sha256": "ecbc72d3366ae1a980fd7b6b810228632e059d8fec5ba1395384f65e904566ae",
+        "line_start": 124,
+        "line_end": 131,
+        "source_kind": "report",
+        "reported_heading": "compact fMP4 metadata defaults"
+      }
+    ],
+    "scope_hash": "f1be34d681c65c24739e9cc3ebc7d8cce9cfe2da906af276c1cabebe652ae13b",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 178,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R111.factor-repeated-fmp4-sample-metadata-into-defaults.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R111.factor-repeated-fmp4-sample-metadata-into-defaults.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R102-R115-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R102-R115-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R111.factor-repeated-fmp4-sample-metadata-into-defaults.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: ALREADY_IMPLEMENTED. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 250,
+    "record": {
+      "key": "R111.factor-repeated-fmp4-sample-metadata-into-defaults",
+      "state": "ALREADY_IMPLEMENTED",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R111.factor-repeated-fmp4-sample-metadata-into-defaults.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R102-R115-report.md"
+      ],
+      "reason": "Pinned FFmpeg movenc writes default duration/size/flags in tfhd and emits trun exceptions for differing duration, size, flags and CTS. Current mux uses this writer; another equivalent defaults rewriter duplicates the stated mechanism.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only if a concrete captured output has redundant equivalent fields beyond these defaults; independently expand sample tables including VFR/CTS/short-tail exceptions before any rewrite.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Reopen only if a concrete captured output has redundant equivalent fields beyond these defaults; independently expand sample tables including VFR/CTS/short-tail exceptions before any rewrite.",
+      "recorded_at_utc": "2026-09-19T17:34:19.112741+00:00"
+    }
+  },
+  "next_action": "Reopen only if a concrete captured output has redundant equivalent fields beyond these defaults; independently expand sample tables including VFR/CTS/short-tail exceptions before any rewrite.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "key": "R274.virtual-webm-cues",
+  "title": "virtual WebM Cues",
+  "definition": {
+    "key": "R274.virtual-webm-cues",
+    "legacy_id": "R274",
+    "legacy_number": 274,
+    "identity_branch": "report-defined",
+    "title": "virtual WebM Cues",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 68,
+      "line_end": 75,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The 30-second VP9 WebM was tested in two same-sized forms. The candidate retained normal Cues; the control replaced only the Cues element with an equal-sized Void. All bytes before the Cues—including the Cluster/media region—remain identical. Seeking native Chromium playback to 24 seconds produced the same 24.033 s media frame in both cases. With Cues, the capped-range server observed 10 requests totaling 562,306 bytes. Without Cues, Chromium made 32 requests totaling 2,004,098 bytes, effectively scanning the whole ~2.00 MB file. Thus a truthful source-bound Cues layer can materially reduce native browser seek I/O without rewriting media Cluster bytes. A production virtual index still needs immutable source identity and stale-index rejection.",
+    "related_reports": [],
+    "scope_hash": "0a3cc4e3433c99ba13b11401d749c26582fbdec657fc986b5e7548be26ab8466",
+    "legacy_guide_aliases": [
+      "R274 in the old 17-item queue"
+    ],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 168,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R131.automatically-search-equivalent-representations",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R274.virtual-webm-cues.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R274.virtual-webm-cues.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R274.virtual-webm-cues.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 244,
+    "record": {
+      "key": "R274.virtual-webm-cues",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R274.virtual-webm-cues.md"
+      ],
+      "reason": "Source-bound range ownership exists but no virtual WebM Cues author or composed-byte namespace exists. The provided report now resolves definition identity, but its raw remote logs are not local new evidence.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "First inspect one target source for existing useful Cues; if absent, define immutable virtual Cues offsets and compare target frame/range bytes, rejecting stale identity and malformed cluster offsets.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: First inspect one target source for existing useful Cues; if absent, define immutable virtual Cues offsets and compare target frame/range bytes, rejecting stale identity and malformed cluster offsets.",
+      "recorded_at_utc": "2026-09-19T17:34:19.111227+00:00"
+    }
+  },
+  "next_action": "First inspect one target source for existing useful Cues; if absent, define immutable virtual Cues offsets and compare target frame/range bytes, rejecting stale identity and malformed cluster offsets.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

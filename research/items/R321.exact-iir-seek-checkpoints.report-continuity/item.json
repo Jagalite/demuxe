@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+  "title": "Exact IIR seek checkpoints",
+  "definition": {
+    "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+    "legacy_id": "R321",
+    "legacy_number": 321,
+    "identity_branch": "report-continuity",
+    "title": "Exact IIR seek checkpoints",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S030",
+      "path": "sources/reports/R318-R323-report.md",
+      "sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+      "line_start": 40,
+      "line_end": 45,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A stable biquad was run in a fixed float64 direct-form recurrence. Storing its complete two-value state every 1024 samples allowed later segment requests to resume from the nearest checkpoint and reproduce the sequential oracle bit-for-bit for all tested positions. For the measured seeks, processed input fell from 143,790 to 4,526 samples and runtime from 73.77 to 2.28 ms. The checkpoint state occupied only 1104 bytes in this fixture. Coefficient, precision, denormal, and processing-order identity are part of the cache key.",
+    "related_reports": [],
+    "scope_hash": "3f79c3fb5a62927b6498d365698d73f8c6035a409cde0029ddd2f09fd51f6170",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 114,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R131.automatically-search-equivalent-representations",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R274.virtual-webm-cues",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R349.seek-through-hierarchical-mp4-indexes-without-loading-the-whole-index",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      },
+      {
+        "key": "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Indexing mechanisms use different containers/index kinds; same number can also mean representation search."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R321.exact-iir-seek-checkpoints.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R321.exact-iir-seek-checkpoints.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R321.exact-iir-seek-checkpoints.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 188,
+    "record": {
+      "key": "R321.exact-iir-seek-checkpoints.report-continuity",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R321.exact-iir-seek-checkpoints.report-continuity.md"
+      ],
+      "reason": "The native adaptation path streams unchanged PCM/FIFO; the worklet consumes a ring and does not expose an IIR filter recurrence/checkpoint state. A fixed float64 biquad proof does not supply a checkpoint ABI for arbitrary production filters.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Select one actual requested fixed-coefficient IIR implementation, expose all recurrence/precision state and compare one resumed segment against uninterrupted output; changed coefficients/order must invalidate the checkpoint.",
+      "reopen_condition": "Select one actual requested fixed-coefficient IIR implementation, expose all recurrence/precision state and compare one resumed segment against uninterrupted output; changed coefficients/order must invalidate the checkpoint.",
+      "recorded_at_utc": "2026-09-19T17:34:19.096522+00:00"
+    }
+  },
+  "next_action": "Select one actual requested fixed-coefficient IIR implementation, expose all recurrence/precision state and compare one resumed segment against uninterrupted output; changed coefficients/order must invalidate the checkpoint.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

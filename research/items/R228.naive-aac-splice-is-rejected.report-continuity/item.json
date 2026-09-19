@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R228.naive-aac-splice-is-rejected.report-continuity",
+  "title": "naive AAC splice is rejected",
+  "definition": {
+    "key": "R228.naive-aac-splice-is-rejected.report-continuity",
+    "legacy_id": "R228",
+    "legacy_number": 228,
+    "identity_branch": "report-continuity",
+    "title": "naive AAC splice is rejected",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S019",
+      "path": "sources/reports/R223-R231-report.md",
+      "sha256": "1836275a4c0cfca40ebf54fc7d48765d391a0298dd2d117e3de49edeb25cdd4c",
+      "line_start": 73,
+      "line_end": 78,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Two separately encoded 3-second stereo AAC-LC ADTS streams were concatenated byte-for-byte. File length is exactly the sum of the inputs, and the concatenated decoder produces the expected total number of samples, but the second segment is not equal to decoding B as its own stream. Maximum float difference is 0.090085; 144,640 sample frames differ above 1e-7. This rejects the naive “compatible headers means raw AAC segments are spliceable” route. Transform overlap and other decoder state must be accounted for, or the player must create an explicit discontinuity/reset instead of pretending the coded streams are continuous.",
+    "related_reports": [],
+    "scope_hash": "2c1672bfcc466c92855a0eaeb40883a50eaac3fa32786d3214f1eacc2f27210c",
+    "legacy_guide_aliases": [
+      "R228-C"
+    ],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 213,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R228.naive-aac-splice-is-rejected.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R228.naive-aac-splice-is-rejected.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R228.naive-aac-splice-is-rejected.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 282,
+    "record": {
+      "key": "R228.naive-aac-splice-is-rejected.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R228.naive-aac-splice-is-rejected.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R223-R231-report.md"
+      ],
+      "reason": "The supplied counterexample preserves lengths/sample counts yet changes decoded AAC B, decisively invalidating naive concatenation. Current queue opens each source separately rather than claiming same-header raw splice continuity.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
+      "reopen_condition": "Reopen only for a principled discontinuity/overlap model; compatible headers and sample counts cannot qualify splicing.",
+      "recorded_at_utc": "2026-09-19T17:34:19.146780+00:00"
+    }
+  },
+  "next_action": "If seamless AAC composition is needed, compare explicit reset/priming treatment against independently decoded segments with full sample equality.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

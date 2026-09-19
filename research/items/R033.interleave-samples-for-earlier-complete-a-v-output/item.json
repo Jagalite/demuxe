@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R033.interleave-samples-for-earlier-complete-a-v-output",
+  "title": "Interleave samples for earlier complete A/V output",
+  "definition": {
+    "key": "R033.interleave-samples-for-earlier-complete-a-v-output",
+    "legacy_id": "R33",
+    "legacy_number": 33,
+    "identity_branch": "proposal",
+    "title": "Interleave samples for earlier complete A/V output",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 78,
+      "line_end": 99,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Follow-on optimization · P1 · extends R04 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. Keep the proven fragment duration and GOP structure, but change where audio/video samples appear inside each fragment so partial delivery becomes useful for both tracks earlier. New question versus prior work. R04 established early buffered video from partial bytes. It did not prove early complete audiovisual startup. This targets sample ordering, not shorter fragments or different codec output. Source primitive. FFmpeg documents frag_interleave as an intra-fragment sample-grouping control with an overhead tradeoff. [S6] Why testable here. Host FFmpeg exposes the mux controls; prebuilt and live-pipe output can be inspected without compiling Demuxe.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 46,
+        "line_end": 55,
+        "source_kind": "report",
+        "reported_heading": "Intra-fragment interleaving"
+      }
+    ],
+    "scope_hash": "348465dfedeae117baa30e2bf6f7e6b12a98bfadbfe80862a0a316e9a6595f53",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 174,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R033.interleave-samples-for-earlier-complete-a-v-output.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R033.interleave-samples-for-earlier-complete-a-v-output.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R033.interleave-samples-for-earlier-complete-a-v-output.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 248,
+    "record": {
+      "key": "R033.interleave-samples-for-earlier-complete-a-v-output",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R033.interleave-samples-for-earlier-complete-a-v-output.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md"
+      ],
+      "reason": "Related report explicitly records frag_interleave=1,2,4 losing AAC packets/tail and no earlier joint A/V; current code deliberately omits this option. Stop the reported settings/profile rather than repeat a known equivalence failure. This is a source-reconciled historical negative, not a new local experiment.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only for a materially different pinned-FFmpeg construction that first proves all AAC packet/sample counts, tail and PTS/DTS identical; then compare live joint A/V release. Do not rerun the same failed settings as if untouched.",
+      "reopen_condition": "Reopen only for a materially different pinned-FFmpeg construction that first proves all AAC packet/sample counts, tail and PTS/DTS identical; then compare live joint A/V release. Do not rerun the same failed settings as if untouched.",
+      "recorded_at_utc": "2026-09-19T17:34:19.112237+00:00"
+    }
+  },
+  "next_action": "Reopen only for a materially different pinned-FFmpeg construction that first proves all AAC packet/sample counts, tail and PTS/DTS identical; then compare live joint A/V release. Do not rerun the same failed settings as if untouched.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

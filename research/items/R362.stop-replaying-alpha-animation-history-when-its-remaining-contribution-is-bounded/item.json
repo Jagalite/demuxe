@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded",
+  "title": "Stop replaying alpha-animation history when its remaining contribution is bounded",
+  "definition": {
+    "key": "R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded",
+    "legacy_id": "R362",
+    "legacy_number": 362,
+    "identity_branch": "proposal",
+    "title": "Stop replaying alpha-animation history when its remaining contribution is bounded",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S053",
+      "path": "sources/proposals/Demuxe_R358_R362_Proposals.md",
+      "sha256": "4dc14c62fe748c7bc2860a9191009943c5d1708a9bd949c884e0e43ef227f1ad",
+      "line_start": 115,
+      "line_end": 150,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "For a normalized premultiplied channel, OVER has the form C_out = c + (1-alpha) C_in. This follows the standard source-over formula. [S9] C_target(p) = A(p) + T(p) U(p)     T(p) = product_j(1 - alpha_j(p)) A is the suffix's accumulated contribution and U is the unprocessed older canvas. Uncovered pixels in a rectangular frame use alpha zero for this expression. When normalized premultiplied U and its alpha lie in [0,1], replacing the unknown older canvas with transparent black changes each premultiplied component and alpha by at most T in exact arithmetic. For a normalized opaque background, the final composite error is also bounded by T; that separate bound uses U_color <= U_alpha, not arbitrary unrelated color/alpha ranges.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S036",
+        "path": "sources/reports/R358-R362-report.md",
+        "sha256": "2eaa1962f9c072a9559bc58372ec9ddd7cca0372aa44e9a7ed986fdbaea4989a",
+        "line_start": 61,
+        "line_end": 75,
+        "source_kind": "report",
+        "reported_heading": "Stop replaying alpha-animation history when its remaining contribution is bounded"
+      }
+    ],
+    "scope_hash": "b763dc5312e29633a697d1b1278ffff7fc279bed8e46fcb11981b12fdde4c034",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 330,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R358_R362_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R358-R362-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 371,
+    "record": {
+      "key": "R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R362.stop-replaying-alpha-animation-history-when-its-remaining-contribution-is-bounded.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R358-R362-report.md"
+      ],
+      "reason": "No APNG retained composition/index owner or opt-in approximation contract exists. Current output promises full frame; bounded transmittance cannot silently justify approximate playback, and historical microbenchmark excludes decode/index work.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+      "recorded_at_utc": "2026-09-19T17:34:19.172149+00:00"
+    }
+  },
+  "next_action": "Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

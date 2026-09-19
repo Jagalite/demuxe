@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs",
+  "title": "Copy only the part of a decoded VideoFrame an analysis task actually needs",
+  "definition": {
+    "key": "R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs",
+    "legacy_id": "R319",
+    "legacy_number": 319,
+    "identity_branch": "proposal",
+    "title": "Copy only the part of a decoded VideoFrame an analysis task actually needs",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 275,
+      "line_end": 278,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "Use an admitted copyTo rectangle on real decoder output, preserving subsampling alignment, crop and color semantics. Compare full-copy-then-crop and GPU alternatives; reconstruction cost itself is unchanged.",
+    "related_reports": [],
+    "scope_hash": "63a300277983d57b1c84a3ba47af541da5673e121eba3295e0d2704268c451ef",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 137,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R272.roi-videoframe-copyto",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      },
+      {
+        "key": "R319.checkpoint-png-paeth-row-state.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Rectangular frame extraction; canvas fixtures do not establish decoder-frame cost."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 219,
+    "record": {
+      "key": "R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R319.copy-only-the-part-of-a-decoded-videoframe-an-analysis-task-actually-needs.md"
+      ],
+      "reason": "The exact proposal requires an analysis task needing only a rectangle. Current caller consumes whole pictures and optimized path transfers retained frames; no unnecessary analysis full-copy boundary was found.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen when a concrete bounded analysis consumer is added; test real decoded I420/NV12 rectangle alignment, crop and color against same-decoder full-copy reference.",
+      "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Reopen when a concrete bounded analysis consumer is added; test real decoded I420/NV12 rectangle alignment, crop and color against same-decoder full-copy reference.",
+      "recorded_at_utc": "2026-09-19T17:34:19.104797+00:00"
+    }
+  },
+  "next_action": "Reopen when a concrete bounded analysis consumer is added; test real decoded I420/NV12 rectangle alignment, crop and color against same-decoder full-copy reference.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "key": "R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps",
+  "title": "Parallelize a true attack/release envelope with piecewise-affine maps",
+  "definition": {
+    "key": "R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps",
+    "legacy_id": "R317",
+    "legacy_number": 317,
+    "identity_branch": "proposal",
+    "title": "Parallelize a true attack/release envelope with piecewise-affine maps",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S047",
+      "path": "sources/proposals/Demuxe_R313_R317_Proposals.md",
+      "sha256": "9d25bf8cf87cb6a7a0dd4cb7784e6603048ea36dc8370e8b57db7f870c580f31",
+      "line_start": 93,
+      "line_end": 114,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Type: Nonlinear stateful audio-processing research; mathematical equivalence first. Source basis. FFmpeg's compand envelope updates volume toward the current input magnitude using one coefficient when the magnitude increases and another when it decreases. That is not the max-with-decay recurrence used in R294. [S7] Mechanism. For magnitude p and retention factors 0 < a_attack, a_release < 1, define f_p(e) = a_attacke + (1-a_attack)p when e < p, and a_releasee + (1-a_release)p otherwise. Both branches meet at p and have positive slope. The mapping is therefore continuous, strictly increasing, and piecewise affine. A block is a composition of these maps and has a piecewise-affine transfer curve from incoming to outgoing state.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S029",
+        "path": "sources/reports/R313-R317-report.md",
+        "sha256": "420712b2a80378d02680e01d901d72753aae948d8587f93fcebcba03580a21f3",
+        "line_start": 46,
+        "line_end": 53,
+        "source_kind": "report",
+        "reported_heading": "attack/release transfer curves"
+      }
+    ],
+    "scope_hash": "7427426300c2f8653e59b6614a854758d5aab568a417b57f46a06908fa0cd833",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 378,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R190.restricted-ima-adpcm-through-two-clipped-scans",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R294.parallelize-a-nonlinear-peak-release-envelope-using-composable-summaries",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      },
+      {
+        "key": "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "State/scan algebra; each numerical and codec contract remains separate."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R313_R317_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 419,
+    "record": {
+      "key": "R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R317.parallelize-a-true-attack-release-envelope-with-piecewise-affine-maps.md"
+      ],
+      "reason": "The report floating transfer-curve implementation exceeds its 1e-12 tolerance by orders of magnitude and is slower. Current scalar/audio ring operations do not need this recurrence. Preserve the exact rational identity but reject that floating implementation rather than marking it merely blocked.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with a separately justified finite-precision representation preserving branch decisions; compare optimized sequential/across-channel baseline.",
+      "reopen_condition": "Reopen only with a separately justified finite-precision representation preserving branch decisions; compare optimized sequential/across-channel baseline.",
+      "recorded_at_utc": "2026-09-19T17:34:19.184830+00:00"
+    }
+  },
+  "next_action": "Reopen only with a separately justified finite-precision representation preserving branch decisions; compare optimized sequential/across-channel baseline.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

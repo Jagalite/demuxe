@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "key": "R008.keep-display-only-transformations-out-of-cpu-video-filters",
+  "title": "Keep display-only transformations out of CPU video filters",
+  "definition": {
+    "key": "R008.keep-display-only-transformations-out-of-cpu-video-filters",
+    "legacy_id": "R08",
+    "legacy_number": 8,
+    "identity_branch": "proposal",
+    "title": "Keep display-only transformations out of CPU video filters",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 210,
+      "line_end": 228,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Presentation · New policy/implementation hypothesis · P1 · Risk: Medium First environment: Browser + reference images. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Compile a small explicit set of requested display operations into browser metadata or presentation transforms: rotation, mirror and display aspect. Use decoded-frame processing only when the requested operation truly modifies sample content. Source basis. Chromium’s MP4 parser computes rotation from track/movie matrices. FFmpeg has metadata bitstream filters. These mechanisms can carry truthful geometry; they are not substitutes for arbitrary filtering. [C2, F2] First agent experiment. Compare one rotation/mirror/aspect request through the current Software filter and a metadata/presentation path. Check screenshots, subtitle coordinates, pointer geometry, resize and destination behavior.",
+    "related_reports": [],
+    "scope_hash": "155cdcb18a87a91a78b8cc62970c2380641b134dfd614ad7c4bb766aff19519d",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 234,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R008.keep-display-only-transformations-out-of-cpu-video-filters.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R008.keep-display-only-transformations-out-of-cpu-video-filters.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R008.keep-display-only-transformations-out-of-cpu-video-filters.md",
+        "results/full-completion/frame-boundaries/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 39,
+    "record": {
+      "key": "R008.keep-display-only-transformations-out-of-cpu-video-filters",
+      "state": "PURSUE",
+      "evidence": [
+        "frame-boundaries/result.json"
+      ],
+      "reason": "Existing retained presenter produces exact independently indexed 90-degree pixel rotation; unchanged orientation fails the pixel oracle. Pursue a distinct explicitly display-only operation API. Software filter semantics, subtitle/pointer geometry, HDR and arbitrary transforms are not qualified.",
+      "evidence_level": "COMPONENT_TEST",
+      "recorded_at_utc": "2026-09-19T17:34:19.054897+00:00"
+    }
+  },
+  "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

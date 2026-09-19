@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "key": "R046.a-small-javascript-ordinary-mp4-to-mse-adapter",
+  "title": "A small JavaScript ordinary-MP4-to-MSE adapter",
+  "definition": {
+    "key": "R046.a-small-javascript-ordinary-mp4-to-mse-adapter",
+    "legacy_id": "R46",
+    "legacy_number": 46,
+    "identity_branch": "proposal",
+    "title": "A small JavaScript ordinary-MP4-to-MSE adapter",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S001",
+      "path": "sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+      "sha256": "f995ccdd073d150005d700c8088cdecf671d13e97971a404bd73e2931f500125",
+      "line_start": 105,
+      "line_end": 126,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New deployment/packaging candidate · P1 · PROPOSED / NOT TESTED Extends: R06, R09. Reference primitives: S2, S3, S10. Question. Can a tightly scoped MP4 preparation route avoid downloading or compiling a Wasm muxer when controlled MSE playback is needed? Mechanism. Parse the selected ordinary-MP4 sample tables in JavaScript and construct small fMP4 headers around the unchanged compressed samples. This differs from R09, which only forwards media that is already fragmented. Smallest useful experiment. Start with unencrypted, fixed-configuration H.264/AAC MP4: one video and one selected audio track. Support the fixture’s actual timing/priming or reject it. Compare output with host-FFmpeg packet-copy fragmentation, then add B-frame composition offsets, a tail moov and malformed-size controls. Do not expand into a general demuxer.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S007",
+        "path": "sources/reports/RESULTS_R43_R57.md",
+        "sha256": "ee6b461b512b65c8eba1902d0449f69df6a58551f4d13f2c92db16df9a5c7a80",
+        "line_start": 47,
+        "line_end": 60,
+        "source_kind": "report",
+        "reported_heading": "narrow JavaScript MP4 adapter"
+      }
+    ],
+    "scope_hash": "19d3bd366557c8b1b85a9f043ed631cd197ec9c4a8290e0fe0e8f72762b1ba88",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 47,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R046.a-small-javascript-ordinary-mp4-to-mse-adapter.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R046.a-small-javascript-ordinary-mp4-to-mse-adapter.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R43_R57_Experiment_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R046.a-small-javascript-ordinary-mp4-to-mse-adapter.md",
+        "results/top100/destinations/result.json",
+        "results/top100/mp4/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 45,
+    "record": {
+      "key": "R046.a-small-javascript-ordinary-mp4-to-mse-adapter",
+      "rank": 47,
+      "state": "PURSUE",
+      "reason": "Strict bounded JavaScript sample-table adapter preserves all tested packet timing/payload and full decoded output; actual MSE marked A/V reaches EOF. Further profiles need B-frame/tail-moov and edit-list variation.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "mp4/result.json",
+          "sha256": "32ca233f050143babf96595fe64d77923611b038be191a4680ef064e4ee27120"
+        },
+        {
+          "path": "destinations/result.json",
+          "sha256": "7c752739b3138a294419b664d2ae8d1a7cef4590dbff34f3ddbeac31de9eca4c"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:23:18.369468+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

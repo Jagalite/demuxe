@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R266.snappy-dependency-graph",
+  "title": "Snappy dependency graph",
+  "definition": {
+    "key": "R266.snappy-dependency-graph",
+    "legacy_id": "R266",
+    "legacy_number": 266,
+    "identity_branch": "report-defined",
+    "title": "Snappy dependency graph",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S023",
+      "path": "sources/reports/R261-R267-report.md",
+      "sha256": "82f3825cfe7c346273d4a0a3371caf9079bfa315ead3cb16cffe14211f3edfb8",
+      "line_start": 65,
+      "line_end": 72,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A raw Snappy subset (literals + COPY_2) was generated in two shapes: a 512 KiB chain-heavy block and a ~60 KiB fan-out block. A conventional optimized sequential decoder is the oracle. The graph path builds token dependencies and executes topological layers with the same overlap-safe copy primitive. Result. Both graph outputs exactly match the sequential decoder and generated source. But the chain has 8,192 levels with width 1, so it is essentially serial. The fan-out case has width 959 after its root literal, demonstrating that parallel structure can exist. On this CPU implementation, graph bookkeeping made decoding 11.3× slower for the chain and 4.1× slower for fan-out. Verdict. Correct representation, but do not treat it as a CPU optimization from this evidence. A parallel/GPU executor would need a separate test; full Snappy framing and all copy tag types were not implemented here.",
+    "related_reports": [],
+    "scope_hash": "4c1616b607695d4f29936d535f39caf85d58b25978db37ff080bfec2052dcf56",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 371,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R266.snappy-dependency-graph.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R266.snappy-dependency-graph.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R261-R267-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R266.snappy-dependency-graph.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 412,
+    "record": {
+      "key": "R266.snappy-dependency-graph",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R266.snappy-dependency-graph.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+      ],
+      "reason": "Pinned Snappy copy primitive handles overlap sequentially; historical graph construction is 4.1x to 11.3x slower on both tested CPU shapes and incomplete for full Snappy framing. Do not replace the CPU decoder on this evidence. GPU availability is not a graph-executor result.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen only with a bounded parallel executor and measured broad independent layers whose total graph/upload cost can beat current decode.",
+      "reopen_condition": "Reopen only with a bounded parallel executor and measured broad independent layers whose total graph/upload cost can beat current decode.",
+      "recorded_at_utc": "2026-09-19T17:34:19.183013+00:00"
+    }
+  },
+  "next_action": "Reopen only with a bounded parallel executor and measured broad independent layers whose total graph/upload cost can beat current decode.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

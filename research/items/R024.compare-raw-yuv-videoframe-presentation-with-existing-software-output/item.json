@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+  "title": "Compare raw-YUV VideoFrame presentation with existing Software output",
+  "definition": {
+    "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+    "legacy_id": "R24",
+    "legacy_number": 24,
+    "identity_branch": "proposal",
+    "title": "Compare raw-YUV VideoFrame presentation with existing Software output",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 514,
+      "line_end": 532,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Presentation · Follow-on alternative presenter · P2 · Risk: Medium First environment: Matching Software build + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. After software video decode, construct a VideoFrame from its actual planar layout and let browser rendering handle presentation conversion. Compare against direct YUV texture upload and the existing RGB path; do not assume one is inherently superior. Source basis. WebCodecs defines raw-frame construction and layouts. External-texture presentation is available through WebGPU primitives; construction may still copy CPU memory. [W1, G1] First agent experiment. Use one software-required codec with stride, crop, color-range and nonzero-start variations. Record swscale activity, upload/copy bytes, queue size, first frame and sustained presentation.",
+    "related_reports": [],
+    "scope_hash": "76ac0dbb69ec2e5c29825fb2915b1f44219a86912228edcb1a998ea0fb09be6a",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 21,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output.md",
+        "results/full-completion/presentation/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 25,
+    "record": {
+      "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+      "rank": 21,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Raw I420 VideoFrame preserves padded strides/crop and black/white oracle exactly at the current display boundary. A scoped SDR performance comparison is now feasible; general color/HDR/rotation remain unqualified.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/presentation/result.json",
+          "sha256": "96e8b73c671d0e9f977a71465e26df14a6d77fdae52d6a1a828a8952f90bf86a"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.326676+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R348.convert-packed-dsd-directly-to-the-requested-pcm-rate",
+  "title": "Convert packed DSD directly to the requested PCM rate",
+  "definition": {
+    "key": "R348.convert-packed-dsd-directly-to-the-requested-pcm-rate",
+    "legacy_id": "R348",
+    "legacy_number": 348,
+    "identity_branch": "proposal",
+    "title": "Convert packed DSD directly to the requested PCM rate",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S051",
+      "path": "sources/proposals/Demuxe_R348_R352_Proposals.md",
+      "sha256": "e778885a12e305271899d494b2dbf9dcf0a16ed2793a67e31db89b17672720cb",
+      "line_start": 7,
+      "line_end": 47,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Investigate fusing a specific DSD-to-PCM low-pass/decimation stage with the following fixed-rate PCM decimator. The candidate avoids generating a high-rate intermediate PCM stream that the application immediately reduces again. FFmpeg's pinned DSD implementation already filters packed bytes with precomputed tables. Replacing a naive bit-expansion loop is therefore not a new optimization; the baseline must retain that existing efficient behavior. [S1, S2] For an illustrative two-stage factor-8 construction, let s[n] be the signed one-bit input, h the first filter, and g the second filter: u[m] = sum_k h[k] s[8m-k]     y[n] = sum_j g[j] u[8n-j]     K[l] = sum_j g[j] h[l-8j]     y[n] = sum_l K[l] s[64n-l]",
+    "related_reports": [],
+    "scope_hash": "19b6b31138213684d6695d25b4a538e68627e28d7ce5b8d229184409bf7c44ea",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 2,
+    "initial_rank": 267,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R348.convert-packed-dsd-directly-to-the-requested-pcm-rate.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R348.convert-packed-dsd-directly-to-the-requested-pcm-rate.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R348_R352_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R348.convert-packed-dsd-directly-to-the-requested-pcm-rate.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 326,
+    "record": {
+      "key": "R348.convert-packed-dsd-directly-to-the-requested-pcm-rate",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R348.convert-packed-dsd-directly-to-the-requested-pcm-rate.md"
+      ],
+      "reason": "Local adaptation accepts restricted integer inputs and preserves sample rate; DSD-to-44.1 kHz fused packed conversion is not this path. Software output selects device-rate float, but its two actual conversion filters/rounding boundaries must be identified before fusion.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Trace one DSD64 software path and compare optimized packed-byte cascade with an independently high-precision composed kernel on chunk edges.",
+      "reopen_condition": "Trace one DSD64 software path and compare optimized packed-byte cascade with an independently high-precision composed kernel on chunk edges.",
+      "recorded_at_utc": "2026-09-19T17:34:19.159971+00:00"
+    }
+  },
+  "next_action": "Trace one DSD64 software path and compare optimized packed-byte cascade with an independently high-precision composed kernel on chunk edges.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

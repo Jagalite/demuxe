@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R060.extract-in-band-closed-captions-from-compressed-video-headers",
+  "title": "Extract in-band closed captions from compressed video headers",
+  "definition": {
+    "key": "R060.extract-in-band-closed-captions-from-compressed-video-headers",
+    "legacy_id": "R60",
+    "legacy_number": 60,
+    "identity_branch": "proposal",
+    "title": "Extract in-band closed captions from compressed video headers",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S008",
+      "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+      "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+      "line_start": 104,
+      "line_end": 127,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New subtitle-component route · P1 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox packet-parser/caption pilot if a trustworthy caption fixture or pinned reference parser is available; renderer integration remains local. Related cards: R19, R41, R48. Proposed mechanism. Extract A/53 caption payloads from H.264 SEI as compressed video passes through the demux path. Feed a bounded, explicit CEA-608 decoder and suitable cue/overlay renderer, while the unchanged video is played by the browser. Captions alone should not force software video decoding. What is new. Earlier cards covered separate ASS, PGS and simple SRT tracks. These captions are carried inside compressed video metadata and require a stateful caption decoder, not merely reading another subtitle track.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S038",
+        "path": "sources/reports/R58-R69-report.md",
+        "sha256": "2e43b05dd3d563d2f260db33cfecf52ba195f2b91a98904efcf8338c0a56e33d",
+        "line_start": 48,
+        "line_end": 55,
+        "source_kind": "report",
+        "reported_heading": "In-band captions — BLOCKED"
+      }
+    ],
+    "scope_hash": "8beb5655100aa2e66f89d957b82484bc9a30f885fae502c8d6754e33cebc7fc1",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 51,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R060.extract-in-band-closed-captions-from-compressed-video-headers.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R060.extract-in-band-closed-captions-from-compressed-video-headers.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R060.extract-in-band-closed-captions-from-compressed-video-headers.md",
+        "results/top100/captions/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 83,
+    "record": {
+      "key": "R060.extract-in-band-closed-captions-from-compressed-video-headers",
+      "rank": 51,
+      "state": "PURSUE",
+      "reason": "Actual registered A53 SEI extraction from authored H264 yields CEA608 pop-on HI matching independent FFmpeg SRT decoder. Existing compressed NALs and all decoded video pixels remain exact; bad parity rejects. Restricted caption state component, not full608/708 renderer or seek restoration.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "captions/result.json",
+          "sha256": "95455ed238b9b28fbdac66252f964699484ecfc148aa8faaffdf2935b7f0f04f"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:55:29.463482+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "key": "R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline",
+  "title": "Keep frame-adaptive analysis and rendering on one GPU timeline",
+  "definition": {
+    "key": "R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline",
+    "legacy_id": "R361",
+    "legacy_number": 361,
+    "identity_branch": "proposal",
+    "title": "Keep frame-adaptive analysis and rendering on one GPU timeline",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S053",
+      "path": "sources/proposals/Demuxe_R358_R362_Proposals.md",
+      "sha256": "4dc14c62fe748c7bc2860a9191009943c5d1708a9bd949c884e0e43ef227f1ad",
+      "line_start": 89,
+      "line_end": 114,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Proposed path: owned input plane -> GPU histogram -> GPU percentile selection -> GPU integer lookup-table generation -> render using that same frame's table. Keep optional UI telemetry off the current frame's critical path. Compare the existing mixed CPU/GPU path, optimized CPU analysis, and the GPU-resident candidate. Start with synthetic owned integer planes, then integrate an already-qualified decoded-frame extraction path while holding that extraction constant across variants. Require exact histogram bins, selected thresholds, generated LUT values, and final integer samples against an independent CPU oracle. Begin with frame sizes whose counts and all integer intermediates are proven to fit their representations; other sizes require rejection or a qualified wider construction.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S036",
+        "path": "sources/reports/R358-R362-report.md",
+        "sha256": "2eaa1962f9c072a9559bc58372ec9ddd7cca0372aa44e9a7ed986fdbaea4989a",
+        "line_start": 53,
+        "line_end": 60,
+        "source_kind": "report",
+        "reported_heading": "Keep frame-adaptive analysis and rendering on one GPU timeline"
+      }
+    ],
+    "scope_hash": "2fd68c233788d63dc54d14ed6f280be599411e11560170ba6ff1be73707c0618",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 122,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R237.propagate-the-visible-region-backward-through-the-effects-pipeline",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Downstream effect work; temporal reuse, spatial demand, and GPU feedback are different."
+      },
+      {
+        "key": "R308.move-already-filtered-pixels-instead-of-filtering-them-again",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Downstream effect work; temporal reuse, spatial demand, and GPU feedback are different."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R358_R362_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 196,
+    "record": {
+      "key": "R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root2/audits/R361.keep-frame-adaptive-analysis-and-rendering-on-one-gpu-timeline.md"
+      ],
+      "reason": "The inspected player presenter has no current-frame histogram/percentile/LUT CPU feedback round trip. It directly converts/samples video and renders overlays. Adding a requested contrast effect would be new functionality, not removal of a present synchronization bottleneck in this profile.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for an actual requested adaptive-contrast pipeline with a measured CPU round trip; verify histogram/threshold/LUT/output for the same frame and reject stale frame-N-minus-1 statistics.",
+      "reopen_condition": "Reopen for an actual requested adaptive-contrast pipeline with a measured CPU round trip; verify histogram/threshold/LUT/output for the same frame and reject stale frame-N-minus-1 statistics.",
+      "recorded_at_utc": "2026-09-19T17:34:19.098576+00:00"
+    }
+  },
+  "next_action": "Reopen for an actual requested adaptive-contrast pipeline with a measured CPU round trip; verify histogram/threshold/LUT/output for the same frame and reject stale frame-N-minus-1 statistics.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

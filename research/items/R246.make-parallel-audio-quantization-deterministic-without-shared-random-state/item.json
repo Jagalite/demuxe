@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+  "title": "Make parallel audio quantization deterministic without shared random state",
+  "definition": {
+    "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+    "legacy_id": "R246",
+    "legacy_number": 246,
+    "identity_branch": "report-defined",
+    "title": "Make parallel audio quantization deterministic without shared random state",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S022",
+      "path": "sources/reports/R239-R246-report.md",
+      "sha256": "c1c8624957347a393ab1a531d368e9c676286cb5aa8aa4a3c14d616c32f2aa5a",
+      "line_start": 112,
+      "line_end": 123,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A JavaScript Philox4x32-10 implementation was checked against three published Random123 known-answer vectors and an independently implemented vectorized Python integer oracle.[S5] The counter contains absolute sample-index low/high words, stable channel identity and separate draw identity; the key is the render seed. Two draws generate the explicitly specified unshaped triangular dither. Input is exact Q8 in output-LSB units, with a declared rounding and saturation rule. Cases span zero, the 2^32 boundary, and 2^48+9, two stable channel identities, fractional half-LSB inputs and output clipping boundaries. Four Node workers exercised reverse/shuffled jobs, native worker termination followed by replay, and output-slot reordering. 163,952 output comparisons were exact. A negative per-chunk index reset produced 21,206 mismatches.",
+    "related_reports": [],
+    "scope_hash": "52b5450ead387ba016c09ccaf5fb6d6f4dae693b97c3761f07ff60e51fa699e5",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 340,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R244.make-dithering-reproducible-at-any-sample-position",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R244.recompute-video-effects-only-where-the-input-actually-changed.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R244.reservoir-independent-prepared-mp3.report-c",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      }
+    ],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R246.make-parallel-audio-quantization-deterministic-without-shared-random-state.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R246.make-parallel-audio-quantization-deterministic-without-shared-random-state.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R246.make-parallel-audio-quantization-deterministic-without-shared-random-state.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 381,
+    "record": {
+      "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R246.make-parallel-audio-quantization-deterministic-without-shared-random-state.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R246-report.md"
+      ],
+      "reason": "The Philox source provides concrete deterministic-worker correctness, distinct from unspecified legacy dither equality. Current playback has no Q8-to-integer parallel render stage; the reported worker results do not justify inserting quantization into this lossless path.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For a new permitted quantizer, reuse published known-answer vectors and absolute counter mapping, then compare canceled/replayed workers at 2^32 and 2^48 boundaries.",
+      "reopen_condition": "Reopen when deterministic parallel quantization is required; do not claim byte equality to an existing differently seeded or noise-shaped engine.",
+      "recorded_at_utc": "2026-09-19T17:34:19.174796+00:00"
+    }
+  },
+  "next_action": "For a new permitted quantizer, reuse published known-answer vectors and absolute counter mapping, then compare canceled/replayed workers at 2^32 and 2^48 boundaries.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

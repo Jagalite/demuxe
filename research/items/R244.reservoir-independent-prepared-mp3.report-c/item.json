@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R244.reservoir-independent-prepared-mp3.report-c",
+  "title": "reservoir-independent prepared MP3",
+  "definition": {
+    "key": "R244.reservoir-independent-prepared-mp3.report-c",
+    "legacy_id": "R244",
+    "legacy_number": 244,
+    "identity_branch": "report-C",
+    "title": "reservoir-independent prepared MP3",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S021",
+      "path": "sources/reports/R239-R245-rerun-report.md",
+      "sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+      "line_start": 63,
+      "line_end": 70,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Matched six-second stereo Layer III files were encoded at 192 kb/s CBR with and without the LAME bit reservoir. Both are 144,866 bytes and contain 231 frames. At frame 120 the ordinary stream has main_data_begin=168; the prepared representation has zero. Every frame in the prepared file has main_data_begin=0, while 230/231 ordinary frames reference reservoir data. When each file is cut exactly at frame 120, the normal stream reaches a byte-exact PCM suffix after two decoded MP3 frames. The no-reservoir stream reaches the exact suffix after one. This reproduces the prior conclusion: removing the compressed-data back-reference removes one preroll dependency, but synthesis/filterbank state remains.",
+    "related_reports": [],
+    "scope_hash": "4c3205e30810bb29f529efd231f79aa43e8398c7a8351a3051946bfa7fa09962",
+    "legacy_guide_aliases": [
+      "R244-C"
+    ],
+    "family": "audio",
+    "impact": 2,
+    "impact_basis": "Narrow source or deliberately altered-output operation; qualify actual demand before implementation. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 4,
+    "initial_rank": 349,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R244.make-dithering-reproducible-at-any-sample-position",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R246.make-parallel-audio-quantization-deterministic-without-shared-random-state",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      },
+      {
+        "key": "R244.recompute-video-effects-only-where-the-input-actually-changed.report-a",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Coordinate-addressed deterministic quantization; compare exact generator/recipe."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R244.reservoir-independent-prepared-mp3.report-c.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R244.reservoir-independent-prepared-mp3.report-c.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R244.reservoir-independent-prepared-mp3.report-c.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 390,
+    "record": {
+      "key": "R244.reservoir-independent-prepared-mp3.report-c",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R244.reservoir-independent-prepared-mp3.report-c.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md"
+      ],
+      "reason": "Current packet-copy playback preserves source MP3 and does not author a no-reservoir encoding. Removing reservoir dependence changes preparation requirements and still leaves synthesis-state preroll, so it cannot make arbitrary MP3 packets independent.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For explicitly prepared seek-friendly MP3, compare no-reservoir and normal encodes at matched requested quality and verify exact suffix recovery after restart.",
+      "reopen_condition": "Reopen when preparation/re-encoding is authorized and saved restart work repays it; zero main_data_begin does not imply zero decoder state.",
+      "recorded_at_utc": "2026-09-19T17:34:19.177107+00:00"
+    }
+  },
+  "next_action": "For explicitly prepared seek-friendly MP3, compare no-reservoir and normal encodes at matched requested quality and verify exact suffix recovery after restart.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

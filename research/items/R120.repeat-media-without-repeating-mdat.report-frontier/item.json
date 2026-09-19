@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+  "title": "Repeat media without repeating mdat",
+  "definition": {
+    "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+    "legacy_id": "R120",
+    "legacy_number": 120,
+    "identity_branch": "report-frontier",
+    "title": "Repeat media without repeating mdat",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S042",
+      "path": "sources/reports/R116-R131-report.md",
+      "sha256": "eb2ac2a31d9991406b71aeba3a1f5e171f99a70e6fc18aaa4045afd458581221",
+      "line_start": 44,
+      "line_end": 51,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The original MP4 contains two seconds of red→green media. Its one edit-list entry was replaced by three identical entries. The edit metadata grew by only 24 bytes, while the mdat SHA-256 stayed identical. Chrome reports 5.966667 s and presents: This is effectively a metadata-only loop/reuse operation. It is a storage and editing win, not a decode-cache win: Chrome reported 180 total video frames versus 60 for the original, so it processed the repeated media again.",
+    "related_reports": [],
+    "scope_hash": "4eaad0af4f790090145bfc9d883a774ccbbba070dcae8efd2c92300517648118",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 187,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R120.repeat-media-without-repeating-mdat.report-frontier.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R120.repeat-media-without-repeating-mdat.report-frontier.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R120.repeat-media-without-repeating-mdat.report-frontier.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 258,
+    "record": {
+      "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R120.repeat-media-without-repeating-mdat.report-frontier.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R116-R131-report.md"
+      ],
+      "reason": "The queue opens each source independently; it does not author repeated edit-list views. Repeating mdat references saves stored bytes but still decodes repeated pictures, so it is not a decode optimization for current playback.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
+      "reopen_condition": "Reopen when a requested stored repeated timeline needs representation; do not infer decoder caching from mdat equality.",
+      "recorded_at_utc": "2026-09-19T17:34:19.114732+00:00"
+    }
+  },
+  "next_action": "For an explicit repeat-export feature, compare repeated elst view to repeated payload with same frame identities, duration and browser edit semantics.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

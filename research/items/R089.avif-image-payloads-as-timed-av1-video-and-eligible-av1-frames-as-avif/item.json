@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif",
+  "title": "AVIF image payloads as timed AV1 video, and eligible AV1 frames as AVIF",
+  "definition": {
+    "key": "R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif",
+    "legacy_id": "R89",
+    "legacy_number": 89,
+    "identity_branch": "proposal",
+    "title": "AVIF image payloads as timed AV1 video, and eligible AV1 frames as AVIF",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 73,
+      "line_end": 99,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can images become a native timed presentation, and keyframes become images, without a pixel decode/re-encode step? What differs from earlier work. Distinct from MJPEG image decoding and texture video: reuse AV1 coded image data across still-image and timed-media containers. Input scope. Start with simple single-item AVIFs with matching dimensions, profile, bit depth, color and compatible identical sequence configuration; no grids or auxiliary images. Mechanism to test. Extract the AV1 image payload and configuration, author timed AV1 video samples, and preserve the compressed image data. Test the reverse direction for independently decodable AV1 frames. Smallest experiment. 1. Generate a small compatible AVIF set and audit sequence-header/still-picture flags. 2. Mux the extracted payloads into an ordinary MP4 video track and then an MSE profile separately. 3. Extract eligible independent AV1 video frames into AVIF and compare image decoding against the video reference.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 35,
+        "line_end": 42,
+        "source_kind": "report",
+        "reported_heading": "AVIF payloads as timed AV1 video — PROMISING"
+      }
+    ],
+    "scope_hash": "e67dc57b7f76e211fba14a33cc867acc9fdd974fdbbd8eb3c90858d393f4d94f",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 263,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/R88-R101-research-backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 322,
+    "record": {
+      "key": "R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif.md"
+      ],
+      "reason": "Current packet-copy mux can preserve admitted AV1 packets but does not extract AVIF items or author timed image sequences. The report narrows compatibility to single-item, matching sequence configuration; grids/auxiliary images need separate handling.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Parse one compatible three-image AVIF set and compare packet hashes through host mux plus current native playback before any public image-sequence route.",
+      "reopen_condition": "Parse one compatible three-image AVIF set and compare packet hashes through host mux plus current native playback before any public image-sequence route.",
+      "recorded_at_utc": "2026-09-19T17:34:19.158970+00:00"
+    }
+  },
+  "next_action": "Parse one compatible three-image AVIF set and compare packet hashes through host mux plus current native playback before any public image-sequence route.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

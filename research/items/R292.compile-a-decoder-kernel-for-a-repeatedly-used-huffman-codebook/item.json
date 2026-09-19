@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook",
+  "title": "Compile a decoder kernel for a repeatedly used Huffman codebook",
+  "definition": {
+    "key": "R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook",
+    "legacy_id": "R292",
+    "legacy_number": 292,
+    "identity_branch": "proposal",
+    "title": "Compile a decoder kernel for a repeatedly used Huffman codebook",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S043",
+      "path": "sources/proposals/Demuxe_R289_R294_Proposals.md",
+      "sha256": "7574d087e49ed723033238ec3a379db6bb7c353412b20f0b8856baf96c47f32a",
+      "line_start": 68,
+      "line_end": 88,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Mechanism. For a controlled MJPEG software path with demonstrably reused validated Huffman tables, generate a bounded Wasm kernel specialized to those tables and the admitted scan layout. Evaluate trusted templates for inlined decisions or table-specialized constants while retaining a correct general escape path. The source bitstream remains unchanged. First experiment. Baseline sequential grayscale JPEGs sharing tables. Compare the same decoder with its ordinary prederived lookup tables, a specialized kernel, and native ImageDecoder where qualified. Require identical symbols, consumed bits, quantized coefficients, and reconstructed output. Exercise long codes, byte stuffing, restart boundaries, truncation, table changes, invalid tables, and first-frame behavior.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S025",
+        "path": "sources/reports/R289-R294-report.md",
+        "sha256": "6cc7322c2bb0c42e76c2c2d9a04a250888c1edb9cbc593b7f6528b50ce8a77f5",
+        "line_start": 65,
+        "line_end": 96,
+        "source_kind": "report",
+        "reported_heading": "source-specialized JPEG Huffman Wasm kernel"
+      }
+    ],
+    "scope_hash": "718109fe52ab083b0280f47271c4fac929903a8d399c2c0e32d8d133b79ba924",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 4,
+    "initial_rank": 373,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R289_R294_Proposals.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 414,
+    "record": {
+      "key": "R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook.md"
+      ],
+      "reason": "Current custom browser bridge does not admit MJPEG and software decoding uses established codec machinery. Historical source-specialized Wasm is an offline-generated coefficient kernel, not a bounded runtime generator or full player. Real repeated table frequency and module amortization remain required.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Measure table reuse in one actual MJPEG source and identify the general lookup baseline; only then scope one trusted generated kernel.",
+      "reopen_condition": "Measure table reuse in one actual MJPEG source and identify the general lookup baseline; only then scope one trusted generated kernel.",
+      "recorded_at_utc": "2026-09-19T17:34:19.183532+00:00"
+    }
+  },
+  "next_action": "Measure table reuse in one actual MJPEG source and identify the general lookup baseline; only then scope one trusted generated kernel.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

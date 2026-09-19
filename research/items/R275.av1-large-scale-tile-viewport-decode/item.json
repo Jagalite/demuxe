@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R275.av1-large-scale-tile-viewport-decode",
+  "title": "AV1 large-scale tile viewport decode",
+  "definition": {
+    "key": "R275.av1-large-scale-tile-viewport-decode",
+    "legacy_id": "R275",
+    "legacy_number": 275,
+    "identity_branch": "report-defined",
+    "title": "AV1 large-scale tile viewport decode",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S024",
+      "path": "sources/reports/R268-R275-report.md",
+      "sha256": "e745e617985ff8fadbe4c1bbb5d1db451aeb08ba1f378ba1a7d6398c4a13d37c",
+      "line_start": 76,
+      "line_end": 83,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A controlled 512×512 AV1 keyframe was encoded as a prepared 2×2 large-scale-tile representation. The libaom decoder was then asked for one tile at row 1, column 1. The returned 256×256 tile matched all 65,536 Y samples of the corresponding bottom-right quadrant from a full-frame decode: zero differences. The selected coded tile was 10,126 bytes out of a 40,300-byte frame (25.13%). Across 12 host runs, full decode median was 7.144 ms and selected-tile decode median 1.565 ms, a 4.57× ratio. This is strong evidence for a prepared viewport representation and a decoder capable of tile selection. It is not evidence that arbitrary AV1 can be sparsely decoded, nor a browser/GPU performance claim.",
+    "related_reports": [],
+    "scope_hash": "c7b0abb0d669ea6904fbe201e73378376aa40aedf4f823074909b1ef90f9ce87",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q4",
+    "priority_band": 1,
+    "initial_rank": 41,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R275.av1-large-scale-tile-viewport-decode.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R275.av1-large-scale-tile-viewport-decode.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R268-R275-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_a/audits/R275.av1-large-scale-tile-viewport-decode.md",
+        "results/top100/prerequisites/media-inventory.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 99,
+    "record": {
+      "key": "R275.av1-large-scale-tile-viewport-decode",
+      "rank": 41,
+      "state": "DEFER_SETUP",
+      "reason": "No matching aomenc/aomdec tile-selection build or genuine AV1 large-scale-tile fixture available. Full-frame AV1 decoding/cropping would not test sparse tile work. Requires dedicated libaom prepared fixture and selected-tile oracle; not browser codec rejection.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "evidence": [
+        {
+          "path": "prerequisites/media-inventory.json",
+          "sha256": "6e40f423bfe9c01241bd2014c8b9d70807279280956a886e8dd192a202f49682"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:13:23.698201+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

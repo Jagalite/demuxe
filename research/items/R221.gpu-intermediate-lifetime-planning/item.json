@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R221.gpu-intermediate-lifetime-planning",
+  "title": "GPU intermediate lifetime planning",
+  "definition": {
+    "key": "R221.gpu-intermediate-lifetime-planning",
+    "legacy_id": "R221",
+    "legacy_number": 221,
+    "identity_branch": "report-defined",
+    "title": "GPU intermediate lifetime planning",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 81,
+      "line_end": 95,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A fixed graph models color processing, two effects, subtitle composition and a delayed preview consumer. The lifetime allocator only reuses a compatible texture after the previous logical resource's final consumer. All tested schedules were conflict-free. A symbolic execution verified that the delayed preview still read the exact effect1 value after unrelated texture reuse, and both final outputs matched the dedicated-resource model. Planned allocation reductions versus one dedicated resource per logical intermediate were: - one frame + delayed preview: 24.7%; - three frames in flight: 50.2%; - preview cancellation: 25.0%; - resolution change: 25.5%. These are planner/resource-count results. They must not be presented as physical GPU-memory savings until tested on a real GPU implementation.",
+    "related_reports": [],
+    "scope_hash": "b7de9e37a00dee6e1fa02cfaaa58f2f8a953af9d30f4ece0f5cf61e87d48b2bc",
+    "legacy_guide_aliases": [],
+    "family": "gpu",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 97,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+    "minimum_probe": "Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "initial_screen": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates. Small deterministic planes/blocks or an existing real frame with one adversarial edge. Use a bounded component test if GPU integration is not already available, labeling it as such.",
+    "primary_metric": "Complete decode/process/present cost, transfers, command work or peak live storage for identical requested output.",
+    "scope_contract": "Exact integer planes or an explicitly defined numerical/altered-output contract; compare the final requested region and later references where relevant.",
+    "negative_control": "Change stride, crop, phase, alpha, edge neighborhood or resource generation; exercise a case where the proposed shortcut is ineligible.",
+    "stop_boundary": "No custom decoder rewrite or GPU platform port. Include staging/readback/cache cost; reject the current implementation rather than the general idea if the executor is a proxy.",
+    "shared_prerequisite": "Actual required API/format for any GPU claim; CPU algebra is a separate component observation, not browser qualification.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R221.gpu-intermediate-lifetime-planning.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R221.gpu-intermediate-lifetime-planning.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R221.gpu-intermediate-lifetime-planning.md",
+        "results/top100/audits/R221.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 93,
+    "record": {
+      "key": "R221.gpu-intermediate-lifetime-planning",
+      "rank": 97,
+      "state": "STOP_PROFILE",
+      "reason": "Presenter owns simultaneously needed Y/U/V and overlay textures. No multi-pass transient effect graph or delayed preview allocation exists for lifetime aliasing to reclaim. Report planner savings do not apply to this owner.",
+      "evidence_level": "SOURCE_REVIEW",
+      "evidence": [
+        {
+          "path": "audits/R221.json",
+          "sha256": "f64afce386b4d0081dd1ce5f5eb60b68cc746df163a57e55112a0dd17af04703"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:03:40.739963+00:00"
+    }
+  },
+  "next_action": "Identify the CPU/GPU representation boundary and actual useful work removed. Check existing renderer fusions, caches, kernel fast paths and hardware gates.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

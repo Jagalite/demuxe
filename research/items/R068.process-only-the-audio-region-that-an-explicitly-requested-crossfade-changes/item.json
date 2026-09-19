@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
+  "title": "Process only the audio region that an explicitly requested crossfade changes",
+  "definition": {
+    "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
+    "legacy_id": "R68",
+    "legacy_number": 68,
+    "identity_branch": "proposal",
+    "title": "Process only the audio region that an explicitly requested crossfade changes",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S008",
+      "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+      "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+      "line_start": 296,
+      "line_end": 319,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New selective-processing route · P3 · Risk: High · PROPOSED / NOT TESTED First environment: Host audio construction + sandbox MSE pilot; maintained Wasm cost and integration are local-only. Related cards: R35, R36, R53. Proposed mechanism. For a requested transition between compatible queue items, packet-copy the unchanged audio before and after the seam, decode/mix/encode only a bounded seam region, and preserve original video packets. Start with equal-rate integer PCM/FLAC so codec-lossy re-encoding is not required outside the intentional effect. What is new. R35 switched tracks without a requested mix, R36 concatenated items, and R53 ramped gain on one signal. This creates a small processed audio bridge for a real crossfade rather than processing every sample in both clips.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S038",
+        "path": "sources/reports/R58-R69-report.md",
+        "sha256": "2e43b05dd3d563d2f260db33cfecf52ba195f2b91a98904efcf8338c0a56e33d",
+        "line_start": 119,
+        "line_end": 126,
+        "source_kind": "report",
+        "reported_heading": "Selective crossfade bridge — INCONCLUSIVE"
+      }
+    ],
+    "scope_hash": "de03928e11091e9152dcaccaf05a7b77357e995b1c74b9a98b52aa964693e0b5",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 3,
+    "initial_rank": 296,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 199,
+    "record": {
+      "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/root3/audits/R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes.md"
+      ],
+      "reason": "Current API exposes filters/gain and sequential queue playback, not an authorized crossfade source-to-presentation map or hybrid copied/new FLAC seam construction. Processing only a seam requires independent FLAC numbering/configuration and audio/video/caption overlap semantics. General allow-lossy admission is not that authorization.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
+      "reopen_condition": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
+      "recorded_at_utc": "2026-09-19T17:34:19.099359+00:00"
+    }
+  },
+  "next_action": "Define one explicit equal-rate PCM/FLAC crossfade contract; compare a frame-aligned copied/processed seam with a full-render integer-rounding oracle, rejecting mixed rates and preserving unchanged video/audio outside the seam.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "key": "R140.cue-less-webm-native-seek.report-continuity",
+  "title": "cue-less WebM native seek",
+  "definition": {
+    "key": "R140.cue-less-webm-native-seek.report-continuity",
+    "legacy_id": "R140",
+    "legacy_number": 140,
+    "identity_branch": "report-continuity",
+    "title": "cue-less WebM native seek",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S011",
+      "path": "sources/reports/R132-R145-report.md",
+      "sha256": "86507369a0c6f28bf43d96ab1348f1465c6177093fd6a8ad2699034040d72710",
+      "line_start": 92,
+      "line_end": 101,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The fixture is WebM produced in live mode with no Cues and no finite duration advertised initially. A synthetic HTTPS media response honored browser Range headers but capped each response at 64 KiB. This exercises the media loader's byte-range behavior without making claims about TLS, real-network latency, caches, or proxies. Chrome initially reported duration=Infinity. Setting currentTime=6 generated seeking/seeked; after playback, the first video frame callback was exactly 6.000 s and frames continued normally. The cost is the important result: Chrome issued sequential Range requests from byte 0 through the end. The run served 1,334,098 B of a 1,334,098 B file (100.0%). Once the scan reached the end, duration became ~7.967 s.",
+    "related_reports": [],
+    "scope_hash": "530fdab9b15c2ba3a7445ad60b16ca0f38d5bdb6d9b19923f5f886079aff5dab",
+    "legacy_guide_aliases": [
+      "R140-C"
+    ],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 84,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R140.cue-less-webm-native-seek.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R140.cue-less-webm-native-seek.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R132-R145-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R140.cue-less-webm-native-seek.report-continuity.md",
+        "results/top100/cueless/fixture.json",
+        "results/top100/cueless/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_CURRENT_VALUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 108,
+    "record": {
+      "key": "R140.cue-less-webm-native-seek.report-continuity",
+      "rank": 84,
+      "state": "STOP_CURRENT_VALUE",
+      "reason": "Native cue-less seek to25s produces same exact displayed frame as indexed30s control, but transfers393216 of395474 source bytes from cold metadata acquisition. Indexed control also reads essentially whole396119-byte fixture. No scan-free remote seek benefit demonstrated; larger/source-indexed profile needed to reopen.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "cueless/fixture.json",
+          "sha256": "811631ce5f4f8ef53470cfb0d6ff02fc2d70e803b3cb2a2da42d420437647a09"
+        },
+        {
+          "path": "cueless/result.json",
+          "sha256": "49d5245f714f5e55c5f25978844e91d2caac466cf0d6785f763ce6a0a6ed232d"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:18:13.288704+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

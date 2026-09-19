@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "key": "R240.vp9-webm-cluster-surgery.report-c",
+  "title": "VP9 WebM cluster surgery",
+  "definition": {
+    "key": "R240.vp9-webm-cluster-surgery.report-c",
+    "legacy_id": "R240",
+    "legacy_number": 240,
+    "identity_branch": "report-C",
+    "title": "VP9 WebM cluster surgery",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S021",
+      "path": "sources/reports/R239-R245-rerun-report.md",
+      "sha256": "0338065cb0cbed0af37f6fba889c5fdac3c8101f0c45a0adf9dba3f4035254e2",
+      "line_start": 31,
+      "line_end": 38,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The source is a four-second, 120-frame VP9 WebM with one Cluster. A packet-copy remux produces eight roughly half-second Clusters without recoding the VP9 packets. All 120 packet hashes and the complete FFmpeg framemd5 sequence are identical. Chromium presents 120 frames from both files with zero dropped frames. The candidate is only 76 bytes larger. Cluster splitting remains a parser/delivery boundary optimization. It does not create new keyframes or random-access points.",
+    "related_reports": [],
+    "scope_hash": "6031cdc8a4e29804299bb297947e0b38414efef888436abde202f05e0b872928",
+    "legacy_guide_aliases": [
+      "R240-C"
+    ],
+    "family": "mux",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 193,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R240.vp9-webm-cluster-surgery.report-c.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R240.vp9-webm-cluster-surgery.report-c.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R239-R245-rerun-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R240.vp9-webm-cluster-surgery.report-c.md",
+        "results/full-completion/continuity/maintained-webm-result.json",
+        "results/full-completion/webm-boundaries/metadata.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 58,
+    "record": {
+      "key": "R240.vp9-webm-cluster-surgery.report-c",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "continuity/maintained-webm-result.json",
+        "webm-boundaries/metadata.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R240.vp9-webm-cluster-surgery.report-c.md"
+      ],
+      "reason": "Current captured VP9 output already releases two small clusters with exact packet identity. No measured withholding benefit supports structural cluster surgery on this fixture. Defer a mux-policy variant until a long-cluster trace shows avoidable delay; splitting cannot create keyframes.",
+      "evidence_level": "REAL_PATH_OBSERVATION",
+      "recorded_at_utc": "2026-09-19T17:34:19.059737+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R212.vectorize-across-independent-streams-rather-than-time",
+  "title": "Vectorize across independent streams rather than time",
+  "definition": {
+    "key": "R212.vectorize-across-independent-streams-rather-than-time",
+    "legacy_id": "R212",
+    "legacy_number": 212,
+    "identity_branch": "report-defined",
+    "title": "Vectorize across independent streams rather than time",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S017",
+      "path": "sources/reports/R203-R213-report.md",
+      "sha256": "d8956a414cada45d85144e937a759314df1bce024c0ecef85a5ba601c4a1c9e7",
+      "line_start": 77,
+      "line_end": 82,
+      "source_kind": "report"
+    },
+    "source_excerpt": "A native AVX2 benchmark decoded eight independent IMA-ADPCM state machines in SIMD lanes. All 12,000,000 output samples matched the scalar implementation exactly. Best measured time was 21.76 ms scalar versus 10.49 ms AVX2, a 2.07× speedup. This is strong evidence for cross-stream SIMD on this recurrence, not a claim about a complete browser/FFmpeg audio pipeline.",
+    "related_reports": [],
+    "scope_hash": "e7afd0263a7597a28fa93878fc91c76f2ad9b41be7a1ade6900a676d683386b7",
+    "legacy_guide_aliases": [],
+    "family": "lifecycle",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 317,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+    "minimum_probe": "One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "initial_screen": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard. One short action trace through existing code with the candidate disabled/enabled; include the specific seek, cancellation or replacement transition it can affect.",
+    "primary_metric": "User-visible operation latency, duplicated work or peak/steady live resource ownership; not object counts alone.",
+    "scope_contract": "Actual output identity and timeline, surviving consumers, committed generations and cleanup; candidate execution must be visible.",
+    "negative_control": "Cancel or replace a source at the changed boundary and delay a stale callback/consumer; reject late publication and premature reuse.",
+    "stop_boundary": "At the first need for a cross-backend ownership redesign, record DEFER_SETUP. Do not remove a semantically required reset or increase a timeout to hide a failure.",
+    "shared_prerequisite": "Relevant existing runtime/owner only. Do not require every other backend to pass before this independent screen.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R212.vectorize-across-independent-streams-rather-than-time.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R212.vectorize-across-independent-streams-rather-than-time.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R203-R213-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R212.vectorize-across-independent-streams-rather-than-time.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 358,
+    "record": {
+      "key": "R212.vectorize-across-independent-streams-rather-than-time",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R212.vectorize-across-independent-streams-rather-than-time.md"
+      ],
+      "reason": "Current player produces one selected audio stream, not eight independent IMA state machines. Cross-stream SIMD requires simultaneous independent demand absent from this playback profile; adding dummy streams would create an artificial gain.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+      "recorded_at_utc": "2026-09-19T17:34:19.168574+00:00"
+    }
+  },
+  "next_action": "Reopen when actual multi-stream workload exists; compare bounded lane batching to optimized scalar streams and reject latency added solely to fill lanes. AVX2 host speed is not Wasm128 speed.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

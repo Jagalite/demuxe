@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R189.sparse-track-future-time-bounds",
+  "title": "sparse-track future-time bounds",
+  "definition": {
+    "key": "R189.sparse-track-future-time-bounds",
+    "legacy_id": "R189",
+    "legacy_number": 189,
+    "identity_branch": "report-defined",
+    "title": "sparse-track future-time bounds",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 80,
+      "line_end": 91,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The mux model contains continuous 30 fps video, 20 ms audio, and sparse timed metadata at 45 and 90 seconds. Before the sparse parser has materialized its next packet: - strict interleave can prove 0 dense packets safe; - a 10-second max-delta-style escape can emit 800 packets; - a validated source-index statement that the next sparse DTS is >=45 s safely emits 3,600 packets, through 44.98 s. The bound-aware output is an exact prefix of the final canonical mux order. A deliberately false >=60 s bound crosses the real 45-second event and fails the prefix oracle. The key requirement is epistemic, not timeout-based: the bound must come from a validated source/sample index, be scoped to the source/timeline epoch, and be invalidated on seeks/discontinuities.",
+    "related_reports": [],
+    "scope_hash": "5ecf04e409f8e44b5f123816c248b560bd0c5ef799b53bcc8788cdcbb6e364f7",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 91,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R189.sparse-track-future-time-bounds.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R189.sparse-track-future-time-bounds.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R189.sparse-track-future-time-bounds.md",
+        "results/top100/audits/R189.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 92,
+    "record": {
+      "key": "R189.sparse-track-future-time-bounds",
+      "rank": 91,
+      "state": "STOP_PROFILE",
+      "reason": "Scoped mux selects only video and audio. No selected sparse metadata track is present to create the source model bottleneck; implementing sparse-frontier machinery here has no current opportunity.",
+      "evidence_level": "SOURCE_REVIEW",
+      "evidence": [
+        {
+          "path": "audits/R189.json",
+          "sha256": "7551b75a303841bf0ca9b659fc457fe015c711c470be82e8a5818e9e30d2251c"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T19:03:40.739140+00:00"
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

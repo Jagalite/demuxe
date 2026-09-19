@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "key": "R139.mix-channels-before-performing-all-their-output-transforms",
+  "title": "Mix channels before performing all their output transforms",
+  "definition": {
+    "key": "R139.mix-channels-before-performing-all-their-output-transforms",
+    "legacy_id": "R139",
+    "legacy_number": 139,
+    "identity_branch": "proposal",
+    "title": "Mix channels before performing all their output transforms",
+    "definition_status": "CONVERSATION_SCOPE_AVAILABLE",
+    "definition_source": {
+      "source_key": "S060",
+      "path": "sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+      "sha256": "fc972d2564c63375853a68df00a31776a290070255b186afa835441ad9564195",
+      "line_start": 99,
+      "line_end": 102,
+      "source_kind": "conversation_scope_extract"
+    },
+    "source_excerpt": "For an explicitly requested downmix, audit whether compatible codec windows permit mixing spectral coefficients before synthesis. Verify per-channel processing, overlap and numeric behavior; existing AC-3 optimizations are the baseline.",
+    "related_reports": [],
+    "scope_hash": "955844121c1b6a139ba80deb115fff6dee1f52eb02b7d696aadaedd2a50a84ac",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 286,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R238.let-channel-reduction-cross-the-resampler-boundary",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      },
+      {
+        "key": "R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Early mixing at different pipeline boundaries; not interchangeable."
+      }
+    ],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R139.mix-channels-before-performing-all-their-output-transforms.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R139.mix-channels-before-performing-all-their-output-transforms.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R139.mix-channels-before-performing-all-their-output-transforms.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 342,
+    "record": {
+      "key": "R139.mix-channels-before-performing-all-their-output-transforms",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R139.mix-channels-before-performing-all-their-output-transforms.md"
+      ],
+      "reason": "The selected Native adaptation explicitly preserves channel layout and does not admit an output downmix. Spectral mixing before synthesis requires that requested matrix plus compatible codec window/state; no such operation is available to optimize in this route.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Reopen for one existing downmix decoder path and audit its AC3 optimized ordering before proposing a new transform change.",
+      "reopen_condition": "Reopen for one existing downmix decoder path and audit its AC3 optimized ordering before proposing a new transform change.",
+      "recorded_at_utc": "2026-09-19T17:34:19.164458+00:00"
+    }
+  },
+  "next_action": "Reopen for one existing downmix decoder path and audit its AC3 optimized ordering before proposing a new transform change.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

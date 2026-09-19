@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "key": "R004.stream-inside-a-fragment-instead-of-making-it-smaller",
+  "title": "Stream inside a fragment instead of making it smaller",
+  "definition": {
+    "key": "R004.stream-inside-a-fragment-instead-of-making-it-smaller",
+    "legacy_id": "R04",
+    "legacy_number": 4,
+    "identity_branch": "proposal",
+    "title": "Stream inside a fragment instead of making it smaller",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 134,
+      "line_end": 152,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Delivery · New optimization hypothesis · P1 · Risk: Medium First environment: Host FFmpeg + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Keep already-correct fragment timing and deliver bytes to MSE incrementally, rather than waiting in JavaScript for the entire fragment response. Distinguish transport chunks, muxer flush boundaries and video random-access points. Source basis. The inspected Chromium MP4 parser can send parsed samples with all_samples_in_segment_received=false. That supports investigating partial delivery; it does not prove a particular fragment will render before all interleaved dependencies arrive. [C2] First agent experiment. Feed identical prebuilt fMP4 bytes as whole fragments versus bounded pieces crossing moof/mdat/sample boundaries. Then inspect when live FFmpeg actually releases those bytes. Preserve all packet timing and compare startup, append calls and CPU.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S005",
+        "path": "sources/reports/RESULTS.md",
+        "sha256": "21a756a374dfcfc6a39896af78a3b54ce52eb73b3cca735581ccbe883acf65d7",
+        "line_start": 9,
+        "line_end": 24,
+        "source_kind": "report",
+        "reported_heading": "Partial delivery within existing fMP4 fragments: PROMISING"
+      }
+    ],
+    "scope_hash": "f71798043458d919d55b2d28c9143d678acc8ab9e1654263e658fba3814afc69",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 141,
+    "local_screen_state": "USER_REPORTED_FIRST_PASS_COMPLETE",
+    "evidence_level": "USER_REPORTED_LOCAL_SCREEN_RAW_ARTIFACTS_NOT_BUNDLED",
+    "default_next_action": "Read the supplied local follow-up and verify the named raw record once if accessible. Carry forward its scoped disposition; do not rerun this profile just to populate this ledger. A trace exposing material producer/worker withholding or another specific boundary.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A trace exposing material producer/worker withholding or another specific boundary.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit.",
+    "inherited_decision": "STOP_PROFILE",
+    "followup_lane": "DO_NOT_REPEAT_PROFILE"
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R004.stream-inside-a-fragment-instead-of-making-it-smaller.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R004.stream-inside-a-fragment-instead-of-making-it-smaller.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/local-screening/README.md",
+        "results/local-screening/follow-up.md",
+        "results/local-screening/full-queue-audit.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 63,
+    "record": {
+      "key": "R004.stream-inside-a-fragment-instead-of-making-it-smaller",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/identity-check.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-separated-01__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__follow-up__opportunity-summary.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-maintained-pairs-01__summary.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__module-authority-02__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__caption-boundary-integrated__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__result.json",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/imports/runs__r74-packed-cost-01__summary.json"
+      ],
+      "reason": "Reported 26-second trace: media first-emission-to-flush max 0.320 ms, peak queue depth one; no material withholding demonstrated at this boundary. Later browser delays not measured. Actual local raw records and prior manifest identity were inspected in this v4 import.",
+      "evidence_level": "IMPORTED_LOCAL_EVIDENCE",
+      "carried_forward": true,
+      "next_test": "A trace exposing material producer/worker withholding or another specific boundary.",
+      "reopen_condition": "A trace exposing material producer/worker withholding or another specific boundary.",
+      "recorded_at_utc": "2026-09-19T17:34:19.061757+00:00"
+    }
+  },
+  "next_action": "A trace exposing material producer/worker withholding or another specific boundary.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

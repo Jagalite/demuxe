@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "key": "R216.one-request-for-distant-byte-ranges",
+  "title": "one request for distant byte ranges",
+  "definition": {
+    "key": "R216.one-request-for-distant-byte-ranges",
+    "legacy_id": "R216",
+    "legacy_number": 216,
+    "identity_branch": "report-defined",
+    "title": "one request for distant byte ranges",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 35,
+      "line_end": 46,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Three independently decodable 0.6-second H.264/AAC MP4 clips were embedded far apart in a 375,274-byte resource. Their useful bytes total 31,212 bytes. - Three ordinary range requests: 31,212 response-body bytes, 3 requests. - One contiguous request spanning all regions: 260,586 bytes, including 229,374 bytes of gaps. - One multipart/byteranges request: 31,577 bytes in the host test, only 365 bytes of multipart overhead, 1 request. The independent multipart parser recovered the three requested byte regions exactly, and each extracted MP4 contained both H.264 video and AAC audio and decoded successfully. Chromium itself also issued the multi-range fetch and received HTTP 206 multipart/byteranges (~31.5 KB). A separate slow-response test aborted with AbortError; the server observed the disconnect after only 49,152 of 7,505,480 bytes had been sent.",
+    "related_reports": [],
+    "scope_hash": "0caefa2208a2062a20bbb40b8ac88d1052bd47e99903e5b00be70b734154d39e",
+    "legacy_guide_aliases": [],
+    "family": "source",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 95,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+    "minimum_probe": "Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "initial_screen": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes. Replay a short owned range/seek trace on a tiny indexed fixture, including its first cold operation, with the same source and authorization. Reuse the existing reader.",
+    "primary_metric": "Total bytes and time to correct startup/target, including cold index/identity acquisition; bounded retained bytes.",
+    "scope_contract": "Source/version identity, requested exact sample/frame, dependency coverage and byte-range accounting.",
+    "negative_control": "Change the source/version or corrupt an offset/proof and cancel one consumer. No stale or unverified bytes may be published.",
+    "stop_boundary": "Do not build a generic cache, transport server or index service for a first pass. Preserve a lower-cost component decision if real integration is E3.",
+    "shared_prerequisite": "Authorized seekable byte provider and a known oracle for sample prerequisites; no guessed remote-source semantics.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R216.one-request-for-distant-byte-ranges.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R216.one-request-for-distant-byte-ranges.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R214-R222-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R216.one-request-for-distant-byte-ranges.md",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 74,
+    "record": {
+      "key": "R216.one-request-for-distant-byte-ranges",
+      "rank": 95,
+      "state": "PURSUE",
+      "reason": "Actual HTTP multipart range response matches two independent single-range reads; truncated multipart rejects. One request replaces two for capable test origin, with575 response bytes for384 payload bytes. Production origin capability remains prerequisite.",
+      "evidence_level": "COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "ownership/result.json",
+          "sha256": "8de308b90f2db93ec91dce81f2eb1e1b3ad230f636c0b7ba45659d13464ee6b1"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:45:08.789447+00:00"
+    }
+  },
+  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

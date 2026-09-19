@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "key": "R030.investigate-containerless-encoded-chunk-mse",
+  "title": "Investigate containerless encoded-chunk MSE",
+  "definition": {
+    "key": "R030.investigate-containerless-encoded-chunk-mse",
+    "legacy_id": "R30",
+    "legacy_number": 30,
+    "identity_branch": "proposal",
+    "title": "Investigate containerless encoded-chunk MSE",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 628,
+      "line_end": 645,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Frontier · New experimental API hypothesis · P3 · Risk: High First environment: Experimental Chromium only. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Investigate feeding demuxed EncodedAudioChunk/EncodedVideoChunk objects into MSE so the browser owns A/V playback without an intermediate MP4/WebM mux step. This could sit between raw demux and normal Native presentation. Source basis. Chromium SourceBuffer IDL contains appendEncodedChunks and configuration-based changeType behind MediaSourceExtensionsForWebCodecs. The inspected feature declaration marks it experimental. This is not evidence of a shipped portable API. [C3, C4] First agent experiment. First establish actual exposure in a controlled experimental browser, explicitly recording flags. Start with AVC/AAC and test timestamp reordering, track reconfiguration, bounded queues and destruction. Compare with equivalent fMP4 MSE only after correctness.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S005",
+        "path": "sources/reports/RESULTS.md",
+        "sha256": "21a756a374dfcfc6a39896af78a3b54ce52eb73b3cca735581ccbe883acf65d7",
+        "line_start": 105,
+        "line_end": 110,
+        "source_kind": "report",
+        "reported_heading": "MSE-for-WebCodecs: FRONTIER ONLY"
+      }
+    ],
+    "scope_hash": "54abc9ba682b52f3dab8b57d328962c80654a97cf65bb1b3685f35ee0c3c8602",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 232,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R030.investigate-containerless-encoded-chunk-mse.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R030.investigate-containerless-encoded-chunk-mse.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/api-gates.json",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R030.investigate-containerless-encoded-chunk-mse.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: HOLD_ENV. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 298,
+    "record": {
+      "key": "R030.investigate-containerless-encoded-chunk-mse",
+      "state": "HOLD_ENV",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R030.investigate-containerless-encoded-chunk-mse.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/api-gates.json"
+      ],
+      "reason": "appendEncodedChunks is absent in both window and dedicated worker on the current default Chrome configuration; ordinary appendBuffer is present. No encoded-chunk candidate ran. Experimental feature enablement is a separate research configuration, not a negative mechanism result.",
+      "evidence_level": "PREREQUISITE_PROBE",
+      "carried_forward": true,
+      "next_test": "Read the exact appendEncodedChunks/config-based API presence on unmodified Chrome and record flags; if absent, stop as an upstream-watch environment gate.",
+      "reopen_condition": "Reopen only with actual experimental API exposure and explicit research configuration; no default routing or release claim.",
+      "recorded_at_utc": "2026-09-19T17:34:19.152263+00:00"
+    }
+  },
+  "next_action": "Read the exact appendEncodedChunks/config-based API presence on unmodified Chrome and record flags; if absent, stop as an upstream-watch environment gate.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

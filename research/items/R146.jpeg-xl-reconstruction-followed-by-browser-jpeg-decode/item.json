@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+  "title": "JPEG XL reconstruction followed by browser JPEG decode",
+  "definition": {
+    "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+    "legacy_id": "R146",
+    "legacy_number": 146,
+    "identity_branch": "report-defined",
+    "title": "JPEG XL reconstruction followed by browser JPEG decode",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S012",
+      "path": "sources/reports/R146-R158-report.md",
+      "sha256": "1f08500d76a5a16e24cf95eabae45355d7916178e7e50822ac40f00d0e23bd2b",
+      "line_start": 39,
+      "line_end": 55,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Used JxlEncoderAddJPEGFrame, reconstruction metadata, and the actual installed libjxl reconstruction API. No original JPEG is stored outside the JXL input as a reconstruction shortcut. The reconstructed bytes are emitted by libjxl, then independently decoded by Chromium’s JPEG image path. These public reconstruction APIs explicitly support returning the original JPEG codestream rather than a pixel reconstruction [S1, S2]. All four original/reconstructed browser RGBA comparisons have zero changed values. Missing reconstruction metadata, truncation, and non-JPEG input are rejected. A too-small fixed reconstruction output buffer initially failed to make progress; the final pilot uses an explicit 1 MiB bound for these small fixtures. That harness development failure is not a codec-format failure.",
+    "related_reports": [],
+    "scope_hash": "3b97d32c3f7858eb9e38cffd05895cd8e8934ced2c9f45d4da0427f3ce421814",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 3,
+    "impact_basis": "Useful stage/operation improvement if the target workload and repeated use exist. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 336,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "specialty-or-prepared",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R146-R158-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 377,
+    "record": {
+      "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+      ],
+      "reason": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+      "reopen_condition": "Reopen only when the prerequisite for this next slice exists or actual owner/workload changes: Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+      "recorded_at_utc": "2026-09-19T17:34:19.173798+00:00"
+    }
+  },
+  "next_action": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

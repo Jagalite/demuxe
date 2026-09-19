@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "key": "R191.seekable-fixed-linear-effects-via-block-state-transforms",
+  "title": "seekable fixed linear effects via block state transforms",
+  "definition": {
+    "key": "R191.seekable-fixed-linear-effects-via-block-state-transforms",
+    "legacy_id": "R191",
+    "legacy_number": 191,
+    "identity_branch": "report-defined",
+    "title": "seekable fixed linear effects via block state transforms",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S015",
+      "path": "sources/reports/R183-R192-report.md",
+      "sha256": "5ab7ff9d5c12b2553b1281af34df2b0b4adb7aa9ce37789f7096086d93afc4e3",
+      "line_start": 107,
+      "line_end": 130,
+      "source_kind": "report"
+    },
+    "source_excerpt": "For each 128-sample block the experiment cached an affine state transform s_out = M s_in + b. These transforms compose as (M2,b2) o (M1,b1) = (M2 M1, M2 b1 + b2). - complete audio output matched continuous filtering exactly in the implemented double-precision recurrence; - maximum seek-state error: 2.78e-16; - 35 edit-plan final states differed by at most 2.78e-16; - transform vs checkpoint seek state differed by at most 6.11e-16. State-only benchmark medians in this Python implementation: - derive 35 plan end states by sample replay: 452.3 ms; - compose cached transforms: 9.77 ms (46.3×); - 300 checkpoint/replay seek-state queries: 248.5 ms; - cached prefix-transform queries: 0.507 ms (489.6×).",
+    "related_reports": [],
+    "scope_hash": "533f11640fa89d827d165916816dd9b2943296f236fc581b3faf7f12652256d6",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E3",
+    "qualification_burden": "Q3",
+    "priority_band": 3,
+    "initial_rank": 290,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R191.seekable-fixed-linear-effects-via-block-state-transforms.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R191.seekable-fixed-linear-effects-via-block-state-transforms.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R191.seekable-fixed-linear-effects-via-block-state-transforms.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: DEFER_SETUP. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 346,
+    "record": {
+      "key": "R191.seekable-fixed-linear-effects-via-block-state-transforms",
+      "state": "DEFER_SETUP",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R191.seekable-fixed-linear-effects-via-block-state-transforms.md"
+      ],
+      "reason": "Effects are delegated to mpv; the app does not own fixed biquad block-state transforms or an edit timeline. Report double-precision model cannot serialize arbitrary Web Audio/mpv internal state, and no new effect subsystem is warranted in first pass.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "Identify one controlled fixed biquad owner and compare one prefix transform-derived seek state against continuous replay before integration.",
+      "reopen_condition": "Identify one controlled fixed biquad owner and compare one prefix transform-derived seek state against continuous replay before integration.",
+      "recorded_at_utc": "2026-09-19T17:34:19.165505+00:00"
+    }
+  },
+  "next_action": "Identify one controlled fixed biquad owner and compare one prefix transform-derived seek state against continuous replay before integration.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

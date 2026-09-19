@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+  "title": "Construct a selected-track MP4 view without remuxing samples",
+  "definition": {
+    "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+    "legacy_id": "R59",
+    "legacy_number": 59,
+    "identity_branch": "proposal",
+    "title": "Construct a selected-track MP4 view without remuxing samples",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S008",
+      "path": "sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+      "sha256": "e29f4316ff27e01c516cbb6442ae61aa1647446a1f2d5934b04642a26faf3042",
+      "line_start": 80,
+      "line_end": 103,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New local-file packaging route · P1 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox Blob/File and direct-video pilot; local, finite, unencrypted MP4 only. Related cards: R46. Proposed mechanism. For a local MP4 whose requested audio cannot be selected through the browser track API, expose a virtual file containing only the desired track declarations while reusing the original media bytes. Begin by replacing unselected trak boxes with equally sized free boxes in a bounded copy of moov, retaining its size and position. Compose prefix + edited moov + suffix from Blob slices. What is new. R46 constructed new fragmented MP4 sample tables for MSE. This route preserves the ordinary MP4 sample layout and uses direct playback; it is a targeted metadata view, not an alternative general demuxer or a remote authenticated proxy.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S038",
+        "path": "sources/reports/R58-R69-report.md",
+        "sha256": "2e43b05dd3d563d2f260db33cfecf52ba195f2b91a98904efcf8338c0a56e33d",
+        "line_start": 40,
+        "line_end": 47,
+        "source_kind": "report",
+        "reported_heading": "Metadata-only selected-track MP4 view — PROMISING"
+      }
+    ],
+    "scope_hash": "b2431467113f2fe749beca3e618f6a17d5acd705f5a0638fffb52ff6618c3396",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 50,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R059.construct-a-selected-track-mp4-view-without-remuxing-samples.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R059.construct-a-selected-track-mp4-view-without-remuxing-samples.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R58_R69_Research_Backlog.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_b/audits/R059.construct-a-selected-track-mp4-view-without-remuxing-samples.md",
+        "results/full-completion/r59/result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: PURSUE. No integration or qualification inferred.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "top100",
+    "ledger": "results/top100/decisions.jsonl",
+    "line": 26,
+    "record": {
+      "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+      "rank": 50,
+      "state": "PURSUE",
+      "reason": "Reconciled completed prior evidence: Both front- and tail-moov Blob views play the requested second AAC tone through seek/EOF with5368 metadata bytes edited and unchanged214 selected packet payloads/timestamps/durations. Must enable the selected tkhd track; hiding the old track alone produced silent browser audio despite valid ffprobe output.",
+      "evidence_level": "REUSED_COMPONENT_TEST",
+      "evidence": [
+        {
+          "path": "../full-completion/r59/result.json",
+          "sha256": "4fb3522cffaac98ec323f51a6ad0f5740acf335dc18742932ebf319ee3d114d5"
+        }
+      ],
+      "recorded_at_utc": "2026-09-19T18:17:13.327467+00:00"
+    }
+  },
+  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

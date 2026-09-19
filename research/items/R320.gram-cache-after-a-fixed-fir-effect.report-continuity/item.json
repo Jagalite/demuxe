@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "key": "R320.gram-cache-after-a-fixed-fir-effect.report-continuity",
+  "title": "Gram cache after a fixed FIR effect",
+  "definition": {
+    "key": "R320.gram-cache-after-a-fixed-fir-effect.report-continuity",
+    "legacy_id": "R320",
+    "legacy_number": 320,
+    "identity_branch": "report-continuity",
+    "title": "Gram cache after a fixed FIR effect",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S030",
+      "path": "sources/reports/R318-R323-report.md",
+      "sha256": "9d7712e04a34fdef0a75dc17ad150881d5ad0bb6069e19c49360d9675b5099af",
+      "line_start": 34,
+      "line_end": 39,
+      "source_kind": "report"
+    },
+    "source_excerpt": "Six synchronized stems were filtered once by the same fixed 65-tap FIR. The candidate cached the 6×6 Gram matrix of those filtered stems. For 180 random gain vectors, g^T G g matched directly mixed-and-measured output to maximum relative error 9.66e-16. The cache is tiny (288 bytes) but construction cost matters: 7.81 ms to build, then 0.087 ms for all cached queries, versus 10.78 ms direct. This is an amortized analysis optimization, not a replacement for producing output samples.",
+    "related_reports": [],
+    "scope_hash": "616f0c2ee4ae209b08f49e9ce9106144cc06c7c3d2d9360cfac522f6994fa97c",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 217,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R320.gram-cache-after-a-fixed-fir-effect.report-continuity.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Historical evidence retained; stage-specific acceptance has not been reconciled into this checklist.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R320.gram-cache-after-a-fixed-fir-effect.report-continuity.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R320.gram-cache-after-a-fixed-fir-effect.report-continuity.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Historical decision imported verbatim: STOP_PROFILE. No integration or qualification inferred.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "full-completion",
+    "ledger": "results/full-completion/completion.jsonl",
+    "line": 286,
+    "record": {
+      "key": "R320.gram-cache-after-a-fixed-fir-effect.report-continuity",
+      "state": "STOP_PROFILE",
+      "evidence": [
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_e/audits/R320.gram-cache-after-a-fixed-fir-effect.report-continuity.md",
+        "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R318-R323-report.md"
+      ],
+      "reason": "There is no repeated gain-vector energy-analysis stage over fixed filtered stems in current playback. Gram quadratic forms answer aggregate energy only and do not replace actual mixed samples or changing FIR processing.",
+      "evidence_level": "SOURCE_REVIEW",
+      "carried_forward": true,
+      "next_test": "For an analysis tool, compare g-transpose-G-g with direct mixed energy over a fixed window, including changed filter/stem identity and clipped nonlinear control.",
+      "reopen_condition": "Reopen for repeated aggregate queries on fixed filtered stems; charge Gram construction and invalidate on filter/window changes.",
+      "recorded_at_utc": "2026-09-19T17:34:19.147764+00:00"
+    }
+  },
+  "next_action": "For an analysis tool, compare g-transpose-G-g with direct mixed energy over a fixed window, including changed filter/stem identity and clipped nonlinear control.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}
