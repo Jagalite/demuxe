@@ -69,74 +69,74 @@ subsystem or requirement determines a route. The
 [head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
 combinations and their exact evidence.
 
-The table uses the recorded CPU campaign and its matching playback checks. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
+The table uses the recorded CPU campaign and its matching playback checks, plus catalogue playback screening for fidelity-limited rows excluded from that campaign. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
 
-Each player is compared with native video: `100 × (native CPU − player CPU) / native CPU`. Positive means lower CPU; negative means higher. Medians use three matched rounds. `(Pass)` means the round range includes zero, not proven equivalence; native is its own reference. `(Fail)` means default playback correctness failed. N/A includes absent or rejected performance evidence; it does not imply equal CPU. Green = lower CPU, orange = higher, blue = Pass, red = Fail, yellow = fidelity-limited, white = unavailable comparison. Pinned Chrome/macOS shared-host synthetic evidence; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
+Each row uses the lowest-median-CPU eligible player among the four as its reference (**bold** cell): `100 × (leader median CPU − player median CPU) / leader median CPU`. The leader is 0%; negative percentages mean higher CPU than the leader. Medians use three matched rounds. Only players with accepted matching measurements can lead; this is not a claim about unmeasured players or statistical superiority. Green `(Pass)` means playback passed with no consistent measured CPU difference, or without a valid CPU comparison; the leader is its own reference. It does not claim proven CPU equivalence. `(Pass)*` means historical playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU gain is claimed. `(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope; it does not imply equal CPU. Green = Pass or lower CPU, orange = higher CPU, red = Fail, white = unavailable playback evidence. Pinned Chrome/macOS shared-host synthetic evidence; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
-[Raw values, ranges and exclusions](results/head-to-head/cpu-native-reference-01/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
+[Raw values, ranges and exclusions](results/head-to-head/cpu-leader-reference-01/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
 | Media format | Native video | Demuxe (auto) | Movi | AVPlayer |
 | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🔵 (Pass) | 🟢 (+7.5%) | 🔴 (Fail) | 🟠 (-64.3%) |
-| H.264 + AAC / MKV | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| H.264 + PCM24 / MKV | 🔵 (Pass) | 🟠 (-2.3%) | ⚪ (N/A) | 🔴 (Fail) |
-| H.264 + PCM24 / MKV + ASS | 🔵 (Pass) | 🟠 (-72.9%) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC 5.1 / MP4 | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| H.264 + MP3 stereo / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-65.3%) |
-| H.264 + AC-3 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| H.264 + E-AC-3 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| H.264 + DTS core 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| H.264 + FLAC stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-56.9%) |
-| H.264 + FLAC 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| H.264 + Opus stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🟠 (-59.4%) |
-| H.264 + PCM16 stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + PCM24 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-56.7%) |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| HEVC Main 10-bit SDR + AAC / MP4 | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| AV1 8-bit + AAC / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-78.2%) |
-| AV1 10-bit SDR + Opus / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-58.6%) |
-| AV1 + Opus / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-76.2%) |
-| VP9 8-bit + Opus / WebM | 🔵 (Pass) | 🟢 (+4.8%) | 🔴 (Fail) | 🟠 (-62.1%) |
-| VP9 10-bit SDR + Opus / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
-| VP8 + Vorbis / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-61.2%) |
-| H.264 + AAC / MPEG-TS | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| ProRes + PCM / MOV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC / fragmented MP4 (single file) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 video-only / MP4 | 🔵 (Pass) | 🟠 (-8.3%) | 🟠 (-74.1%) | 🟠 (-54.2%) |
-| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + external WebVTT / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / MP4 | 🟠 (-8.1%) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-87.6%) |
+| H.264 + AAC / MKV | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-68.8%) |
+| H.264 + PCM24 / MKV | **🟢 (Pass)** | 🟠 (-2.3%) | 🟢 (Pass) | 🔴 (Fail) |
+| H.264 + PCM24 / MKV + ASS | **🟢 (Pass)** | 🟠 (-60.0%) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| H.264 + MP3 stereo / MP4 | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) | 🟠 (-70.7%) |
+| H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| H.264 + E-AC-3 5.1 / MKV | 🔴 (Fail) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| H.264 + DTS core 5.1 / MKV | 🔴 (Fail) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| H.264 + FLAC stereo / MKV | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) | 🟠 (-55.0%) |
+| H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| H.264 + Opus stereo / MKV | 🟢 (Pass) | **🟢 (Pass)** | 🟢 (Pass) | 🟠 (-62.3%) |
+| H.264 + PCM16 stereo / MKV | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + PCM24 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)* | 🟢 (Pass)* | 🔴 (Fail) |
+| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-56.3%) |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-56.0%) |
+| HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-46.6%) |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-20.5%) |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-19.0%) |
+| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-26.7%) |
+| AV1 8-bit + AAC / MP4 | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) | 🟠 (-78.2%) |
+| AV1 10-bit SDR + Opus / MKV | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-62.5%) |
+| AV1 + Opus / WebM | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-66.4%) |
+| VP9 8-bit + Opus / WebM | 🟠 (-9.5%) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-74.0%) |
+| VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| VP8 + Vorbis / WebM | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) | 🟠 (-58.6%) |
+| H.264 + AAC / MPEG-TS | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-52.1%) |
+| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) | **🟢 (Pass)** | 🟠 (-7.7%) |
+| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| ProRes + PCM / MOV | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 video-only / MP4 | **🟢 (Pass)** | 🟠 (-8.3%) | 🟠 (-79.2%) | 🟠 (-54.2%) |
+| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
 | HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| AAC audio-only / M4A | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🟠 (-28.8%) |
-| MP3 audio-only / MP3 | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
-| FLAC audio-only / FLAC | 🔵 (Pass) | 🟢 (+6.8%) | ⚪ (N/A) | 🟠 (-29.6%) |
-| Opus audio-only / Ogg | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
-| Vorbis audio-only / Ogg | 🔵 (Pass) | 🟠 (-3.5%) | ⚪ (N/A) | 🔴 (Fail) |
-| PCM16 audio-only / WAV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
-| PCM24 audio-only / WAV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
-| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| HEVC Main 10 + AAC / MP4 (HLG) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
-| AV1 10-bit + Opus / WebM (HDR10) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| AAC audio-only / M4A | **🟢 (Pass)** | 🟢 (Pass) | 🟢 (Pass) | 🟠 (-34.6%) |
+| MP3 audio-only / MP3 | 🟢 (Pass) | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) |
+| FLAC audio-only / FLAC | 🟠 (-7.3%) | **🟢 (Pass)** | 🟢 (Pass) | 🟠 (-37.1%) |
+| Opus audio-only / Ogg | **🟢 (Pass)** | 🟢 (Pass) | 🟢 (Pass) | 🔴 (Fail) |
+| Vorbis audio-only / Ogg | **🟢 (Pass)** | 🟠 (-5.8%) | 🟢 (Pass) | 🔴 (Fail) |
+| PCM16 audio-only / WAV | 🟢 (Pass) | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) |
+| PCM24 audio-only / WAV | 🟢 (Pass) | **🟢 (Pass)** | 🟢 (Pass) | 🔴 (Fail) |
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| HEVC Main 10 + AAC / MP4 (HLG) | 🟢 (Pass)* | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
+| AV1 10-bit + Opus / WebM (HDR10) | 🟢 (Pass)* | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)* |
 | HEVC + TrueHD 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
 | HEVC + DTS-HD MA 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
 | HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| H.264 + AAC / HLS VOD (TS segments) | 🔵 (Pass) | 🟢 (+4.4%) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-64.5%) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
-| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | ⚪ (N/A) |
-| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS VOD (TS segments) | 🟠 (-3.7%) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | **🟢 (Pass)** | 🔴 (Fail) | 🟠 (-66.8%) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) | 🔴 (Fail) | **🟢 (Pass)** |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🟢 (Pass) |
+| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

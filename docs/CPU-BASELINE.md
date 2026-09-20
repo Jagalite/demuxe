@@ -2,31 +2,43 @@
 
 # Cross-player CPU baseline
 
-## Current README: each player versus native video
+## Current README: each player versus the measured leader
 
-The compact README compares every player with **native video on the same fixture**:
+For each media case, the reference is the player with the **lowest median CPU**
+among the four players with three accepted, matching measurement rounds. The
+reference cell is bold. Failed, incomplete, fidelity-limited and mismatched
+measurements cannot select the leader. Exact median ties use displayed player
+order; a lone eligible player is only a reference, not proof it beats unmeasured
+players. This is a descriptive baseline, not a statistical superiority claim.
 
-`gain % = 100 × (native CPU − player CPU) / native CPU`
+`gain % = 100 × (leader median CPU − player median CPU) / leader median CPU`
 
-Positive means the named player uses less CPU. Each result is the median of three
-matched-round reductions. Blue **(Pass)** means the round range includes zero; it
-does not prove equivalent performance. Native is its own reference. Green shows
-a consistent reduction, orange an increase, red **(Fail)** a default playback
-correctness failure, yellow **(N/A)** a fidelity limit, and white **(N/A)** an
-unavailable or rejected CPU comparison. A playback pass without an accepted
-native CPU baseline stays N/A. The original ASS native reference includes host
-ASS rendering.
+The leader is zero; negative percentages mean higher CPU than the leader.
+Percentages now use the ratio of CPU medians, so the reference truly has the
+lowest reported CPU. The report also retains each matched-round reduction and
+its range. Green **(Pass)** means playback passed and either that range includes
+zero or a valid CPU comparison is unavailable. It does not prove equivalent
+performance. Orange percentages show higher CPU, red **(Fail)** a playback
+correctness failure, green `(Pass)*` a historical playback-screening pass with
+unverified surround or HDR/color fidelity, and white **(N/A)** unavailable
+playback evidence. Native in the original ASS case includes host ASS rendering.
 
-The [native-reference report](../results/head-to-head/cpu-native-reference-01/REPORT.md)
-retains numeric medians even when the README shows (Pass), plus ranges, raw-round
-links and exclusion reasons. It reuses the recorded campaign; no new browser
-measurements or general fidelity qualification are implied. Historical complete-file
-playback outcomes and alternate routes remain in [the catalogue](HEAD-TO-HEAD-CATALOGUE.md).
+For the nine surround/HDR rows excluded from the CPU campaign, the renderer reads
+the exact per-player records linked by the complete-file catalogue and verifies
+their run manifests. Only an explicit `screenPassed` result becomes (Pass)*;
+recorded failures stay (Fail), and missing fixtures stay N/A. These older records
+never qualify a CPU percentage or override newer playback correctness evidence.
 
-Reproduce this view with `tests/head-to-head/render-native-cpu-table.py --source
-results/head-to-head/cpu-baseline-report-02 --output <new-directory> --update-readme`.
-Run `python3 tests/head-to-head/native-cpu-table.test.py` to check the native
-denominator, zero-crossing labels, independent player eligibility and exclusions.
+The [leader-reference report](../results/head-to-head/cpu-leader-reference-01/REPORT.md)
+retains reference identity, medians, round ranges, raw-record links and exclusion
+reasons. It reuses existing measurements; no new playback, performance or fidelity
+qualification is implied. Earlier native-reference reports remain historical.
+
+Reproduce the current view with `tests/head-to-head/render-native-cpu-table.py
+--source results/head-to-head/cpu-baseline-report-02 --output <new-directory>
+--update-readme`. The script retains its earlier filename. Run
+`python3 tests/head-to-head/native-cpu-table.test.py` for its aggregation,
+reference-selection, playback-status and exclusion checks.
 
 ## Original Demuxe-versus-player report
 
@@ -45,8 +57,8 @@ of matched-round percentages **for each fixture and each comparator**, retaining
 all individual values and ranges. It never pools media formats, averages the
 three competitors into one baseline, substitutes zero for failures, or divides
 by a zero CPU measurement. The original README used three values ordered **Native
-video / Movi / AVPlayer**; the current compact view above uses native as the common
-reference instead. This original report remains unchanged.
+video / Movi / AVPlayer**; the current compact view above uses the lowest-CPU eligible player
+as the reference instead. This original report remains unchanged.
 
 ## Recorded baseline — 2026-09-20
 
@@ -159,5 +171,5 @@ failed/incomplete evidence remains saved rather than cherry-picked away.
 input-run integrity and matching identities, emits all 60 rows and 180 comparison
 dispositions, and retains raw CPU values, signed gains, ranges and exclusion reasons.
 Its legacy `--update-readme` option targets the former six-column table; use the
-native-reference renderer above for the current compact table. Reports retain
+leader-reference renderer above for the current compact table. Reports retain
 the generator and hashes of their input evidence. Use fresh output directories.
