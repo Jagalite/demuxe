@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
+import {PlayerError,playerError} from '../web/generated/internal/errors.js';
+import {compatibilityFailure} from '../web/generated/internal/runtime-capability.js';
 import {StartupEvidenceTimeout} from '../web/generated/internal/runtime-capability.js';
 function candidate(overrides={}){const p=Object.create(NativePlayer.prototype);Object.assign(p,{stopped:false,capability:{},cancelers:new Set(),video:{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,error:null,getVideoPlaybackQuality:()=>({totalVideoFrames:0}),cancelVideoFrameCallback(){},...overrides}});return p;}
 test('paused current-data preparation does not require vendor counters or presentation',async()=>{const p=candidate();await p.verifyStartup({video:true,audio:true});assert.equal(p.capability.prepared,true);assert.notEqual(p.capability.videoPresented,true);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.cancelers.size,0);});
@@ -13,3 +15,23 @@ test('verified source may complete a short EOF interval without claiming fresh p
 test('EOF alone never qualifies an unverified source',async()=>{const p=candidate({currentTime:12,ended:true});const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?1:n,...args);try{await assert.rejects(()=>p.verifyStartup({video:true,audio:true},true),StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);}finally{globalThis.setTimeout=original;}});
 
 test('EOF arriving before verification starts completes an already verified session',async()=>{const p=candidate({currentTime:12,ended:true,readyState:2});p.capability.outputVerified=true;await p.verifyStartup({video:true,audio:true},true);assert.equal(p.capability.completedAtEOF,true);assert.equal(p.capability.videoPresented,false);});
+
+
+test('a plain 200 manifest endpoint permits Native compatibility fallback without file range probing',async()=>{
+  const original=globalThis.fetch;let cancelled=false,request;
+  globalThis.fetch=async(url,init)=>{request={url,init};return new Response(new ReadableStream({cancel(){cancelled=true;}}),{status:200,headers:{'Content-Type':'application/vnd.apple.mpegurl'}});};
+  try{const p=candidate();p.remoteSource={url:'https://media.test/vod.m3u8',format:'hls',credentials:'include'};const failed=new PlayerError('UNSUPPORTED_MEDIA','Browser cannot decode HLS');assert.equal(await p.classifyDirectFailure(failed),failed);assert.equal(compatibilityFailure(failed),true);assert.equal(request.init.credentials,'include');assert.equal(request.init.redirect,'error');assert.equal(new Headers(request.init.headers).has('range'),false);assert.equal(cancelled,true);assert.equal(p.cancelers.size,0);}finally{globalThis.fetch=original;}
+});
+test('HTTP authorization failure behind a Native manifest decode error remains terminal',async()=>{
+  const original=globalThis.fetch;globalThis.fetch=async()=>new Response('denied',{status:403});
+  try{const p=candidate();p.remoteSource={url:'https://media.test/vod.m3u8',format:'hls'};const result=await p.classifyDirectFailure(new PlayerError('UNSUPPORTED_MEDIA','Browser rejected manifest'));assert.equal(compatibilityFailure(result),false);assert.equal(playerError(result).code,'SOURCE_PERMISSION');assert.equal(p.cancelers.size,0);}finally{globalThis.fetch=original;}
+});
+test('retiring Native manifest classification aborts its transport and cannot admit fallback',async()=>{
+  const original=globalThis.fetch;let signal,entered;const started=new Promise(resolve=>entered=resolve);
+  globalThis.fetch=async(_url,init)=>{signal=init.signal;entered();return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('cancelled','AbortError')),{once:true}));};
+  try{const p=candidate();p.remoteSource={url:'https://media.test/vod.m3u8',format:'hls'};const pending=p.classifyDirectFailure(new PlayerError('UNSUPPORTED_MEDIA','Browser rejected manifest'));await started;p.stopped=true;for(const cancel of p.cancelers)cancel(Error('Player is destroyed'));const result=await pending;assert.equal(signal.aborted,true);assert.equal(compatibilityFailure(result),false);assert.equal(p.cancelers.size,0);}finally{globalThis.fetch=original;}
+});
+test('Native discovered live manifest without permission is terminal rather than a fallback bypass',async()=>{
+  const oldLocation=globalThis.location,oldFetch=globalThis.fetch;globalThis.location=new URL('https://app.test/');let fetched=false;globalThis.fetch=async()=>{fetched=true;throw Error('Must not probe after a policy rejection');};
+  try{const p=candidate({duration:Infinity,canPlayType:()=> 'probably'});p.loadPlan=async(_source,direct)=>direct();p.load=async()=>{};await assert.rejects(p.openRemote({url:'https://media.test/live.m3u8',format:'hls'}),e=>e.code==='SOURCE_PERMISSION'&&!compatibilityFailure(e));assert.equal(fetched,false);}finally{globalThis.fetch=oldFetch;if(oldLocation===undefined)delete globalThis.location;else globalThis.location=oldLocation;}
+});

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && python3 scripts/check-licenses.py --stamp-generated",
+    "build": "node scripts/copy-shaka-assets.mjs && tsc && python3 scripts/check-licenses.py --stamp-generated",
     "build:engine": "bash scripts/build.sh",
     "dev": "node scripts/serve.mjs",
     "test:demo": "node tests/player-component.mjs",
@@ -48,7 +48,10 @@
     "test:head-to-head": "node tests/head-to-head/run.mjs",
     "test:head-to-head:contracts": "node --test tests/head-to-head/contracts.mjs",
     "fixtures:head-to-head": "python3 tests/head-to-head/setup.py",
-    "verify:head-to-head": "node tests/head-to-head/verify.mjs"
+    "verify:head-to-head": "node tests/head-to-head/verify.mjs",
+    "test:shaka-assets": "node --test tests/shaka-assets.mjs",
+    "test:shaka-package": "node tests/shaka-package.mjs",
+    "test:shaka": "npm run build && node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/native-selection.mjs tests/plan-admission.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs && node tests/shaka-lifecycle.mjs"
   },
   "devDependencies": {
     "playwright": "1.58.2",
@@ -96,5 +99,8 @@
     "completePlayer": "GPL-3.0-or-later",
     "researchReportsAndResults": "CC-BY-4.0",
     "thirdParty": "See third_party/notices/, docs/MEDIA-NOTICES.md and source headers"
+  },
+  "dependencies": {
+    "shaka-player": "5.2.11"
   }
 }

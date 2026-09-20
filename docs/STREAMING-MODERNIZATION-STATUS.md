@@ -2,6 +2,12 @@
 
 # Streaming modernization evidence
 
+> **Historical / superseded.** This document records the former custom streaming
+> implementation and `experiments/streaming-modernization` research. It is not the
+> current production architecture or a dependency of production playback. See
+> [current Shaka streaming architecture](STREAMING.md). Historical evidence and
+> experiment artifacts remain unchanged.
+
 Status: baseline restored; streaming overhaul **not qualified or complete**.
 All implementation remains opt-in under `experiments/streaming-modernization/`.
 The root release pins, engines and public streaming behavior are unchanged.

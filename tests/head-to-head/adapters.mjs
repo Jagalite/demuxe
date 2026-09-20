@@ -77,7 +77,7 @@ export async function start(c) {
     }
     player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...(c.lane!=='auto'?{mode:c.lane}:{})});
     if(c.correctness)player.addEventListener('selectionchange',event=>{if(selectionTrace.length<100)selectionTrace.push(plain(event.detail));});
-    await player.ready; await player.open(c.streamFormat?{url:source,format:c.streamFormat,streaming:{live:!!c.live}}:source);
+    await player.ready; await player.open(c.streamFormat?{url:source,format:c.streamFormat,streaming:{live:!!c.live,...c.streaming}}:source);
     if(c.embeddedSubtitle&&player.state.subtitleTracks.length)await player.selectSubtitleTrack(player.state.subtitleTracks[0].id);
     if(subtitle&&!c.subtitleIntegration)await player.addSubtitle(new File([await(await fetch(subtitle)).arrayBuffer()],c.subtitle.split('/').at(-1)));
     if (c.subtitleIntegration==='built-in') {

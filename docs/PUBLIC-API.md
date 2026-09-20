@@ -24,6 +24,37 @@ availability, open(string | URL | RemoteSource), AbortSignal open options,
 setVolume(0–1), setMuted, setPlaybackRate, stable public track selections, close,
 assetBase. These are additive; legacy volume and rate units do not change.
 
+## Adaptive streaming
+
+Use `RemoteSource.format: 'hls' | 'dash'` and optional
+`streaming: {maxBandwidth?, representation?, live?}`. The source is executed by
+Shaka/MSE unless a verified simpler Native Direct route is eligible or required
+components demand an eligible Hybrid/Software fallback. Public modes remain
+`native`, `hybrid`, `software`; diagnostics identify `shaka-mse` explicitly.
+
+`maxBandwidth` is a bits-per-second ceiling on adaptive variants. `representation`
+pins an unambiguous available source representation (DASH ID or HLS variant URI)
+or an exposed opaque variant ID using the explicit `variant:<id>` token, and
+disables ABR. It is not an HLS playlist ordinal; backend/session IDs do not
+establish cross-source identity. Unknown/ambiguous selections reject. `live:true`
+permits a live timeline and its seekable window, while also accepting finite VOD.
+Actual live without that permission rejects as a terminal source-policy failure.
+Shaka exposes observed media-element buffered ranges and its actual seek range;
+Demuxe does not synthesize a DVR window from downloaded bytes.
+
+Headers, credentials, allowed origins and authorization refresh remain Demuxe
+source options and are enforced through Shaka's networking hooks. Redirects are
+rejected before credentials can be forwarded; applications supply final approved
+URLs. Shaka transport defaults to `credentials:'same-origin'`. CORS and explicit
+CDN allowlists remain required. Source headers cannot override Shaka byte ranges.
+No Shaka instance/configuration object or DRM license API is exposed.
+
+Fallback must retain track/subtitle identity, quality constraints, user controls
+and source policy. A backend that cannot do so is ineligible. In particular,
+FFmpeg fallback does not support adaptive ceiling/pin options, HLS subtitle
+renditions or multi-period/text DASH; it rejects them instead of silently losing
+features. See [the streaming contract](STREAMING.md) for ownership and limits.
+
 ## State and events
 
 state is a deeply frozen snapshot. Its identity remains unchanged until a value

@@ -1,0 +1,28 @@
+{
+  "reviewed": "2026-09-20T22:43:53.426041+00:00",
+  "head": "6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36",
+  "original_result": "20 of 21 passed; original failed assertion and result left unchanged",
+  "finding": "Preexisting exact-message test was inconsistent with committed planner rejection text. No runtime regression inferred from that assertion.",
+  "head_proof": {
+    "src/internal/playback-plans.ts": {
+      "sha256": "84c3829a1fcf37438ac01b0fe0af3be8b4ba3bbb47147a692dc1f962d0c5e9e3",
+      "matching_lines": [
+        {
+          "line": 93,
+          "text": "      else if(!prepared&&(f.nativeRemux==='always'||f.requiresRemux))reject('SOURCE_UNSUPPORTED','This source policy requires controlled remux transport');"
+        }
+      ]
+    },
+    "tests/player-api.mjs": {
+      "sha256": "2301b77332f9016f24e4a5568a376f77fe4a78258e936a31635e9072bf3e76e7",
+      "matching_lines": [
+        {
+          "line": 104,
+          "text": "  await page.evaluate(()=>make('native',{nativeRemux:'never'}));await open();const data=await page.evaluate(async()=>{const old=player.surface;let error;try{await player.openRemote({url:location.origin+'/fixtures/example.mp4',headers:{Authorization:'test'}});}catch(e){error=e.message;}return {error,same:old===player.surface};});assert.match(data.error,/Native direct cannot/);assert.equal(data.same,true);return data;"
+        }
+      ]
+    }
+  },
+  "correction": "Assert public UNSUPPORTED_FEATURE code and unchanged working surface; keep actual returned message in evidence.",
+  "fixture_provenance": "../fixture-setup-20260920T224137Z.json"
+}

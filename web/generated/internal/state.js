@@ -15,6 +15,8 @@ export function ranges(value) {
 export function usesRemuxTracks(plan) { return plan === 'remux' || plan === 'adapted-flac' || plan === 'adapted-opus'; }
 export function trackKey(track, mode, plan) {
     const type = track.type;
+    if (plan === 'shaka-mse')
+        return `${type}:shaka:${track.id}`;
     // ff-index belongs to each demuxer: separate subtitle files commonly all use 0.
     // Attachments are replayed in the same order on replacement, retaining mpv IDs.
     if (track.external)

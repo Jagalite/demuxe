@@ -5,7 +5,8 @@ export type TrackType = 'audio' | 'sub';
 export type MediaInputOptions = {
     demuxer?: string;
 };
-/** Select one rendition for the session; this is not automatic bitrate switching. */
+/** Shaka owns adaptive selection. maxBandwidth is a bitrate ceiling; representation
+ * pins a source video representation (or HLS variant URI). live permits a live timeline. */
 export type StreamingOptions = {
     maxBandwidth?: number;
     representation?: string;

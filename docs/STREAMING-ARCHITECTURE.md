@@ -2,6 +2,12 @@
 
 # Integrated streaming modernization
 
+> **Historical / superseded.** This document records the former custom streaming
+> implementation and `experiments/streaming-modernization` research. It is not the
+> current production architecture or a dependency of production playback. See
+> [current Shaka streaming architecture](STREAMING.md). Historical evidence and
+> experiment artifacts remain unchanged.
+
 Status: staged implementation with final qualification pending.
 The public modes remain Native, Hybrid and Software. This work must not enter a
 release candidate until the stage gates below pass. Existing adapters stay active

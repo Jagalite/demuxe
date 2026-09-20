@@ -38,9 +38,14 @@ The viable seam is a selected-audio producer with explicit source generation, so
 
 No automatic audio route changes here. Admission requires marked decoded output, seek/rewind, pause/resume, rate and pitch, forced starvation/recovery, bounded drift, source replacement, stale-generation rejection, cleanup and long playback. Surround channel fidelity and HDR output remain unqualified wherever the existing catalogue says screen only.
 
-## Manifest/timeline investigation
+## Historical manifest/timeline investigation
 
-`nativeManifestRejection` intentionally permits only plain HLS VOD without explicit rendition/track/custom-demux requirements. DASH and live HLS are excluded before a Native trial; these are policy/ownership exclusions, not video-codec verdicts. `streaming-manifest.js` selects bounded representations and rewrites supported finite periods, but FFmpeg still demuxes segments and owns packet timelines. File Native preparation is not a live/DASH scheduler.
+> This investigation and the recorded rows below predate the Shaka migration.
+> Current controlled HLS/DASH execution uses [Shaka/MSE](STREAMING.md); these
+> measurements do not qualify that backend. File/component findings retain
+> their original scope.
+
+At the time of this investigation, `nativeManifestRejection` permitted only plain HLS VOD without explicit rendition/track/custom-demux requirements. The former `streaming-manifest.js` selected bounded representations and rewrote finite periods for FFmpeg. That production adapter has now been deleted. Shaka owns controlled streaming; file Native preparation remains separate.
 
 - **DASH H.264/AAC fMP4:** the recorded Hybrid case presents marked video/audio and a moving image, then the **pause command** times out (`run.mjs` correctness pause step). This narrows the fault to command/timeline responsiveness; it does not establish the internal blocking cause. Direct `<video src=MPD>` also failed in the existing browser comparison. A browser-owned MSE scheduler could be viable, but must preserve representation selection, timestamp offsets, segment ordering and cancellation.
 - **DASH AV1/Opus:** Hybrid passes the existing bounded checks; direct MPD playback fails in the comparator. WebM media compatibility and MPD loading are separate contracts. A new manifest-to-MSE component needs its own correctness proof.
@@ -144,7 +149,7 @@ Hybrid retained a 128 MiB Demuxe Wasm heap and recorded 1,669–1,692 engine pum
 - Embedded SRT/mov_text extraction and rich ASS/font ownership remain separate integration work; no performance percentage is assigned to them.
 - PGS remains a failing required-rendering case. Restricted R020 research does not repair that production path.
 - AC-3/E-AC-3/DTS split-audio routes need decoded-output synchronization and long-playback proof before admission or benchmarking. Surround/HDR fidelity remains unqualified.
-- DASH pause responsiveness and Native manifest scheduling are unresolved; live window/discontinuity/recovery gates remain intact.
+- The historical DASH pause failure does not qualify or disqualify the new Shaka route. Live window/discontinuity/recovery claims require fresh Shaka evidence.
 - Exact whole-stack copy accounting and worker/Wasm CPU attribution need additional observability; browser internals cannot be inferred from Demuxe counters. An isolated-host/platform-expanded performance run remains outstanding.
 
 [Validation record and frozen changed source](../results/head-to-head/component-routing-validation-01/result.json): 31 unit/contract/state checks passed; 13 component evidence manifests verified, preserving the failed initial attempt and expected negative-control failure. The source captured in that validation record matches the benchmark candidate snapshot; the later review fixes below have a separate snapshot. Build and repository licensing/core-boundary checks passed. The main README table uses the separate [four-case headless follow-up](../results/head-to-head/component-catalogue-01/REPORT.md), retaining the catalogue’s browser-profile rule.

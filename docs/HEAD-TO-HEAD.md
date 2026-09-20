@@ -52,6 +52,18 @@ version, generator commands, fixture stream metadata and video-packet identity.
 Regeneration on another FFmpeg version may produce different media bytes: compare
 only runs using the same prepared manifest, not just the same fixture name.
 
+## Adaptive streaming comparison
+
+Shaka is the production controlled HLS/DASH backend. Default simple HLS VOD may
+select Native Direct. Use `--controlled-streaming` to supply a public bandwidth
+ceiling and exercise Shaka deliberately. With that flag, `--streaming-backends`
+adds explicit `demuxe.hybrid.*` and `demuxe.software.*` catalogue lanes for the
+same fixture without imposing a quality ceiling those fallbacks cannot enforce.
+Only single-rendition fixtures are used for those matched cost comparisons.
+See [the fresh streaming qualification](STREAMING-QUALIFICATION.md) for commands,
+source snapshots, correctness evidence and CPU exclusions. Historical custom
+streaming results remain attached to their original runtime.
+
 ## Compare an explicit Demuxe path
 
 The catalogue defaults to Demuxe auto selection. `--demuxe-mode native` (or

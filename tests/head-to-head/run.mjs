@@ -16,17 +16,20 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   browser:{type:'string',default:'chromium'},channel:{type:'string',default:'chrome'},headed:{type:'boolean',default:false},
   'negative-control':{type:'string'},catalogue:{type:'boolean',default:false},
   'demuxe-mode':{type:'string',default:'auto'},
+  'controlled-streaming':{type:'boolean',default:false},
+  'streaming-backends':{type:'boolean',default:false},
   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},
   'measure-seconds':{type:'string',default:'20'},'warmup-seconds':{type:'string',default:'5'},list:{type:'boolean',default:false}}});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 if(!['auto','native','hybrid','software'].includes(args['demuxe-mode']))throw Error('Invalid Demuxe mode');
 if(!args.catalogue&&args['demuxe-mode']!=='auto')throw Error('--demuxe-mode requires --catalogue');
+if(args['streaming-backends']&&(!args.catalogue||args['demuxe-mode']!=='auto'||!args['controlled-streaming']))throw Error('--streaming-backends requires --catalogue --controlled-streaming and auto policy');
 let matrix=JSON.parse(await fs.readFile(path.join(here,'matrix.json')));
 if(args.catalogue) {
   if(!args.assets)throw Error('--catalogue requires --assets');
   const fixtures=JSON.parse(await fs.readFile(path.resolve(args.assets,'fixtures/catalogue.json')));
   matrix={schema:2,fixtures,cases:Object.entries(fixtures).flatMap(([fixture,f])=>[
-    ['video','default'],['demuxe',args['demuxe-mode']],['movi','default'],['libmedia','default']
+    ['video','default'],['demuxe',args['demuxe-mode']],['movi','default'],['libmedia','default'],...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
   ].map(([player,lane])=>({id:`${player}.${lane}.${fixture}`,player,lane,fixture,
     requirements:[...(f.video?['moving-video']:[]),...(f.audio?['marked-audio']:[]),'pause-resume','rate',...(f.live?['live-window']:['seek','eof']),'cleanup',...(f.subtitleCheck?['subtitle-output']:[])],
     ...(f.qualificationLimit?{qualificationLimit:f.qualificationLimit}:{})}))) };
@@ -70,6 +73,7 @@ for(const key of new Set(selected.map(c=>c.fixture).filter(key=>['hevc-pgs','h26
 }
 const previous=args.correctness?JSON.parse(await fs.readFile(path.resolve(args.correctness))):null;
 const summary={schema:1,kind:args.performance?'performance':'correctness',startedAt:new Date().toISOString(),
+  controlledStreaming:args['controlled-streaming'],streamingBackends:args['streaming-backends'],
   assets,assetsSHA256:hash(manifestBytes),harnessSHA256,sourceHashes,gitRevision:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),
   playerSourceRevision:manifest.git_revision,host:{platform:os.platform(),release:os.release(),architecture:os.arch(),cpus:os.cpus().length},
   command:{argv:process.argv,cwd:process.cwd()},
@@ -224,7 +228,7 @@ try {
         ...(args.browser==='chromium'&&args.channel?{channel:args.channel}:{}),
         args:args.browser==='chromium'?['--autoplay-policy=no-user-gesture-required']:[],timeout:20000});
       summary.browserIdentity=args.browser+'/'+active.version()+'/'+(args.channel||'bundled')+'/'+(args.headed?'headed':'headless');
-      if(args.performance&&!performanceEligible(previous,summary,c.id)) {result.status='blocked';result.reason='No matching passed correctness record for these assets, harness and browser';continue;}
+      if(args.performance&&(!performanceEligible(previous,summary,c.id)||!!previous.controlledStreaming!==args['controlled-streaming'])) {result.status='blocked';result.reason='No matching passed correctness record for these assets, harness, streaming policy and browser';continue;}
       const context=await active.newContext({viewport:{width:960,height:540},deviceScaleFactor:1});
       page=await context.newPage();page.setDefaultTimeout(10000);
       page.on('console',m=>result.console.length<80&&result.console.push(m.text()));
@@ -232,7 +236,7 @@ try {
       page.on('requestfailed',q=>result.requestFailures.push({url:q.url(),error:q.failure()}));
       page.on('response',r=>{if(r.status()>=400)result.requestFailures.push({url:r.url(),status:r.status()});});
       await page.goto(server.origin+'/harness/harness.html');await page.bringToFront();await page.waitForFunction(()=>window.api);
-      const config={...c,...matrix.fixtures[c.fixture]};
+      const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{})};
       await (args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
       result.status='passed';
       if(config.qualificationLimit){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}

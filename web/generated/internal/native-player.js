@@ -373,6 +373,8 @@ export class NativePlayer extends EventTarget {
             this.remoteSource = { ...source, url: url.href };
             try {
                 await this.load(url.href);
+                if (source.format && source.format !== 'file' && !Number.isFinite(this.video.duration))
+                    throw new PlayerError('SOURCE_PERMISSION', 'Native manifest has no finite VOD duration; live playback requires explicit Shaka live permission');
             }
             catch (error) {
                 throw await this.classifyDirectFailure(error);
@@ -383,6 +385,30 @@ export class NativePlayer extends EventTarget {
         const source = this.remoteSource;
         if (this.stopped || this.remux || !source || !compatibilityFailure(error))
             return error;
+        if (source.format && source.format !== 'file') {
+            // Manifest endpoints need not implement random access or immutable file
+            // identity. Check transport without parsing or scheduling the stream;
+            // Shaka remains responsible for the next compatibility trial.
+            const controller = new AbortController(), cancel = () => controller.abort();
+            const timer = setTimeout(cancel, 10000);
+            this.cancelers.add(cancel);
+            let response;
+            try {
+                response = await fetch(source.url, { credentials: source.credentials ?? 'same-origin', redirect: 'error', signal: controller.signal });
+                this.assertActive();
+                if (!response.ok)
+                    throw new Error(`HTTP ${response.status}`);
+                return error;
+            }
+            catch (transport) {
+                return new Error(`Source transport: ${String(transport)}`);
+            }
+            finally {
+                clearTimeout(timer);
+                this.cancelers.delete(cancel);
+                await response?.body?.cancel().catch(() => { });
+            }
+        }
         // MEDIA_ERR_SRC_NOT_SUPPORTED can mask HTTP failures. Only a still-valid
         // inspected representation permits compatibility fallback, including errors
         // reported after acceptance. All validation reads belong to this candidate.

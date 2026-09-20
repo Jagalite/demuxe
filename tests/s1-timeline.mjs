@@ -5,7 +5,7 @@ import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const output=process.env.RESULT_DIR||`results/s1/timeline-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(output,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:process.env.HEADLESS==='1',ignoreDefaultArgs:['--mute-audio'],args:['--autoplay-policy=no-user-gesture-required']});
-const page=await browser.newPage(),result={scope:'S1 timeline boundaries and failures',browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
+const page=await browser.newPage(),result={scope:'FFmpeg fallback S1 timeline boundaries and failures',browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
 const control=async(id,body)=>await(await fetch(`http://127.0.0.1:4182/control?id=${id}`,body?{method:'POST',body:JSON.stringify(body)}:{})).json();
 async function check(name,fn){console.log(`RUN ${name}`);const start=Date.now();const evidence=await fn();result.tests.push({name,passed:true,milliseconds:Date.now()-start,evidence});console.log(`PASS ${name}`);}
 async function wait(fn,timeout=30000){await page.waitForFunction(fn,null,{timeout});}
@@ -33,10 +33,10 @@ try{
  }
  await check('missing initialization resource terminates open and cleans up',async()=>{
   const id='terminal';await control(id,{requests:[],fail:'video-init.mp4'});
-  const error=await page.evaluate(async id=>{const p=await createPlayer();return p.openRemote({url:`http://127.0.0.1:4182/media/${id}/fmp4/master.m3u8`,format:'hls'}).then(()=>null,e=>e.message);},id);
+  const error=await page.evaluate(async id=>{const p=await createPlayer();return p.openRemote({url:`http://127.0.0.1:4182/media/${id}/fmp4/fallback-master.m3u8`,format:'hls'}).then(()=>null,e=>e.message);},id);
   assert.ok(error);await destroy();const network=await control(id);assert.equal(network.active,0);return {error,network};
  });
  result.passed=true;
 }catch(error){result.failure=String(error.stack||error);console.error(result.failure);try{result.player=await page.evaluate(()=>({diagnostics:player?.diagnostics,events:window.playerEvents,errors:window.playerErrors}));result.workers=page.workers().map(w=>w.url());}catch{}process.exitCode=1;}
-finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/vod-manifest.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
+finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/fallback-stream-policy.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
  await writeFile(`${output}/result.json`,JSON.stringify(result,null,2)+'\n');await browser.close();console.log(output);}

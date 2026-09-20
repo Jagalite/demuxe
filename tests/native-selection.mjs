@@ -28,11 +28,12 @@ test('negative browser hints and unknown AAC configuration cannot veto direct di
 
 test('HLS VOD permits a direct runtime trial without bypassing manifest requirements',()=>{
  const source={url:'https://media.test/video.m3u8',format:'hls'};
- assert.equal(nativeManifestRejection(source,settings),undefined);
- assert.equal(nativeManifestRejection({...source,streaming:{live:false}},settings),undefined);
- assert.equal(nativeManifestRejection(source,{...settings,aid:'no',sid:'no'}),undefined);
+ assert.equal(nativeManifestRejection(source,settings,true),undefined);
+ assert.match(nativeManifestRejection(source,settings,false),/does not advertise/);
+ assert.equal(nativeManifestRejection({...source,streaming:{live:false}},settings,true),undefined);
+ assert.equal(nativeManifestRejection(source,{...settings,aid:'no',sid:'no'},true),undefined);
  for(const extra of [{format:'dash'},{demuxer:'hls'},{streaming:{live:true}},{streaming:{maxBandwidth:1000000}},{streaming:{representation:'low'}}]){
-  assert.match(nativeManifestRejection({...source,...extra},settings),/mpv inspection/);
+  assert.match(nativeManifestRejection({...source,...extra},settings),/Shaka/);
  }
  assert.match(nativeManifestRejection(source,{...settings,aid:'2'}),/track selection/);
  assert.match(nativeManifestRejection(source,{...settings,sid:'2'}),/track selection/);

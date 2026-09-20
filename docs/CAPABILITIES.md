@@ -9,7 +9,9 @@ been demonstrated**. Neither table implies the Cartesian product of its rows wor
 
 Reviewed 2026-09-20 against `/Volumes/seed2/Projects/demuxe` at
 `061240b61bef8552117862f601c503b11961c485`, including the current working-tree
-component-study documents. Historical results retain their own source, engine,
+component-study documents. The streaming architecture section now reflects the
+Shaka migration and its [fresh bounded qualification](STREAMING-QUALIFICATION.md); the new route is not qualified by older
+custom-scheduler results. Historical results retain their own source, engine,
 fixture and browser identities. A research result is not production integration.
 
 [Video codecs](#video-codecs-and-profiles) · [Audio codecs](#audio-codecs-and-profiles) ·
@@ -21,7 +23,7 @@ fixture and browser identities. A research result is not production integration.
 ## Routing and how to read this reference
 
 Public modes are **`native`, `hybrid`, `software`**. **Native Direct** and **Native
-Remux** below are subroutes of `native`, not extra public tiers. Direct leaves
+Remux** and **Shaka/MSE** are subroutes of `native`, not extra public tiers. Direct leaves
 source bytes and A/V decoding/presentation with the browser. Remux uses FFmpeg to
 copy selected compressed packets into browser-accepted MP4/WebM, then the browser
 decodes them. Optional audio adaptation is explicitly identified below; it is
@@ -37,14 +39,16 @@ The finite [plan registry](../src/internal/playback-plans.ts),
 [selected-source guards](../src/internal/selection.ts) and
 [orchestrator](../src/unified-player.ts) intersect **all selected component
 requirements**, source policy, output requirements and deployment availability.
-They prefer Direct, then eligible packet-copy Remux, narrowly permitted adaptation,
-Hybrid and Software. This is a policy preference, not a universal CPU ranking.
+Ordinary files prefer Direct, then eligible packet-copy Remux, narrowly permitted
+adaptation, Hybrid and Software. Adaptive sources prefer an eligible browser HLS
+Direct trial, then Shaka/MSE, then a semantically eligible Hybrid/Software fallback. This is a policy preference, not a universal CPU ranking.
 Actual startup/output must pass. A component requiring FFmpeg audio need not force
 software video; an exact CPU video filter does. Unsupported required subtitles
 cannot be silently discarded. Explicit modes pin their family; terminal source,
 permission or cancellation failures do not become codec fallback.
 
-Every table has four route columns, a preferred/fallback order, and scoped status.
+Component tables have four route columns; the streaming table adds Shaka/MSE.
+Each has a preferred/fallback order and scoped status.
 Route-cell notation:
 
 - **B**: browser-owned attempt; support depends on browser/OS, exact configuration,
@@ -246,35 +250,44 @@ Sources: [output owner](../src/internal/wasm-player.ts), [native PCM bridge](../
 
 ## Streaming / source types
 
-Sources: [current selection guards](../src/internal/selection.ts),
-[source/streaming contract](COMPATIBILITY-EXPANSION.md),
-[streaming implementation](../web/streaming-manifest.js),
-[head-to-head streaming failures](COMPONENT-ROUTING.md),
-[lab substitutions](HYBRID-COMPONENT-STUDY.md),
-[modernization status](STREAMING-MODERNIZATION-STATUS.md).
+Sources: [current streaming architecture](STREAMING.md),
+[selection guards](../src/internal/selection.ts),
+[Shaka backend](../src/internal/shaka-backend.ts),
+[source policy](../src/internal/shaka-network.ts), and
+[limited FFmpeg fallback policy](../web/fallback-stream-policy.js).
+`K` below means Shaka/MSE, an explicit Native execution plan. Shaka manages
+manifests and MSE; the browser still determines which media it can decode.
 
-| Source / streaming mode | Native Direct | Native Remux | Hybrid | Software | Preferred → fallback | Status and restrictions |
-| --- | --- | --- | --- | --- | --- | --- |
-| Local File; small ArrayBuffer | Browser source | Bounded file reads | Bounded file reads | Bounded file reads | D → R → H → S | **functional/bounded**; ArrayBuffer ≤32 MiB; larger File uses bounded reads, superseding old M2 copied-file limit. Bare Blob is not a public `open()` input; wrap it as File. |
-| HTTP(S) random-access file | B if source policy compatible | Range reader + FFmpeg | Range reader/mpv | Range reader/mpv | D → R → H → S | **functional/bounded**; historical M2 range recovery **qualified**. CORS, 206, stable size/identity (strong ETag or explicit immutable contract), deadlines/cancel required. |
-| Custom headers, refresh authorization, origin/identity constraints | Often excluded: cannot enforce full policy | Controlled source reader | Controlled source reader | Controlled source reader | R → H → S | **functional/bounded**; source policy must survive recovery. 401 renewal, retries and cancellation do not authorize bypassing denied access. |
-| Plain HLS VOD, TS/fMP4, default selection | B trial admitted | No file-preparation manifest route | FFmpeg manifest/segment owner | Same + software video | D → H → S | **functional/bounded** Native AVC/HEVC VOD cases and bounded mpv streaming suites; platform acceptance varies. |
-| HLS explicit rendition / alternate track requirements | Excluded by Native manifest guard | No | mpv plus selection adapter | Same | H → S | **functional/bounded** supported finite cases. `maxBandwidth`/`representation` selects initial rendition; not continuous ABR. |
-| Static single-period DASH fMP4 | No admitted MPD owner | No production manifest scheduler | FFmpeg; recorded AVC case pause timeout | Existing software DASH path | H → S candidate, verify exact stream | **functional/bounded** older software cases; **blocked** marked Hybrid AVC case. Lab finite MSE candidate **experimental**, not a production fix. |
-| Static single-period DASH WebM AV1/Opus | No admitted MPD owner | No production scheduler | FFmpeg + WebCodecs | Decoder/manifest path, exact case ? | H → S candidate | Hybrid **functional/bounded**; lab Native complete-prefetch MSE **experimental**. AV1 decode and MPD ownership are separate. |
-| Finite multi-period DASH | No | No | Adapter→discontinuity playlists + FFmpeg | Same | H → S | **functional/bounded** aligned contiguous fMP4 periods, stable tracks, supported Template/Timeline/List. Gaps/overlaps, changing track sets, separate byte-range lists reject. |
-| Live sliding HLS (`live:true`) | Excluded by current policy | No | mpv timeline | mpv timeline | H → S | **functional/bounded** short progression, not indefinite live acceptance. Lab Direct failed rate progression; not promoted. |
-| Single-period dynamic DASH (`live:true`) | No | No | mpv path | mpv path | H → S | **functional/bounded** declared live subset; dynamic DASH seeking unsupported by pinned demuxer. |
-| Finite segmented WebVTT / timestamp maps | Not file-caption manifest admission | No | Bounded merged subtitle resource | Same | H → S | **functional/bounded** MPEGTS/LOCAL wrap/discontinuity mapping; merged window ≤1 MiB. Rolling live replacement not included. |
-| ABR/persistent switching, expanded DVR, modernization | Browser internal behavior is not Demuxe ABR | No | Opt-in experiment, not root qualification | Same | Current fixed-selection routes | **experimental / blocked** final modernization qualification; candidate build/tests do not change root behavior. |
-| LL-HLS parts, encrypted/DRM media, live multi-period DASH, manifest patching | No declared Demuxe contract | No | No declared support | No declared support | None | **unsupported** in maintained profile; generic browser abilities do not establish a Demuxe DRM integration. |
+| Source / streaming mode | Native Direct | Native Remux | Shaka/MSE | Hybrid | Software | Preferred → fallback | Status and restrictions |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Local File; small ArrayBuffer | Browser source | Bounded file reads | Not used | Bounded file reads | Bounded file reads | D → R → H → S | **functional/bounded** unchanged file routes. ArrayBuffer ≤32 MiB; larger File uses bounded reads. Bare Blob is not a public input. |
+| HTTP(S) random-access file | B if policy compatible | Range reader + FFmpeg | Not used | Range reader/mpv | Range reader/mpv | D → R → H → S | **functional/bounded** unchanged source contract: CORS, 206, stable size/identity, deadlines and cancellation. |
+| Headers, credentials, authorization refresh, allowed origins | Excluded when browser cannot enforce policy | Controlled file reader | Shaka networking plugin | Controlled resource reader | Same | Eligible controlled route | Streaming policy units plus real 401 refresh, terminal 403, cookie-preserving fallback and cancellation checks pass. Allowed origins are enforced before requests; redirects reject and range headers are preserved. |
+| Plain HLS VOD, TS/fMP4, default selection | B if browser advertises HLS; actual output verified | No | Normal controlled backend | FFmpeg parses unchanged source | Same + software video | D if eligible → K → H → S | **functional/bounded** default HLS TS/fMP4/HEVC catalogue; controlled H.264 TS/fMP4 exact-package Chrome/Firefox checks. Controlled Shaka HEVC failed with a runtime VideoToolbox decode error despite Direct passing the same fixture; do not count that route as supported. See [fresh evidence](STREAMING-QUALIFICATION.md). |
+| HLS rendition ceiling/pin or explicit tracks | Excluded when controlled selection needed | No | ABR ceiling, explicit variant and audio/text selection | No quality ceiling/pin support | Same | K; reject if intent cannot be preserved | `maxBandwidth` constrains Shaka selection; `representation` pins an unambiguous exposed identity. Real low-bandwidth/high-pin and audio-switch checks pass; impossible pinned pairs reject. No legacy ordinal interpretation. |
+| DASH fMP4, including H.264/AAC | No | No | Manifest, periods, segments and MSE | Narrow original-source fallback | Same | K → eligible H → S | **functional/bounded** H.264/AAC Shaka catalogue and Chrome/Firefox exact-package checks pass playback, pause and seeking. Former Hybrid pause failure is historical; no universal DASH claim. |
+| DASH WebM, including AV1/Opus | No | No | Subject to Shaka/MSE/browser codec support | FFmpeg + WebCodecs if eligible | FFmpeg if eligible | K → H → S | **functional/bounded** AV1/Opus Shaka catalogue passes moving marked output, audio, pause, rate, seeks and EOF on tested Chrome. Other profiles remain conditional. |
+| Multi-period DASH | No | No | Shaka period handling | Rejected: period semantics not preserved | Rejected | K | Implementation delegated to Shaka; exact transitions, track changes and layouts require their own tests. No DASH→HLS rewriting remains. |
+| HLS live sliding window (`live:true`) | Excluded by policy | No | Shaka refresh, buffering and DVR window | FFmpeg original-source timeline if eligible | Same | K → eligible H → S | **functional/bounded** Shaka sliding-window catalogue pass. `live:true` grants permission, not a claim that the source is live. Short tests do not establish indefinite-live or all DVR behavior. |
+| Dynamic DASH (`live:true`) | No | No | Shaka timeline/window owner | Narrow FFmpeg fallback; seeking may be unsupported | Same | K → eligible H → S | Exact dynamic-manifest profile requires runtime evidence. Unsupported controls must reject. |
+| Manifest WebVTT / timestamp maps | Browser-dependent | No | Shaka text parser and text tracks | HLS subtitle renditions and DASH text tracks rejected | Same | K | **functional/bounded** segmented WebVTT selection, active cues and visible caption toggling in the lifecycle fixture. Removed merged virtual subtitle resources; all timestamp-map/discontinuity cases are not qualified. |
+| ABR, representation switching, DVR, discontinuities | Browser internal behavior only | No | Shaka owns execution | FFmpeg only within admitted fallback scope | Same | K | Implemented by maintained backend; each behavior remains subject to scoped qualification. Old modernization experiments are not production dependencies. |
+| LL-HLS, dynamic multi-period DASH, patching | No declared contract | No | Upstream capability is not Demuxe qualification | Rejected where unsupported | Same | K only if admitted and verified | **untested** profiles; no universal capability claim. |
+| Encrypted/DRM media | No declared contract | No | No Demuxe DRM/license contract | No | No | None | **unsupported** as a public Demuxe contract. Including Shaka does not introduce a DRM API. |
 
-Current nested-resource limits include 16 active handles/16 MiB, a separate 4 MiB
-generated manifest/subtitle budget and ≤10,000 segments per finite playlist.
-Secure context/cross-origin isolation and matching Wasm/worker assets are required
-for prepared Native, Hybrid and Software; ordinary Direct needs neither Wasm nor
-isolation. Experimental Native ASS needs its own assets/isolation. Deployment
-failure is not codec incompatibility.
+Shaka uses a lazy runtime asset and requires browser MSE/decoder support, not
+Demuxe Wasm or cross-origin isolation. Its source plugin has response budgets
+of 4 MiB per manifest and 16 MiB per other resource. Shaka owns scheduling,
+retry parameters and bandwidth estimation; Demuxe enforces origin/auth/cancellation
+policy. These are implementation budgets, not measured peak-memory claims.
+
+The FFmpeg fallback transport retains 16 handles/16 MiB, a 1 MiB manifest and
+8 MiB resource cap, and 10,000 opens for finite sessions. It does not rewrite
+manifests, merge subtitles or select representations. Explicit quality constraints,
+HLS subtitle renditions, multi-period/text DASH and unsupported extensions reject
+instead of being silently dropped. Source and permission failures are terminal.
+Prepared Native, Hybrid and Software still require matching Wasm/worker assets
+and isolation. Deployment failure is not codec incompatibility.
 
 ## Processing and playback features
 
@@ -285,7 +298,7 @@ Sources: [plan admission](../src/internal/playback-plans.ts),
 
 | Feature | Native Direct | Native Remux | Hybrid | Software | Preferred → fallback | Status and restrictions |
 | --- | --- | --- | --- | --- | --- | --- |
-| Pause/resume, volume/mute, rate 0.5–2×, seek | Media API | Source-time mapping/MSE | mpv | mpv | Current eligible route; diagnosed fallback | **functional/bounded** fixtures; DASH pause and live rate failures above remain. Not gapless or universal exact-seek/pitch qualification. |
+| Pause/resume, volume/mute, rate 0.5–2×, seek | Media API | Source-time mapping/MSE | mpv | mpv | Current eligible route; diagnosed fallback | **functional/bounded** file fixtures; Shaka controls pass the [fresh lifecycle/catalogue checks](STREAMING-QUALIFICATION.md). Not gapless or universal exact-seek/pitch qualification. |
 | Scalar `audioGain` attenuation, 0–1 | Web Audio stage | Same | Gain after PCM worklet | Same | Keep current eligible route | **functional/bounded** digital signal/lifecycle checks; gain plan metadata experimental. No audio re-encode or full software-video requirement. |
 | `volume=n` / `lavfi=[volume=n]` audio filter, 0–1 | No mpv filter | No | Explicit experimental admission | FFmpeg filter | H if opted in → S | **experimental** Hybrid scalar-only contract; chains/expressions/resampling/latency-changing filters not admitted there. |
 | Other audio filters | No | No | Not admitted by current planner | mpv/FFmpeg if available | S | Software implementation; exact filter **untested** unless evidenced. Registered filters are not universal acceptance. |

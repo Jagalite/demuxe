@@ -101,7 +101,7 @@ try{
   await page.evaluate(()=>make('software'));await open();await page.evaluate(()=>player.play());const data=await page.evaluate(async()=>{const old=player.surface;let error;try{await player.setVideoFilters('no_such_filter_api_test');}catch(e){error=e.message;}return {error,same:old===player.surface,filters:player.diagnostics.videoFilters,pause:player.properties.get('pause')};});assert.ok(data.error);assert.equal(data.same,true);assert.equal(data.filters,'');assert.equal(data.pause,false);return data;
  });
  await check('native unsupported request policy rolls back',async()=>{
-  await page.evaluate(()=>make('native',{nativeRemux:'never'}));await open();const data=await page.evaluate(async()=>{const old=player.surface;let error;try{await player.openRemote({url:location.origin+'/fixtures/example.mp4',headers:{Authorization:'test'}});}catch(e){error=e.message;}return {error,same:old===player.surface};});assert.match(data.error,/Native direct cannot/);assert.equal(data.same,true);return data;
+  await page.evaluate(()=>make('native',{nativeRemux:'never'}));await open();const data=await page.evaluate(async()=>{const old=player.surface;let error,code;try{await player.openRemote({url:location.origin+'/fixtures/example.mp4',headers:{Authorization:'test'}});}catch(e){error=e.message;code=e.code;}return {error,code,same:old===player.surface};});assert.equal(data.code,'UNSUPPORTED_FEATURE');assert.equal(data.same,true);return data;
  });
  await check('unsupported hybrid source rolls back without a fourth mode',async()=>{
   await page.evaluate(()=>make('software'));await open(await readFile('build/fixtures/software-full/mpeg4-mp3.avi'));

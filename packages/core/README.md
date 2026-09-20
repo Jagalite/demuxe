@@ -20,6 +20,9 @@ The root export includes TypeScript declarations. The JavaScript utility
 subpaths expose the original JavaScript APIs. Browser APIs are needed to run
 browser probes and transport; importing the root does not start playback.
 Routing results describe Demuxe's contracts, not proof of browser playback.
+The retired `vod-manifest`, `streaming-manifest` and `segmented-subtitles` subpaths
+are no longer exported. Adaptive streaming belongs to the complete player's
+Shaka backend; the core package contains no Shaka runtime or manifest scheduler.
 
 The complete `demuxe` player, UI, engine workers, and FFmpeg-backed source probe
 use GPL-3.0-or-later. They are excluded from this package. Do not add player

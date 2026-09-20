@@ -2,6 +2,8 @@
 
 # Expanded player comparison results
 
+Latest streaming supplement: [Shaka migration, all six adaptive cases across four players](../results/head-to-head/shaka-catalogue-01/REPORT.md). Demuxe passed 6/6; Direct remains selected for default HLS VOD and Shaka for DASH/live HLS. These current streaming rows supersede the old custom-path rows below. See [controlled-route qualification and CPU evidence](STREAMING-QUALIFICATION.md).
+
 Latest specialist/library supplement: [14 combinations across four players](../results/head-to-head/specialist-report-01/REPORT.md), plus explicit Software diagnostics. The eight-case DTS rescreen corrects silent seek targets in the first screen. These are bounded playback results, not CPU or HDR/spatial-fidelity qualification.
 
 Primary run: `expanded-matrix-01`. Browser: `chromium/152.0.7977.83/chrome/headless`. Demuxe source: `8666434920cd4f4fc35a5c099901826e03be8916` plus the captured dirty player diff.
@@ -251,30 +253,30 @@ These original generator limitations remain recorded for provenance. Real-bitstr
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | demuxe | Fail (bounded playback screen) | page.evaluate: PlayerError: FFmpeg error -1094995529: Missing HEVC parameter sets | [record](../results/head-to-head/specialist-report-01/records/dv81.demuxe.json) |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | movi | Fail (bounded playback screen) | page.waitForFunction: Timeout 12000ms exceeded. | [record](../results/head-to-head/specialist-report-01/records/dv81.movi.json) |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | libmedia | Pass (bounded screen; fidelity unqualified) | Observed route: custom. Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. | [record](../results/head-to-head/specialist-report-01/records/dv81.libmedia.json) |
-| H.264 + AAC / HLS VOD (TS segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-ts/result.json) |
-| H.264 + AAC / HLS VOD (TS segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-ts/result.json) |
-| H.264 + AAC / HLS VOD (TS segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-ts/result.json) |
-| H.264 + AAC / HLS VOD (TS segments) | libmedia | Custom · fail | Error: EOF timeline did not settle | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-ts/result.json) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-fmp4/result.json) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-fmp4/result.json) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-fmp4/result.json) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-fmp4/result.json) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-hevc/result.json) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-hevc/result.json) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-hevc/result.json) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-hevc/result.json) |
-| H.264 + AAC / DASH VOD (fMP4 segments) | video | Custom · fail | page.evaluate: NotSupportedError: Failed to load because no supported source was found. | [record](../results/head-to-head/expanded-matrix-01/video.default.dash-h264/result.json) |
-| H.264 + AAC / DASH VOD (fMP4 segments) | demuxe | Hybrid · fail | page.evaluate: PlayerError: Command timed out | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.dash-h264/result.json) |
-| H.264 + AAC / DASH VOD (fMP4 segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.dash-h264/result.json) |
-| H.264 + AAC / DASH VOD (fMP4 segments) | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.dash-h264/result.json) |
-| AV1 + Opus / DASH VOD (WebM segments) | video | Custom · fail | page.evaluate: NotSupportedError: Failed to load because no supported source was found. | [record](../results/head-to-head/expanded-matrix-01/video.default.dash-av1/result.json) |
-| AV1 + Opus / DASH VOD (WebM segments) | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.dash-av1/result.json) |
-| AV1 + Opus / DASH VOD (WebM segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.dash-av1/result.json) |
-| AV1 + Opus / DASH VOD (WebM segments) | libmedia | Custom · fail | page.waitForFunction: Timeout 7000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.dash-av1/result.json) |
-| H.264 + AAC / HLS live (sliding window) | video | Native · fail | Error: Playback-rate progression outside bounded tolerance | [record](../results/head-to-head/expanded-live-01/video.default.hls-live/result.json) |
-| H.264 + AAC / HLS live (sliding window) | demuxe | Hybrid · pass | Bounded live-window progression only; long-running recovery and discontinuities not covered. | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-live/result.json) |
-| H.264 + AAC / HLS live (sliding window) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-live-01/movi.default.hls-live/result.json) |
-| H.264 + AAC / HLS live (sliding window) | libmedia | Custom · fail | Error: Live audio missing/wrong across playlist updates | [record](../results/head-to-head/expanded-live-01/libmedia.default.hls-live/result.json) |
+| H.264 + AAC / HLS VOD (TS segments) | video | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/video.default.hls-ts/result.json) |
+| H.264 + AAC / HLS VOD (TS segments) | demuxe | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.hls-ts/result.json) |
+| H.264 + AAC / HLS VOD (TS segments) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.hls-ts/result.json) |
+| H.264 + AAC / HLS VOD (TS segments) | libmedia | custom · failed | Error: EOF timeline did not settle | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.hls-ts/result.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | video | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/video.default.hls-fmp4/result.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | demuxe | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.hls-fmp4/result.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.hls-fmp4/result.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | libmedia | custom · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.hls-fmp4/result.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | video | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/video.default.hls-hevc/result.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | demuxe | native-direct · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.hls-hevc/result.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.hls-hevc/result.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | libmedia | custom · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.hls-hevc/result.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | video | unselected · failed | page.evaluate: NotSupportedError: Failed to load because no supported source was found. | [record](../results/head-to-head/shaka-catalogue-01/video.default.dash-h264/result.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | demuxe | shaka-mse · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.dash-h264/result.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.dash-h264/result.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | libmedia | custom · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.dash-h264/result.json) |
+| AV1 + Opus / DASH VOD (WebM segments) | video | unselected · failed | page.evaluate: NotSupportedError: Failed to load because no supported source was found. | [record](../results/head-to-head/shaka-catalogue-01/video.default.dash-av1/result.json) |
+| AV1 + Opus / DASH VOD (WebM segments) | demuxe | shaka-mse · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.dash-av1/result.json) |
+| AV1 + Opus / DASH VOD (WebM segments) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.dash-av1/result.json) |
+| AV1 + Opus / DASH VOD (WebM segments) | libmedia | custom · failed | page.waitForFunction: Timeout 7000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.dash-av1/result.json) |
+| H.264 + AAC / HLS live (sliding window) | video | native-direct · failed | Error: Playback-rate progression outside bounded tolerance | [record](../results/head-to-head/shaka-catalogue-01/video.default.hls-live/result.json) |
+| H.264 + AAC / HLS live (sliding window) | demuxe | shaka-mse · passed | Declared bounded output, controls and cleanup checks passed | [record](../results/head-to-head/shaka-catalogue-01/demuxe.auto.hls-live/result.json) |
+| H.264 + AAC / HLS live (sliding window) | movi | unselected · failed | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/shaka-catalogue-01/movi.default.hls-live/result.json) |
+| H.264 + AAC / HLS live (sliding window) | libmedia | custom · failed | Error: Live audio missing/wrong across playlist updates | [record](../results/head-to-head/shaka-catalogue-01/libmedia.default.hls-live/result.json) |
 
 ## Additional Main10 and premium-library combinations
 

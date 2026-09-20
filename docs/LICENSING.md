@@ -103,6 +103,32 @@ headers for file-specific terms. Vulkan headers are build inputs; their notice i
 retained without claiming that a Vulkan runtime is shipped. The bundled DejaVu font
 has its separate copyright/license in `fixtures/FONT-LICENSE.txt`.
 
+Adaptive streaming additionally ships the unmodified non-UI Shaka Player 5.2.11
+distribution and optional transmux worker. Shaka and its Closure runtime use
+Apache-2.0; bundled tXml and language-map portions retain MIT terms. This dependency
+does not change the complete Demuxe player's GPL-3.0-or-later grant or the reusable
+core's Apache-2.0 boundary. Shaka is outside the reusable-core archive.
+
+`third_party/notices/shaka-player/` retains the complete upstream LICENSE,
+AUTHORS, third-party summaries, language-map license and CML CMCD LICENSE/NOTICE.
+Copyright/license comments remain in the copied JavaScript. The dependency and
+notice hashes are recorded in `third_party/shaka-player.json`; packaging validates
+them against the exact npm lock. No Shaka UI, demo assets or UI fonts are shipped.
+The source pin is [Shaka v5.2.11](https://github.com/shaka-project/shaka-player/tree/v5.2.11);
+its [upstream license](https://github.com/shaka-project/shaka-player/blob/v5.2.11/LICENSE)
+and retained notices identify the upstream terms. These additions make no new
+clean-build or release-qualification claim.
+
+Tagged source companions include the hash-pinned official Shaka source archive,
+with preferred JavaScript and upstream build scripts. Pages source downloads
+preserve that source with only upstream test media omitted to fit the hosting
+file limit; their source note identifies the complete upstream archive and hash.
+`python3 scripts/shaka_source.py` fetches/verifies it under ignored
+`build/downloads/`; this source download is separate from the small runtime
+assets and is not fetched by browser playback. Release verification checks its
+presence and hash in the corresponding-source manifest. This supplies source
+materials without claiming an independently reproduced Shaka compiler build.
+
 This software uses FreeType. Portions are copyright the FreeType Project
 (https://freetype.org). The upstream notices identify the respective authors.
 

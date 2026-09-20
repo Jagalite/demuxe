@@ -11,7 +11,7 @@ const stamp=new Date().toISOString().replaceAll(':','-');
 const output=`results/development/${backend}/${headless?'headless-':''}${stage}-${stamp}`;
 await mkdir(output,{recursive:true});await mkdir('build/qualification',{recursive:true});
 const engine=backend==='webcodecs'?'web/engine-m4':'web/engine';
-const runtimeFiles=[`${engine}/player.wasm`,`${engine}/player.mjs`,'web/index.html','web/generated/player.js','web/engine-worker.js','web/audio-worklet.js','web/io-worker.js','web/range-reader.js','web/resource-loader.js','web/vod-manifest.js','web/browser-decoder-worker.js','scripts/qualification-foreground.mjs'];
+const runtimeFiles=[`${engine}/player.wasm`,`${engine}/player.mjs`,'web/index.html','web/generated/player.js','web/engine-worker.js','web/audio-worklet.js','web/io-worker.js','web/range-reader.js','web/resource-loader.js','web/fallback-stream-policy.js','web/browser-decoder-worker.js','scripts/qualification-foreground.mjs'];
 const hashRuntime=async()=>Object.fromEntries(await Promise.all(runtimeFiles.map(async file=>[file,createHash('sha256').update(await readFile(file)).digest('hex')])));
 const runtimeSha256=await hashRuntime();
 const original=await readFile(`tests/m2-${stage}.mjs`,'utf8');

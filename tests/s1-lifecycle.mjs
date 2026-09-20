@@ -5,7 +5,7 @@ import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const output=process.env.RESULT_DIR||`results/s1/lifecycle-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(output,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:process.env.HEADLESS==='1',ignoreDefaultArgs:['--mute-audio'],args:['--autoplay-policy=no-user-gesture-required']});
-const page=await browser.newPage(),result={scope:'S1 cancellation and lifecycle',browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
+const page=await browser.newPage(),result={scope:'FFmpeg fallback S1 cancellation and lifecycle',browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
 const control=async(id,body)=>await(await fetch(`http://127.0.0.1:4182/control?id=${id}`,body?{method:'POST',body:JSON.stringify(body)}:{})).json();
 async function check(name,fn){console.log(`RUN ${name}`);const start=Date.now();const evidence=await fn();result.tests.push({name,passed:true,milliseconds:Date.now()-start,evidence});console.log(`PASS ${name}`);}
 async function wait(fn,timeout=30000){await page.waitForFunction(fn,null,{timeout});}
@@ -38,7 +38,7 @@ try{
   }return rows;
  });
  if(!process.env.S1_CHECK||process.env.S1_CHECK==='replace')await check('HLS to direct MP4 to local MKV to DASH source replacement',async()=>{
-  await open('replace','ts/master.m3u8');await wait(()=>player.audioDiagnostics().rms>0.005);
+  await open('replace','ts/fallback-master.m3u8');await wait(()=>player.audioDiagnostics().rms>0.005);
   await page.evaluate(async()=>{await player.openRemote({url:'http://127.0.0.1:4182/media/replace/source.mp4',immutable:true});await player.play();});
   await wait(()=>player.diagnostics.demuxFormat.includes('mov')&&player.audioDiagnostics().rms>0.005);
   const directSeeks=[];for(const position of [13,0,7]){await page.evaluate(async position=>{await player.pause();await player.seek(position);},position);await page.waitForFunction(position=>!player.diagnostics.seeking&&Math.abs(player.diagnostics.presentedPosition-position)<0.2,position,{timeout:20000});directSeeks.push(await page.evaluate(()=>player.diagnostics));}
@@ -47,13 +47,13 @@ try{
   await page.evaluate(async()=>{await player.openRemote({url:'http://127.0.0.1:4182/media/replace/dash/manifest.mpd',format:'dash'});await player.play();});await wait(()=>player.diagnostics.demuxFormat==='dash'&&player.audioDiagnostics().rms>0.005);
   const diagnostics=await page.evaluate(()=>player.diagnostics);await destroy();return {diagnostics,directSeeks};
  });
- if(!process.env.S1_CHECK||process.env.S1_CHECK==='cycles')await check('ten subtitle HLS and ten DASH player lifecycles',async()=>{
+ if(!process.env.S1_CHECK||process.env.S1_CHECK==='cycles')await check('ten plain HLS and ten DASH player lifecycles',async()=>{
   const cycles=[];for(let i=0;i<20;i++){
-   const hls=i%2===0;await open(`cycle-${i}`,hls?'ts/master.m3u8':'dash/manifest.mpd',hls?'hls':'dash');
+   const hls=i%2===0;await open(`cycle-${i}`,hls?'ts/fallback-master.m3u8':'dash/manifest.mpd',hls?'hls':'dash');
    await wait(()=>player.diagnostics?.rendered>5&&player.audioDiagnostics().rms>0.005);cycles.push(await page.evaluate(()=>player.diagnostics));await destroy();
   }return cycles;
  });
  result.passed=true;
 }catch(error){result.failure=String(error.stack||error);console.error(result.failure);try{result.player=await page.evaluate(()=>({diagnostics:player?.diagnostics,events:window.playerEvents,errors:window.playerErrors}));result.workers=page.workers().map(w=>w.url());}catch{}process.exitCode=1;}
-finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/vod-manifest.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
+finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/fallback-stream-policy.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
  await writeFile(`${output}/result.json`,JSON.stringify(result,null,2)+'\n');await browser.close();console.log(output);}

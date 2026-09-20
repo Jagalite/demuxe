@@ -24,26 +24,29 @@ example expose a separate Automatic selection checkbox alongside the three modes
 
 ```mermaid
 flowchart TD
-    S[Open source or reevaluate requirements] --> F{CPU filters requested?}
-    F -->|Yes| SW[Software]
-    F -->|No| C{Simple immutable local MP4?}
-    C -->|Bounded metadata| N
-    C -->|Unknown or remote| P[Bounded FFmpeg metadata inspection]
-    P --> N{Native satisfies selected features?}
-    N -->|Yes| D[Native direct]
-    D -->|Packaging/decode rejection| R[Qualified Native remux]
-    N -->|No| H[Hybrid]
-    R -->|Rejected| H
+    S[Open source or reevaluate requirements] --> F{Required processing/output?}
+    F -->|Software-only| SW[Software]
+    F -->|Otherwise| M{HLS or DASH?}
+    M -->|Yes| D{Simple browser-supported HLS VOD?}
+    D -->|Eligible source/track policy| ND[Verify Native Direct]
+    D -->|Controlled streaming required| K[Shaka/MSE]
+    ND -->|Compatible playback failure| K
+    K -->|Compatible failure and preserved intent| H[Hybrid]
+    M -->|Ordinary file| P[Bounded metadata inspection]
+    P --> N[Eligible Direct / Remux / admitted audio adaptation]
+    N -->|Compatible failure| H
     H -->|Browser configuration or presentation fails| SW
     SW -->|Fails| E[Report failure and preserve previous working source]
-    P -->|Transport/identity violation| T[Stop without trying another engine]
+    P -->|Source/policy violation| T[Stop without trying another engine]
+    K -->|Source/policy violation| T
 ```
 
 ## Selection and recovery
 
 - Every new source starts at Native eligibility again, even if the previous source
   needed Software. CPU filters skip directly to Software.
-- A packet-only FFmpeg probe discovers tracks before accepting Native. Enabled
+- For ordinary files, bounded JavaScript metadata or a packet-only FFmpeg probe
+  discovers tracks before accepting Native. Enabled
   embedded subtitles require mpv rendering. Audio eligibility considers the selected
   track rather than rejecting a file for every unused track. Missing codec mappings
   and negative `canPlayType()` hints do not reject unchanged Native playback.
@@ -53,11 +56,15 @@ flowchart TD
 - Hybrid must deliver an actual retained frame; a browser capability probe alone
   is insufficient. A rejected Hybrid candidate automatically proceeds to Software.
 - Successful replacement preserves position, pause/play intent, volume and rate.
-  Automatic transitions map explicit track selections by source stream index.
+  Automatic transitions preserve proven track identities. File paths can map source
+  stream indices; Shaka track identity is backend-scoped and is never guessed
+  across a transition to FFmpeg.
   Transitions reject if that identity cannot be preserved; disabled audio/subtitle
   selections remain disabled. Explicit manual mode changes retain their ID-reset contract. If all candidates fail while opening a new source,
   the previous working player is retained.
-- A later Native direct decode failure tries forced Native remux before Hybrid.
+- A later ordinary-file Native Direct decode failure tries qualified Native remux
+  before Hybrid. Adaptive-source failures reject that execution plan and try the
+  next eligible streaming backend; file remux is never a manifest scheduler.
   A later Hybrid decoder failure proceeds to Software. Each failed session can
   schedule recovery only once; failures on a replacement are rechecked after the
   active recovery completes, so recovery proceeds forward rather than looping.
@@ -67,7 +74,8 @@ flowchart TD
   the route as well.
 - Source transport, authorization and representation failures stop the chain.
   Fallback must not replace an ETag-protected session with a new reader that silently
-  accepts a different file. Existing range retry logic owns transport recovery.
+  accepts a different file. File range retry logic and Shaka networking retries
+  retain their respective transport ownership.
 
 `selectionchange` reports individual skipped, failed and selected routes. The bounded
 `diagnostics.selection.attempts` list explains the latest selection operation.
@@ -77,7 +85,7 @@ that requesting a filter can trigger an engine change.
 
 ## Costs and limits
 
-Deep automatic inspection loads the remux FFmpeg Wasm module and uses two temporary
+Deep ordinary-file automatic inspection loads the remux FFmpeg Wasm module and uses two temporary
 workers even when Native direct eventually wins. It performs no audio/video decoding
 or encoding and terminates those workers after inspection. This adds startup work;
 no new CPU-performance advantage is claimed. The local MP4 fast path below avoids
@@ -90,9 +98,13 @@ Destruction interrupts module-import waits as well as active probe work.
 The probe has a 20-second deadline and the existing bounded source/demux budgets.
 Unknown codec/profile mappings remain unknown until the runtime attempt. When metadata
 inspection is unavailable for a non-transport reason, Native is skipped and mpv
-routes are attempted. Explicit HLS/DASH sources currently start with mpv because
-this probe does not establish their Native track requirements; existing static-VOD
-manifest restrictions apply. Explicit Native retains browser-native manifest playback.
+routes are attempted. HLS/DASH classification bypasses the ordinary-file probe.
+A simple browser-supported HLS VOD source can try Native Direct; controlled
+adaptive execution uses the lazy Shaka/MSE backend. Browser output is verified,
+and an eligible FFmpeg fallback must preserve quality, track and source policy.
+Explicit Native pins the Native family, including Shaka; it does not force every
+manifest into browser-direct playback. Shaka requires no Demuxe Wasm or isolation.
+See [the streaming contract](STREAMING.md).
 
 External browser WebVTT tracks cannot yet transfer to mpv through this API. Automatic
 selection therefore rejects a route that would discard them rather than pretending
@@ -112,7 +124,11 @@ not guess a different language or silently drop requested external subtitles.
 
 - `src/unified-player.ts`: policy, ordered attempts, transactional commit, recovery,
   explicit pinning, filter/subtitle reevaluation and cancellation.
-- `src/internal/selection.ts`: selected-track Native eligibility.
+- `src/internal/selection.ts`: selected-track Native and simple HLS eligibility.
+- `src/internal/shaka-backend.ts` / `shaka-network.ts`: adaptive execution adapter
+  and source policy through Shaka networking hooks.
+- `web/resource-loader.js`: unchanged-resource transport for narrow FFmpeg fallback;
+  it contains no manifest scheduler or rendition rewriting.
 - `web/source-probe.js`: temporary worker ownership, metadata deadline and cleanup.
 - `native/remux/remux.c` / `web/native-remux-worker.js`: packet-only `rm_probe`, sharing
   the existing source adapter and FFmpeg module without requiring decoders.
@@ -138,7 +154,7 @@ self-contained data references and known sample entries. Browser hints do not
 affect this metadata fast path.
 Additional tracks, encryption, multiple sample descriptions, unfamiliar metadata or larger
 indexes retain FFmpeg inspection. Actual Native playback still gates selection.
-Remote sources retain the existing FFmpeg/source-identity path; no permission or
+Ordinary remote files retain the existing FFmpeg/source-identity path; no permission or
 authentication handling is bypassed. Explicit Native direct already avoids both
 inspectors and Wasm, and is checked separately in the clean consumer test.
 

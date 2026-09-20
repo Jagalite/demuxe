@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Package matching preferred source and build materials beside a release binary."""
 import argparse, gzip, hashlib, io, json, pathlib, subprocess, tarfile
+from shaka_source import ensure_source
 root=pathlib.Path(__file__).resolve().parent.parent
 subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);p.add_argument('--tag',required=True);args=p.parse_args()
@@ -12,6 +13,8 @@ for name in subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().s
  if name and not name.startswith('results/') and (root/name).is_file():files['demuxe/'+name]=root/name
 for item in json.loads((root/'sources.lock.json').read_text())['sources']:
  files['demuxe/build/downloads/'+item['name']+'.tar.gz']=root/'build/downloads'/(item['name']+'.tar.gz')
+shaka_source=ensure_source(root)
+files['demuxe/build/downloads/'+shaka_source.name]=shaka_source
 # Include the SDK's preferred source, notably the runtime libraries linked into Wasm.
 for path in sorted((sdk/'upstream/emscripten').rglob('*')):
  rel=path.relative_to(sdk/'upstream/emscripten')

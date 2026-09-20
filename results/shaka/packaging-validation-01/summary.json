@@ -1,0 +1,225 @@
+{
+  "scope": "Development archive packaging and consumer checks; no tagged-source release or universal playback qualification",
+  "started": "2026-09-20T22:40:00.908867+00:00",
+  "archive": "build/shaka-production-qualified-candidate/demuxe-0.3.0-beta.3.tgz",
+  "archiveSHA256": "d7ff5794192d02225ca17bcfda491e2dd2d40c7b810459f358dd609067cfbcbc",
+  "archiveBytes": 18546711,
+  "releaseQualified": false,
+  "checks": [
+    {
+      "name": "exact-archive-chrome",
+      "command": [
+        "node",
+        "tests/shaka-package.mjs"
+      ],
+      "environment": {
+        "BROWSER": "chrome",
+        "BETA_ARCHIVE": "build/shaka-production-qualified-candidate/demuxe-0.3.0-beta.3.tgz"
+      },
+      "passed": true,
+      "cases": 4,
+      "report": "results/shaka-package/chrome-2026-09-20T22-38-15.524Z/result.json",
+      "sha256": "15042a3abd3a14e6811947fb3c8d49b95105a06fdb5cad12672b9fa33319c927"
+    },
+    {
+      "name": "exact-archive-firefox",
+      "command": [
+        "node",
+        "tests/shaka-package.mjs"
+      ],
+      "environment": {
+        "BROWSER": "firefox",
+        "BETA_ARCHIVE": "build/shaka-production-qualified-candidate/demuxe-0.3.0-beta.3.tgz"
+      },
+      "passed": true,
+      "cases": 4,
+      "report": "results/shaka-package/firefox-2026-09-20T22-38-31.224Z/result.json",
+      "sha256": "2f4ffb76fa5f0cc12723e51798d72d9a35b8b3866c93cef777edce8ea540019f"
+    },
+    {
+      "name": "copy-assets",
+      "command": [
+        "node",
+        "--test",
+        "tests/copy-assets.mjs"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 9,
+      "log": "results/shaka/packaging-validation-01/copy-assets.log",
+      "sha256": "02fb7a224363059884eb47efb92cc3424cf66ff16ac732112c2d93caeb0e8c9e"
+    },
+    {
+      "name": "asset-pins",
+      "command": [
+        "node",
+        "--test",
+        "tests/shaka-assets.mjs"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 2,
+      "log": "results/shaka/packaging-validation-01/asset-pins.log",
+      "sha256": "6671822c84210a236ce6b6dff832b4349d834d2deafde7b0cf506123792468c5"
+    },
+    {
+      "name": "source-distribution",
+      "command": [
+        "python3",
+        "tests/shaka-source.py"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 1,
+      "log": "results/shaka/packaging-validation-01/source-distribution.log",
+      "sha256": "a626407facf1102b512cc38f00f6e7d889aa6280a5c03d1722ac6d1c4eb08dc5"
+    },
+    {
+      "name": "release-gates",
+      "command": [
+        "python3",
+        "tests/beta-release.py"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 6,
+      "log": "results/shaka/packaging-validation-01/release-gates.log",
+      "sha256": "040dffba0e011b8fe7cdc7b899e88355820485ee98f203f486381e3148ae9850"
+    },
+    {
+      "name": "optional-release-gates",
+      "command": [
+        "python3",
+        "tests/optional-release.py"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 9,
+      "log": "results/shaka/packaging-validation-01/optional-release-gates.log",
+      "sha256": "1f6388f0e60b77f4d084b3b49dc4e30172ac14312e18d7e0e79b9c87f61f3ce6"
+    },
+    {
+      "name": "license-regressions",
+      "command": [
+        "python3",
+        "tests/licenses.py"
+      ],
+      "exit": 0,
+      "passed": true,
+      "cases": 13,
+      "log": "results/shaka/packaging-validation-01/license-regressions.log",
+      "sha256": "03cc8467f394d6ce2957fddcee686405f487821cb58cd60772a3441707edfedf"
+    }
+  ],
+  "archiveFiles": 140,
+  "generatedOutputMismatches": [],
+  "retiredProductionFilesPresent": [],
+  "packageCommand": {
+    "command": [
+      "python3",
+      "scripts/package-beta.py",
+      "--output",
+      "build/shaka-production-qualified-candidate"
+    ],
+    "exit": 0,
+    "source": "captured tool output in this session",
+    "output": "Core dependency boundary verified (29 source/output files)\nLicense boundaries, SPDX headers and preserved notices verified\nbuild/shaka-production-qualified-candidate/demuxe-0.3.0-beta.3.tgz\nd7ff5794192d02225ca17bcfda491e2dd2d40c7b810459f358dd609067cfbcbc\n"
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exit": 0,
+    "note": "Build passed before final focused source fixes; those fixes were subsequently compiled and SPDX-stamped, and every final packaged generated output matches the checkout."
+  },
+  "shaka": {
+    "schema": 1,
+    "package": "shaka-player",
+    "version": "5.2.11",
+    "upstream": "https://github.com/shaka-project/shaka-player/tree/v5.2.11",
+    "npmIntegrity": "sha512-C9WvYtH5cWKBCUXWFzbKWcgMYSRviGPd+1WWYjS55dXGHyMHeD5mub3vvjOzX2Q6o/bu4N5xlXOnVeg9ajp+Sw==",
+    "license": "Apache-2.0 AND MIT",
+    "build": "Unmodified upstream non-UI compiled player and optional transmux worker; license and copyright comments retained.",
+    "files": {
+      "web/vendor/shaka-player.js": {
+        "source": "dist/shaka-player.compiled.js",
+        "bytes": 829754,
+        "gzipBytes": 272773,
+        "sha256": "dd617e6eb7dd323dd9b4b2608f6c4ff64e5b7ac7b309bc67c3549dfc424f925c"
+      },
+      "web/vendor/shaka-player.transmuxer-worker.js": {
+        "source": "dist/shaka-player.transmuxer-worker.js",
+        "bytes": 98070,
+        "gzipBytes": 32108,
+        "sha256": "d57b08bbd94ca97a20c343967f3e331f60862ad263879e701bdf8d621f8897bf"
+      }
+    },
+    "notices": [
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "LICENSE",
+        "noticePath": "third_party/notices/shaka-player/LICENSE",
+        "sha256": "20ce2eba547fd0a8c4023511c003eabe510982a335cccd4e270f1f55ffbd2250"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "AUTHORS",
+        "noticePath": "third_party/notices/shaka-player/AUTHORS",
+        "sha256": "abdb1d4c90519127eb92d323a6f1e3b9e8aec50a7ac00f8aeee7ca4880960977"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "third_party/SUMMARY.txt",
+        "noticePath": "third_party/notices/shaka-player/third_party/SUMMARY.txt",
+        "sha256": "e73e188e88c9d950fbbee3d2a9511057bc50af78a627becd155de173c9caa569"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "third_party/language-mapping-list/LICENSE",
+        "noticePath": "third_party/notices/shaka-player/third_party/language-mapping-list/LICENSE",
+        "sha256": "7113f6cf87ba13ed1700a35f033b9d448eb98ae7f80884b0f785b3a9cd640c23"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "third_party/cml-cmcd/LICENSE",
+        "noticePath": "third_party/notices/shaka-player/third_party/cml-cmcd/LICENSE",
+        "sha256": "95cdf13a152329c8a60cf739d442f578a172727f0584bff42406126719312f62"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "third_party/cml-cmcd/NOTICE",
+        "noticePath": "third_party/notices/shaka-player/third_party/cml-cmcd/NOTICE",
+        "sha256": "ae55a4168482117b80b555f07b0b56a65d579a1910b7d38e1a4b0c81292976e5"
+      },
+      {
+        "component": "shaka-player",
+        "version": "5.2.11",
+        "sourcePath": "third_party/cml-cmcd/SUMMARY.txt",
+        "noticePath": "third_party/notices/shaka-player/third_party/cml-cmcd/SUMMARY.txt",
+        "sha256": "8b8d9f102b2ff73ae0111668f71ca6d985ba407769cd1888ffde3c93a9c752a6"
+      }
+    ],
+    "preferredSource": {
+      "url": "https://codeload.github.com/shaka-project/shaka-player/tar.gz/refs/tags/v5.2.11",
+      "filename": "shaka-player-5.2.11.tar.gz",
+      "bytes": 142705424,
+      "sha256": "360910cf83bfcd792867eec040af6ab2387822bd2c726b4e4ef2774635b16801",
+      "archiveRoot": "shaka-player-5.2.11"
+    }
+  },
+  "upstreamSourceAudit": {
+    "installedFilesCompared": 347,
+    "differences": 0,
+    "scope": "Installed lib/, third_party/, LICENSE and AUTHORS against pinned official source archive; no independent compiler reproducibility claim"
+  },
+  "finished": "2026-09-20T22:41:11.214324+00:00",
+  "passed": true
+}

@@ -15,6 +15,8 @@ for kind in ['ts','fmp4']:
  (folder/'subtitles.vtt').write_text('WEBVTT\n\n00:00:00.000 --> 00:00:24.000\nS1 SOFTWARE SUBTITLE\n')
  (folder/'subtitles.m3u8').write_text('#EXTM3U\n#EXT-X-TARGETDURATION:24\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:24,\nsubtitles.vtt\n#EXT-X-ENDLIST\n')
  (folder/'master.m3u8').write_text('#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="English",LANGUAGE="en",DEFAULT=YES,AUTOSELECT=YES,URI="english.m3u8"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="Alternate",LANGUAGE="fr",DEFAULT=NO,AUTOSELECT=YES,URI="alternate.m3u8"\n#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",LANGUAGE="en",DEFAULT=YES,AUTOSELECT=YES,URI="subtitles.m3u8"\n#EXT-X-STREAM-INF:BANDWIDTH=2000000,CODECS="avc1.64001e,mp4a.40.2",AUDIO="audio",SUBTITLES="subs"\nvideo.m3u8\n')
+ # FFmpeg fallback fixture omits unsupported manifest text renditions explicitly.
+ (folder/'fallback-master.m3u8').write_text('\n'.join(line.replace(',SUBTITLES="subs"','') for line in (folder/'master.m3u8').read_text().split('\n') if 'TYPE=SUBTITLES' not in line))
 folder=out/'dash';folder.mkdir(exist_ok=True)
 run(['-i',source,'-map','0:v','-map','0:a:0','-map','0:a:1','-c','copy','-f','dash','-seg_duration','2','-use_template','1','-use_timeline','1','-adaptation_sets','id=0,streams=0 id=1,streams=1 id=2,streams=2',folder/'manifest.mpd'])
 folder=out/'byterange';folder.mkdir(exist_ok=True)

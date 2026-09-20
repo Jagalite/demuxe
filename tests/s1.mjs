@@ -9,7 +9,7 @@ const browser=await chromium.launch({channel:'chrome',headless:process.env.HEADL
 const page=await browser.newPage({viewport:{width:1000,height:900}}),logs=[],errors=[];
 page.on('console',m=>logs.push(`${m.type()}: ${m.text()}`));page.on('pageerror',e=>errors.push(String(e)));
 await page.addInitScript(()=>{for(const name of ['VideoDecoder','AudioDecoder','VideoFrame','MediaSource'])Object.defineProperty(globalThis,name,{value:undefined,configurable:true});HTMLMediaElement.prototype.play=function(){throw Error('Native media playback forbidden');};});
-const result={scope:'S1 real software playback',started:new Date().toISOString(),browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
+const result={scope:'FFmpeg fallback S1 real software playback',started:new Date().toISOString(),browser:browser.version(),headless:process.env.HEADLESS==='1',tests:[],passed:false};
 const control=async(id,body)=>await(await fetch(`http://127.0.0.1:4182/control?id=${id}`,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})).json();
 async function wait(fn,timeout=30000){await page.waitForFunction(fn,null,{timeout});}
 async function pixels(){return page.evaluate(()=>{const c=document.createElement('canvas'),source=document.querySelector('canvas');c.width=source.width;c.height=source.height;const ctx=c.getContext('2d');ctx.drawImage(source,0,0);const data=ctx.getImageData(0,0,c.width,c.height).data;let hash=2166136261,nonblack=0;for(let i=0;i<data.length;i+=4){hash=Math.imul(hash^data[i],16777619);if(data[i]+data[i+1]+data[i+2]>40)nonblack++;}return {hash:hash>>>0,nonblack};});}
@@ -23,7 +23,7 @@ async function destroy(){await page.evaluate(()=>player.destroy());for(let i=0;i
  assert.deepEqual(page.workers().map(w=>w.url()),[],'Workers retained after destroy');}
 try{
   await page.goto('http://127.0.0.1:4179/web/index.html?no-codecs');await wait(()=>typeof createPlayer==='function');
-  for(const [id,file,format] of [['hls-ts','ts/master.m3u8','hls'],['hls-fmp4','fmp4/master.m3u8','hls'],['dash','dash/manifest.mpd','dash'],['range','byterange/media.m3u8','hls']]){
+  for(const [id,file,format] of [['hls-ts','ts/fallback-master.m3u8','hls'],['hls-fmp4','fmp4/fallback-master.m3u8','hls'],['dash','dash/manifest.mpd','dash'],['range','byterange/media.m3u8','hls']]){
     if(process.env.S1_CASE&&process.env.S1_CASE!==id)continue;
     await check(`${id}: moving software output, audio, seeks and cleanup`,async()=>{
       await control(id,{requests:[],aborted:0,auth:true,retry:1});await open(id,file,format,true);
@@ -61,5 +61,5 @@ try{
   }
   assert.deepEqual(errors,[]);result.passed=true;
 }catch(error){result.failure=String(error.stack||error);console.error(result.failure);try{result.player=await page.evaluate(()=>({diagnostics:player?.diagnostics,events:window.playerEvents,errors:window.playerErrors}));await page.screenshot({path:`${output}/failure.png`});}catch{}process.exitCode=1;}
-finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/vod-manifest.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
+finally{for(const file of ['scripts/s1-media-server.mjs','web/engine/player.wasm','web/engine/player.mjs','web/io-worker.js','web/resource-loader.js','web/fallback-stream-policy.js','native/stream_bridge.c']){try{(result.hashes??={})[file]=createHash('sha256').update(await readFile(file)).digest('hex');}catch{}}
 await writeFile(`${output}/result.json`,JSON.stringify(result,null,2)+'\n');await writeFile(`${output}/console.json`,JSON.stringify(logs,null,2)+'\n');await browser.close();console.log(output);}

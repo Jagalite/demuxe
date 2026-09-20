@@ -1,0 +1,164 @@
+{
+  "scope": "Three accepted matched rounds per admitted route; percentages of one core, no software CPU or universal claim",
+  "source": "results/head-to-head/shaka-performance-01/summary.json",
+  "sourceSHA256": "62b8c2229b89846feeeba123c2b0cb8795ee9f438d7e61836ee480a9951a15cb",
+  "counts": {
+    "passed": 15,
+    "failed": 0,
+    "blocked": 6,
+    "skipped": 0
+  },
+  "groups": {
+    "video.default.hls-fmp4": {
+      "passed": 3,
+      "blocked": 0,
+      "failed": 0,
+      "cpu": [
+        26.338969722653864,
+        31.741532581512757,
+        29.77519222604839
+      ],
+      "records": [
+        "video.default.hls-fmp4.round-1/result.json",
+        "video.default.hls-fmp4.round-2/result.json",
+        "video.default.hls-fmp4.round-3/result.json"
+      ],
+      "reasons": [],
+      "median": 29.77519222604839,
+      "range": [
+        26.338969722653864,
+        31.741532581512757
+      ]
+    },
+    "demuxe.auto.hls-fmp4": {
+      "passed": 3,
+      "blocked": 0,
+      "failed": 0,
+      "cpu": [
+        30.784120894544778,
+        28.574205994447837,
+        28.273221501738558
+      ],
+      "records": [
+        "demuxe.auto.hls-fmp4.round-1/result.json",
+        "demuxe.auto.hls-fmp4.round-2/result.json",
+        "demuxe.auto.hls-fmp4.round-3/result.json"
+      ],
+      "reasons": [],
+      "median": 28.574205994447837,
+      "range": [
+        28.273221501738558,
+        30.784120894544778
+      ]
+    },
+    "demuxe.software.hls-fmp4": {
+      "passed": 0,
+      "blocked": 3,
+      "failed": 0,
+      "cpu": [],
+      "records": [
+        "demuxe.software.hls-fmp4.round-1/result.json",
+        "demuxe.software.hls-fmp4.round-2/result.json",
+        "demuxe.software.hls-fmp4.round-3/result.json"
+      ],
+      "reasons": [
+        "Error: UNQUALIFIED: no established frame presentation counter for this route",
+        "Error: UNQUALIFIED: no established frame presentation counter for this route",
+        "Error: UNQUALIFIED: no established frame presentation counter for this route"
+      ]
+    },
+    "demuxe.auto.dash-h264": {
+      "passed": 3,
+      "blocked": 0,
+      "failed": 0,
+      "cpu": [
+        26.964108607523336,
+        29.733669828152884,
+        29.13638766935751
+      ],
+      "records": [
+        "demuxe.auto.dash-h264.round-1/result.json",
+        "demuxe.auto.dash-h264.round-2/result.json",
+        "demuxe.auto.dash-h264.round-3/result.json"
+      ],
+      "reasons": [],
+      "median": 29.13638766935751,
+      "range": [
+        26.964108607523336,
+        29.733669828152884
+      ]
+    },
+    "demuxe.auto.dash-av1": {
+      "passed": 3,
+      "blocked": 0,
+      "failed": 0,
+      "cpu": [
+        27.470057617833195,
+        30.327132183637985,
+        29.30071022059169
+      ],
+      "records": [
+        "demuxe.auto.dash-av1.round-1/result.json",
+        "demuxe.auto.dash-av1.round-2/result.json",
+        "demuxe.auto.dash-av1.round-3/result.json"
+      ],
+      "reasons": [],
+      "median": 29.30071022059169,
+      "range": [
+        27.470057617833195,
+        30.327132183637985
+      ]
+    },
+    "demuxe.hybrid.dash-av1": {
+      "passed": 3,
+      "blocked": 0,
+      "failed": 0,
+      "cpu": [
+        44.15130808462411,
+        47.2792983282317,
+        46.77330985915493
+      ],
+      "records": [
+        "demuxe.hybrid.dash-av1.round-1/result.json",
+        "demuxe.hybrid.dash-av1.round-2/result.json",
+        "demuxe.hybrid.dash-av1.round-3/result.json"
+      ],
+      "reasons": [],
+      "median": 46.77330985915493,
+      "range": [
+        44.15130808462411,
+        47.2792983282317
+      ]
+    },
+    "demuxe.software.dash-av1": {
+      "passed": 0,
+      "blocked": 3,
+      "failed": 0,
+      "cpu": [],
+      "records": [
+        "demuxe.software.dash-av1.round-1/result.json",
+        "demuxe.software.dash-av1.round-2/result.json",
+        "demuxe.software.dash-av1.round-3/result.json"
+      ],
+      "reasons": [
+        "Error: UNQUALIFIED: no established frame presentation counter for this route",
+        "Error: UNQUALIFIED: no established frame presentation counter for this route",
+        "Error: UNQUALIFIED: no established frame presentation counter for this route"
+      ]
+    }
+  },
+  "comparisons": {
+    "hls-shaka-vs-native": {
+      "baseline": "video.default.hls-fmp4",
+      "candidate": "demuxe.auto.hls-fmp4",
+      "relativeCPUChangePercent": -4.033512940849756,
+      "percentagePointDifference": -1.2009862316005524
+    },
+    "av1-shaka-vs-hybrid": {
+      "baseline": "demuxe.hybrid.dash-av1",
+      "candidate": "demuxe.auto.dash-av1",
+      "relativeCPUChangePercent": -37.35591877328589,
+      "percentagePointDifference": -17.47259963856324
+    }
+  }
+}

@@ -3,6 +3,7 @@
 """Assemble the Pages demo and its source distribution from local built engines."""
 import argparse, gzip, hashlib, html, io, json, shutil, subprocess, tarfile
 from pathlib import Path
+from shaka_source import pages_source
 root=Path(__file__).resolve().parent.parent
 parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=root/'build/pages-site');parser.add_argument('--source-commit');parser.add_argument('--emscripten-archive',type=Path);args=parser.parse_args()
 out=args.output.resolve()
@@ -47,6 +48,8 @@ for item in json.loads((root/'sources.lock.json').read_text())['sources']:
  path=root/'build/downloads'/(item['name']+'.tar.gz')
  if sha(path)!=item['sha256']:raise SystemExit('Upstream source archive mismatch: '+item['name'])
  shutil.copyfile(path,source/path.name)
+shaka_source=pages_source(root)
+shutil.copyfile(shaka_source,source/shaka_source.name)
 # Emscripten's preferred runtime/library source and build scripts; no caches or host binaries.
 sdk=root/'build/emsdk-4.0.14/upstream/emscripten'
 files={}
@@ -69,6 +72,9 @@ and ../third_party/. The deployed GPLv3 player retains Apache modules' license a
 
 Download demuxe-source.tar.gz for the preferred project source, scripts and patches.
 Extract it, then place the individual upstream archives in demuxe/build/downloads/.
+The Shaka preferred-source archive contains its JavaScript and build scripts;
+only upstream test media fixtures are omitted to satisfy the hosting file limit.
+the npm distribution hashes and retained notices are in third_party/shaka-player.json.
 emscripten-source.tar.gz supplies the SDK 4.0.14 runtime/library source and scripts.
 build-materials.tar.gz records the local configurations used for these engines,
 including Software's RGB rotation override. Absolute paths in these records describe

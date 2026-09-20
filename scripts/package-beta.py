@@ -33,6 +33,7 @@ if args.release_tag:
  source_path=args.output/f"{project['name']}-{project['version']}-source.tar.gz"
  source_archive={'filename':source_path.name,'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),'bytes':source_path.stat().st_size}
 
+subprocess.run(['node',str(root/'scripts/copy-shaka-assets.mjs')],cwd=root,check=True)
 subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 license_policy=Policy(root)
 files={}
@@ -55,8 +56,9 @@ while pending:
    if target.is_file():pending.append(str(target.relative_to(root)))
    declaration=target.with_suffix('.d.ts')
    if declaration.is_file():pending.append(str(declaration.relative_to(root)))
-for name in ['native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','vod-manifest.js','streaming-manifest.js','segmented-subtitles.js','split-mp4.js','native-remux-player.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','cheap-mp4-probe.js','video-codec-config.js','remux-packaging.js']:
+for name in ['native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','cheap-mp4-probe.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
+for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-full','player')}
 if args.yuv:engines['experimental-yuv']=('engine-software-yuv','player');add('web/yuv-presenter.js')
 if args.adaptation_build:
@@ -136,7 +138,7 @@ if build:
  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
 # The review report keeps local evidence locations in the repository only.
 report='docs/OPTIMIZATION-INTEGRATION.md'
 files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
@@ -153,7 +155,7 @@ package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 files['license-map.json']=encoded(license_policy.package_map(files,'player'))
 license_policy.check_package(files,'player')
-manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','hybrid','software'],'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build),'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':['native-direct','native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build),'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
 for name,data in files.items():

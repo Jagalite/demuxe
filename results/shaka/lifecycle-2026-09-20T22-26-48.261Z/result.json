@@ -1,0 +1,106 @@
+{
+  "scope": "Maintained Shaka public API, policy, explicit failure injection and lifecycle; synthetic media; no performance claim",
+  "browser": "152.0.7977.83",
+  "commands": [
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:sample_rate=48000",
+      "-t",
+      "12",
+      "-c:a",
+      "aac",
+      "-ac",
+      "2",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-pvW74g/english/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=880:sample_rate=48000",
+      "-t",
+      "12",
+      "-c:a",
+      "aac",
+      "-ac",
+      "2",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-pvW74g/alternate/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=160x90:rate=30",
+      "-t",
+      "12",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-g",
+      "60",
+      "-sc_threshold",
+      "0",
+      "-pix_fmt",
+      "yuv420p",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-pvW74g/low/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x180:rate=30",
+      "-t",
+      "12",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-g",
+      "60",
+      "-sc_threshold",
+      "0",
+      "-pix_fmt",
+      "yuv420p",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-pvW74g/high/index.m3u8"
+    ]
+  ],
+  "fixture": "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-pvW74g",
+  "cases": [
+    {
+      "name": "in-flight manifest cancellation leaves no published session",
+      "passed": true,
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    }
+  ],
+  "hashes": {
+    "src/unified-player.ts": "073e21e16702452f635c07e5a0131584cc0ecf8959a621282fe367da3d6fe134",
+    "src/internal/shaka-backend.ts": "253108549d164150aca8cc05dab38a9ccb07a9939692c0febbd00ffef192a7e2",
+    "src/internal/shaka-network.ts": "22d41d56b9e473921b0b1f54cd57c5e3b9afc0379e05dcc3c3b62da3c540d9c7",
+    "src/internal/playback-plans.ts": "d313d367a5fe743fdd8f19ee3578756bb401bfef4bb4b65b88539aacbd0b1e71",
+    "web/resource-loader.js": "21cdefa182c136f43804556c47e1d3e84bee783256ab04ebfa44d490f82857d2",
+    "web/fallback-stream-policy.js": "c2d1af8e450f2f733156ea4587fe04c6eed6f9b7fe9ce7f9a61fc896e6a00d6b",
+    "tests/shaka-lifecycle.mjs": "42f847649c0be82f799c33a4543ec03d59c7bcd111aa9e9da20be5f4d1846028"
+  },
+  "passed": true
+}

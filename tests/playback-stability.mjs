@@ -29,7 +29,7 @@ const baseline=JSON.parse(await readFile('build/playback-performance/baseline/ma
 const overrides=process.env.CANDIDATE_MANIFEST?JSON.parse(await readFile(process.env.CANDIDATE_MANIFEST)):{};
 for(const name of Object.keys(overrides))assert.ok(name in baseline);
 const assets=Object.fromEntries(Object.keys(baseline).map(name=>[name,overrides[name]||name]));
-for(const path of ['web/generated/index.js','web/generated/types.js','web/generated/unified-player.js','web/generated/internal/native-player.js','web/io-worker.js','web/range-reader.js','web/resource-loader.js','web/vod-manifest.js','fixtures/DejaVuSans.ttf'])assets[path]=path;
+for(const path of ['web/generated/index.js','web/generated/types.js','web/generated/unified-player.js','web/generated/internal/native-player.js','web/io-worker.js','web/range-reader.js','web/resource-loader.js','web/fallback-stream-policy.js','fixtures/DejaVuSans.ttf'])assets[path]=path;
 const config={candidate:assets};
 await writeFile(out+'/server-config.json',JSON.stringify(config,null,2)+'\n');
 const digest=async path=>{const hash=createHash('sha256');for await(const bytes of createReadStream(path))hash.update(bytes);return hash.digest('hex');};

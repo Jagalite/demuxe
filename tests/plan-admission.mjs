@@ -56,9 +56,9 @@ test('isolation admission remains structurally distinct from unsupported media',
 });
 
 test('HLS direct admission retains controlled transport and feature boundaries',()=>{
- assert.deepEqual(eligible({manifest:true}),['native-direct','hybrid','software']);
- assert.deepEqual(eligible({manifest:true,requiresRemux:true}),['hybrid','software']);
- assert.deepEqual(eligible({manifest:true,nativeRemux:'always'}),['hybrid','software']);
+ assert.deepEqual(eligible({manifest:true}),['native-direct','shaka-mse','hybrid','software']);
+ assert.deepEqual(eligible({manifest:true,requiresRemux:true}),['shaka-mse','hybrid','software']);
+ assert.deepEqual(eligible({manifest:true,nativeRemux:'always'}),['shaka-mse','hybrid','software']);
  assert.deepEqual(eligible({manifest:true,vf:'hflip'}),['software']);
  assert.ok(!eligible({manifest:true,audioOutput:'5.1'}).includes('native-direct'));
  assert.ok(!eligible({manifest:true,nativeASS:true,externalFormats:['ass']}).some(p=>p.startsWith('native')));
@@ -67,4 +67,13 @@ test('qualified external plain VTT retains browser A/V but never erases other re
  assert.deepEqual(eligible({externalFormats:['browser-vtt']}),eligible({}));
  for(const extra of [{manifest:true},{nativeSourceRejection:'Embedded subtitles require mpv rendering'},{externalFormats:['browser-vtt','ass'],nativeASS:true}])assert.ok(!eligible({externalFormats:['browser-vtt'],...extra}).some(id=>id.startsWith('native')));
  assert.ok(!eligible({externalFormats:['vtt']}).some(id=>id.startsWith('native')));
+});
+
+test('Shaka owns controlled adaptive execution without weakening file or feature gates',()=>{
+ assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',isolated:false,requiresRemux:true}),['shaka-mse']);
+ assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',streamingFallbackRejection:'Cannot preserve quality'}),['shaka-mse']);
+ assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',mse:false}),['hybrid','software']);
+ for(const extra of [{vf:'hflip'},{audioOutput:'5.1'},{externalFormats:['ass'],nativeASS:true},{externalFormats:['browser-vtt']},{browserTextTracks:true},{shakaSourceRejection:'Explicit demuxer'}])assert.ok(!eligible({manifest:true,...extra}).some(p=>p.startsWith('shaka-')));
+ assert.ok(!eligible({}).some(p=>p.startsWith('shaka-')));
+ assert.ok(eligible({manifest:true,gain:.5}).includes('shaka-mse-gain'));
 });

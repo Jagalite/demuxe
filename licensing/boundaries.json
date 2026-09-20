@@ -13,14 +13,26 @@
     "web/file-reader.js",
     "web/range-reader.js",
     "web/resource-loader.js",
-    "web/vod-manifest.js",
-    "web/streaming-manifest.js",
-    "web/segmented-subtitles.js",
+    "web/fallback-stream-policy.js",
     "web/video-codec-config.js",
     "web/remux-packaging.js",
     "web/split-mp4.js"
   ],
   "rules": [
+    {
+      "paths": [
+        "web/vendor/shaka-player.js"
+      ],
+      "license": "Apache-2.0 AND MIT",
+      "reason": "Unmodified upstream Shaka non-UI compiled bundle, including MIT tXml/language-map portions; retained upstream licenses in third_party/notices/shaka-player."
+    },
+    {
+      "paths": [
+        "web/vendor/shaka-player.transmuxer-worker.js"
+      ],
+      "license": "Apache-2.0",
+      "reason": "Unmodified upstream Shaka transmux worker and Closure runtime; upstream copyright comments retained."
+    },
     {
       "paths": [
         "research/items/R048.keep-only-the-relevant-native-caption-cues-instantiated/evidence/20260920T134625Z-whole-player-cues/variants/*/*/native-player.js"
@@ -860,7 +872,7 @@
     "results/optimization-integration/stage3/checkpoint/integration.patch": "9ba7b80edfabca718042243b9720614476948a9fc762325b721d24745f87cef2",
     "results/optimization-integration/stage3/checkpoint/review-fixes.patch": "306149aa04caab3b9bbe791a1efffb8a69ba3bc3a27f739ceaf9e66fa370aece",
     "results/pipeline-qualification/prototype-changes.patch": "94f0117feb92498dee2b883ae31ceaefc38755b2243f0dd7b7766756386b185d",
-    "third_party/notices.json": "bd3ce3672976fe7c604436c8bc9171600189bdfca40fd20819dc00596a983198",
+    "third_party/notices.json": "7100e459bacd1d132f3747da3ef26fab68f8e827acf1bcece70a400d6f78a828",
     "third_party/notices/dav1d/COPYING": "b327887de263238deaa80c34cdd2ff3e0ba1d35db585ce14a37ce3e74ee389e9",
     "third_party/notices/emscripten/LICENSE": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86",
     "third_party/notices/emscripten/system/lib/compiler-rt/LICENSE.TXT": "1a8f1058753f1ba890de984e48f0242a3a5c29a6a8f2ed9fd813f36985387e8d",
@@ -900,6 +912,13 @@
     "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/internal/playback-plans.js": "d6795e46606711c24db2e33f2a9fcd4907feda282fabf480139084269bf607cf",
     "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/internal/state.js": "a5d4aad6e8e236b7c72d6f44b1994752845cfc8ec15c1c114b305ee57007fa65",
     "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/playback-plans.js": "d6795e46606711c24db2e33f2a9fcd4907feda282fabf480139084269bf607cf",
-    "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/state.js": "a5d4aad6e8e236b7c72d6f44b1994752845cfc8ec15c1c114b305ee57007fa65"
+    "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/state.js": "a5d4aad6e8e236b7c72d6f44b1994752845cfc8ec15c1c114b305ee57007fa65",
+    "third_party/notices/shaka-player/LICENSE": "20ce2eba547fd0a8c4023511c003eabe510982a335cccd4e270f1f55ffbd2250",
+    "third_party/notices/shaka-player/AUTHORS": "abdb1d4c90519127eb92d323a6f1e3b9e8aec50a7ac00f8aeee7ca4880960977",
+    "third_party/notices/shaka-player/third_party/SUMMARY.txt": "e73e188e88c9d950fbbee3d2a9511057bc50af78a627becd155de173c9caa569",
+    "third_party/notices/shaka-player/third_party/language-mapping-list/LICENSE": "7113f6cf87ba13ed1700a35f033b9d448eb98ae7f80884b0f785b3a9cd640c23",
+    "third_party/notices/shaka-player/third_party/cml-cmcd/LICENSE": "95cdf13a152329c8a60cf739d442f578a172727f0584bff42406126719312f62",
+    "third_party/notices/shaka-player/third_party/cml-cmcd/NOTICE": "ae55a4168482117b80b555f07b0b56a65d579a1910b7d38e1a4b0c81292976e5",
+    "third_party/notices/shaka-player/third_party/cml-cmcd/SUMMARY.txt": "8b8d9f102b2ff73ae0111668f71ca6d985ba407769cd1888ffde3c93a9c752a6"
   }
 }

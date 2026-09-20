@@ -4,7 +4,7 @@
 import argparse, hashlib, json, os, pathlib, subprocess, tarfile, tempfile
 from license_policy import Policy, archive_files, LEGAL
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);p.add_argument('--shaka',type=pathlib.Path,nargs=2);args=p.parse_args()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def archive_sha(path):
  h=hashlib.sha256()
@@ -44,12 +44,27 @@ with tarfile.open(args.source)as tar:
   if source['files'].get('toolchain/emscripten/'+name)!=digest:raise SystemExit('Missing corresponding SDK source: '+name)
  for name,digest in build['inputs'].items():
   if source['files'].get('demuxe/'+name)!=digest:raise SystemExit('Missing corresponding engine source: '+name)
+ if manifest.get('adaptiveStreaming'):
+  shaka_record=tar.extractfile('demuxe/third_party/shaka-player.json').read()
+  if sha(shaka_record)!=manifest['files']['third_party/shaka-player.json']['sha256']:raise SystemExit('Shaka source inventory differs from runtime')
+  shaka_pin=json.loads(shaka_record)['preferredSource']
+  if source['files'].get('demuxe/build/downloads/'+shaka_pin['filename'])!=shaka_pin['sha256']:raise SystemExit('Missing pinned Shaka preferred-source archive')
 optional_present=any(name.startswith(('web/engine-ass/','web/engine-adaptation/')) for name in manifest['files'])
 if optional_present and not args.optional:raise SystemExit('Optional runtime release requires exact-archive optional qualification')
 from optional_release import required_consumer_cases
 consumer_cases=required_consumer_cases(manifest)
 streaming_cases={f'{mode}:{test}'for mode in ['hybrid','software']for test in ['seek-completes-packet','seek-deadline','destroy-progress']}
 evidence=[]
+if manifest.get('adaptiveStreaming'):
+ if not args.shaka:raise SystemExit('Shaka runtime release requires exact-archive Chrome and Firefox streaming consumer evidence (--shaka)')
+ families=set()
+ for file in args.shaka:
+  data=json.loads(file.read_text());families.add(data['family'])
+  if data['archiveSHA256']!=runtime_hash or data.get('sourceCommit')!=manifest['sourceCommit']:raise SystemExit('Shaka consumer used a different archive or source revision: '+str(file))
+  if not data.get('passed') or not data.get('typecheck') or {c['name']for c in data['cases']}!={'native-direct','hls-ts','hls-fmp4','dash'} or not all(c.get('passed')for c in data['cases']):raise SystemExit('Incomplete/failed Shaka consumer suite: '+str(file))
+  if data['testHarnessSHA256']!=source['files'].get('demuxe/tests/shaka-package.mjs'):raise SystemExit('Shaka consumer harness differs from tagged source: '+str(file))
+  evidence.append({'file':str(file.resolve()),'sha256':archive_sha(file),'browser':data['family'],'suite':'shaka-exact-archive','cases':len(data['cases'])})
+ if families!={'chrome','firefox'}:raise SystemExit('Shaka consumers require both Chrome and Firefox evidence')
 if optional_present:
  from optional_release import verify
  evidence.append(verify(args.optional,args.archive,manifest,source['files']))

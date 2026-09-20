@@ -2,6 +2,12 @@
 
 # Upstream characterization — 2026-09-14
 
+> **Historical / superseded.** This document records the former custom streaming
+> implementation and `experiments/streaming-modernization` research. It is not the
+> current production architecture or a dependency of production playback. See
+> [current Shaka streaming architecture](STREAMING.md). Historical evidence and
+> experiment artifacts remain unchanged.
+
 This is measured native demux behavior, not qualified browser streaming.
 The [architecture decision](STREAMING-ARCHITECTURE.md) remains the implementation
 contract; no compatibility adapter was removed from the release pipeline.

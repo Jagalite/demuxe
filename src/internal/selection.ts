@@ -15,14 +15,15 @@ export function losslessAdaptationRejection(probe:Probe,settings:{aid:string;sid
  if(Math.abs(v.startTime!-a.startTime!)>.05||Math.abs(v.endTime!-a.endTime!)>.05)return 'Automatic FLAC selected-track offsets or tails exceed qualification';
  if(!Number.isFinite(probe.duration)||probe.duration<=0)return 'Automatic FLAC requires a finite duration';
 }
-/** A browser-owned HLS VOD attempt may preserve default selection. Explicit
- * rendition/track contracts and live timelines still require mpv inspection.
- * This admits a trial, not support: runtime output evidence owns acceptance. */
-export function nativeManifestRejection(source:RemoteSource,settings:{aid:string;sid:string;subtitles:boolean}):string|undefined {
- if(source.demuxer||source.format!=='hls')return 'Manifest track requirements require mpv inspection';
- if(source.streaming?.live)return 'Live manifest timelines require mpv inspection';
- if(source.streaming?.maxBandwidth!==undefined||source.streaming?.representation!==undefined)return 'Explicit manifest rendition selection requires mpv inspection';
- if(!['auto','no'].includes(settings.aid)||(settings.subtitles&&!['auto','no'].includes(settings.sid)))return 'Explicit manifest track selection requires mpv inspection';
+/** A simple browser-supported HLS VOD may avoid a JS streaming engine. All
+ * controlled adaptive behavior belongs to Shaka, then eligible mpv fallback.
+ * A browser hint admits a trial; actual output is verified separately. */
+export function nativeManifestRejection(source:RemoteSource,settings:{aid:string;sid:string;subtitles:boolean},browserNativeHLS=false):string|undefined {
+ if(source.demuxer||source.format!=='hls')return 'Adaptive manifest execution requires Shaka';
+ if(source.streaming?.live)return 'Live/DVR execution requires Shaka';
+ if(source.streaming?.maxBandwidth!==undefined||source.streaming?.representation!==undefined)return 'Controlled adaptive quality requires Shaka';
+ if(!['auto','no'].includes(settings.aid)||(settings.subtitles&&!['auto','no'].includes(settings.sid)))return 'Explicit manifest track selection requires a controlled backend';
+ if(!browserNativeHLS)return 'Browser does not advertise direct HLS playback; use Shaka/MSE';
 }
 
 export type SelectionAttempt = {mode: PlaybackMode | 'probe'; outcome: 'skipped' | 'failed' | 'selected'; reason: string};

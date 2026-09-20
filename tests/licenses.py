@@ -193,7 +193,7 @@ class LicenseBoundaries(unittest.TestCase):
         # Exercise the real packager. Stub bytes prove packaging only, not playback
         # or engine/source qualification, and stay inside this temporary checkout.
         root = self.fixture()
-        for folder in ['web', 'src', 'docs', 'bin', 'fixtures', 'scripts', 'examples']:
+        for folder in ['web', 'src', 'docs', 'bin', 'fixtures', 'scripts', 'examples', 'third_party']:
             shutil.copytree(ROOT / folder, root / folder, dirs_exist_ok=True,
                             ignore=shutil.ignore_patterns('__pycache__', 'engine-*'))
         for folder, stem in [('engine-remux', 'remux'), ('engine-hybrid', 'player'), ('engine-software-full', 'player')]:

@@ -43,13 +43,59 @@ manifest with the installation. Use core and runtime from the same archive; mixi
 releases or experimental presenters is unsupported. Failed copies should be rerun
 from an intact package; use a versioned destination for atomic application rollout.
 
+## Adaptive streaming runtime
+
+`npm ci` installs the exact Shaka Player version in `package-lock.json`.
+`npm run build` verifies its version, distribution hashes and retained notices,
+then copies the unmodified non-UI player to `web/vendor/shaka-player.js` and its
+optional transmux worker to `web/vendor/shaka-player.transmuxer-worker.js`.
+These generated copies are ignored by Git. No CDN, npm resolution or Shaka UI
+styles are required in the browser. `package-beta.py` includes both assets, and
+`demuxe copy-assets` verifies and copies them with the rest of the runtime.
+
+The `shaka-mse` backend loads Shaka only when selected. Ordinary file playback
+does not fetch or parse this library. Asset URLs follow the same-origin
+`assetBase`; source media must separately satisfy the browser's CORS policy.
+The runtime download is shared between waiting players. Destroying a player
+releases its wait immediately; destroying the last waiter aborts the download.
+Successful initialization is cached for subsequent players. The loader fetches
+the same-origin asset and executes it through a temporary Blob script, then
+removes the script, handlers and Blob URL. This makes initial loading cancellable
+without relying on removal of a network script element to stop its download.
+Shaka owns adaptive manifests, buffering, segment scheduling and MSE; Demuxe
+owns selection, public state, source policy and fallback. Worker use is configured
+by the backend and must satisfy the application's `worker-src` policy.
+
+Pinned 5.2.11 distribution cost (gzip level 9, not a network measurement):
+
+| Asset | Raw bytes | Gzip bytes |
+| --- | ---: | ---: |
+| Non-UI player | 829,754 | 272,773 |
+| Optional transmux worker | 98,070 | 32,108 |
+
+`third_party/shaka-player.json` records exact versions, hashes, sizes and notice
+provenance. Upgrade the npm pin and this reviewed inventory together. The release
+archive is self-contained and does not declare a runtime npm dependency on Shaka.
+
+`BETA_ARCHIVE=<candidate.tgz> node tests/shaka-package.mjs` installs the archive
+offline in a clean consumer, type-checks its public API, copies its runtime, and
+tests direct MP4 plus H.264/AAC HLS TS, HLS fMP4 and DASH fMP4 playback, pause,
+seek and destruction. Use `BROWSER=firefox` for the second required browser.
+`verify-beta-release.py --shaka <chrome-result.json> <firefox-result.json>` binds
+these results to the exact archive and tagged harness. This smoke gate supplements
+the broader streaming and release gates; it does not establish live, DRM,
+cross-browser codec coverage or performance by itself.
+
 Serve JS/mjs as text/javascript, Wasm as application/wasm and fonts with font/ttf.
 Worker routes require a secure context and COOP: same-origin plus COEP: require-corp.
 Native direct can work without isolation. Media must satisfy CORS, range/identity
 and source allowlist requirements. CSP must permit same-origin module scripts and
 workers, Wasm compilation (wasm-unsafe-eval), same-origin worker-owner iframes,
 AudioWorklet, fonts and authorized media/connect origins. Native local/remux media
-needs media-src blob:. Component styles use a shadow style element; deployments
+needs media-src blob:. Deployments using Shaka also need same-origin `connect-src`
+and `blob:` in `script-src` (or `script-src-elem` when that directive is separately
+restricted). Shaka loading
+does not require `unsafe-eval`. Component styles use a shadow style element; deployments
 with strict style-src need an appropriate hash or policy for those shipped styles.
 No consumer service worker is installed. The Pages isolation worker is demo-only.
 Arbitrary CDN worker roots, Safari/mobile, PiP/casting and physical output fidelity

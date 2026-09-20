@@ -52,6 +52,7 @@ export class Player extends EventTarget {
     recovering = false;
     lifetime = new AbortController();
     recoveredSessions = new WeakSet();
+    failedStreamingPlans = new WeakMap();
     audioAdaptation;
     automaticLossless = false;
     losslessInspection;
@@ -178,7 +179,8 @@ export class Player extends EventTarget {
             raw = [...raw, { id: '1', type: 'video', selected: true }];
         const list = this.current ? tracks(raw, this.sourceSerial, this.mode, this.current.backend.diagnostics?.plan) : [];
         const d = p.get('duration'), reportedDuration = typeof d === 'number' && Number.isFinite(d) && d >= 0 ? d : null;
-        const live = (this.source?.kind === 'remote' && this.source.options.streaming?.live) || p.get('native-live') === true;
+        const observedLive = p.get('native-live');
+        const live = typeof observedLive === 'boolean' ? observedLive : this.source?.kind === 'remote' && this.source.options.streaming?.live === true;
         const duration = live ? null : reportedDuration;
         const streamType = !this.source ? 'unknown' : live ? 'live' : duration !== null ? 'vod' : 'unknown';
         const cache = p.get('demuxer-cache-state');
@@ -240,7 +242,7 @@ export class Player extends EventTarget {
     get properties() { return this.current?.backend.properties ?? this.empty; }
     get capabilities() { return this.snapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
     get legacyCapabilities() {
-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
+        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.current?.backend.diagnostics?.plan === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
     }
     get diagnostics() {
         return redact({ mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
@@ -340,11 +342,11 @@ export class Player extends EventTarget {
         surface.height = this.height;
         surface.style.cssText = 'display:none;width:100%;background:#000';
         // Import before allocating workers; destroy during import cannot orphan an engine.
-        const module = mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
+        const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
         this.assertOperation();
         this.root.append(surface);
         try {
-            backend = 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
         }
         catch (error) {
             surface.remove();
@@ -425,6 +427,8 @@ export class Player extends EventTarget {
         const inspected = this.sourceInspection?.source === source ? this.sourceInspection : undefined;
         const video = inspected?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
         const decisions = planAdmission({ automatic, ...settings,
+            shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
+            streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspected.settings) : undefined,
             hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) ? `Demuxe has no browser bridge configuration contract for ${video.codec}` : undefined, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
@@ -432,7 +436,8 @@ export class Player extends EventTarget {
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
-            isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined', nativeSourceRejection });
+            isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
+            nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
         const explicit = inspected?.probe.tracks.find(t => t.type === 'audio' && t.id === inspected.settings.aid);
         const selected = (source === this.source ? this.publicSelections.get('audio') : undefined) ?? (explicit ? `audio:stream:${explicit.index}` : undefined);
         if (selected?.startsWith('audio:stream:')) {
@@ -446,7 +451,22 @@ export class Player extends EventTarget {
                         plan.reason = 'Original Native has no proven source-stream identity selection contract for the requested alternate audio';
                     }
         }
+        for (const plan of decisions)
+            if (plan.eligible && this.failedStreamingPlans.get(source)?.has(plan.id)) {
+                plan.eligible = false;
+                plan.code = 'QUALIFICATION_REQUIRED';
+                plan.reason = 'This execution plan already failed for the current streaming source';
+            }
         return decisions;
+    }
+    failedStreamingPlan(session) {
+        if (this.source?.kind !== 'remote' || !['hls', 'dash'].includes(this.source.options.format ?? ''))
+            return false;
+        const plan = executionPlan(this.mode, session.backend.diagnostics?.plan, this.settings.af, this.settings.gain);
+        const rejected = this.failedStreamingPlans.get(this.source) ?? new Set();
+        rejected.add(plan.id);
+        this.failedStreamingPlans.set(this.source, rejected);
+        return true;
     }
     async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic, planId) {
         if (!planId)
@@ -694,7 +714,7 @@ export class Player extends EventTarget {
         this.sourceInspection = undefined;
         if (start === 0 && !(settings.vf || settings.af || this.toneMapping !== 'off')) {
             if ((source.kind === 'local' && source.input?.demuxer) || (source.kind === 'remote' && (source.options.demuxer || (source.options.format && source.options.format !== 'file')))) {
-                nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings) : 'Manifest track requirements require mpv inspection';
+                nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';
             }
             else {
                 const controller = this.inspection = new AbortController();
@@ -854,12 +874,13 @@ export class Player extends EventTarget {
                 return;
             await session.backend.pause().catch(() => { });
             const policy = this.nativeRemux;
-            const tryRemux = this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
+            const streaming = this.failedStreamingPlan(session);
+            const tryRemux = !streaming && this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
             const priorAttempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `Runtime playback failure: ${session.error?.message ?? 'Playback backend became unavailable'}` }];
             try {
                 if (tryRemux)
                     this.nativeRemux = 'always';
-                await this.select(this.source, this.settings, true, this.nativeTracks, tryRemux ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, undefined, priorAttempts);
+                await this.select(this.source, this.settings, true, this.nativeTracks, streaming || tryRemux ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, undefined, priorAttempts);
             }
             finally {
                 this.nativeRemux = policy;
@@ -894,7 +915,16 @@ export class Player extends EventTarget {
                 const url = new URL(value.url, location.href);
                 if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
                     throw Error('Invalid remote URL');
-                source = { kind: 'remote', options: { ...value, url: url.href, headers: value.headers ? { ...value.headers } : undefined, streaming: value.streaming ? { ...value.streaming } : undefined, allowedOrigins: value.allowedOrigins?.slice() } };
+                const format = value.format ?? (/\.m3u8$/i.test(url.pathname) ? 'hls' : /\.mpd$/i.test(url.pathname) ? 'dash' : 'file');
+                if (!['file', 'hls', 'dash'].includes(format))
+                    throw Error('Invalid source format');
+                if (value.streaming?.maxBandwidth !== undefined && (!Number.isFinite(value.streaming.maxBandwidth) || value.streaming.maxBandwidth <= 0))
+                    throw Error('Invalid streaming bandwidth limit');
+                if (value.streaming?.representation !== undefined && (typeof value.streaming.representation !== 'string' || !value.streaming.representation))
+                    throw Error('Invalid streaming representation');
+                if (value.streaming?.live !== undefined && typeof value.streaming.live !== 'boolean')
+                    throw Error('Invalid live permission');
+                source = { kind: 'remote', options: { ...value, format, url: url.href, credentials: value.credentials ?? (format === 'file' ? undefined : 'same-origin'), headers: value.headers ? { ...value.headers } : undefined, streaming: value.streaming ? { ...value.streaming } : undefined, allowedOrigins: value.allowedOrigins?.slice() } };
             }
             else {
                 if (!(input instanceof File) && !(input instanceof ArrayBuffer))
@@ -1010,14 +1040,15 @@ export class Player extends EventTarget {
             }
             catch (error) {
                 if (this.automatic && compatibilityFailure(error) && this.source) {
-                    const policy = this.nativeRemux, tryRemux = this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
+                    const streaming = this.failedStreamingPlan(session);
+                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
                     const plan = this.diagnostics.plan;
                     if (plan)
                         this.runtimeCapabilities.update(plan.id, 'failed', this.evidence(session), String(error), 'compatibility');
                     try {
                         if (tryRemux)
                             this.nativeRemux = 'always';
-                        await this.select(this.source, this.settings, true, this.nativeTracks, tryRemux ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1);
+                        await this.select(this.source, this.settings, true, this.nativeTracks, streaming || tryRemux ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1);
                     }
                     finally {
                         this.nativeRemux = policy;
@@ -1062,10 +1093,11 @@ export class Player extends EventTarget {
                     }
                     throw error;
                 }
-                if (this.activeOperation?.controller.signal.aborted || playerError(error).code === 'AUTOPLAY_BLOCKED' || !this.automatic || this.mode === 'software' || terminalSourceFailure(error) || /out of range|Invalid seek/i.test(String(error)))
+                if (this.activeOperation?.controller.signal.aborted || ['AUTOPLAY_BLOCKED', 'INVALID_ARGUMENT'].includes(playerError(error).code) || !this.automatic || this.mode === 'software' || terminalSourceFailure(error) || /out of range|Invalid seek/i.test(String(error)))
                     throw error;
                 const priorAttempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `Seek presentation failure: ${playerError(error).message}` }];
-                await this.select(this.source, this.settings, true, this.nativeTracks, PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, priorAttempts);
+                const streaming = this.failedStreamingPlan(accepted);
+                await this.select(this.source, this.settings, true, this.nativeTracks, streaming ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, priorAttempts);
             }
         }, 'seeking');
     }
@@ -1091,7 +1123,7 @@ export class Player extends EventTarget {
             if (id !== null && id !== 'auto' && !track)
                 throw new PlayerError('INVALID_ARGUMENT', 'Unknown or stale public track ID');
             const backendId = id === null ? 'no' : id === 'auto' ? 'auto' : String(track.id);
-            if (type === 'audio' && this.source && (this.automaticLossless || this.mode === 'native') && track) {
+            if (type === 'audio' && plan !== 'shaka-mse' && this.source && (this.automaticLossless || this.mode === 'native') && track) {
                 const previous = this.publicSelections.get(type);
                 if (track)
                     this.publicSelections.set(type, trackKey(track, this.mode, plan));
@@ -1128,6 +1160,12 @@ export class Player extends EventTarget {
         return this.setting(p => p.rate(value), () => { this.settings.speed = value; });
     }
     selectTrack(type, id) {
+        if (['audio', 'sub'].includes(type) && this.current?.backend.diagnostics?.plan === 'shaka-mse') {
+            const track = this.sourceTracks().find(t => t.type === type && String(t.id) === id);
+            if (id !== 'auto' && id !== 'no' && !track)
+                throw new PlayerError('INVALID_ARGUMENT', 'Unknown streaming track ID');
+            return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : `${this.sourceSerial}:${trackKey(track, this.mode, 'shaka-mse')}`);
+        }
         if (!['audio', 'sub'].includes(type) || !/^(?:[1-9][0-9]*|auto|no)$/.test(id))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid track selection');
         if (type === 'audio' && this.current) {
@@ -1143,7 +1181,7 @@ export class Player extends EventTarget {
             throw new PlayerError('INVALID_ARGUMENT', 'Expected boolean subtitle visibility');
         return this.enqueue(async () => {
             const settings = { ...this.settings, subtitles: visible };
-            if (this.automatic && this.source && this.mode === 'native' && visible && !this.settings.subtitles)
+            if (this.automatic && this.source && this.mode === 'native' && this.current?.backend.diagnostics?.plan !== 'shaka-mse' && visible && !this.settings.subtitles)
                 await this.select(this.source, settings, true, this.nativeTracks);
             else {
                 if (this.current)

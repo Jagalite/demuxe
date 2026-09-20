@@ -18,7 +18,7 @@ async function main(){
   if(bytes.length!==expected.bytes||hash(bytes)!==expected.sha256)throw Error('Package asset hash mismatch: '+name);
   if(name.startsWith('web/')||name.startsWith('fixtures/')||name.startsWith('third_party/')||['LICENSE','sources.lock.json','toolchain.lock.json'].includes(name)||name==='docs/LICENSING.md')files.set(name,bytes);
  }
- for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
+ for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js','third_party/shaka-player.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
  const target=path.resolve(destination);await safeDirectory(target);
  let previous;try{const info=await lstat(path.join(target,'demuxe-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'demuxe-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
  // Refuse unrelated file collisions and all symlink destinations. No directory is removed.

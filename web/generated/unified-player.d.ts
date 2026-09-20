@@ -28,6 +28,7 @@ export declare class Player extends EventTarget {
     private recovering;
     private lifetime;
     private recoveredSessions;
+    private failedStreamingPlans;
     private audioAdaptation?;
     private automaticLossless;
     private losslessInspection?;
@@ -97,6 +98,7 @@ export declare class Player extends EventTarget {
     private create;
     private settled;
     private admissible;
+    private failedStreamingPlan;
     private replace;
     private record;
     private select;

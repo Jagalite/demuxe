@@ -87,7 +87,12 @@ output before user video filters. Inputs must carry valid color metadata. The
 reference checks cover tagged PQ and HLG; native HDR output, Dolby Vision dynamic
 metadata, display calibration and all mastering-peak combinations are not covered.
 
-## Streaming contract
+## Historical streaming contract
+
+> The following describes the pre-Shaka beta implementation and its original
+> evidence. Its custom rendition selection, period rewriting and subtitle merging
+> have been retired. Use [the current streaming contract](STREAMING.md) and fresh
+> Shaka route evidence; this section does not describe production execution.
 
 ```ts
 await player.openRemote({

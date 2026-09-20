@@ -8,10 +8,11 @@ manifest={
  'schema':1,'scope':'M4 optional browser decoder; qualification pending' if os.environ.get('WEBMPV_BROWSER_DECODER')=='1' else 'S1 development software player; segmented VOD qualification pending','buildHost':platform.platform(),
  'toolchainLock':json.loads((root/'toolchain.lock.json').read_text()),
  'sources':json.loads((root/'sources.lock.json').read_text()),
+ 'adaptiveStreamingDependency':json.loads((root/'third_party/shaka-player.json').read_text()),
  'patchesAndBindings':hashed(sorted((root/'patches').rglob('*.patch'))+sorted((root/'native').rglob('*'))),
  'artifacts':hashed(sorted((root/os.environ.get('WEBMPV_ENGINE_DIR','web/engine')).glob('*'))),
  'buildConfigurations':hashed([root/'build/obj-ffmpeg/config.h',root/'build/obj-ffmpeg/config_components.h',root/'build/obj-ffmpeg/ffbuild/config.mak',root/'build/obj-mpv/config.h',root/'scripts/build.sh',root/'scripts/link.sh',root/'scripts/decoder-simd.sh',root/'Dockerfile']),
- 'browserBindings':hashed([root/'src/player.ts',root/'web/engine-worker.js',root/'web/audio-worklet.js',root/'web/io-worker.js',root/'web/range-reader.js',root/'web/resource-loader.js',root/'web/vod-manifest.js',root/'web/browser-decoder-worker.js',root/'web/generated/player.js']),
+ 'browserBindings':hashed([root/'src/player.ts',root/'web/engine-worker.js',root/'web/audio-worklet.js',root/'web/io-worker.js',root/'web/range-reader.js',root/'web/resource-loader.js',root/'web/fallback-stream-policy.js',root/'web/vendor/shaka-player.js',root/'web/vendor/shaka-player.transmuxer-worker.js',root/'web/browser-decoder-worker.js',root/'web/generated/player.js']),
  'fixtures':hashed(sorted((root/'fixtures').glob('*'))),
  'tools':{},
  'browserDecoding':os.environ.get('WEBMPV_BROWSER_DECODER')=='1','decoderSimd':os.environ.get('DEMUXE_DECODER_SIMD',os.environ.get('WEBMPV_DECODER_SIMD','1'))=='1','renderer':'libmpv software render API / Canvas 2D',
@@ -28,4 +29,6 @@ for name,cmd in [('emscripten',['emcc','--version']),('meson',['meson','--versio
 sbom={'bomFormat':'CycloneDX','specVersion':'1.6','version':1,'components':[]}
 for item in manifest['sources']['sources']:
     sbom['components'].append({'type':'application' if item['name']=='emsdk' else 'library','name':item['name'],'version':item['revision'],'hashes':[{'alg':'SHA-256','content':item['sha256']}],'externalReferences':[{'type':'vcs','url':item['upstream']},{'type':'distribution','url':item['url']}],'properties':[{'name':'demuxe:license-notices','value':'third_party/notices/'+item['name']}]})
+shaka=manifest['adaptiveStreamingDependency']
+sbom['components'].append({'type':'library','name':'shaka-player','version':shaka['version'],'licenses':[{'expression':shaka['license']}],'externalReferences':[{'type':'vcs','url':shaka['upstream']}],'properties':[{'name':'demuxe:license-notices','value':'third_party/notices/shaka-player'}]})
 (root/os.environ.get('WEBMPV_MANIFEST_DIR','results')/'sbom.cdx.json').write_text(json.dumps(sbom,indent=2)+'\n')

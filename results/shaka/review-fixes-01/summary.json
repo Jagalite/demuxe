@@ -1,0 +1,93 @@
+{
+  "scope": "Review fixes only: invalid DVR seeks, dynamic timeline permission/state, cancellable shared runtime initialization; no new CPU claim or full release qualification",
+  "created": "2026-09-20T23:11:45.194867+00:00",
+  "baseCommit": "6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36",
+  "sourceHashes": {
+    "src/internal/shaka-backend.ts": "a1c9b92ba64d119c5327cd3c0a250d8dffda43a1b22f1603d2264bbb64d8325e",
+    "src/unified-player.ts": "062ce835ac3118c80d62d43e37fdafb5c51ba022deff8f70ca9b948553750dac",
+    "web/generated/internal/shaka-backend.js": "ac159936947394c60ba79f183c450e4a9072dbaf4a7e2e45de1a421e2e6d5f63",
+    "web/generated/unified-player.js": "64e33e95cfcfd5164d53737b2905a6cea3a52d1d4348e6120751d39b895ff496",
+    "tests/shaka-backend.mjs": "500f67dc754c1cf58a2293fa113a222d8d6cea0c6b64a58502f400e3512fc27d",
+    "tests/shaka-package.mjs": "e196a91819f265ea41bf4613c97c3361f4ec52e5f064aededaa4d3a011584897",
+    "tests/shaka-lifecycle.mjs": "e88afd2cc59a57f609a5c033699f903e230303c5241006d7242d50a3cb53a97c"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "command": "npm run build",
+      "exit": 0,
+      "log": "results/shaka/review-fixes-01/build.log",
+      "logSHA256": "93efb8d1c4d354312d4ba601d3e9790257d79f85d321af0f97596c114e6d34e3"
+    },
+    {
+      "name": "focused-unit",
+      "command": "node --test tests/shaka-backend.mjs tests/shaka-network.mjs tests/plan-admission.mjs tests/native-selection.mjs tests/native-readiness-contracts.mjs",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0,
+      "log": "results/shaka/review-fixes-01/unit.log",
+      "logSHA256": "e48640015e430c0c9026f7e354c2ae55e223d047a834e87e09f43bef12873505"
+    },
+    {
+      "name": "package",
+      "command": "python3 scripts/package-beta.py --output build/shaka-review-fixes",
+      "exit": 0,
+      "log": "results/shaka/review-fixes-01/package.log",
+      "logSHA256": "c211b4d57923f1378599a843e3520e276fb7cc15817537929a4dd56df93cc5b9"
+    }
+  ],
+  "archive": "build/shaka-review-fixes/demuxe-0.3.0-beta.3.tgz",
+  "archiveSHA256": "ab0fd255f52149cb7bab10eeadaffd6d1dd5c36084624f4b3a94f7deac9b2112",
+  "browserChecks": [
+    {
+      "family": "chrome",
+      "report": "results/shaka-package/chrome-2026-09-20T23-12-59.866Z/result.json",
+      "sha256": "eb0a8cb1ed7edc34e54af48a392ccad2e8ed2baaafa1b37aaef7c586fcaa3944",
+      "passed": 4,
+      "failed": 0,
+      "log": "results/shaka/review-fixes-01/chrome.log"
+    },
+    {
+      "family": "firefox",
+      "report": "results/shaka-package/firefox-2026-09-20T23-13-25.095Z/result.json",
+      "sha256": "b1e6dcaf76c0f02a20b2ca1efe0b602d70f9e83dd58b0d06758e5e9c9f93e76c",
+      "passed": 4,
+      "failed": 0,
+      "log": "results/shaka/review-fixes-01/firefox.log"
+    }
+  ],
+  "releaseQualified": false,
+  "lifecycle": {
+    "runs": [
+      {
+        "report": "results/shaka/lifecycle-2026-09-20T23-10-03.981Z/result.json",
+        "sha256": "b5e8d1e8ba417997f43d354d21a553e106a6e5b6a07385648a420811195b58d0",
+        "passed": 10,
+        "failed": 1
+      },
+      {
+        "report": "results/shaka/lifecycle-2026-09-20T23-11-31.724Z/result.json",
+        "sha256": "cd869eabc6e717c4da594237f3e42c8e18f739eeef7c5e626b62fc8f54be5ba8",
+        "passed": 1,
+        "failed": 0
+      }
+    ],
+    "coveredScenarios": 11,
+    "runtimeHashesUnchanged": true,
+    "note": "First run 10/11. Expired seek test could not reach action because three-segment live fixture exposed no DVR window. Longer fixture passed separately; production code unchanged."
+  },
+  "initialPackageCSPCheck": {
+    "report": "results/shaka-package/chrome-2026-09-20T23-12-05.950Z/result.json",
+    "passed": 3,
+    "failed": 1,
+    "note": "All Shaka profiles passed. Native file metadata probing was blocked because harness CSP omitted the already documented wasm-unsafe-eval requirement; harness corrected without runtime changes."
+  },
+  "passed": true,
+  "finished": "2026-09-20T23:14:13.384691+00:00",
+  "limits": [
+    "No new CPU or full catalogue measurements",
+    "No new Safari/mobile or long-live qualification",
+    "Blob script permission is required by CSP deployments",
+    "Lifecycle coverage spans a 10/11 run and corrected-fixture 1/1 run; initial failures retained"
+  ]
+}

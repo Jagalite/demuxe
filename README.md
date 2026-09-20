@@ -4,10 +4,19 @@
 
 Demuxe is a browser media playback runtime that automatically chooses the least
 expensive correct playback path: native browser playback, progressive remuxing,
-WebCodecs-assisted hybrid playback, or FFmpeg/mpv software decoding.
+Shaka/MSE adaptive streaming, WebCodecs-assisted hybrid playback, or FFmpeg/mpv
+software decoding.
 
 The three public modes are **native**, **hybrid**, and **software**. Remuxing is
-part of Native, not a fourth mode. This is a developer beta with representative
+part of Native. Shaka is an explicit Native execution backend, not a fourth public
+mode. Demuxe owns source classification, plan selection, state and fallback; Shaka
+owns HLS/DASH parsing, segment scheduling, ABR, buffering, live/DVR and MSE.
+Simple browser-supported HLS VOD can retain Native Direct when its source and
+track policies permit it and actual output passes verification. Ordinary files
+keep their existing Direct/Remux/Hybrid/Software paths. Shaka loads only when its
+plan is needed. See [streaming architecture](docs/STREAMING.md).
+
+This is a developer beta with representative
 Chrome/Firefox evidence, not a promise of universal codec or browser support.
 
 **[Component capability reference](docs/CAPABILITIES.md)** — codecs/profiles,
@@ -29,7 +38,7 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-Native direct playback does not require Wasm or isolation. Remote sources need
+Native Direct and Shaka/MSE playback do not require Wasm or isolation. Remote sources need
 appropriate CORS and range support. See [runtime assets](docs/RUNTIME-ASSETS.md).
 
 ## Player runtime
@@ -74,6 +83,17 @@ The table uses the recorded CPU campaign and its matching playback checks, plus 
 Every numeric cell shows that player’s actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest measured median for that media case. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` means bounded playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU measurement is claimed. `(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate from the synthetic CPU campaign; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
 [Raw values, ranges and exclusions](results/head-to-head/cpu-specialist-usage-02/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
+
+The six HLS/DASH rows were rerun through the maintained streaming architecture in
+[the Shaka migration catalogue](results/head-to-head/shaka-catalogue-01/REPORT.md).
+Their older custom-route CPU numbers have been removed. Default HLS VOD uses
+Native Direct on this Chrome platform; DASH and live HLS use `shaka-mse`.
+Controlled Shaka and fallback comparisons are recorded separately in
+[streaming qualification](docs/STREAMING-QUALIFICATION.md).
+The fresh bounded comparison measured Shaka HLS fMP4 at 28.6% of one core versus
+29.8% for plain Native, with overlapping ranges. AV1 DASH Shaka used 37.4% less
+median CPU than Hybrid on the matched synthetic fixture. These controlled-route
+measurements do not replace the default-route correctness labels below.
 
 | Media format | Native video | Demuxe (auto) | Movi | AVPlayer |
 | --- | --- | --- | --- | --- |
@@ -131,10 +151,10 @@ Every numeric cell shows that player’s actual median CPU usage as a percentage
 | HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | 🔴 (Fail) |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)\*** |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)\*** |
-| H.264 + AAC / HLS VOD (TS segments) | 🟠 24.2% CPU | **🟢 23.3% CPU** | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | 🟠 25.0% CPU | **🟢 24.4% CPU** | 🔴 (Fail) | 🟠 40.8% CPU |
-| HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 🔴 (Fail) | **🟢 37.5% CPU** |
-| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)** |
+| H.264 + AAC / HLS VOD (TS segments) | **🟢 (Pass)** | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 🔴 (Fail) | **🟢 (Pass)** |
+| HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 🔴 (Fail) | **🟢 (Pass)** |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | **🟢 (Pass)** |
 | AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
 | HEVC Main 10 + AAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** |

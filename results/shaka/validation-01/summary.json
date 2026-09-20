@@ -1,0 +1,49 @@
+{
+  "scope": "Final maintained source unit and build validation; no browser or performance claim",
+  "createdAt": "2026-09-20T22:39:24.068103+00:00",
+  "focusedTests": {
+    "passed": 95,
+    "failed": 0,
+    "command": "node --test tests/native-selection.mjs tests/plan-admission.mjs tests/native-readiness-contracts.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/shaka-assets.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs tests/audio-worklet.mjs tests/retained-video.mjs tests/timing-coalescing.mjs tests/head-to-head/contracts.mjs",
+    "log": "focused-tests.txt"
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "log": "build.txt",
+    "note": "Final pin-integrity source subsequently compiled and stamped by backend agent; exact consumer archive verifies final generated files"
+  },
+  "sources": {
+    "src/unified-player.ts": "80c64dc1d063be7331dffdc1d017dfe2300ef3cc413d391c4336eea61f520d53",
+    "src/internal/native-player.ts": "1bcdb90f7ab40229fecd77fe7bdc03fc29c3f47228cf227a4134b3e2fdb13a83",
+    "src/internal/shaka-backend.ts": "d1461207e01d231d57208f7c03563f516ab33d989a0281f2e7340d67387d4255",
+    "src/internal/shaka-network.ts": "22d41d56b9e473921b0b1f54cd57c5e3b9afc0379e05dcc3c3b62da3c540d9c7",
+    "src/internal/playback-plans.ts": "d313d367a5fe743fdd8f19ee3578756bb401bfef4bb4b65b88539aacbd0b1e71",
+    "src/internal/selection.ts": "202e644aebdf2f79d81dd34ffc7a9b6051d5de06f829a175ba22ad3891f1048c",
+    "src/internal/state.ts": "e59de4c8444a1cc46ec91aa4adb85a6072f268954183a2bc885d72bfb276ad22",
+    "web/resource-loader.js": "21cdefa182c136f43804556c47e1d3e84bee783256ab04ebfa44d490f82857d2",
+    "web/fallback-stream-policy.js": "c2d1af8e450f2f733156ea4587fe04c6eed6f9b7fe9ce7f9a61fc896e6a00d6b"
+  },
+  "finalLicenseCheck": {
+    "command": "python3 scripts/check-licenses.py",
+    "passed": true,
+    "log": "final-license.txt"
+  },
+  "resultIntegrity": [
+    {
+      "run": "results/head-to-head/shaka-catalogue-01",
+      "passed": true,
+      "command": "node tests/head-to-head/verify.mjs results/head-to-head/shaka-catalogue-01"
+    },
+    {
+      "run": "results/head-to-head/shaka-controlled-01",
+      "passed": true,
+      "command": "node tests/head-to-head/verify.mjs results/head-to-head/shaka-controlled-01"
+    },
+    {
+      "run": "results/head-to-head/shaka-performance-01",
+      "passed": true,
+      "command": "node tests/head-to-head/verify.mjs results/head-to-head/shaka-performance-01"
+    }
+  ]
+}

@@ -6,6 +6,8 @@ export const PLAYBACK_PLANS = Object.freeze(([
   {id:'native-direct', mode:'native', video:'browser', audio:'original', qualification:'existing'},
   {id:'native-remux', mode:'native', video:'packet-copy', audio:'packet-copy', qualification:'existing'},
   {id:'native-direct-gain', mode:'native', video:'browser', audio:'web-audio-gain', qualification:'experimental'},
+  {id:'shaka-mse', mode:'native', video:'browser-mse', audio:'browser-mse', qualification:'runtime-verified'},
+  {id:'shaka-mse-gain', mode:'native', video:'browser-mse', audio:'browser-mse+web-audio-gain', qualification:'runtime-verified'},
   {id:'native-remux-gain', mode:'native', video:'packet-copy', audio:'web-audio-gain', qualification:'experimental'},
   {id:'native-flac', mode:'native', video:'packet-copy', audio:'flac-lossless', qualification:'experimental'},
   {id:'native-flac-gain', mode:'native', video:'packet-copy', audio:'flac-lossless+web-audio-gain', qualification:'experimental'},
@@ -24,12 +26,12 @@ export const PLAYBACK_PLANS = Object.freeze(([
   {id:'software-gain', mode:'software', video:'ffmpeg', audio:'mpv+web-audio-gain', qualification:'experimental'},
   {id:'software', mode:'software', video:'ffmpeg', audio:'mpv', qualification:'existing'},
 ] as const).map(plan=>Object.freeze({...plan,
-  owners:Object.freeze({video:plan.mode==='native'?'browser-media-element':plan.mode==='hybrid'?'browser-webcodecs':'ffmpeg',audio:plan.mode==='native'?'browser-media-element':'mpv-pcm-worklet',subtitle:plan.id.includes('-ass')?'independent-libass':plan.mode==='native'?'browser-text-track':'mpv',demux:plan.mode==='native'?(plan.id.startsWith('native-direct')?'browser':'ffmpeg-preparation'):'mpv',presentation:plan.mode==='native'?'browser-media-element':'demuxe-retained-frame'}),
-  source:(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'qualified random-access file and selected codec packaging':plan.mode==='native'?'browser-supported source and selected tracks':'existing mpv source/track contract',
-  prerequisites:(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'MSE, cross-origin isolation, qualified MIME':plan.mode==='native'?'HTMLMediaElement'+(plan.id.endsWith('gain')?', Web Audio and CORS-clean media':''):'cross-origin isolation'+(plan.mode==='hybrid'?', supported complete WebCodecs configuration':''),
-  subtitles:plan.id.includes('-ass')?'external ASS/SSA via pinned libass; container presentation only':plan.mode==='native'?'browser text tracks':'mpv/libass',
+  owners:Object.freeze({video:plan.mode==='native'?'browser-media-element':plan.mode==='hybrid'?'browser-webcodecs':'ffmpeg',audio:plan.mode==='native'?'browser-media-element':'mpv-pcm-worklet',subtitle:plan.id.startsWith('shaka-')?'shaka-text':plan.id.includes('-ass')?'independent-libass':plan.mode==='native'?'browser-text-track':'mpv',demux:plan.id.startsWith('shaka-')?'shaka-manifest-segments-mse':plan.mode==='native'?(plan.id.startsWith('native-direct')?'browser':'ffmpeg-preparation'):'mpv',presentation:plan.mode==='native'?'browser-media-element':'demuxe-retained-frame'}),
+  source:plan.id.startsWith('shaka-')?'authorized HLS/DASH adaptive source':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'qualified random-access file and selected codec packaging':plan.mode==='native'?'browser-supported source and selected tracks':'existing mpv source/track contract',
+  prerequisites:plan.id.startsWith('shaka-')?'MSE and lazy Shaka runtime; qualified browser codecs':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'MSE, cross-origin isolation, qualified MIME':plan.mode==='native'?'HTMLMediaElement'+(plan.id.endsWith('gain')?', Web Audio and CORS-clean media':''):'cross-origin isolation'+(plan.mode==='hybrid'?', supported complete WebCodecs configuration':''),
+  subtitles:plan.id.startsWith('shaka-')?'Shaka manifest text selection and rendering':plan.id.includes('-ass')?'external ASS/SSA via pinned libass; container presentation only':plan.mode==='native'?'browser text tracks':'mpv/libass',
   fidelity:plan.id.startsWith('native-opus')?'Explicitly permitted lossy audio; no resampling/downmix; video copied':plan.id.startsWith('native-flac')?'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample':'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
-  resources:plan.mode==='native'?'existing bounded remux buffers when used; browser decoder allocations are opaque':'existing mpv allocation, PCM ring and retained-frame limits',
+  resources:plan.id.startsWith('shaka-')?'Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque':plan.mode==='native'?'existing bounded remux buffers when used; browser decoder allocations are opaque':'existing mpv allocation, PCM ring and retained-frame limits',
   fallback:plan.mode==='software'?'terminal':'existing diagnosed-path fallback with source and user intent preserved',
 })));
 
@@ -48,6 +50,7 @@ export function featureRejection(mode: PlaybackMode, features: {vf:string; af:st
   if (!qualifiedAudioFilter(features.af)) return 'This audio filter has not been qualified for Hybrid';
 }
 export function executionPlan(mode:PlaybackMode, packaging:unknown, audioFilter:string, gain=1, nativeASS=false) {
+  if(mode==='native'&&packaging==='shaka-mse')return PLAYBACK_PLANS.find(plan=>plan.id===(gain!==1?'shaka-mse-gain':'shaka-mse'))!;
   let id:string=(mode === 'native' ? packaging === 'adapted-opus' ? gain!==1?'native-opus-gain':'native-opus' : packaging === 'adapted-flac' ? gain!==1?'native-flac-gain':'native-flac' : packaging === 'remux' ? gain!==1?'native-remux-gain':'native-remux' : gain!==1?'native-direct-gain':'native-direct' : mode === 'hybrid' ? audioFilter ? gain!==1?'hybrid-audio-filter-gain':'hybrid-audio-filter' : gain!==1?'hybrid-gain':'hybrid' : gain!==1?'software-gain':'software');
   if(mode==='native'&&nativeASS)id=gain!==1?id.replace(/-gain$/,'-ass-gain'):id+'-ass';
   return PLAYBACK_PLANS.find(plan=>plan.id===id)!;
@@ -60,6 +63,7 @@ export type PlanFacts={
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
   manifest:boolean;requiresRemux:boolean;isolated:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
   nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;
+  shakaSourceRejection?:string;streamingFallbackRejection?:string;
   automaticLossless?:boolean;adaptationSourceQualified?:boolean;adaptationSourceRejection?:string;
 };
 /** Admission is executable and deliberately finite. Runtime output verification
@@ -73,6 +77,14 @@ export function planAdmission(f:PlanFacts){
     if(effect)reject('FEATURE_UNSUPPORTED',effect);
     else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
     else if(gain&&!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Web Audio is unavailable');
+    else if(plan.id.startsWith('shaka-')){
+      if(!f.manifest)reject('SOURCE_UNSUPPORTED','Shaka is only used for adaptive HLS/DASH sources');
+      else if(!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Shaka requires MediaSource');
+      else if(f.audioOutput!=='stereo')reject('FEATURE_UNSUPPORTED','Explicit PCM layout requires mpv');
+      else if(f.externalFormats.length||f.browserTextTracks)reject('QUALIFICATION_REQUIRED','External attachments are not qualified on Shaka manifest timelines');
+      else if(f.shakaSourceRejection)reject('SOURCE_UNSUPPORTED',f.shakaSourceRejection);
+    }
+    else if(plan.mode!=='native'&&f.manifest&&f.streamingFallbackRejection)reject('FEATURE_UNSUPPORTED',f.streamingFallbackRejection);
     else if(plan.mode!=='native'&&!f.isolated)reject('ISOLATION_REQUIRED','mpv deployment requires cross-origin isolation');
     else if(plan.mode==='hybrid'&&f.hybridSourceRejection)reject('QUALIFICATION_REQUIRED',f.hybridSourceRejection);
     else if(plan.mode==='hybrid'&&!f.webCodecs)reject('DEPLOYMENT_UNAVAILABLE','WebCodecs video decoding is unavailable');

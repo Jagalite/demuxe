@@ -34,14 +34,14 @@ export declare function losslessAdaptationRejection(probe: Probe, settings: {
     sid: string;
     subtitles: boolean;
 }): string | undefined;
-/** A browser-owned HLS VOD attempt may preserve default selection. Explicit
- * rendition/track contracts and live timelines still require mpv inspection.
- * This admits a trial, not support: runtime output evidence owns acceptance. */
+/** A simple browser-supported HLS VOD may avoid a JS streaming engine. All
+ * controlled adaptive behavior belongs to Shaka, then eligible mpv fallback.
+ * A browser hint admits a trial; actual output is verified separately. */
 export declare function nativeManifestRejection(source: RemoteSource, settings: {
     aid: string;
     sid: string;
     subtitles: boolean;
-}): string | undefined;
+}, browserNativeHLS?: boolean): string | undefined;
 export type SelectionAttempt = {
     mode: PlaybackMode | 'probe';
     outcome: 'skipped' | 'failed' | 'selected';
