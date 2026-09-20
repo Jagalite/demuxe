@@ -10,6 +10,10 @@ The three public modes are **native**, **hybrid**, and **software**. Remuxing is
 part of Native, not a fourth mode. This is a developer beta with representative
 Chrome/Firefox evidence, not a promise of universal codec or browser support.
 
+**[Component capability reference](docs/CAPABILITIES.md)** — codecs/profiles,
+demuxing, subtitles, pixel formats, HDR, audio output, streaming and playback
+features, with route eligibility, fallbacks and qualification limits.
+
 ## Install
 
 ```sh
@@ -57,7 +61,13 @@ browser. The runtime never uploads them.
 See [the public API](docs/PUBLIC-API.md), [component contract](docs/PLAYER-COMPONENT.md),
 [migration notes](docs/API-MIGRATION.md), and [beta limits](docs/BETA.md).
 
-## Head-to-head media coverage
+## Representative head-to-head media evidence
+
+This table records complete-file experiments, not an exhaustive compatibility
+matrix. Use **[component capabilities](docs/CAPABILITIES.md)** to identify which
+subsystem or requirement determines a route. The
+[head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
+combinations and their exact evidence.
 
 The original four combinations and all 56 additional combinations now have recorded
 outcomes. Expanded base run: **2026-09-19, Chrome 152, headless**; linked route follow-ups include headed runs.
