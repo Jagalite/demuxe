@@ -30,13 +30,8 @@ def cell(result, player):
         return ('🟡' if result.get('fidelityLimited') else '⚪') + ' (N/A)'
     gain = result.get('gainPercent', result['medianGainPercent'])
     if gain == 0:
-        return '🟢 (Pass)'
+        return '🟢 (0%)'
     return ('🟢' if gain > 0 else '🟠') + f" ({gain:+.1f}%)"
-
-
-def table_cell(result, player):
-    label = cell(result, player)
-    return '**' + label.replace('*', r'\*') + '**' if '(Pass)' in label else label
 
 
 def compare(key, player, correctness, performance, fixture, historical=None, baseline="video"):
@@ -178,13 +173,13 @@ def render(args):
             p: compare(r['fixture'], p, correctness, performance, fixture, historical, leader) for p, _ in PLAYERS
         }})
     table = ['| Media format | ' + ' | '.join(title for _, title in PLAYERS) + ' |', '| --- | --- | --- | --- | --- |']
-    table += ['| ' + r['label'] + ' | ' + ' | '.join(table_cell(r['players'][p], p) for p, _ in PLAYERS) + ' |' for r in rows]
+    table += ['| ' + r['label'] + ' | ' + ' | '.join(('**' + cell(r['players'][p], p) + '**' if p == r['leader'] else cell(r['players'][p], p)) for p, _ in PLAYERS) + ' |' for r in rows]
     out = Path(args.output).resolve()
     out.mkdir(parents=True, exist_ok=False)
-    explanation = ('Each row uses the lowest-median-CPU eligible player among the four as its reference: `100 × (leader median CPU − player median CPU) / leader median CPU`. '
-                   'The leader shows `(Pass)`; negative percentages mean higher CPU than the leader. Medians use three matched rounds. Only players with accepted matching measurements can lead; this is not a claim about unmeasured players or statistical superiority. '
-                   'Nonzero measured differences show percentages even when round ranges overlap. Every `(Pass)` is bold: it can mean the measured reference, equal measured median CPU, or successful playback without a valid CPU comparison. '
-                   'Bold `(Pass)` does not imply a tie or native decoding; reference identities and ranges remain in the report. '
+    explanation = ('Each row uses the lowest-median-CPU eligible player among the four as its reference (**bold** cell): `100 × (leader median CPU − player median CPU) / leader median CPU`. '
+                   'The leader is 0%; negative percentages mean higher CPU than the leader. Medians use three matched rounds. Only players with accepted matching measurements can lead; this is not a claim about unmeasured players or statistical superiority. '
+                   'Every valid CPU comparison shows a percentage, including 0% for the leader, even when round ranges overlap. Green `(Pass)` means playback passed without a valid CPU comparison. '
+                   'Neither `(Pass)` nor a rounded 0% establishes a statistical tie; ranges remain in the report. '
                    '`(Pass)*` means historical playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU gain is claimed. '
                    '`(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope; '
                    'it does not imply equal CPU. Green = Pass or lower CPU, orange = higher CPU, red = Fail, '

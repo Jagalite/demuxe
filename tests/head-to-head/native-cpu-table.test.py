@@ -30,11 +30,11 @@ class NativeBaseline(unittest.TestCase):
         c, p = self.evidence(player=(5, 5, 5))
         self.assertEqual(m.cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟢 (+50.0%)')
 
-    def test_pass_uses_range_not_median_or_rounding(self):
+    def test_measured_percentage_is_shown_even_when_range_crosses_zero(self):
         c, p = self.evidence(player=(9, 9, 11))
         result = m.compare('f', 'libmedia', c, p, {})
         self.assertEqual(result['medianGainPercent'], 10)
-        self.assertEqual(m.cell(result, 'libmedia'), '🟢 (Pass)')
+        self.assertEqual(m.cell(result, 'libmedia'), '🟢 (+10.0%)')
         self.assertEqual(m.cell(m.compare('f', 'video', c, p, {}), 'video'), '🟢 (Pass)')
 
     def test_rejected_native_round_keeps_cpu_unmeasured(self):
@@ -112,6 +112,14 @@ class NativeBaseline(unittest.TestCase):
         result = m.compare('f', 'libmedia', c, p, {})
         self.assertEqual(result['gainPercent'], -75)
         self.assertNotEqual(result['gainPercent'], result['medianGainPercent'])
+
+    def test_every_pass_is_bold_without_bolding_percentages(self):
+        c, p = self.evidence()
+        leader = m.compare('f', 'video', c, p, {})
+        self.assertEqual(m.table_cell(leader, 'video'), '**🟢 (Pass)**')
+        self.assertEqual(m.table_cell({'status': 'unmeasured', 'playbackPassed': True}, 'demuxe'), '**🟢 (Pass)**')
+        self.assertEqual(m.table_cell({'status': 'unmeasured', 'screeningPassed': True}, 'demuxe'), r'**🟢 (Pass)\***')
+        self.assertEqual(m.table_cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟠 (-100.0%)')
 
     def test_correctness_failure_and_fidelity_are_distinct(self):
         c, p = self.evidence()
