@@ -13,14 +13,22 @@ Movi 0.4.0 and libmedia AVPlayer 1.3.1 are the pinned comparison versions.
 
 ## Default configurations
 
+The four Demuxe auto cells were refreshed with the newly built engines in
+[demuxe-original-with-engines-01](../results/head-to-head/demuxe-original-with-engines-01/REPORT.md):
+all four passed. Other players and the configured-alternative table retain the
+original `matrix-01` evidence. The updated Demuxe snapshot records source revision
+`8666434` plus its captured dirty player diff.
+
 Each player cell shows **observed path · correctness result**. Gain means Demuxe CPU reduction against the named player; no comparable performance measurements have been recorded yet.
 
-| Media format | Native video | Demuxe (auto) | Demuxe CPU gain % vs Native / Movi / AVPlayer | Movi | AVPlayer |
+**Legend:** 🟢 Pass · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)
+
+| Media format | Native video | Demuxe (auto) | Movi | AVPlayer | Demuxe CPU gain % vs Native / Movi / AVPlayer |
 | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | Native · pass | Native · pass | Not measured / N/A / Not measured | Custom · fail | Custom · pass |
-| H.264 + AAC / MKV | Native · pass | Native · pass | Not measured / N/A / Not measured | Custom · fail | Custom · pass |
-| H.264 + PCM24 / MKV | Native · pass | Native · pass | Not measured / Not measured / N/A | Custom · pass | Custom · fail |
-| H.264 + PCM24 / MKV + ASS | Native + host ASS · pass | Blocked | N/A / N/A / N/A | Custom · fail | Custom · fail |
+| H.264 + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | Not measured / N/A / Not measured |
+| H.264 + AAC / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | Not measured / N/A / Not measured |
+| H.264 + PCM24 / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🔴 Fail | Not measured / Not measured / N/A |
+| H.264 + PCM24 / MKV + ASS | Native + host ASS · 🟢 Pass | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | Not measured / N/A / N/A |
 
 **Not measured** means correctness passed but CPU comparison is pending. **N/A** means one or both configurations failed or were blocked, so a gain would not be a valid comparison. Native video uses the explicit host ASS overlay for the subtitle row.
 
@@ -28,89 +36,93 @@ Each player cell shows **observed path · correctness result**. Gain means Demux
 
 These are separate configurations from the defaults above. ASS uses the same host overlay for Native video, Movi native-first, and Demuxe Native.
 
-| Media format | Native video | Demuxe (Native) | Demuxe CPU gain % vs Native / Movi / AVPlayer | Movi (native-first) | AVPlayer (MSE preference) |
+| Media format | Native video | Demuxe (Native) | Movi (native-first) | AVPlayer (MSE preference) | Demuxe CPU gain % vs Native / Movi / AVPlayer |
 | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | Native · pass | Native · pass | Not measured / Not measured / Not measured | Native · pass | MSE · pass |
-| H.264 + AAC / MKV | Native · pass | Native · pass | Not measured / Not measured / Not measured | Native · pass | MSE · pass |
-| H.264 + PCM24 / MKV | Native · pass | Native · pass | Not measured / Not measured / N/A | Native · pass | Custom · fail |
-| H.264 + PCM24 / MKV + ASS | Native + host ASS · pass | Native + host ASS · pass | Not measured / Not measured / N/A | Native + host ASS · pass | Custom · fail |
+| H.264 + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Native · 🟢 Pass | MSE · 🟢 Pass | Not measured / Not measured / Not measured |
+| H.264 + AAC / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Native · 🟢 Pass | MSE · 🟢 Pass | Not measured / Not measured / Not measured |
+| H.264 + PCM24 / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Not measured / Not measured / N/A |
+| H.264 + PCM24 / MKV + ASS | Native + host ASS · 🟢 Pass | Native + host ASS · 🟢 Pass | Native + host ASS · 🟢 Pass | Custom · 🔴 Fail | Not measured / Not measured / N/A |
 
-## Planned coverage — not yet tested
+## Expanded catalogue results
 
-These are proposed fixture combinations, not implemented test cases or claims of player support. The four recorded combinations above remain the entire executed matrix. Every player path is unknown until observed. **Planned** means not run; **—** means no CPU gain measurement exists.
-
-Keep the same column order when recording future results. Gain compares Demuxe with Native / Movi / AVPlayer, in that order. Run default and configured alternatives separately; do not pool their results. The groups below suggest implementation order, not delivery commitments.
+The 56 additional combinations were processed in `expanded-matrix-01` on 2026-09-19, with the explicitly linked follow-up runs:
+96 passed, 85 failed, 43 blocked across four default players.
+5 combinations could not produce the required fixture; their rows are blocked,
+not playback failures. **Screen only** means the bounded playback check succeeded
+but discrete surround or reference HDR fidelity remains unqualified. **—** means
+no CPU gain measurement. These outcomes are separate from the original `matrix-01`
+results above. See [full evidence, blocker reasons and caveats](HEAD-TO-HEAD-CATALOGUE.md).
 
 ### First expansion: video and audio combinations
 
-| Media format | Native video | Demuxe | CPU gain % | Movi | AVPlayer |
+| Media format | Native video | Demuxe | Movi | AVPlayer | CPU gain % |
 | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC 5.1 / MP4 | Planned | Planned | — | Planned | Planned |
-| H.264 + MP3 stereo / MP4 | Planned | Planned | — | Planned | Planned |
-| H.264 + AC-3 5.1 / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + E-AC-3 5.1 / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + DTS core 5.1 / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + FLAC stereo / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + FLAC 5.1 / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + Opus stereo / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + PCM16 stereo / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + PCM24 5.1 / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC Main 8-bit + AAC / MP4 (hvc1) | Planned | Planned | — | Planned | Planned |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | Planned | Planned | — | Planned | Planned |
-| HEVC Main 10-bit SDR + AAC / MP4 | Planned | Planned | — | Planned | Planned |
-| HEVC Main 10-bit SDR + AC-3 / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC Main 10-bit SDR + DTS core / MKV | Planned | Planned | — | Planned | Planned |
-| AV1 8-bit + AAC / MP4 | Planned | Planned | — | Planned | Planned |
-| AV1 10-bit SDR + Opus / MKV | Planned | Planned | — | Planned | Planned |
-| AV1 + Opus / WebM | Planned | Planned | — | Planned | Planned |
-| VP9 8-bit + Opus / WebM | Planned | Planned | — | Planned | Planned |
-| VP9 10-bit SDR + Opus / WebM | Planned | Planned | — | Planned | Planned |
-| VP8 + Vorbis / WebM | Planned | Planned | — | Planned | Planned |
+| H.264 + AAC 5.1 / MP4 | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| H.264 + MP3 stereo / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| H.264 + AC-3 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| H.264 + E-AC-3 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| H.264 + DTS core 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| H.264 + FLAC stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| H.264 + FLAC 5.1 / MKV | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| H.264 + Opus stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🟢 Pass | — |
+| H.264 + PCM16 stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🔴 Fail | — |
+| H.264 + PCM24 5.1 / MKV | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🟡 Screen only | Custom · 🔴 Fail | — |
+| HEVC Main 8-bit + AAC / MP4 (hvc1) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC Main 10-bit SDR + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC Main 10-bit SDR + AC-3 / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC Main 10-bit SDR + DTS core / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| AV1 8-bit + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| AV1 10-bit SDR + Opus / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| AV1 + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| VP9 8-bit + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| VP9 10-bit SDR + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Unknown · 🔴 Fail | — |
+| VP8 + Vorbis / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
 
 ### Next expansion: containers, subtitles, and audio-only
 
-| Media format | Native video | Demuxe | CPU gain % | Movi | AVPlayer |
+| Media format | Native video | Demuxe | Movi | AVPlayer | CPU gain % |
 | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MPEG-TS | Planned | Planned | — | Planned | Planned |
-| MPEG-2 video + AC-3 / MPEG-TS | Planned | Planned | — | Planned | Planned |
-| MPEG-2 video + MP2 / MPEG-PS | Planned | Planned | — | Planned | Planned |
-| MPEG-4 Part 2 + MP3 / AVI | Planned | Planned | — | Planned | Planned |
-| ProRes + PCM / MOV | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC / fragmented MP4 (single file) | Planned | Planned | — | Planned | Planned |
-| H.264 video-only / MP4 | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC + embedded SRT / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC + external WebVTT / MP4 | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC + embedded mov_text / MP4 | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC + styled ASS / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC + AC-3 + PGS / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + AC-3 + VobSub / MKV | Planned | Planned | — | Planned | Planned |
-| AAC audio-only / M4A | Planned | Planned | — | Planned | Planned |
-| MP3 audio-only / MP3 | Planned | Planned | — | Planned | Planned |
-| FLAC audio-only / FLAC | Planned | Planned | — | Planned | Planned |
-| Opus audio-only / Ogg | Planned | Planned | — | Planned | Planned |
-| Vorbis audio-only / Ogg | Planned | Planned | — | Planned | Planned |
-| PCM16 audio-only / WAV | Planned | Planned | — | Planned | Planned |
-| PCM24 audio-only / WAV | Planned | Planned | — | Planned | Planned |
+| H.264 + AAC / MPEG-TS | Custom · 🔴 Fail | Native remux · 🟢 Pass | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| MPEG-2 video + AC-3 / MPEG-TS | Custom · 🔴 Fail | Software · 🟢 Pass | Custom · 🟢 Pass | Custom · 🟢 Pass | — |
+| MPEG-2 video + MP2 / MPEG-PS | Custom · 🔴 Fail | Software · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| MPEG-4 Part 2 + MP3 / AVI | Custom · 🔴 Fail | Software · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| ProRes + PCM / MOV | Native · 🔴 Fail | Software · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC / fragmented MP4 (single file) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 video-only / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🟢 Pass | — |
+| H.264 + AAC + embedded SRT / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC + embedded mov_text / MP4 | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC + styled ASS / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| HEVC + AC-3 + PGS / MKV | Native · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AC-3 + VobSub / MKV | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| AAC audio-only / M4A | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🟢 Pass | — |
+| MP3 audio-only / MP3 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🔴 Fail | — |
+| FLAC audio-only / FLAC | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🟢 Pass | — |
+| Opus audio-only / Ogg | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🔴 Fail | — |
+| Vorbis audio-only / Ogg | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| PCM16 audio-only / WAV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Custom · 🔴 Fail | — |
+| PCM24 audio-only / WAV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟢 Pass | Unknown · 🔴 Fail | — |
 
 ### Later expansion: HDR, advanced audio, and delivery
 
-| Media format | Native video | Demuxe | CPU gain % | Movi | AVPlayer |
+| Media format | Native video | Demuxe | Movi | AVPlayer | CPU gain % |
 | --- | --- | --- | --- | --- | --- |
-| HEVC Main 10 + E-AC-3 / MKV (HDR10) | Planned | Planned | — | Planned | Planned |
-| HEVC Main 10 + AAC / MP4 (HLG) | Planned | Planned | — | Planned | Planned |
-| AV1 10-bit + Opus / WebM (HDR10) | Planned | Planned | — | Planned | Planned |
-| HEVC + TrueHD 7.1 / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC + DTS-HD MA 7.1 / MKV | Planned | Planned | — | Planned | Planned |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | Planned | Planned | — | Planned | Planned |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Planned | Planned | — | Planned | Planned |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC / HLS VOD (TS segments) | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC / HLS VOD (fMP4 segments) | Planned | Planned | — | Planned | Planned |
-| HEVC + AAC / HLS VOD (fMP4 segments) | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC / DASH VOD (fMP4 segments) | Planned | Planned | — | Planned | Planned |
-| AV1 + Opus / DASH VOD (WebM segments) | Planned | Planned | — | Planned | Planned |
-| H.264 + AAC / HLS live (sliding window) | Planned | Planned | — | Planned | Planned |
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| HEVC Main 10 + AAC / MP4 (HLG) | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| AV1 10-bit + Opus / WebM (HDR10) | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | — |
+| HEVC + TrueHD 7.1 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
+| HEVC + DTS-HD MA 7.1 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
+| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| H.264 + AAC / DASH VOD (fMP4 segments) | Custom · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🟢 Pass | — |
+| AV1 + Opus / DASH VOD (WebM segments) | Custom · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC / HLS live (sliding window) | Native · 🔴 Fail | Hybrid · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 
 ### Variants to add to selected combinations
 
@@ -122,7 +134,7 @@ Keep the same column order when recording future results. Gain compares Demuxe w
 
 Avoid a full Cartesian product initially: establish small correctness fixtures for each combination, then select passing representative cases for resolution and performance sweeps.
 
-### Before a planned row becomes a result
+### Before adding or qualifying another row
 
 1. Create a deterministic fixture or obtain a redistributable sample; record provenance, license, generation recipe, hashes, and stream metadata. Do not add unlicensed media to the repository.
 2. Add the fixture and player configurations to the runnable matrix, including output checks appropriate to the media. Audio-only, streaming, HDR, and advanced audio require checks beyond the current small SDR video oracle.
@@ -174,10 +186,10 @@ with recorded `nbChannels` exceptions. Its MSE preference is not a forced codec
 support override.
 
 All fixtures use the same H.264 video packet content at 320×180/30 fps over 36
-seconds. Audio is marked stereo; ASS has a known visible drawing. These four
+seconds. Audio is marked stereo; ASS has a known visible drawing. The original four
 fixtures do not cover HEVC, AV1, surround layouts, HDR, HLS/DASH, DRM, arbitrary
 subtitle styles, or the full compatibility space.
 
-This is a static view of `matrix-01`. A future run has separate route evidence;
+The original tables are a static view of `matrix-01`; the expanded tables identify their separate run. A future run has separate route evidence;
 update or create a dated table from that run rather than silently relabeling this
-snapshot. No player tests were rerun to create this document.
+snapshot. The expanded catalogue was executed separately; original results were preserved.

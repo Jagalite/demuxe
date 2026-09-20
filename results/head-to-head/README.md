@@ -2,6 +2,63 @@
 
 # Maintained head-to-head evidence
 
+## Expanded catalogue (latest outcomes)
+
+All **56 additional combinations** were processed across four default players.
+After the subtitle/live follow-ups and the fresh Demuxe engine build, the latest
+224 outcomes are **96 passed, 85 failed, 43 blocked**. Fifty-one combinations had generated fixtures;
+five remained fixture-blocked. The original four-fixture study below is separate.
+
+[Detailed outcomes and blockers](../../docs/HEAD-TO-HEAD-CATALOGUE.md) ·
+[Main run](expanded-matrix-01/REPORT.md) ·
+[Subtitle selection / bitmap follow-up](expanded-subtitles-01/REPORT.md) ·
+[AVPlayer subtitle follow-up](expanded-subtitles-02/REPORT.md) ·
+[Live marked-output follow-up](expanded-live-01/REPORT.md) ·
+[Demuxe with freshly built engines](demuxe-with-engines-01/REPORT.md)
+
+The prepared snapshots are `build/head-to-head/assets-expanded-02/` and
+`assets-expanded-03/`; both capture source revision `8666434` and the dirty player
+diff. They retain pinned dependencies and original synthetic media with notices.
+The later snapshot adds PGS/VobSub fixtures with independent FFmpeg overlay checks.
+Five remaining fixture gaps are TrueHD 7.1 (the encoder produced 5.1), DTS-HD MA,
+Atmos, and Dolby Vision profiles 5 and 8.1.
+
+The clean [engine build](engine-build-01/README.md) installed fresh Hybrid and
+Software artifacts. `assets-with-engines-01` reuses all fixture bytes from
+`assets-expanded-03`, with parent-manifest and individual fixture hash verification.
+The Demuxe follow-up recorded **38 passed, 4 failed, 14 blocked**: nine successful
+surround/HDR screens still need fidelity qualification, and five fixtures remain
+unavailable. There are **no missing-engine blockers** in the latest Demuxe rows.
+Observed paths include Native, Native remux, Hybrid and Software.
+
+The four Demuxe failures are the marked PGS subtitle drawing, HLS/fMP4 seeking,
+HLS/HEVC command timeout and DASH/H.264 command timeout. They are recorded failures,
+not codec-support conclusions. Other players retain their earlier exact outcomes.
+No CPU or percentage-gain measurements ran.
+
+Preserved validation runs:
+
+- [Expanded pilot 1](expanded-pilot-01/REPORT.md): exposed a text-subtitle pixel-region limitation; replaced by actual rendered-text recognition.
+- [Expanded pilot 2](expanded-pilot-02/REPORT.md): confirmed WebVTT recognition, DASH playback and explicit qualification blockers.
+- [Initial bitmap run](expanded-bitmap-01/REPORT.md): retained separately; later subtitle runs record explicit track selection.
+- [Hidden-caption negative control](expanded-negative-subtitles-01/REPORT.md): correctly failed OCR while video/audio kept running.
+- Eight maintained harness contracts passed. Every completed run passed evidence integrity verification, including retained failures.
+
+AVPlayer's first subtitle-selection follow-up reset the active renderer; the next
+follow-up avoids that reset and preserves both attempts. Initial text rendering
+can pass while post-seek text is absent. Do not pool pilots or repeated follow-ups
+into the latest-outcome totals, and do not treat missing assets as codec failures.
+
+## Original combinations: refreshed Demuxe auto results
+
+The [four-case follow-up](demuxe-original-with-engines-01/REPORT.md) passed all four
+original Demuxe auto combinations using `assets-with-engines-01`. AAC MP4, AAC MKV
+and PCM MKV used Native; PCM MKV plus ASS used Hybrid. The README and default-route
+table use these four latest Demuxe results, with other player/configuration rows
+unchanged. The historical full matrix below remains preserved exactly as run.
+
+## Original comparison
+
 The first complete maintained matrix ran on **2026-09-19**, installed Chrome
 **152.0.7977.83**, headless macOS. It used generated 320x180/30fps/36-second
 fixtures and current Demuxe source snapshot `a99e793beab78ec6f28cae252562cb844af527c5`

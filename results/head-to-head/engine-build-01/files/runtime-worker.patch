@@ -1,0 +1,13 @@
+diff --git a/web/native-remux-worker.js b/web/native-remux-worker.js
+index d5e76d8..3715021 100644
+--- a/web/native-remux-worker.js
++++ b/web/native-remux-worker.js
+@@ -3,7 +3,7 @@ import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
+ import {remuxPackaging} from './remux-packaging.js';
+ let engine,chunks=[],bytes=0,emptyBatches=0,negotiation,splitter,timing;
+ const stats={calls:0,remuxMs:0,generatedBytes:0,peakBatchBytes:0,heapBytes:0};
+-const flush=()=>{const output=new Uint8Array(bytes);let at=0;for(const b of chunks){output.set(b,at);at+=b.length;}chunks=[];bytes=0;stats.generatedBytes+=output.length;stats.peakBatchBytes=Math.max(stats.peakBatchBytes,output.length);return output;};
++const flush=()=>{const sole=chunks.length===1?chunks[0]:null;const reuse=sole&&sole.buffer instanceof ArrayBuffer&&sole.byteOffset===0&&sole.byteLength===sole.buffer.byteLength;const output=reuse?sole:new Uint8Array(bytes);if(!reuse){let at=0;for(const b of chunks){output.set(b,at);at+=b.length;}}stats.gatherCopiedBytes=(stats.gatherCopiedBytes||0)+(reuse?0:bytes);stats.reusedOwnedBatches=(stats.reusedOwnedBatches||0)+(reuse?1:0);chunks=[];bytes=0;stats.generatedBytes+=output.length;stats.peakBatchBytes=Math.max(stats.peakBatchBytes,output.length);return output;};
+ const adaptationABI=()=>{if(engine.preparationInterface!==2)throw Error('Audio preparation initialization interface mismatch; install matching runtime assets');};
+ const check=n=>{if(n<0)throw Error(`FFmpeg error ${n}: ${engine.UTF8ToString(engine._rm_error())}`);return n;};
+ self.onmessage=async({data})=>{

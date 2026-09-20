@@ -9,7 +9,7 @@ claims about the latest available releases.
 
 Each run selects explicit cases, validates a frozen asset snapshot, starts its
 own range-capable server and fresh browser instances, and writes a new result
-directory. The current matrix has 28 cases: seven player/configuration choices
+directory. The original matrix has 28 cases: seven player/configuration choices
 across four media/feature combinations. Edit the matrix and adapters together
 when adding another player, route, codec, track layout or feature.
 
@@ -51,6 +51,30 @@ hashes, generated runtime hashes, available engines, dependency hashes, FFmpeg
 version, generator commands, fixture stream metadata and video-packet identity.
 Regeneration on another FFmpeg version may produce different media bytes: compare
 only runs using the same prepared manifest, not just the same fixture name.
+
+## Refresh engines without changing the media
+
+The recorded [clean build](../results/head-to-head/engine-build-01/README.md) and
+[56-case Demuxe follow-up](../results/head-to-head/demuxe-with-engines-01/REPORT.md)
+use this process. The follow-up has no missing-engine blockers.
+
+After building missing engines, prepare a new snapshot while reusing the previous
+snapshot's exact fixture bytes:
+
+```sh
+npm run fixtures:head-to-head -- \
+  --fixtures-from build/head-to-head/assets-expanded-03 \
+  --output build/head-to-head/assets-with-engines
+npm run test:head-to-head -- --catalogue --cases demuxe \
+  --assets build/head-to-head/assets-with-engines \
+  --output results/head-to-head/demuxe-with-engines
+```
+
+Preparation verifies every reused fixture against the parent manifest and retains
+its original generation records. It compiles the current TypeScript and copies the
+currently installed engine assets into the fresh snapshot. Reusing media does not
+reuse the old Demuxe runtime. Build provenance should accompany any installed
+engine files; a successful build alone does not establish playback correctness.
 
 ## Run correctness
 
@@ -114,6 +138,64 @@ engine is blocked. Unsupported audio or absent requested subtitles fail the test
 combination; they are not converted into a passing expected failure. The exit code
 is nonzero if any selected case does not pass. A subset says nothing about omitted
 cases. Interrupted runs stay incomplete and cannot pass the evidence verifier.
+
+## Expanded catalogue correctness
+
+`--expanded` prepares the 56 additional combinations from `planned.json` and
+`expand.py`. `--catalogue` runs each against Native video, Demuxe automatic,
+Movi default, and AVPlayer default: 224 recorded outcomes, including blockers.
+The original four-fixture/seven-configuration matrix remains independently runnable.
+
+```sh
+npm run fixtures:head-to-head -- --expanded --output build/head-to-head/expanded-assets
+npm run test:head-to-head -- --catalogue --assets build/head-to-head/expanded-assets \
+  --output results/head-to-head/expanded-correctness
+npm run verify:head-to-head -- results/head-to-head/expanded-correctness
+```
+
+Use fresh directory names for each preparation/run. Expanded generation needs the
+listed FFmpeg encoders (including libx265, libsvtav1, libvpx, and the audio encoders).
+Every row retains generated stream metadata or its preparation error. Unsupported
+fixture generation blocks that row; it does not substitute another codec/layout.
+Commands, catalogue, generator sources, and prepared-asset hashes accompany each run.
+
+Audio-only cases omit video checks; video-only cases omit audio checks. Text subtitles
+must render the fixture phrase before and after seeks, recognized with macOS Vision
+(`swiftc` required); missing OCR infrastructure blocks qualification. ASS, PGS, and VobSub must display
+the marked magenta drawing. PGS/VobSub fixtures also undergo an independent FFmpeg
+overlay check before browser trials. Embedded subtitles remain embedded; the external WebVTT
+case uses the player's external subtitle API or HTML track.
+
+Multichannel inputs get a stereo playback/lifecycle screen, but discrete channel
+fidelity remains blocked even if that screen succeeds (`screenPassed: true`). Tagged
+10-bit HDR fixtures similarly screen decode/lifecycle only; they are not reference
+HDR color material and cannot qualify tone mapping or physical HDR output. Such
+blocked screens are ineligible for performance comparisons.
+
+Live HLS serves a clock-driven, three-segment sliding window from the generated
+36-second clip and records the actual playlists. Its bounded check requires continued
+playback across updates (changing displayed video and marked audio), pause/resume, rate control and cleanup; VOD EOF checks do
+not apply. It does not establish long-running live recovery, discontinuity handling,
+or adaptive bitrate switching. VOD HLS/DASH cases retain seek and EOF requirements.
+
+A controlled subtitle negative test uses `--negative-control hide-subtitles` with
+`--cases video.default.h264-vtt`: it obscures the subtitle region while leaving
+video/audio running and must fail rendered-text recognition.
+
+Refresh the README and detailed tables only from verified completed results:
+
+```sh
+python3 tests/head-to-head/render-catalogue.py results/head-to-head/expanded-matrix-01 \
+  --supplement results/head-to-head/expanded-subtitles-01 \
+  --supplement results/head-to-head/expanded-subtitles-02 \
+  --supplement results/head-to-head/expanded-live-01
+```
+
+Supplements replace only their exact player/fixture rows, preserve the original
+outcomes, and link to their own asset/harness identities. Pilots and negative
+controls are not pooled into the comparison.
+
+No CPU benchmark or percentage-gain calculation is part of this catalogue screen.
 
 ## Performance is a separate gate
 

@@ -7,7 +7,7 @@ import path from 'node:path';
 import {deflateSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {byteRange,serve} from './server.mjs';
+import {byteRange,serve,livePlaylist} from './server.mjs';
 import {markedAudio,markedImage,performanceEligible,selectCases} from './checks.mjs';
 
 test('closed, open and suffix ranges are bounded; malformed/multiple/unsatisfiable ranges reject',()=>{
@@ -75,4 +75,14 @@ test('run verifier accepts retained failures but detects evidence tampering',asy
     await fs.writeFile(path.join(root,'result.json'),JSON.stringify({...record,status:'passed'}));
     assert.throws(verify,error=>error.status===1&&error.stdout.includes('Changed: result.json'));
   } finally {await fs.rm(root,{recursive:true,force:true});}
+});
+
+test('live HLS serves an advancing three-segment window without a VOD end marker',()=>{
+  const vod='#EXTM3U\n'+Array.from({length:10},(_,i)=>`#EXTINF:2.000000,\nindex${i}.ts\n`).join('')+'#EXT-X-ENDLIST\n';
+  const first=livePlaylist(vod,0),later=livePlaylist(vod,8000);
+  assert(first.includes('#EXT-X-MEDIA-SEQUENCE:0'));
+  assert(later.includes('#EXT-X-MEDIA-SEQUENCE:4'));
+  assert.equal((later.match(/#EXTINF/g)||[]).length,3);
+  assert(later.includes('index6.ts'));assert(!later.includes('index3.ts'));
+  assert(!later.includes('#EXT-X-ENDLIST'));assert(!later.includes('#EXT-X-PLAYLIST-TYPE:VOD'));
 });
