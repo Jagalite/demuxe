@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "key": "R123.checkpoint-the-software-decoder-inside-a-gop",
+  "reviewed_at_utc": "2026-09-20T13:08:14.428898+00:00",
+  "review_kind": "read_only_source_and_opportunity_assessment",
+  "decision": "do_not_prioritize_whole_player_checkpoint_in_this_campaign",
+  "experimental_result": "No new execution; prior scoped pursue and16.57% prepared-runtime three-scrub saving remain unchanged.",
+  "reason": "Not a JS policy or existing player ABI toggle. Faithful integration needs decoder-internal safe-boundary state plus demux position, mpv decode/filter/output queues, A/V clocks, cancellation and retained checkpoint lifetime. Existing research wrapper only owns a standalone single-thread AVC decoder. Narrow optional preview caching or already-pending batching has less decoder-internal integration burden when those requested workloads exist.",
+  "tier_effect": "Within Software repeated exact scrubbing; no tier upgrade and no general playback CPU claim.",
+  "whole_player_ready": false,
+  "blocker_class": "integration_scope_and_opportunity_cost",
+  "requires_large_codec_rewrite": false,
+  "requires_internal_decoder_and_player_changes": true,
+  "hooks_required": [
+    "Version-pinned internal codec copier exposed at proved fully drained picture boundary; thread ownership must be safe, not call single-thread prototype on active two-thread decoder.",
+    "Stable source/config/runtime/owner/recipe key plus bounded retained DPB references and explicit eviction/drop.",
+    "Demux index and exact next compressed packet position restore; preserve PTS/DTS and replay dependencies.",
+    "Transactional mpv decoder/filter/presenter queue reset or restore with matching audio clock/seek intent; reject queued stale output.",
+    "Seek/cancel/source-change race protocol and fallback to ordinary exact seek when any profile or state requirement fails.",
+    "Actual whole-player comparison against current persistent seek owner including checkpoint creation, peak retention, cancellation and teardown."
+  ],
+  "cheaper_followups": [
+    {
+      "key": "R055.cache-bounded-decoded-previews-for-scrub-revisits",
+      "condition": "Only for an actual preview API with frequent repeated identical requests; does not replace exact playback."
+    },
+    {
+      "key": "R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
+      "condition": "Only multiple already-pending exact requests in same qualified GOP; cannot delay interactive requests for batching."
+    }
+  ],
+  "reopen_condition": "A measured user workload repeatedly seeks inside the same eligible software-decoded GOP, ordinary preview reuse/batching does not meet that request, and profiling shows decoder replay dominates enough to repay internal integration and retained-state cost.",
+  "sources": [
+    {
+      "path": "research/shared/tooling/build-codec-checkpoint.py",
+      "lines": "3-23",
+      "finding": "Research bridge allocates a fresh H264 AVCodecContext, forces thread_count1, initializes parameters, then calls internal ff_h264_update_thread_context; saved state is one in-process handle."
+    },
+    {
+      "path": "research/shared/tooling/codec-checkpoint-operation.mjs",
+      "lines": "2-3",
+      "finding": "No-B160x96 AVC at24fps, fully drained picture30, three30-picture suffix jobs. Source/runtime/owner/version/nextPacket guards are JavaScript wrapper state; no player audio/filter/demux restoration."
+    },
+    {
+      "path": "native/player.c",
+      "lines": "16-76",
+      "finding": "Maintained software player owns opaque mpv handle/render context; vd-lavc-threads2. Exported web_command_args forwards asynchronous mpv commands, not AVCodecContext handles."
+    },
+    {
+      "path": "native/vd_browser.c",
+      "lines": "53-66,187-216",
+      "finding": "Hybrid bridge has private software fallback context thread_count2; reset clears replay, flushes software codec, resets lavc state and browser owner. This is not a complete checkpoint restore hook."
+    },
+    {
+      "path": "scripts/build-software-yuv.sh",
+      "lines": "22-31",
+      "finding": "Player exports are lifecycle/command/render/audio APIs, with no checkpoint save/restore/drop ABI."
+    },
+    {
+      "path": "research/items/R055.cache-bounded-decoded-previews-for-scrub-revisits/item.json",
+      "finding": "Eight-image requested-preview LRU saves42.93% only on revisits; one-way traversal loses4.20%. Different scope and baseline, so not directly superior by ratio."
+    },
+    {
+      "path": "research/items/R073.decode-a-gop-once-for-a-pending-exact-preview-batch/item.json",
+      "finding": "Persistent browser decoder batching saves29.15% for already-pending exact requests; does not wait to fill batch. Different scope and cannot replace sequential live software seeks."
+    }
+  ],
+  "no_benchmark_or_build": true
+}

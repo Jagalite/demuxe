@@ -1,0 +1,407 @@
+{
+  "folder": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects",
+  "stage": "decision",
+  "analysis": "# R023 within-Hybrid whole-player qualification\n\nThe isolated fused WebGPU presenter is correct for the declared native-size SDR profile, but it does not beat the cheapest tested actual-player alternative. Five completed paired trials show **8.52% higher median steady Chrome CPU**, with GPU lower in only one pair. The required10% median reduction and every-pair improvement gate fails. This is a measured cost result, not a missing runtime or a fidelity failure.\n\nBoth arms run the actual Player with the same browser WebCodecs video, mpv demux/PCM audio, and mpv/libass subtitle owners. The baseline uses native Canvas2D `invert(1)`, maintained90degree retained-frame geometry, and cached subtitle tiles. It does not perform a CPU readback or artificial CPU pixel loop during timing. The candidate imports actual decoded VideoFrames into WebGPU, rotates/inverts in one pass, and composites a cached premultiplied subtitle texture. Both use the same narrowly admitted explicit display-effect request. Neither changes production admission. Tier effect: **Hybrid to Hybrid**, not a Software-to-Hybrid upgrade.\n\nThe fixture is320x180 H264 with AAC and embedded ASS, explicitly tagged BT709, displayed at native180x320. Compressed video, audio and subtitle stream hashes match between input containers; equal-size containers differ only in generated container identity. At PTS1/6/10, the Canvas baseline differs by at most1 RGB level from an independent integer rotation/inversion/straight-alpha oracle using the same actual decoded frame RGB and actual subtitle bitmap raster. GPU differs by0/1/0; direct paired output differences are at most1. The declared gate was3 RGB levels with opaque alpha. Every tested picture exercises2214 nonzero subtitle-alpha pixels,186 partial-alpha pixels, and differing wrong-identity/wrong-alpha controls. This proves the display operations, not independent decoder color fidelity: R008's separate FFmpeg-versus-Hybrid chroma-edge issue remains outside this within-Hybrid comparison.\n\nBoth arms execute moving pictures and measured440/880Hz stereo markers. Forward/backward seeks, same-file source replacement from PTS10 to PTS1 with a new source identity, EOF, immediate open cancellation, and final destruction pass. Replacement pictures match the original PTS1 outputs exactly. All surfaces and workers close. Exact unsupported filter/mode combinations reject. Source-content diversity, scaling, HDR, arbitrary filters and production integration remain outside this profile.\n\nPerformance uses five alternating pairs, five seconds warmup and20 seconds steady playback per trial. All relevant Chrome process CPU is sampled; process sets remain stable in every steady sample. Actual frame delivery exceeds the predeclared29fps gate, selected-frame missing counters remainzero, and every measured browser process exits between trials. Correctness oracles, readback and audio analysers are disabled during performance. Device/pipeline construction is included in startup, and seeks/EOF/player teardown are recorded. Browser launch, server CPU and physical energy are excluded. Background user workloads were not stopped; summed RSS is a proxy that may double-count shared pages.\n\nA secondary startup CPU observer initially assumed a stable process set. A normal process departure caused that observer to abort the first pair4 GPU attempt before warmup/steady measurement. The failed attempt and original script are retained. Only startup CPU accounting was changed to retained cumulative process observations; the runtime, stable steady primary, ordering and gates were unchanged. Pairs4/5 then completed. Exactly five complete pairs form the final comparison; no primary measurement was discarded. Full lifecycle CPU is explicitly observed sampled CPU, because departed-process exit tails may be missed. The partial resumed file's benefit flag is not the final gate; `combined-performance.json` is authoritative.\n\nPaired GPU CPU changes are+18.64%,+5.17%,+8.52%,+12.32%,-3.60%. Median startup wall change is+0.91%; median observed lifecycle CPU change is+4.46%. Median peak summed RSS changes-6.12%, with wide sign changes across pairs, and is not an attributable allocation saving. These secondary observations do not override the failed primary gate.\n\nDisposition: stop this whole-player fused presenter profile. Retain the earlier prepared-RGBA component result as historical evidence against its different CPU-loop baseline, not as whole-player savings. Reopen only for a new representative workload/effect set with a predeclared benefit threshold and the cheapest correct native Canvas alternative. No production source or routing changed.\n",
+  "commands": [
+    "python3 research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/prepare-player.py",
+    "python3 research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/install-oracle.py",
+    "node research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/admission-controls.mjs build/research-r023-player-01/admission-controls.json",
+    "node research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/probe-player.mjs build/research-r023-correctness-01",
+    "node research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/lifecycle-player.mjs build/research-r023-lifecycle-01",
+    "node research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/performance-player-first-variant.mjs build/research-r023-performance-01 --exclusive",
+    "node research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/tests/performance-player.mjs build/research-r023-performance-02 --exclusive 4"
+  ],
+  "artifacts": [
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/admission-controls.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/base-assets-manifest.json",
+      "license": "NOASSERTION",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/combined-performance.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/fixture-equivalence.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/protocol.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/results.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/runtime-provenance.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-1-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-1.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-10-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-10.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-6-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-6.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-1-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-1.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-10-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-10.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-6-oracle.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-6.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/paired-pixels.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/correctness-01/result.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/canvas-replacement1.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/gpu-replacement1.png",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/replacement-pixels.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/lifecycle-01/result.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/1-canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/1-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/2-canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/2-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/3-canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/3-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/4-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-01/result.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-02/4-canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-02/4-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-02/5-canvas-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-02/5-gpu-requests.jsonl",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/performance-02/result.json",
+      "license": "CC-BY-4.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/admission-controls.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/capture-oracle.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/fused-fresh-adapter.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/fused.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/install-oracle.py",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/lifecycle-player.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/performance-player-first-variant.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/performance-player.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/prepare-fused.py",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/prepare-player.py",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/presenter.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/tests/probe-player.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/harness/adapters.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/harness/harness.html",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/filter-retained-engine-worker.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/r023-oracle.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/r023-presenter.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/unified-player.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/playback-plans.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/state.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/gpu/assets/demuxe/web/generated/internal/wasm-player.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/harness/adapters.mjs",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/harness/harness.html",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/filter-retained-engine-worker.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/r023-oracle.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/r023-presenter.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/unified-player.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/internal/playback-plans.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/internal/state.js",
+      "license": "Apache-2.0",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    },
+    {
+      "path": "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/snapshots/canvas/assets/demuxe/web/generated/internal/wasm-player.js",
+      "license": "GPL-3.0-or-later",
+      "role": "retained runtime observation, reference metadata or exact source snapshot"
+    }
+  ],
+  "decisions": [
+    {
+      "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual whole-player correctness and paired performance",
+      "reason": "Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed.",
+      "next_action": "Do not integrate this native-size SDR fused presenter for CPU savings. Reopen for a materially different representative resolution/effect workload with the cheapest correct Canvas baseline and a newly predeclared whole-player benefit gate; broader decoder/scaler/HDR fidelity and production integration remain separate.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "ExplicitlyBT709 native-size90degree/invert/subtitle effects withinHybrid; cheapestCanvas2D baseline; max3RGB and10%median/everypair CPU gates declared before execution."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Isolated retained-worker runtime, pinned base assets, identical compressed stream hashes, independent integerdisplay oracle and preserved commands/source snapshots."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Both actualPlayer arms executed WebCodecs/mpv audio/subtitle owners and correct Canvas/fusedGPU markers; no fallback."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "Full pictures atPTS1/6/10 max1RGB acrosscandidate/baseline/oracle, partialsubtitlealpha/wrongcontrols, movingstereo440/880Hz, seek/sourceidentity/EOF/cancel/cleanup pass withinboundedprofile."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "Fivecomplete stable-process steadyCPU pairs: candidate median+8.52%,1/5lower. Primarygate>=10%medianreduction andallpairslower fails. Onepre-steady startupobserverfailure retained; onlysecondaryaccounting corrected."
+        }
+      }
+    }
+  ]
+}

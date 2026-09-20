@@ -1,0 +1,21 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# R274 cold index reconstruction follow-up plan
+
+Source preparation only; not executed or qualified yet. This follows the recorded prerequisite audit after a deeper cheap-reuse search found reusable Cluster/SimpleBlock/Cues code in `research/shared/tooling/large-cluster-fixture.py` and `relative-cue-fetch.mjs`.
+
+`rebuild-cues.py` reuses retained EBML parser/writer functions but consumes only the cue-less source. It scans source Cluster/SimpleBlock timestamps/key flags and builds new Cues. It never reads the original Cues, index.json, indexed source, or expected output hash. Admit only finite <=32MiB single-track VP9, unlaced SimpleBlocks, an existing SeekHead pointing to a reserved tail Void, and sufficient reserved capacity. Preserve every byte before that Void. Arbitrary WebM, A/V, lacing, growing sources and offset-changing rewriting are excluded.
+
+Before browser performance:
+
+1. Run builder on retained cue-less input. Independently FFprobe both source and generated output and compare every packet payload hash, PTS/DTS/duration/key flag. Verify each generated RAP against that independent packet listing; compare indexed-reference decoded outputs separately.
+2. Wrong source hash, malformed offsets, insufficient tail capacity, truncated blocks, lacing and wrong track must reject before publication. Closed source generations must not publish a completed builder result. Use existing RangeReader/sourceproxy epoch guards or implement equivalent bounded transaction.
+3. Serve the exact retained Player snapshot with two sources: unchanged cue-less bytes and freshly built candidate. Use public Player.open/play/pause/seek/rate/destroy; assert Native mode and no fallback. Measure forward/back seek target full-frame hashes, EOF and worker/surface cleanup. This source is video-only; it cannot qualify selected audio or A/V clock behavior.
+4. Start candidate setup accounting before source acquisition and child process startup. Include full source scan, hashes, Cues encoding, allocation, writing, validated sourceproxy creation and final cleanup. Record builder process CPU separately from aggregate Chrome CPU; never omit server-side index construction because browser processes look faster.
+5. Compare cold one-seek complete jobs first, then repeated seeks under the same immutable source owner, with browser cache and indexed-sidecar policy explicit. Original prebuilt-index benefit is not the cold baseline. Predeclare >=10% median complete wall reduction and every pair lower, with output and byte budgets held equal; five alternating fresh-browser pairs only after correctness.
+
+At present the builder and plan are source-prepared. No whole-player execution, cost pass, or updated performance claim is made. The prior `deferred_prerequisite` remains until the reconstruction and public-player controls execute.
+
+The prepared public-Player harness is `whole-player-cues.mjs`; independent host packet controls are `validate-rebuilt-cues.py`. Baseline is the cheapest direct source owner: stat plus only requested filesystem ranges, with fixture identity verified outside all trial timing. It does **not** scan/hash/materialize the entire source merely to match candidate setup. Candidate charges the actual full read/scan/hash/index write, child process startup, output read and virtual owner. Both representations use the same paced HTTP release policy. This is a local sourceproxy-assisted experiment; arbitrary remote/browser-only construction would additionally require and charge source transfer before indexing. No such remote generalization is authorized by this protocol.
+
+Pre-timing measurement refinement: retain total observed lifecycle wall time and directly measured canvas/draw/readback/SHA oracle duration separately. Primary cost subtracts only that observer duration; both rAF presentation waits remain charged. This does not claim removing secondary observer/cache effects. Response byte counts are **server-written media bytes**, not exact client-received or physical wire bytes. The unchanged benefit gate is five alternating pairs, median primary cost reduction >=10%, and every candidate pair faster. These refinements precede performance execution; the earlier correctness pilot is not used as performance evidence.

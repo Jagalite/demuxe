@@ -2,10 +2,24 @@
 
 # Fuse qualified video effects into one GPU presentation pass
 
-Disposition: **pursue**. correctness: **passed**, performance: **passed**.
+Full identity: `R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass`.
 
-Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.
+Current decision: **stop_current_profile** (actual whole-player correctness and paired performance).
 
-Next: Scoped exact prepared-RGBA component gates complete. Any extension to retainedVideoFrame/YUV/color-managed/HDR/scaling or actual player filter routing needs its own predeclared output contract and end-to-end comparison; production unchanged.
+Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed.
 
-[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T220048Z-fresh-adapter/analysis.md)
+Next action: Do not integrate this native-size SDR fused presenter for CPU savings. Reopen for a materially different representative resolution/effect workload with the cheapest correct Canvas baseline and a newly predeclared whole-player benefit gate; broader decoder/scaler/HDR fidelity and production integration remain separate.
+
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | ExplicitlyBT709 native-size90degree/invert/subtitle effects withinHybrid; cheapestCanvas2D baseline; max3RGB and10%median/everypair CPU gates declared before execution. |
+| prepare | passed | Isolated retained-worker runtime, pinned base assets, identical compressed stream hashes, independent integerdisplay oracle and preserved commands/source snapshots. |
+| screen | passed | Both actualPlayer arms executed WebCodecs/mpv audio/subtitle owners and correct Canvas/fusedGPU markers; no fallback. |
+| correctness | passed | Full pictures atPTS1/6/10 max1RGB acrosscandidate/baseline/oracle, partialsubtitlealpha/wrongcontrols, movingstereo440/880Hz, seek/sourceidentity/EOF/cancel/cleanup pass withinboundedprofile. |
+| performance | failed | Fivecomplete stable-process steadyCPU pairs: candidate median+8.52%,1/5lower. Primarygate>=10%medianreduction andallpairslower fails. Onepre-steady startupobserverfailure retained; onlysecondaryaccounting corrected. |
+| results | passed | Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed. |
+| decision | passed | Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed. |
+
+[New run](evidence/20260920T134029Z-whole-player-fused-effects/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

@@ -103,6 +103,36 @@ Update `item.json` and its README together, append the complete decision to
 because a newer run has a different result. A source or environment change can
 require a new qualification run without invalidating the old scoped observation.
 
+## Whole-player benefit and tier qualification
+
+A `pursue` research decision is not a whole-player benefit claim. Advance only
+selected candidates with credible value, a relevant playback workload and a
+practical implementation path; keep other candidates deferred rather than
+benchmarking every positive component result.
+
+Record both the current and proposed owners of video, audio, subtitles, demux,
+and presentation. Classify a tier transition by observed execution, not requested
+mode or a browser API support query. Native A/V with a separate libass renderer
+must disclose that renderer; Software presentation optimization remains Software
+when decoding is unchanged. Shared route experiments must not be counted as
+independent savings for every related research item.
+
+Before performance, require matching output and lifecycle evidence for the exact
+runtime, source and candidate. Charge preparation, startup, steady playback,
+seeks and cleanup as separate reported phases. Measure all relevant browser
+processes consistently, report delivered/dropped frames, and state exclusions
+such as server CPU, external media services, browser launch or physical energy.
+Keep memory proxies distinct from attributable allocations. Declare the metric,
+workload, comparison, sample ordering and benefit threshold before timing; retain
+negative results and secondary regressions.
+
+Campaign records distinguish intended tier effect, measured lab-route benefit,
+production integration and release qualification. Missing runtimes, integration
+gaps, failed correctness and measured lack of benefit are separate outcomes.
+An earlier component percentage is never an estimated whole-player saving.
+Successful lab routes need maintained ownership, input eligibility, fallback and
+broader workload qualification before automatic production admission changes.
+
 ## Fixtures, commands and reproducibility
 
 Record the generator and arguments, input provenance, content hashes, license,

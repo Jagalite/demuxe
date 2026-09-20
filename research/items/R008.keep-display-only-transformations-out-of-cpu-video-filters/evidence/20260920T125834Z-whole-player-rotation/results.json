@@ -1,0 +1,112 @@
+{
+  "execution_completed": true,
+  "correctness_passed": false,
+  "performance_executed": false,
+  "disposition": "stop_current_profile",
+  "scope": "Exact90clockwise explicit filter Software to Hybrid, taggedBT709 H264+PCM16, native180x320 canvas. Original preparedframe componentpursue is preservedhistorically.",
+  "native_size": [
+    {
+      "lane": "software",
+      "target": 1,
+      "width": 180,
+      "height": 320,
+      "mae": 0,
+      "max": 0,
+      "channelsOver3": 0,
+      "passed": true
+    },
+    {
+      "lane": "hybrid",
+      "target": 1,
+      "width": 180,
+      "height": 320,
+      "mae": 0.3173784722222222,
+      "max": 50,
+      "channelsOver3": 1280,
+      "passed": false
+    },
+    {
+      "lane": "software",
+      "target": 6,
+      "width": 180,
+      "height": 320,
+      "mae": 0,
+      "max": 0,
+      "channelsOver3": 0,
+      "passed": true
+    },
+    {
+      "lane": "hybrid",
+      "target": 6,
+      "width": 180,
+      "height": 320,
+      "mae": 0.4387905092592593,
+      "max": 59,
+      "channelsOver3": 1280,
+      "passed": false
+    },
+    {
+      "lane": "software",
+      "target": 10,
+      "width": 180,
+      "height": 320,
+      "mae": 0,
+      "max": 0,
+      "channelsOver3": 0,
+      "passed": true
+    },
+    {
+      "lane": "hybrid",
+      "target": 10,
+      "width": 180,
+      "height": 320,
+      "mae": 0.3178009259259259,
+      "max": 18,
+      "channelsOver3": 1280,
+      "passed": false
+    }
+  ],
+  "unrotated_control": {
+    "software": {
+      "max": 2,
+      "mae": 0.11923032407407408,
+      "rowsOver3": {}
+    },
+    "hybrid": {
+      "max": 50,
+      "mae": 0.19814814814814816,
+      "rowsOver3": {
+        "39": 320,
+        "40": 320
+      }
+    }
+  },
+  "owners": {
+    "baseline": {
+      "video": "FFmpeg software",
+      "audio": "mpvPCMworklet",
+      "demux": "mpv",
+      "presentation": "Software canvas through FFmpeg transpose"
+    },
+    "candidate": {
+      "video": "browserWebCodecs",
+      "audio": "mpvPCMworklet",
+      "demux": "mpv",
+      "presentation": "retainedVideoFrameCanvas2D90degree"
+    }
+  },
+  "causal_finding": "UnrotatedHybrid already has same50level chromaedge discrepancy; rotation relocates it, no evidence rotationcoordinate math is wrong. ExplicitBT709 fixes flatcolor disagreement but notchromaedge reconstruction.",
+  "lifecycle": {
+    "moving_video_audio": "Observedboth routes;440/880Hzstereo markers captured",
+    "seek": "Forward6,10 andbackward1 executed; output comparedexactPTS",
+    "cleanup": "Both routes reported0remainingsurfaces",
+    "cancel_source": "Notadvancedbecausefidelitygatefailed"
+  },
+  "geometry": "Candidateisolatedmetadata corrected180x320; SoftwareexistingmediaInfo still320x180 despitecorrectportraitoutput. No productionAPIgeometryqualification.",
+  "limitations": [
+    "No wholeplayer savings measured; earlier55.8percent iscomponentonly.",
+    "No arbitraryfilters/subtitles/mirror/PAR/metadata-rotation admitted.",
+    "probe result passedtrue meansscriptcompleted, notpixel gatepassed.",
+    "No productionrouting changed."
+  ]
+}

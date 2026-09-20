@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "key": "R274.virtual-webm-cues",
+  "reviewed_at_utc": "2026-09-20T13:09:52.862744+00:00",
+  "review_kind": "read_only_source_and_opportunity_assessment",
+  "whole_player_ready": false,
+  "decision": "deferred_prerequisite",
+  "experimental_result": "No new media execution or performance result. Retained conditional native-browser seek benefit remains valid for authenticated prebuilt index.",
+  "reason": "Existing generator extracts Cues from an already indexed source and blanks those bytes; it does not construct Cues from an unindexed source. Existing proxy restores those574bytes in a3,652,612-byte file after fullsource/index hash validation and materializes the entire source. A Player wrapper alone cannot qualify a cold complete job including actual index construction.",
+  "tier_effect": "Native->Native seek/source-delivery optimization, not a decoding-tier promotion.",
+  "missing_prerequisites": [
+    "Validated bounded cue-less Cluster/SimpleBlock and codec random-access scan with exact track/timebase/source version.",
+    "Truthful Cues/SeekHead/Segment authoring including size/offset effects beyond the authored equal-sized tail Void fixture.",
+    "Authenticated source-bound index distribution or a measured cold construction path with source acquisition/scanning/hash/retention costs included.",
+    "Maintained Player sourceproxy admission with cancellation, changed resource, selected A/V, repeated seek and teardown, alongside cheapest correct native baseline."
+  ],
+  "sources": [
+    {
+      "path": "research/shared/tooling/virtual-cues-sized-fixture.py",
+      "lines": "17-27",
+      "finding": "Reads existing Cues, extracts offsets/points and replaces same-length element with Void. No cue-less index discovery."
+    },
+    {
+      "path": "research/shared/tooling/virtual-cues-browser.mjs",
+      "lines": "3-6",
+      "finding": "virtual() restores precomputed cue overlay under source/index/fulloutput hashes. Server reads allsource/index before per-client representation; browser is raw video, not maintained Player."
+    },
+    {
+      "path": "research/shared/runs/20260919T221240Z-virtual-cues-sized/index.json",
+      "finding": "sourceBytes3652612; overlayStart3652038; overlayEnd3652612; precomputed source and virtual SHA256."
+    },
+    {
+      "path": "research/shared/runs/20260919T222802Z-virtual-cues-qualification/run.json",
+      "finding": "Native seek transfer saving88.47%, latency2077.7ms, prebuilt index creation explicitly excluded."
+    }
+  ],
+  "reopen_condition": "A real authenticated prebuilt-index source is selected, or the actual scanner/author is implemented and construction costs included without replacing the requested mechanism with an already indexed proxy.",
+  "no_benchmark_or_build": true
+}

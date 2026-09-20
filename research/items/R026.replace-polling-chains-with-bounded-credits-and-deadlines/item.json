@@ -74,64 +74,222 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. DelayedHTTP cancellation terminates promptly.",
+      "basis": "Matching exact-asset headed marked picture/audio, seek,rate,pause,EOF and cleanup checks; runtime measurements retain route/progression/drop/error/cleanup assertions.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "performance": {
-      "status": "passed",
-      "basis": "Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted.",
+      "status": "failed",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary pausedCPU gate failed; median paired deltas: {\"activeCPU\": 4.6825960985654955, \"mediaBytes\": 0, \"pausedCPU\": 8.464734995084804, \"slowCPU\": -1.275557688668689, \"slowRSS\": 0.11046122086811655, \"startupSeekMs\": 3.489075760126166} percent. Minimum absolute saving 0.1, measured -0.47193814139830437. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary pausedCPU gate failed; median paired deltas: {\"activeCPU\": 4.6825960985654955, \"mediaBytes\": 0, \"pausedCPU\": 8.464734995084804, \"slowCPU\": -1.275557688668689, \"slowRSS\": 0.11046122086811655, \"startupSeekMs\": 3.489075760126166} percent. Minimum absolute saving 0.1, measured -0.47193814139830437. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary pausedCPU gate failed; median paired deltas: {\"activeCPU\": 4.6825960985654955, \"mediaBytes\": 0, \"pausedCPU\": 8.464734995084804, \"slowCPU\": -1.275557688668689, \"slowRSS\": 0.11046122086811655, \"startupSeekMs\": 3.489075760126166} percent. Minimum absolute saving 0.1, measured -0.47193814139830437. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     }
   },
   "current_decision": {
     "key": "R026.replace-polling-chains-with-bounded-credits-and-deadlines",
-    "disposition": "pursue",
-    "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
-    "new_media_execution": false,
-    "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
-    "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+    "disposition": "stop_current_profile",
+    "evidence_level": "scoped_whole_player_paired_comparison",
+    "candidate_executed": true,
+    "reason": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary pausedCPU gate failed; median paired deltas: {\"activeCPU\": 4.6825960985654955, \"mediaBytes\": 0, \"pausedCPU\": 8.464734995084804, \"slowCPU\": -1.275557688668689, \"slowRSS\": 0.11046122086811655, \"startupSeekMs\": 3.489075760126166} percent. Minimum absolute saving 0.1, measured -0.47193814139830437. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
+    "next_action": "Reopen only for an identified workload where the complete-player primary benefit can exceed the declared cost gate; retain component evidence.",
     "stages": {
       "correctness": {
         "status": "passed",
-        "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. DelayedHTTP cancellation terminates promptly."
+        "basis": "Matching exact-asset headed marked picture/audio, seek,rate,pause,EOF and cleanup checks; runtime measurements retain route/progression/drop/error/cleanup assertions."
       },
       "performance": {
-        "status": "passed",
-        "basis": "Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted."
+        "status": "failed",
+        "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary pausedCPU gate failed; median paired deltas: {\"activeCPU\": 4.6825960985654955, \"mediaBytes\": 0, \"pausedCPU\": 8.464734995084804, \"slowCPU\": -1.275557688668689, \"slowRSS\": 0.11046122086811655, \"startupSeekMs\": 3.489075760126166} percent. Minimum absolute saving 0.1, measured -0.47193814139830437. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope."
       }
     },
-    "recorded_at_utc": "2026-09-19T21:30:54.682205+00:00",
+    "recorded_at_utc": "2026-09-20T13:20:58.482469+00:00",
     "run_ids": [
-      "20260919T212800Z-policy-license-correction"
+      "20260920T132058Z-whole-player-policies"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+      "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
     ]
   },
-  "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+  "next_action": "Reopen only for an identified workload where the complete-player primary benefit can exceed the declared cost gate; retain component evidence.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
     "status": "not_assessed_by_migration"
+  },
+  "whole_player_qualification": {
+    "status": "benefit_gate_failed",
+    "tier_effect": "Native remux -> Native remux",
+    "production_admission_changed": false,
+    "evidence": "research/shared/runs/20260920T132058Z-whole-player-policies/run.json",
+    "metrics": {
+      "pairs": [
+        {
+          "round": 1,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1881.1952500000043,
+            "activeCPU": 29.722554121864842,
+            "pausedCPU": 2.498956806786799,
+            "slowCPU": 7.673768849898856,
+            "slowRSS": 800224
+          },
+          "candidate": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1997.2828330000048,
+            "activeCPU": 32.07766967601237,
+            "pausedCPU": 5.911908826599483,
+            "slowCPU": 9.541593777534015,
+            "slowRSS": 833104
+          },
+          "deltaPercent": {
+            "mediaBytes": 0,
+            "startupSeekMs": 6.170948124603237,
+            "activeCPU": 7.923664784968903,
+            "pausedCPU": 136.57507046714886,
+            "slowCPU": 24.340385593707026,
+            "slowRSS": 4.108849522133802
+          }
+        },
+        {
+          "round": 2,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1686.6777079999447,
+            "activeCPU": 34.80109960551431,
+            "pausedCPU": 6.486792117778509,
+            "slowCPU": 10.312844701690002,
+            "slowRSS": 844720
+          },
+          "candidate": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1666.2930820000474,
+            "activeCPU": 34.95384410499216,
+            "pausedCPU": 4.836938208020477,
+            "slowCPU": 6.885873269506103,
+            "slowRSS": 843680
+          },
+          "deltaPercent": {
+            "mediaBytes": 0,
+            "startupSeekMs": -1.2085667524514363,
+            "activeCPU": 0.43890710698590985,
+            "pausedCPU": -25.434049369891735,
+            "slowCPU": -33.23012739270969,
+            "slowRSS": -0.12311771948101145
+          }
+        },
+        {
+          "round": 3,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1564.9517909999704,
+            "activeCPU": 35.298575416586985,
+            "pausedCPU": 6.188293435930415,
+            "slowCPU": 10.197624818561115,
+            "slowRSS": 852288
+          },
+          "candidate": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1593.8062919999938,
+            "activeCPU": 37.001404042991076,
+            "pausedCPU": 4.920373485627453,
+            "slowCPU": 10.379901636826622,
+            "slowRSS": 836896
+          },
+          "deltaPercent": {
+            "mediaBytes": 0,
+            "startupSeekMs": 1.8437948801979416,
+            "activeCPU": 4.824071811135821,
+            "pausedCPU": -20.489008212525555,
+            "slowCPU": 1.7874438558843357,
+            "slowRSS": -1.8059623038221821
+          }
+        },
+        {
+          "round": 4,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1613.4807909999508,
+            "activeCPU": 37.327150647744475,
+            "pausedCPU": 5.992241688471554,
+            "slowCPU": 12.526516172602959,
+            "slowRSS": 883568
+          },
+          "candidate": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 2210.0316250000615,
+            "activeCPU": 36.76052124453496,
+            "pausedCPU": 6.523804041367632,
+            "slowCPU": 11.605616053872799,
+            "slowRSS": 884544
+          },
+          "deltaPercent": {
+            "mediaBytes": 0,
+            "startupSeekMs": 36.97291206239894,
+            "activeCPU": -1.5180087238824835,
+            "pausedCPU": 8.870843008865082,
+            "slowCPU": -7.351606033481856,
+            "slowRSS": 0.11046122086811655
+          }
+        },
+        {
+          "round": 5,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1548.7602080000797,
+            "activeCPU": 34.91777576365575,
+            "pausedCPU": 5.575344552101672,
+            "slowCPU": 13.23586013440543,
+            "slowRSS": 858528
+          },
+          "candidate": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1602.79762499989,
+            "activeCPU": 36.55283416927054,
+            "pausedCPU": 6.047282693499977,
+            "slowCPU": 13.067029102799587,
+            "slowRSS": 860560
+          },
+          "deltaPercent": {
+            "mediaBytes": 0,
+            "startupSeekMs": 3.489075760126166,
+            "activeCPU": 4.6825960985654955,
+            "pausedCPU": 8.464734995084804,
+            "slowCPU": -1.275557688668689,
+            "slowRSS": 0.23668418502366842
+          }
+        }
+      ],
+      "absoluteMedianReduction": -0.47193814139830437,
+      "absoluteMinimum": 0.1,
+      "medianDeltas": {
+        "mediaBytes": 0,
+        "startupSeekMs": 3.489075760126166,
+        "activeCPU": 4.6825960985654955,
+        "pausedCPU": 8.464734995084804,
+        "slowCPU": -1.275557688668689,
+        "slowRSS": 0.11046122086811655
+      },
+      "primary": "pausedCPU",
+      "passed": false
+    },
+    "transport_byte_accounting": "Transport byte counts in the local whole-player run are server ReadStream bytes; they can include buffered or abandoned bytes and are not exact client-received or wire-byte measurements."
   }
 }

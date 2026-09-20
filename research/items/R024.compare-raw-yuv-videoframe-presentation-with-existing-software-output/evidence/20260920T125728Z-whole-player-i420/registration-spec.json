@@ -1,0 +1,299 @@
+{
+  "folder": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420",
+  "stage": "whole-player correctness",
+  "status": "completed scoped negative",
+  "commands": [
+    "python3 research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-build.py build/research-r024-yuv-01",
+    "python3 research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-fixture.py build/research-r024-fixture-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-derive.mjs build/research-r024-overlay-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-02",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-03"
+  ],
+  "analysis": "Actual maintained Player execution resolved the missing YUV runtime through an isolated link. Shipping RGB passed grayscale and colored BT709 I420 FFV1/PCM picture oracles (maximum RGB difference3). Existing YUV and raw-I420 VideoFrame candidate passed grayscale (maximum1) but both failed the predeclared colored whole-image max8/p994 gate (maximum114,p9944). Flat colored patch centers agreed within1; transition reconstruction differs, with root cause not yet established. Real440Hz rendered audio, continuous progress, backward/forward seeks and gray owner cleanup passed. No whole-player performance comparison was run after the color fidelity failure. Earlier prepared-grayscale component saving remains a valid scoped observation, not a production benefit.\n\nReopen only with an independently specified and justified chroma reconstruction/output contract or a corrected candidate that passes colored whole-image equivalence, then finish source replacement/cancellation/EOF/adverse controls before whole-player performance. Do not relax the threshold retroactively or claim Software-tier savings from the old component result.\n\nCurrent pursue disposition and earlier correctness/performance stages retain only their prior prepared-grayscale component scope. The new separate whole_player_qualification is correctness_failed. A cheap FFmpeg scaler-flag reference audit (neighbor,bilinear,bicubic,fast_bilinear) yielded identical unscaled reference output and did not resolve the chroma-edge discrepancy; this is not proof of a specific interpolation root cause.",
+  "artifacts": [
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/build-commands.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/build-manifest.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/fixture.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/oracle-color.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/oracle-gray.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/results.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-build.py",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-correctness.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-derive.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-fixture.py",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-plan.md",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/snapshots/whole-player-raw-i420.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-01/harness.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-01/result.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/harness.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/result.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-color-0.5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-color-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-color-5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-gray-0.5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-gray-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/rgb-gray-5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/yuv-color-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/yuv-gray-0.5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/yuv-gray-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-02/yuv-gray-5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/candidate-color-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/candidate-gray-0.5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/candidate-gray-2.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/candidate-gray-5.png",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/harness.mjs",
+      "license": "Apache-2.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/variant-03/result.json",
+      "license": "CC-BY-4.0",
+      "role": "source snapshot or observed evidence"
+    },
+    {
+      "path": "build/research-r024-yuv-01/player.mjs",
+      "license": "GPL-3.0-or-later",
+      "role": "reproducible experimental runtime"
+    },
+    {
+      "path": "build/research-r024-yuv-01/player.wasm",
+      "license": "GPL-3.0-or-later",
+      "role": "reproducible experimental runtime"
+    },
+    {
+      "path": "build/research-r024-yuv-01/rgb.o",
+      "license": "GPL-3.0-or-later",
+      "role": "reproducible experimental runtime"
+    },
+    {
+      "path": "build/research-r024-yuv-01/yuv.o",
+      "license": "GPL-3.0-or-later",
+      "role": "reproducible experimental runtime"
+    },
+    {
+      "path": "build/research-r024-fixture-01/gray.mkv",
+      "license": "CC-BY-4.0",
+      "role": "reproducible original synthetic fixture"
+    },
+    {
+      "path": "build/research-r024-fixture-01/color.mkv",
+      "license": "CC-BY-4.0",
+      "role": "reproducible original synthetic fixture"
+    },
+    {
+      "path": "native/yuv-backend.c",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "web/software-full-engine-worker.js",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "web/yuv-presenter.js",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "build/head-to-head/engine-build-01/native/player.c",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "build/head-to-head/engine-build-01/native/events.c",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "build/head-to-head/engine-build-01/native/stream_bridge.c",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "build/head-to-head/engine-build-01/experiments/retained-subtitles/subtitles.c",
+      "license": "GPL-3.0-or-later",
+      "role": "actual build or worker source"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/bicubic.png",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/bilinear.png",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/commands.json",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/fast_bilinear.png",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/neighbor.png",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/chroma-reference-audit/result.json",
+      "license": "CC-BY-4.0",
+      "role": "bounded followup reference audit"
+    },
+    {
+      "path": "research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/evidence/20260920T125728Z-whole-player-i420/regenerable-artifacts.json",
+      "license": "CC-BY-4.0",
+      "role": "generated artifact recovery inventory"
+    }
+  ],
+  "decisions": [
+    {
+      "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+      "disposition": "pursue",
+      "evidence_level": "actual_whole_player_correctness_failure",
+      "reason": "Retain pursue for the historical prepared-grayscale component only; whole-player colored-output qualification failed. Actual maintained Player execution resolved the missing YUV runtime through an isolated link. Shipping RGB passed grayscale and colored BT709 I420 FFV1/PCM picture oracles (maximum RGB difference3). Existing YUV and raw-I420 VideoFrame candidate passed grayscale (maximum1) but both failed the predeclared colored whole-image max8/p994 gate (maximum114,p9944). Flat colored patch centers agreed within1; transition reconstruction differs, with root cause not yet established. Real440Hz rendered audio, continuous progress, backward/forward seeks and gray owner cleanup passed. No whole-player performance comparison was run after the color fidelity failure. Earlier prepared-grayscale component saving remains a valid scoped observation, not a production benefit.",
+      "candidate_executed": true,
+      "next_action": "Reopen only with an independently specified and justified chroma reconstruction/output contract or a corrected candidate that passes colored whole-image equivalence, then finish source replacement/cancellation/EOF/adverse controls before whole-player performance. Do not relax the threshold retroactively or claim Software-tier savings from the old component result.",
+      "stages": {},
+      "whole_player_qualification": {
+        "status": "correctness_failed",
+        "scope": "Software to Software raw-I420 VideoFrame presentation, actual maintained Player",
+        "runtime_recovered": true,
+        "candidate_executed": true,
+        "correctness": "failed",
+        "performance": "not_run_after_correctness_failure",
+        "max_rgb_error": 114,
+        "p99_rgb_error": 44,
+        "baseline_max_rgb_error": 3,
+        "original_component_result_preserved": true
+      }
+    }
+  ]
+}

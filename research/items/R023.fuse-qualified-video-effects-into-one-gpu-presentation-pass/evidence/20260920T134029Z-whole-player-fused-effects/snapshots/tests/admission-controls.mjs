@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';
+const rows=[];
+for(const variant of['canvas','gpu']){const {featureRejection}=await import(pathToFileURL(path.resolve('build/research-r023-player-01',variant,'assets/demuxe/web/generated/internal/playback-plans.js')));for(const [mode,vf,af,toneMapping,accepted]of[['hybrid','lavfi=[transpose=clock,negate]','','off',true],['native','lavfi=[transpose=clock,negate]','','off',false],['hybrid','lavfi=[transpose=clock,negate]','volume=0.5','off',false],['hybrid','lavfi=[transpose=clock,negate]','','hdr-to-sdr',false],...['lavfi=[transpose=cclock,negate]','lavfi=[transpose=clock]','lavfi=[negate,transpose=clock]','lavfi=[transpose=clock,negate],scale=180:320'].map(vf=>['hybrid',vf,'','off',false])]){const rejection=featureRejection(mode,{vf,af,toneMapping});assert.equal(!rejection,accepted);rows.push({variant,mode,vf,af,toneMapping,accepted,rejection});}}
+await fs.writeFile(process.argv[2],JSON.stringify({passed:true,rows},null,2)+'\n');console.log('Admission controls passed');

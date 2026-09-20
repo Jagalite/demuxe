@@ -81,64 +81,222 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison.",
+      "basis": "Matching exact-asset headed marked picture/audio, seek,rate,pause,EOF and cleanup checks; runtime measurements retain route/progression/drop/error/cleanup assertions.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "performance": {
-      "status": "passed",
-      "basis": "At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim.",
+      "status": "failed",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary slowRSS gate failed; median paired deltas: {\"activeCPU\": -3.5457446843012743, \"mediaBytes\": -2.9900647506697715, \"pausedCPU\": 9.910127431168018, \"slowCPU\": 15.272633330711097, \"slowRSS\": -0.779079372230983, \"startupSeekMs\": -3.807896017173829} percent. Minimum absolute saving 8192, measured 6640. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary slowRSS gate failed; median paired deltas: {\"activeCPU\": -3.5457446843012743, \"mediaBytes\": -2.9900647506697715, \"pausedCPU\": 9.910127431168018, \"slowCPU\": 15.272633330711097, \"slowRSS\": -0.779079372230983, \"startupSeekMs\": -3.807896017173829} percent. Minimum absolute saving 8192, measured 6640. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary slowRSS gate failed; median paired deltas: {\"activeCPU\": -3.5457446843012743, \"mediaBytes\": -2.9900647506697715, \"pausedCPU\": 9.910127431168018, \"slowCPU\": 15.272633330711097, \"slowRSS\": -0.779079372230983, \"startupSeekMs\": -3.807896017173829} percent. Minimum absolute saving 8192, measured 6640. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
       ]
     }
   },
   "current_decision": {
     "key": "R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds",
-    "disposition": "pursue",
-    "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
-    "new_media_execution": false,
-    "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
-    "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+    "disposition": "stop_current_profile",
+    "evidence_level": "scoped_whole_player_paired_comparison",
+    "candidate_executed": true,
+    "reason": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary slowRSS gate failed; median paired deltas: {\"activeCPU\": -3.5457446843012743, \"mediaBytes\": -2.9900647506697715, \"pausedCPU\": 9.910127431168018, \"slowCPU\": 15.272633330711097, \"slowRSS\": -0.779079372230983, \"startupSeekMs\": -3.807896017173829} percent. Minimum absolute saving 8192, measured 6640. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope.",
+    "next_action": "Reopen only for an identified workload where the complete-player primary benefit can exceed the declared cost gate; retain component evidence.",
     "stages": {
       "correctness": {
         "status": "passed",
-        "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison."
+        "basis": "Matching exact-asset headed marked picture/audio, seek,rate,pause,EOF and cleanup checks; runtime measurements retain route/progression/drop/error/cleanup assertions."
       },
       "performance": {
-        "status": "passed",
-        "basis": "At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim."
+        "status": "failed",
+        "basis": "Five paired actual-player comparisons completed after matching marked-output correctness. Primary slowRSS gate failed; median paired deltas: {\"activeCPU\": -3.5457446843012743, \"mediaBytes\": -2.9900647506697715, \"pausedCPU\": 9.910127431168018, \"slowCPU\": 15.272633330711097, \"slowRSS\": -0.779079372230983, \"startupSeekMs\": -3.807896017173829} percent. Minimum absolute saving 8192, measured 6640. Range candidate additionally requires every media-byte increase<=30%. Native remux -> Native remux; authored36s H264/AAC MPEGTS, Chrome headed/macOS. Whole-session open,1x,paused,0.5x after1x history,seek,2x EOF,cleanup. No production admission change. Frozen authored36s fixture, shared host, browser startup/serverCPU/externalmedia services excluded; RSS maydoublecount sharedpages; no energyclaim. Earlier component measurements remain historical and are not contradicted by a different whole-player scope."
       }
     },
-    "recorded_at_utc": "2026-09-19T21:30:54.682205+00:00",
+    "recorded_at_utc": "2026-09-20T13:20:58.482469+00:00",
     "run_ids": [
-      "20260919T212800Z-policy-license-correction"
+      "20260920T132058Z-whole-player-policies"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+      "research/shared/runs/20260920T132058Z-whole-player-policies/run.json"
     ]
   },
-  "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+  "next_action": "Reopen only for an identified workload where the complete-player primary benefit can exceed the declared cost gate; retain component evidence.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
     "status": "not_assessed_by_migration"
+  },
+  "whole_player_qualification": {
+    "status": "benefit_gate_failed",
+    "tier_effect": "Native remux -> Native remux",
+    "production_admission_changed": false,
+    "evidence": "research/shared/runs/20260920T132058Z-whole-player-policies/run.json",
+    "metrics": {
+      "pairs": [
+        {
+          "round": 1,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1881.1952500000043,
+            "activeCPU": 29.722554121864842,
+            "pausedCPU": 2.498956806786799,
+            "slowCPU": 7.673768849898856,
+            "slowRSS": 800224
+          },
+          "candidate": {
+            "mediaBytes": 2126256,
+            "startupSeekMs": 1809.561290999991,
+            "activeCPU": 33.616435756150814,
+            "pausedCPU": 4.936987729731739,
+            "slowCPU": 11.069022305302846,
+            "slowRSS": 849344
+          },
+          "deltaPercent": {
+            "mediaBytes": -2.9900647506697715,
+            "startupSeekMs": -3.807896017173829,
+            "activeCPU": 13.1007638789074,
+            "pausedCPU": 97.56194730231459,
+            "slowCPU": 44.2449273859577,
+            "slowRSS": 6.138281281241253
+          }
+        },
+        {
+          "round": 2,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1686.6777079999447,
+            "activeCPU": 34.80109960551431,
+            "pausedCPU": 6.486792117778509,
+            "slowCPU": 10.312844701690002,
+            "slowRSS": 844720
+          },
+          "candidate": {
+            "mediaBytes": 2126256,
+            "startupSeekMs": 1578.4699159999727,
+            "activeCPU": 33.43719649140384,
+            "pausedCPU": 6.0076583563437715,
+            "slowCPU": 12.098659896791334,
+            "slowRSS": 832624
+          },
+          "deltaPercent": {
+            "mediaBytes": -2.9900647506697715,
+            "startupSeekMs": -6.415439742088268,
+            "activeCPU": -3.9191379857846718,
+            "pausedCPU": -7.386297460058324,
+            "slowCPU": 17.316417019337877,
+            "slowRSS": -1.4319537835022256
+          }
+        },
+        {
+          "round": 3,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1564.9517909999704,
+            "activeCPU": 35.298575416586985,
+            "pausedCPU": 6.188293435930415,
+            "slowCPU": 10.197624818561115,
+            "slowRSS": 852288
+          },
+          "candidate": {
+            "mediaBytes": 2126256,
+            "startupSeekMs": 1596.5572919999831,
+            "activeCPU": 34.046978055119276,
+            "pausedCPU": 6.784929442827702,
+            "slowCPU": 11.755070665541547,
+            "slowRSS": 845648
+          },
+          "deltaPercent": {
+            "mediaBytes": -2.9900647506697715,
+            "startupSeekMs": 2.0195830428627777,
+            "activeCPU": -3.5457446843012743,
+            "pausedCPU": 9.641365799383458,
+            "slowCPU": 15.272633330711097,
+            "slowRSS": -0.779079372230983
+          }
+        },
+        {
+          "round": 4,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1613.4807909999508,
+            "activeCPU": 37.327150647744475,
+            "pausedCPU": 5.992241688471554,
+            "slowCPU": 12.526516172602959,
+            "slowRSS": 883568
+          },
+          "candidate": {
+            "mediaBytes": 2126256,
+            "startupSeekMs": 1506.6679990000557,
+            "activeCPU": 35.812177990142956,
+            "pausedCPU": 6.586080475782659,
+            "slowCPU": 12.866531973767842,
+            "slowRSS": 864736
+          },
+          "deltaPercent": {
+            "mediaBytes": -2.9900647506697715,
+            "startupSeekMs": -6.620022537342893,
+            "activeCPU": -4.058634616658215,
+            "pausedCPU": 9.910127431168018,
+            "slowCPU": 2.7143684363617373,
+            "slowRSS": -2.1313583108487406
+          }
+        },
+        {
+          "round": 5,
+          "baseline": {
+            "mediaBytes": 2191792,
+            "startupSeekMs": 1548.7602080000797,
+            "activeCPU": 34.91777576365575,
+            "pausedCPU": 5.575344552101672,
+            "slowCPU": 13.23586013440543,
+            "slowRSS": 858528
+          },
+          "candidate": {
+            "mediaBytes": 2126256,
+            "startupSeekMs": 1625.3245419999585,
+            "activeCPU": 36.0183571345156,
+            "pausedCPU": 6.261191192015601,
+            "slowCPU": 12.225362706803816,
+            "slowRSS": 857552
+          },
+          "deltaPercent": {
+            "mediaBytes": -2.9900647506697715,
+            "startupSeekMs": 4.943588659134429,
+            "activeCPU": 3.151922901129895,
+            "pausedCPU": 12.301421616272902,
+            "slowCPU": -7.634542956335088,
+            "slowRSS": -0.1136829550113683
+          }
+        }
+      ],
+      "absoluteMedianReduction": 6640,
+      "absoluteMinimum": 8192,
+      "medianDeltas": {
+        "mediaBytes": -2.9900647506697715,
+        "startupSeekMs": -3.807896017173829,
+        "activeCPU": -3.5457446843012743,
+        "pausedCPU": 9.910127431168018,
+        "slowCPU": 15.272633330711097,
+        "slowRSS": -0.779079372230983
+      },
+      "primary": "slowRSS",
+      "passed": false
+    },
+    "transport_byte_accounting": "Transport byte counts in the local whole-player run are server ReadStream bytes; they can include buffered or abandoned bytes and are not exact client-received or wire-byte measurements."
   }
 }

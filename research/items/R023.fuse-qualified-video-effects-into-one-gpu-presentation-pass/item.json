@@ -47,94 +47,112 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "ExplicitlyBT709 native-size90degree/invert/subtitle effects withinHybrid; cheapestCanvas2D baseline; max3RGB and10%median/everypair CPU gates declared before execution.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass.md"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "basis": "Isolated retained-worker runtime, pinned base assets, identical compressed stream hashes, independent integerdisplay oracle and preserved commands/source snapshots.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "basis": "Both actualPlayer arms executed WebCodecs/mpv audio/subtitle owners and correct Canvas/fusedGPU markers; no fallback.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "basis": "Full pictures atPTS1/6/10 max1RGB acrosscandidate/baseline/oracle, partialsubtitlealpha/wrongcontrols, movingstereo440/880Hz, seek/sourceidentity/EOF/cancel/cleanup pass withinboundedprofile.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "performance": {
-      "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "status": "failed",
+      "basis": "Fivecomplete stable-process steadyCPU pairs: candidate median+8.52%,1/5lower. Primarygate>=10%medianreduction andallpairslower fails. Onepre-steady startupobserverfailure retained; onlysecondaryaccounting corrected.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "basis": "Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
+      "basis": "Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed.",
       "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
+        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-presentation-stage-completion",
-    "record": {
-      "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
-      "recorded_at_utc": "2026-09-19T22:02:07.730765+00:00",
-      "stage": "decision",
-      "state": "pursue",
-      "disposition": "pursue",
-      "run_ids": [
-        "20260919T220048Z-fresh-adapter"
-      ],
-      "new_execution": true,
-      "evidence_level": "component_test",
-      "reason": "Implemented a narrow exact GPU effect presenter: prepared opaque320x192RGBA code-value pixels rotated90 degrees, optional channel inversion and integer-rounded straight-alpha subtitle composition, fused in one actual WebGPU render pass. Full192x320 output matches independently generated Python integer reference for all4 input images and rotation/color/subtitle/combined subsets. Wrong-alpha reference differs, unsupported operations reject, actual device.destroy followed by fresh device produces exact output, and an in-flight old-owner GPU result is discarded by source epoch before publication; all GPUbuffers/textures/devices destroy. Initial setup failed because this Chrome consumes an adapter after device destruction; preserve that failure and one correction requests a fresh adapter perowner. Nine alternating32-frame task pairs charge adapter/device/pipeline/upload, CPU effect work or fusedshader, draws, finalfullreadback/hash and teardown. Baseline uses a single cheaper fused scalar CPU loop plus GPUblit, not artificially redundant CPU stages. Baseline32.233ms versuscandidate7.622ms, saving76.35% (95%[70.4177322905617, 81.2407242737413]), passes10%lower-bound gate. This qualifies an isolated prepared-RGBA effect component; no arbitraryFFmpegfilters, YUVconversion, HDR, linear-light alpha, scaling, retained-video externaltexture, physical driverloss or integratedplayer speed claim.",
-      "evidence": [
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/results.json",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/analysis.md",
-        "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260919T220048Z-fresh-adapter/manifest.json"
-      ],
-      "next_test": "Scoped exact prepared-RGBA component gates complete. Any extension to retainedVideoFrame/YUV/color-managed/HDR/scaling or actual player filter routing needs its own predeclared output contract and end-to-end comparison; production unchanged.",
-      "reopen_condition": "Scoped exact prepared-RGBA component gates complete. Any extension to retainedVideoFrame/YUV/color-managed/HDR/scaling or actual player filter routing needs its own predeclared output contract and end-to-end comparison; production unchanged."
-    }
+    "key": "R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual whole-player correctness and paired performance",
+    "reason": "Actual within-Hybrid fused WebGPU presenter passes bounded picture/audio/lifecycle correctness, but five paired whole-player trials show8.52%higher median steadyChromeCPU andonly1/5lower pairs versus cheapestCanvas2Dfilter+rotation+cachedsubtitles. Required10%medianreduction/everypair gatefails. Prior76.35%preparedRGBAcomponent result remains historicalagainstitsdifferentCPUbaseline; no productionadmission changed.",
+    "next_action": "Do not integrate this native-size SDR fused presenter for CPU savings. Reopen for a materially different representative resolution/effect workload with the cheapest correct Canvas baseline and a newly predeclared whole-player benefit gate; broader decoder/scaler/HDR fidelity and production integration remain separate.",
+    "stages": {
+      "define": {
+        "status": "passed",
+        "basis": "ExplicitlyBT709 native-size90degree/invert/subtitle effects withinHybrid; cheapestCanvas2D baseline; max3RGB and10%median/everypair CPU gates declared before execution."
+      },
+      "prepare": {
+        "status": "passed",
+        "basis": "Isolated retained-worker runtime, pinned base assets, identical compressed stream hashes, independent integerdisplay oracle and preserved commands/source snapshots."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Both actualPlayer arms executed WebCodecs/mpv audio/subtitle owners and correct Canvas/fusedGPU markers; no fallback."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Full pictures atPTS1/6/10 max1RGB acrosscandidate/baseline/oracle, partialsubtitlealpha/wrongcontrols, movingstereo440/880Hz, seek/sourceidentity/EOF/cancel/cleanup pass withinboundedprofile."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Fivecomplete stable-process steadyCPU pairs: candidate median+8.52%,1/5lower. Primarygate>=10%medianreduction andallpairslower fails. Onepre-steady startupobserverfailure retained; onlysecondaryaccounting corrected."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T13:42:05.445270+00:00",
+    "run_ids": [
+      "20260920T134029Z-whole-player-fused-effects"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
+    ]
   },
-  "next_action": "Scoped exact prepared-RGBA component gates complete. Any extension to retainedVideoFrame/YUV/color-managed/HDR/scaling or actual player filter routing needs its own predeclared output contract and end-to-end comparison; production unchanged.",
+  "next_action": "Do not integrate this native-size SDR fused presenter for CPU savings. Reopen for a materially different representative resolution/effect workload with the cheapest correct Canvas baseline and a newly predeclared whole-player benefit gate; broader decoder/scaler/HDR fidelity and production integration remain separate.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
     "status": "not_assessed_by_migration"
+  },
+  "whole_player_qualification": {
+    "status": "benefit_gate_failed",
+    "scope": "Actual Player native180x320 explicitlyBT70990degree/invert/subtitle display effects; Canvas2Dfilter baseline versus fusedWebGPU externaltexture candidate",
+    "tier_effect": "Hybrid->Hybrid",
+    "candidate_executed": true,
+    "correctness": "passed",
+    "performance": "failed",
+    "completed_pairs": 5,
+    "median_steady_cpu_change_percent": 8.515939173734942,
+    "pairs_with_lower_cpu": 1,
+    "production_admission_changed": false,
+    "original_component_result_preserved": true,
+    "evidence": [
+      "research/items/R023.fuse-qualified-video-effects-into-one-gpu-presentation-pass/evidence/20260920T134029Z-whole-player-fused-effects/run.json"
+    ]
   }
 }

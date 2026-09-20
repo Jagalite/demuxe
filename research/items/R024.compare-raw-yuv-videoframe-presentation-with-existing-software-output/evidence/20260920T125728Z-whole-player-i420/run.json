@@ -1,0 +1,45 @@
+{
+  "stage": "whole-player correctness",
+  "status": "completed scoped negative",
+  "commands": [
+    "python3 research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-build.py build/research-r024-yuv-01",
+    "python3 research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-fixture.py build/research-r024-fixture-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-derive.mjs build/research-r024-overlay-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-01",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-02",
+    "node research/items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/tests/whole-player-correctness.mjs build/research-r024-correctness-03"
+  ],
+  "analysis": "Actual maintained Player execution resolved the missing YUV runtime through an isolated link. Shipping RGB passed grayscale and colored BT709 I420 FFV1/PCM picture oracles (maximum RGB difference3). Existing YUV and raw-I420 VideoFrame candidate passed grayscale (maximum1) but both failed the predeclared colored whole-image max8/p994 gate (maximum114,p9944). Flat colored patch centers agreed within1; transition reconstruction differs, with root cause not yet established. Real440Hz rendered audio, continuous progress, backward/forward seeks and gray owner cleanup passed. No whole-player performance comparison was run after the color fidelity failure. Earlier prepared-grayscale component saving remains a valid scoped observation, not a production benefit.\n\nReopen only with an independently specified and justified chroma reconstruction/output contract or a corrected candidate that passes colored whole-image equivalence, then finish source replacement/cancellation/EOF/adverse controls before whole-player performance. Do not relax the threshold retroactively or claim Software-tier savings from the old component result.\n\nCurrent pursue disposition and earlier correctness/performance stages retain only their prior prepared-grayscale component scope. The new separate whole_player_qualification is correctness_failed. A cheap FFmpeg scaler-flag reference audit (neighbor,bilinear,bicubic,fast_bilinear) yielded identical unscaled reference output and did not resolve the chroma-edge discrepancy; this is not proof of a specific interpolation root cause.",
+  "decisions": [
+    {
+      "key": "R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output",
+      "disposition": "pursue",
+      "evidence_level": "actual_whole_player_correctness_failure",
+      "reason": "Retain pursue for the historical prepared-grayscale component only; whole-player colored-output qualification failed. Actual maintained Player execution resolved the missing YUV runtime through an isolated link. Shipping RGB passed grayscale and colored BT709 I420 FFV1/PCM picture oracles (maximum RGB difference3). Existing YUV and raw-I420 VideoFrame candidate passed grayscale (maximum1) but both failed the predeclared colored whole-image max8/p994 gate (maximum114,p9944). Flat colored patch centers agreed within1; transition reconstruction differs, with root cause not yet established. Real440Hz rendered audio, continuous progress, backward/forward seeks and gray owner cleanup passed. No whole-player performance comparison was run after the color fidelity failure. Earlier prepared-grayscale component saving remains a valid scoped observation, not a production benefit.",
+      "candidate_executed": true,
+      "next_action": "Reopen only with an independently specified and justified chroma reconstruction/output contract or a corrected candidate that passes colored whole-image equivalence, then finish source replacement/cancellation/EOF/adverse controls before whole-player performance. Do not relax the threshold retroactively or claim Software-tier savings from the old component result.",
+      "stages": {},
+      "whole_player_qualification": {
+        "status": "correctness_failed",
+        "scope": "Software to Software raw-I420 VideoFrame presentation, actual maintained Player",
+        "runtime_recovered": true,
+        "candidate_executed": true,
+        "correctness": "failed",
+        "performance": "not_run_after_correctness_failure",
+        "max_rgb_error": 114,
+        "p99_rgb_error": 44,
+        "baseline_max_rgb_error": 3,
+        "original_component_result_preserved": true
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T125728Z-whole-player-i420",
+  "recorded_at_utc": "2026-09-20T12:58:40.954544+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "061240b61bef8552117862f601c503b11961c485",
+    "dirty_diff_sha256": "4f53ac0444857742e2897a88f430500b8277ccf28e327f245cece75fb727b6e6",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

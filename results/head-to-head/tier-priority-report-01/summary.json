@@ -1,0 +1,207 @@
+{
+  "scope": "Whole-player browser-process measurements on frozen authored-fixture routes; explicit lab substitutions, not current-production or release qualification.",
+  "results": [
+    {
+      "case": "h264-srt",
+      "evidence": "results/head-to-head/tier-priority-srt-01",
+      "execution_passed": true,
+      "error": null,
+      "benefit_gate": {
+        "metric": "steady Chrome CPU",
+        "medianDeltaPercent": -49.837085924720974,
+        "everyPairLower": true,
+        "requiredMedianReductionPercent": 10,
+        "passed": true
+      },
+      "rounds": 10,
+      "limits": [
+        "Candidate route is explicitly selected; generic automatic discovery integration is not measured. Browser extraction and attachment reloads are included.",
+        "One shared Chrome/macOS host, 36s synthetic stereo file. Five alternating pairs; OS caches are not flushed. Background user workloads are recorded and not stopped; results are exploratory, not isolated-host qualification.",
+        "CPU covers CDP-listed Chrome processes, excluding external media services/server; summed RSS may double count shared pages.",
+        "Main-thread TaskDuration/ScriptDuration are CDP renderer metrics, not worker or Wasm CPU attribution.",
+        "Total bytes copied and isolated Wasm/mpv CPU time are not exposed; null means unavailable, never zero.",
+        "Startup ends at API play plus 0.5s media progression, not first physical sound/photon. No intrusive audio analysis during performance."
+      ],
+      "paired_metrics": {
+        "startupWallMs": {
+          "median_delta_percent": -28.17066854841452,
+          "all_deltas_percent": [
+            -65.43227032912574,
+            -31.71724904201026,
+            -16.421877585145747,
+            -28.17066854841452,
+            -17.645599701213936
+          ]
+        },
+        "startupCPUSeconds": {
+          "median_delta_percent": -34.00155028274451,
+          "all_deltas_percent": [
+            -55.00208444650606,
+            -34.00155028274451,
+            -32.70994974431316,
+            -38.88230417782501,
+            -32.540999219974594
+          ]
+        },
+        "oneCorePercent": {
+          "median_delta_percent": -49.837085924720974,
+          "all_deltas_percent": [
+            -55.06657663918942,
+            -46.8295580950669,
+            -45.01281568755652,
+            -49.837085924720974,
+            -53.0209447312548
+          ]
+        },
+        "peakSummedRssKiB": {
+          "median_delta_percent": -4.121984492911292,
+          "all_deltas_percent": [
+            13.282217163851284,
+            -4.121984492911292,
+            -0.6619888526127816,
+            -14.347748594390524,
+            -5.835848313869571
+          ]
+        },
+        "mainThreadTaskSeconds": {
+          "median_delta_percent": -77.4946538298429,
+          "all_deltas_percent": [
+            -78.11442330162348,
+            -77.4946538298429,
+            -77.0413245389689,
+            -77.33842568131163,
+            -81.00009555217535
+          ]
+        },
+        "mainThreadScriptSeconds": {
+          "median_delta_percent": -83.74497674628618,
+          "all_deltas_percent": [
+            -84.08705633056684,
+            -83.74497674628618,
+            -82.95238095238096,
+            -82.73882227076183,
+            -85.85625380706335
+          ]
+        }
+      },
+      "seek_medians_ms": {
+        "baseline": 559.1197910000337,
+        "candidate": 78.95683300000383
+      },
+      "player_lifecycle_observed_cpu_seconds": {
+        "baseline": 11.852285999999998,
+        "candidate": 6.376628999999999
+      },
+      "observed_routes": {
+        "baseline": [
+          "hybrid"
+        ],
+        "candidate": [
+          "native-direct"
+        ]
+      },
+      "process_exit_passed": true
+    },
+    {
+      "case": "h264-ass",
+      "evidence": "results/head-to-head/tier-priority-ass-01",
+      "execution_passed": true,
+      "error": null,
+      "benefit_gate": {
+        "metric": "steady Chrome CPU",
+        "medianDeltaPercent": -38.46969394270051,
+        "everyPairLower": true,
+        "requiredMedianReductionPercent": 10,
+        "passed": true
+      },
+      "rounds": 10,
+      "limits": [
+        "Candidate route is explicitly selected; generic automatic discovery integration is not measured. Browser extraction and attachment reloads are included.",
+        "One shared Chrome/macOS host, 36s synthetic stereo file. Five alternating pairs; OS caches are not flushed. Background user workloads are recorded and not stopped; results are exploratory, not isolated-host qualification.",
+        "CPU covers CDP-listed Chrome processes, excluding external media services/server; summed RSS may double count shared pages.",
+        "Main-thread TaskDuration/ScriptDuration are CDP renderer metrics, not worker or Wasm CPU attribution.",
+        "Total bytes copied and isolated Wasm/mpv CPU time are not exposed; null means unavailable, never zero.",
+        "Startup ends at API play plus 0.5s media progression, not first physical sound/photon. No intrusive audio analysis during performance."
+      ],
+      "paired_metrics": {
+        "startupWallMs": {
+          "median_delta_percent": -20.19954907812898,
+          "all_deltas_percent": [
+            -20.469214432852834,
+            -10.006900867909529,
+            -14.090506741002118,
+            -24.513808682193964,
+            -20.19954907812898
+          ]
+        },
+        "startupCPUSeconds": {
+          "median_delta_percent": -24.14688936926375,
+          "all_deltas_percent": [
+            -23.258466145201016,
+            -24.14688936926375,
+            -26.56141704632617,
+            -24.451446878968312,
+            -19.126149528904723
+          ]
+        },
+        "oneCorePercent": {
+          "median_delta_percent": -38.46969394270051,
+          "all_deltas_percent": [
+            -32.336829036102785,
+            -47.08253655383988,
+            -38.46969394270051,
+            -37.54404286012107,
+            -38.685202042159794
+          ]
+        },
+        "peakSummedRssKiB": {
+          "median_delta_percent": -3.043891380086349,
+          "all_deltas_percent": [
+            -7.532556545579164,
+            -5.071465881570825,
+            0.9910550924984753,
+            -3.043891380086349,
+            -0.02519399375188955
+          ]
+        },
+        "mainThreadTaskSeconds": {
+          "median_delta_percent": 35.68554434682973,
+          "all_deltas_percent": [
+            60.64940903487783,
+            29.757068519877045,
+            41.919594601825814,
+            35.68554434682973,
+            33.95230491620259
+          ]
+        },
+        "mainThreadScriptSeconds": {
+          "median_delta_percent": -8.341434693905502,
+          "all_deltas_percent": [
+            5.666491462409063,
+            -13.568915202006147,
+            -6.539963481760878,
+            -8.341434693905502,
+            -13.232388051455734
+          ]
+        }
+      },
+      "seek_medians_ms": {
+        "baseline": 544.2499580000294,
+        "candidate": 76.83437499999127
+      },
+      "player_lifecycle_observed_cpu_seconds": {
+        "baseline": 11.455212,
+        "candidate": 7.582473000000001
+      },
+      "observed_routes": {
+        "baseline": [
+          "hybrid"
+        ],
+        "candidate": [
+          "native-direct-ass"
+        ]
+      },
+      "process_exit_passed": true
+    }
+  ]
+}

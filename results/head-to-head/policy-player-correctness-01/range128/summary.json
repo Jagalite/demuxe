@@ -1,0 +1,4413 @@
+{
+  "schema": 1,
+  "kind": "correctness",
+  "startedAt": "2026-09-20T12:59:31.468Z",
+  "assets": "/Volumes/seed2/Projects/demuxe/build/research-player-policies-01/range128",
+  "assetsSHA256": "83e38265d7af5b44a50903af51d4323249c6fc14f05abf490e43248e6681b2f2",
+  "harnessSHA256": "3264de06ad4c755aa38dabfae8efff4902b1ce2a569b01f9a52f820280933918",
+  "sourceHashes": {
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "run.mjs": "edacc1cdf904bdf9a9d9eb456f9742d6bf64e9b9f867888688c99695e8aa85f9",
+    "server.mjs": "3340ffdf3cec0c8c59871bbf5db22c7d10b6a7f580404d62aedbbaa614046e8a",
+    "checks.mjs": "2f95549238a956439ac2e86b7afb129c711b3d93917df15d27d6e8fe634e9326",
+    "adapters.mjs": "7ef86e0619eca986942611a314fe4af18825aa0045f1a112161cf68c14d2e311",
+    "harness.html": "e5a949a87f133332e4848cddd4b3a91d6615b0da2b9776077bd9d4ba2df6ebdd",
+    "matrix.json": "d440fb07cdd1c8a94518140cb71da0c9c85b10bc594f4e88c40a5740c2589b75",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "a7f1ef253cb419497580aa2c3f7591dd22c18de1c129e42cebd9abb7b85f2bb2",
+    "expand.py": "9bcd11206d2a42f793a74b387aeeb6f43e24386224d92b31a591cab0cd867ca5",
+    "planned.json": "ba2679905a12afdf61cacb7f3fd51fece8a5a1dfd8e21f82de81f8fcf7e929d1",
+    "subtitle-ocr.swift": "14454bb07b8f891d86f3a2685208530a2ea2d619dd4aff27c604ed1bc4e30b9b",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "061240b61bef8552117862f601c503b11961c485",
+  "playerSourceRevision": "7baf76570e2c5708ab0f8107c86803fa864efada",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/build/research-player-policies-01/harness/run.mjs",
+      "--assets",
+      "build/research-player-policies-01/range128",
+      "--catalogue",
+      "--demuxe-mode",
+      "native",
+      "--cases",
+      "demuxe.native.h264-ts",
+      "--headed",
+      "--output",
+      "results/head-to-head/policy-player-correctness-01/range128"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "demuxe.native.h264-ts"
+  ],
+  "cases": [
+    {
+      "id": "demuxe.native.h264-ts",
+      "player": "demuxe",
+      "lane": "native",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ],
+      "status": "passed",
+      "startedAt": "2026-09-20T12:59:31.657Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:53535/fixtures/h264-ts/index.ts",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "recordPath": "demuxe.native.h264-ts/result.json",
+      "initial": {
+        "position": 0.7982130000000001,
+        "duration": 36.021334,
+        "route": "native-remux",
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-remux",
+            "mode": "native",
+            "video": "packet-copy",
+            "audio": "packet-copy",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-media-element",
+              "audio": "browser-media-element",
+              "subtitle": "browser-text-track",
+              "demux": "ffmpeg-preparation",
+              "presentation": "browser-media-element"
+            },
+            "source": "qualified random-access file and selected codec packaging",
+            "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "This source policy requires controlled remux transport"
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": true
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "This source policy requires controlled remux transport",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "timing": {
+                  "preparationRequested": 786.3199999928474,
+                  "metadata": 786.4549999833107,
+                  "ready": 786.464999973774,
+                  "outputRequested": 789.8249999880791,
+                  "firstFrame": 820.0349999666214,
+                  "outputAccepted": 820.039999961853
+                },
+                "metadata": true,
+                "decoderOutput": true,
+                "prepared": true,
+                "completedAtEOF": false,
+                "outputVerified": true,
+                "videoPresented": true,
+                "playbackReady": true,
+                "audioProgress": true,
+                "audioEvidence": "decoded-byte-counter",
+                "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                "sourceBufferCreated": true,
+                "initAccepted": true,
+                "mediaAccepted": true
+              }
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": false,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: This source policy requires controlled remux transport"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-remux: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "capability": {
+              "timing": {
+                "preparationRequested": 786.3199999928474,
+                "metadata": 786.4549999833107,
+                "ready": 786.464999973774,
+                "outputRequested": 789.8249999880791,
+                "firstFrame": 820.0349999666214,
+                "outputAccepted": 820.039999961853
+              },
+              "metadata": true,
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter",
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            },
+            "path": "native",
+            "plan": "remux",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "remux": {
+              "capability": {
+                "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                "sourceBufferCreated": true,
+                "initAccepted": true,
+                "mediaAccepted": true
+              },
+              "stats": {
+                "fragments": [
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 690.9300000071526,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14635,
+                    "at": 696.75,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14134,
+                    "at": 697.75,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12790,
+                    "at": 698.2400000095367,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13465,
+                    "at": 701.4549999833107,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12764,
+                    "at": 701.9549999833107,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13459,
+                    "at": 702.3249999880791,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12738,
+                    "at": 702.9200000166893,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13512,
+                    "at": 703.375,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12751,
+                    "at": 703.9950000047684,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13426,
+                    "at": 707.8249999880791,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12767,
+                    "at": 955.4200000166893,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13026,
+                    "at": 1405.464999973774,
+                    "generation": 1
+                  }
+                ],
+                "generatedBytes": 160706,
+                "discardedBytes": 0,
+                "peakQueueDepth": 1,
+                "bufferedBytesUpperBound": 160706,
+                "peakBufferedBytesUpperBound": 160706,
+                "peakBufferedSeconds": 6.08,
+                "seeks": [
+                  {
+                    "target": 0,
+                    "started": 602.0949999690056
+                  }
+                ],
+                "sessions": [
+                  {
+                    "generation": 1,
+                    "target": 0,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 104.19499999284744,
+                    "firstPlayableSourceBytes": 446608,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 121487,
+                    "fetchedBytesAtLeastSourceSize": false
+                  }
+                ],
+                "errors": [],
+                "workers": 2,
+                "recoveries": [],
+                "gapSkips": [],
+                "researchTicks": 19
+              },
+              "source": {
+                "fetchedBytes": 577680,
+                "requests": 6,
+                "retries": 0,
+                "aborts": 0,
+                "cacheBytes": 655360,
+                "peakCacheBytes": 655360,
+                "activeBytes": 0,
+                "peakActiveBytes": 131072
+              },
+              "remux": {
+                "calls": 12,
+                "remuxMs": 68.91999995708466,
+                "generatedBytes": 160706,
+                "peakBatchBytes": 14635,
+                "heapBytes": 67108864,
+                "gatherCopiedBytes": 1239,
+                "reusedOwnedBatches": 12
+              },
+              "windowed": false,
+              "presentationFloor": 0,
+              "trackBounds": {
+                "videoEnd": 36.02133366666667,
+                "audioEnd": 36.010667
+              },
+              "ranges": [
+                [
+                  0.021333000000000046,
+                  6.101333
+                ]
+              ],
+              "timelineBias": 1,
+              "position": 0.8053330000000001,
+              "quality": {},
+              "readyState": 4,
+              "logs": [
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options"
+              ]
+            },
+            "position": 0.8053330000000001,
+            "rendered": 29,
+            "dropped": 0,
+            "readyState": 4
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: This source policy requires controlled remux transport"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-remux: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "2",
+            "type": "audio",
+            "codec": "aac",
+            "selected": true
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10567355587443672,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10574150787980383,
+            "hz": 878.90625
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "time": 1.805333,
+          "ended": false,
+          "paused": false,
+          "total": 29,
+          "dropped": 0
+        }
+      },
+      "initialImage": {
+        "rgb": [
+          248,
+          36,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      },
+      "moving": true,
+      "rateAdvance": 0.8875199999999999,
+      "seeks": [
+        {
+          "target": 6,
+          "state": {
+            "position": 6,
+            "duration": 36.021334,
+            "route": "native-remux",
+            "diagnostics": {
+              "mode": "native",
+              "plan": {
+                "id": "native-remux",
+                "mode": "native",
+                "video": "packet-copy",
+                "audio": "packet-copy",
+                "qualification": "existing",
+                "owners": {
+                  "video": "browser-media-element",
+                  "audio": "browser-media-element",
+                  "subtitle": "browser-text-track",
+                  "demux": "ffmpeg-preparation",
+                  "presentation": "browser-media-element"
+                },
+                "source": "qualified random-access file and selected codec packaging",
+                "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+                "subtitles": "browser text tracks",
+                "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+                "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+                "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+              },
+              "planAdmission": [
+                {
+                  "id": "native-direct",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "SOURCE_UNSUPPORTED",
+                  "reason": "This source policy requires controlled remux transport"
+                },
+                {
+                  "id": "native-remux",
+                  "mode": "native",
+                  "eligible": true
+                },
+                {
+                  "id": "native-direct-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-flac-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-opus",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-opus-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid",
+                  "mode": "hybrid",
+                  "eligible": true
+                },
+                {
+                  "id": "hybrid-audio-filter",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "mpv scalar filter stage does not match the request"
+                },
+                {
+                  "id": "hybrid-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid-audio-filter-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software-gain",
+                  "mode": "software",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software",
+                  "mode": "software",
+                  "eligible": true
+                }
+              ],
+              "runtimeCapabilities": [
+                {
+                  "planId": "native-direct",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "This source policy requires controlled remux transport",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "verified",
+                  "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+                  "previouslyVerified": false,
+                  "evidence": {
+                    "timing": {
+                      "preparationRequested": 4147.089999973774,
+                      "metadata": 786.4549999833107,
+                      "ready": 786.464999973774,
+                      "outputRequested": 2867.300000011921,
+                      "firstFrame": 820.0349999666214,
+                      "outputAccepted": 2892.9549999833107
+                    },
+                    "metadata": true,
+                    "decoderOutput": true,
+                    "prepared": true,
+                    "completedAtEOF": false,
+                    "outputVerified": true,
+                    "videoPresented": true,
+                    "playbackReady": true,
+                    "audioProgress": true,
+                    "audioEvidence": "decoded-byte-counter",
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  }
+                },
+                {
+                  "planId": "native-direct-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "mpv scalar filter stage does not match the request",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                }
+              ],
+              "selection": {
+                "automatic": false,
+                "attempts": [
+                  {
+                    "mode": "native",
+                    "outcome": "skipped",
+                    "reason": "native-direct: This source policy requires controlled remux transport"
+                  },
+                  {
+                    "mode": "native",
+                    "outcome": "selected",
+                    "reason": "native-remux: Playback requirements and actual startup accepted"
+                  }
+                ]
+              },
+              "switching": false,
+              "videoFilters": "",
+              "audioFilters": "",
+              "audioGain": 1,
+              "toneMapping": "off",
+              "resourceLimits": {
+                "maxDecodePixels": 8294400,
+                "maxAllocationBytes": 134217728
+              },
+              "backend": {
+                "capability": {
+                  "timing": {
+                    "preparationRequested": 4147.089999973774,
+                    "metadata": 786.4549999833107,
+                    "ready": 786.464999973774,
+                    "outputRequested": 2867.300000011921,
+                    "firstFrame": 820.0349999666214,
+                    "outputAccepted": 2892.9549999833107
+                  },
+                  "metadata": true,
+                  "decoderOutput": true,
+                  "prepared": true,
+                  "completedAtEOF": false,
+                  "outputVerified": true,
+                  "videoPresented": true,
+                  "playbackReady": true,
+                  "audioProgress": true,
+                  "audioEvidence": "decoded-byte-counter",
+                  "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                  "sourceBufferCreated": true,
+                  "initAccepted": true,
+                  "mediaAccepted": true
+                },
+                "path": "native",
+                "plan": "remux",
+                "audioProcessing": {
+                  "component": "media-element",
+                  "gain": 1
+                },
+                "remux": {
+                  "capability": {
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  },
+                  "stats": {
+                    "fragments": [
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 690.9300000071526,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14635,
+                        "at": 696.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14134,
+                        "at": 697.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12790,
+                        "at": 698.2400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13465,
+                        "at": 701.4549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12764,
+                        "at": 701.9549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13459,
+                        "at": 702.3249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12738,
+                        "at": 702.9200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13512,
+                        "at": 703.375,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12751,
+                        "at": 703.9950000047684,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13426,
+                        "at": 707.8249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12767,
+                        "at": 955.4200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13026,
+                        "at": 1405.464999973774,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13196,
+                        "at": 1903.4449999928474,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13017,
+                        "at": 2407.25,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13222,
+                        "at": 3355.2099999785423,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12913,
+                        "at": 3754.7400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4102.045000016689,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13021,
+                        "at": 4104.694999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13446,
+                        "at": 4106.75,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12737,
+                        "at": 4107.074999988079,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13510,
+                        "at": 4107.360000014305,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12734,
+                        "at": 4107.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4107.875,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13232,
+                        "at": 4108.319999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4108.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13224,
+                        "at": 4111.069999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12929,
+                        "at": 4111.490000009537,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13295,
+                        "at": 4111.7300000190735,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12988,
+                        "at": 4112.129999995232,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13189,
+                        "at": 4204.334999978542,
+                        "generation": 2
+                      }
+                    ],
+                    "generatedBytes": 384518,
+                    "discardedBytes": 0,
+                    "peakQueueDepth": 1,
+                    "bufferedBytesUpperBound": 171464,
+                    "peakBufferedBytesUpperBound": 213054,
+                    "peakBufferedSeconds": 8.085333,
+                    "seeks": [
+                      {
+                        "target": 0,
+                        "started": 602.0949999690056
+                      },
+                      {
+                        "target": 6,
+                        "started": 4027.6800000071526
+                      }
+                    ],
+                    "sessions": [
+                      {
+                        "generation": 1,
+                        "target": 0,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 104.19499999284744,
+                        "firstPlayableSourceBytes": 446608,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 121487,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 2,
+                        "target": 6,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 101.61500000953674,
+                        "firstPlayableSourceBytes": 708752,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 158275,
+                        "fetchedBytesAtLeastSourceSize": false
+                      }
+                    ],
+                    "errors": [],
+                    "workers": 2,
+                    "recoveries": [],
+                    "gapSkips": [],
+                    "researchTicks": 74,
+                    "cancellations": [
+                      {
+                        "generatedBytes": 213054,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 213054,
+                        "sourceFetchedBytes": 577680,
+                        "inFlightOutputUpperBound": 8388608
+                      }
+                    ]
+                  },
+                  "source": {
+                    "fetchedBytes": 708752,
+                    "requests": 8,
+                    "retries": 0,
+                    "aborts": 0,
+                    "cacheBytes": 786432,
+                    "peakCacheBytes": 786432,
+                    "activeBytes": 0,
+                    "peakActiveBytes": 131072
+                  },
+                  "remux": {
+                    "calls": 13,
+                    "remuxMs": 58.129999935626984,
+                    "generatedBytes": 171464,
+                    "peakBatchBytes": 13510,
+                    "heapBytes": 67108864,
+                    "gatherCopiedBytes": 1239,
+                    "reusedOwnedBatches": 13
+                  },
+                  "windowed": false,
+                  "presentationFloor": 0,
+                  "trackBounds": {
+                    "videoEnd": 36.02133366666667,
+                    "audioEnd": 36.010667
+                  },
+                  "ranges": [
+                    [
+                      5.021333,
+                      11.519999
+                    ]
+                  ],
+                  "timelineBias": 1,
+                  "position": 6.185958,
+                  "quality": {},
+                  "readyState": 4,
+                  "logs": [
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options"
+                  ]
+                },
+                "position": 6.185958,
+                "rendered": 11,
+                "dropped": 0,
+                "readyState": 4
+              }
+            },
+            "selectionTrace": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: This source policy requires controlled remux transport"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-remux: Playback requirements and actual startup accepted"
+              }
+            ],
+            "nativeVerificationFailures": [],
+            "mediaTracks": [
+              {
+                "id": "2",
+                "type": "audio",
+                "codec": "aac",
+                "selected": true
+              }
+            ],
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10608875604968705,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10602862794300225,
+                "hz": 878.90625
+              }
+            ],
+            "errors": [],
+            "events": [],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "time": 7.185958,
+              "ended": false,
+              "paused": false,
+              "total": 11,
+              "dropped": 0
+            }
+          },
+          "image": {
+            "rgb": [
+              26,
+              35,
+              255
+            ],
+            "expected": "blue",
+            "markerCorrect": true,
+            "magentaPixels": 0
+          }
+        },
+        {
+          "target": 1,
+          "state": {
+            "position": 1,
+            "duration": 36.021334,
+            "route": "native-remux",
+            "diagnostics": {
+              "mode": "native",
+              "plan": {
+                "id": "native-remux",
+                "mode": "native",
+                "video": "packet-copy",
+                "audio": "packet-copy",
+                "qualification": "existing",
+                "owners": {
+                  "video": "browser-media-element",
+                  "audio": "browser-media-element",
+                  "subtitle": "browser-text-track",
+                  "demux": "ffmpeg-preparation",
+                  "presentation": "browser-media-element"
+                },
+                "source": "qualified random-access file and selected codec packaging",
+                "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+                "subtitles": "browser text tracks",
+                "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+                "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+                "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+              },
+              "planAdmission": [
+                {
+                  "id": "native-direct",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "SOURCE_UNSUPPORTED",
+                  "reason": "This source policy requires controlled remux transport"
+                },
+                {
+                  "id": "native-remux",
+                  "mode": "native",
+                  "eligible": true
+                },
+                {
+                  "id": "native-direct-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-flac-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-opus",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-opus-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid",
+                  "mode": "hybrid",
+                  "eligible": true
+                },
+                {
+                  "id": "hybrid-audio-filter",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "mpv scalar filter stage does not match the request"
+                },
+                {
+                  "id": "hybrid-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid-audio-filter-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software-gain",
+                  "mode": "software",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software",
+                  "mode": "software",
+                  "eligible": true
+                }
+              ],
+              "runtimeCapabilities": [
+                {
+                  "planId": "native-direct",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "This source policy requires controlled remux transport",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "verified",
+                  "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+                  "previouslyVerified": false,
+                  "evidence": {
+                    "timing": {
+                      "preparationRequested": 4498.089999973774,
+                      "metadata": 786.4549999833107,
+                      "ready": 786.464999973774,
+                      "outputRequested": 2867.300000011921,
+                      "firstFrame": 820.0349999666214,
+                      "outputAccepted": 2892.9549999833107
+                    },
+                    "metadata": true,
+                    "decoderOutput": true,
+                    "prepared": true,
+                    "completedAtEOF": false,
+                    "outputVerified": true,
+                    "videoPresented": true,
+                    "playbackReady": true,
+                    "audioProgress": true,
+                    "audioEvidence": "decoded-byte-counter",
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  }
+                },
+                {
+                  "planId": "native-direct-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "mpv scalar filter stage does not match the request",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                }
+              ],
+              "selection": {
+                "automatic": false,
+                "attempts": [
+                  {
+                    "mode": "native",
+                    "outcome": "skipped",
+                    "reason": "native-direct: This source policy requires controlled remux transport"
+                  },
+                  {
+                    "mode": "native",
+                    "outcome": "selected",
+                    "reason": "native-remux: Playback requirements and actual startup accepted"
+                  }
+                ]
+              },
+              "switching": false,
+              "videoFilters": "",
+              "audioFilters": "",
+              "audioGain": 1,
+              "toneMapping": "off",
+              "resourceLimits": {
+                "maxDecodePixels": 8294400,
+                "maxAllocationBytes": 134217728
+              },
+              "backend": {
+                "capability": {
+                  "timing": {
+                    "preparationRequested": 4498.089999973774,
+                    "metadata": 786.4549999833107,
+                    "ready": 786.464999973774,
+                    "outputRequested": 2867.300000011921,
+                    "firstFrame": 820.0349999666214,
+                    "outputAccepted": 2892.9549999833107
+                  },
+                  "metadata": true,
+                  "decoderOutput": true,
+                  "prepared": true,
+                  "completedAtEOF": false,
+                  "outputVerified": true,
+                  "videoPresented": true,
+                  "playbackReady": true,
+                  "audioProgress": true,
+                  "audioEvidence": "decoded-byte-counter",
+                  "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                  "sourceBufferCreated": true,
+                  "initAccepted": true,
+                  "mediaAccepted": true
+                },
+                "path": "native",
+                "plan": "remux",
+                "audioProcessing": {
+                  "component": "media-element",
+                  "gain": 1
+                },
+                "remux": {
+                  "capability": {
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  },
+                  "stats": {
+                    "fragments": [
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 690.9300000071526,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14635,
+                        "at": 696.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14134,
+                        "at": 697.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12790,
+                        "at": 698.2400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13465,
+                        "at": 701.4549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12764,
+                        "at": 701.9549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13459,
+                        "at": 702.3249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12738,
+                        "at": 702.9200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13512,
+                        "at": 703.375,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12751,
+                        "at": 703.9950000047684,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13426,
+                        "at": 707.8249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12767,
+                        "at": 955.4200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13026,
+                        "at": 1405.464999973774,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13196,
+                        "at": 1903.4449999928474,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13017,
+                        "at": 2407.25,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13222,
+                        "at": 3355.2099999785423,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12913,
+                        "at": 3754.7400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4102.045000016689,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13021,
+                        "at": 4104.694999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13446,
+                        "at": 4106.75,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12737,
+                        "at": 4107.074999988079,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13510,
+                        "at": 4107.360000014305,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12734,
+                        "at": 4107.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4107.875,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13232,
+                        "at": 4108.319999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4108.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13224,
+                        "at": 4111.069999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12929,
+                        "at": 4111.490000009537,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13295,
+                        "at": 4111.7300000190735,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12988,
+                        "at": 4112.129999995232,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13189,
+                        "at": 4204.334999978542,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4466.814999997616,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14635,
+                        "at": 4469.219999969006,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14134,
+                        "at": 4469.620000004768,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12790,
+                        "at": 4469.829999983311,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13465,
+                        "at": 4471.949999988079,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12764,
+                        "at": 4472.25,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13459,
+                        "at": 4472.564999997616,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12738,
+                        "at": 4472.865000009537,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13512,
+                        "at": 4473.139999985695,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12751,
+                        "at": 4473.370000004768,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13426,
+                        "at": 4476,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12767,
+                        "at": 4476.259999990463,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13026,
+                        "at": 4476.579999983311,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13196,
+                        "at": 4653.925000011921,
+                        "generation": 3
+                      }
+                    ],
+                    "generatedBytes": 558420,
+                    "discardedBytes": 0,
+                    "peakQueueDepth": 1,
+                    "bufferedBytesUpperBound": 173902,
+                    "peakBufferedBytesUpperBound": 213054,
+                    "peakBufferedSeconds": 8.085333,
+                    "seeks": [
+                      {
+                        "target": 0,
+                        "started": 602.0949999690056
+                      },
+                      {
+                        "target": 6,
+                        "started": 4027.6800000071526
+                      },
+                      {
+                        "target": 1,
+                        "started": 4412.1050000190735
+                      }
+                    ],
+                    "sessions": [
+                      {
+                        "generation": 1,
+                        "target": 0,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 104.19499999284744,
+                        "firstPlayableSourceBytes": 446608,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 121487,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 2,
+                        "target": 6,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 101.61500000953674,
+                        "firstPlayableSourceBytes": 708752,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 158275,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 3,
+                        "target": 1,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 73.38499999046326,
+                        "firstPlayableSourceBytes": 577680,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 160706,
+                        "fetchedBytesAtLeastSourceSize": false
+                      }
+                    ],
+                    "errors": [],
+                    "workers": 2,
+                    "recoveries": [],
+                    "gapSkips": [],
+                    "researchTicks": 81,
+                    "cancellations": [
+                      {
+                        "generatedBytes": 213054,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 213054,
+                        "sourceFetchedBytes": 577680,
+                        "inFlightOutputUpperBound": 8388608
+                      },
+                      {
+                        "generatedBytes": 171464,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 171464,
+                        "sourceFetchedBytes": 708752,
+                        "inFlightOutputUpperBound": 8388608
+                      }
+                    ]
+                  },
+                  "source": {
+                    "fetchedBytes": 577680,
+                    "requests": 6,
+                    "retries": 0,
+                    "aborts": 0,
+                    "cacheBytes": 655360,
+                    "peakCacheBytes": 655360,
+                    "activeBytes": 0,
+                    "peakActiveBytes": 131072
+                  },
+                  "remux": {
+                    "calls": 13,
+                    "remuxMs": 47.605000019073486,
+                    "generatedBytes": 173902,
+                    "peakBatchBytes": 14635,
+                    "heapBytes": 67108864,
+                    "gatherCopiedBytes": 1239,
+                    "reusedOwnedBatches": 13
+                  },
+                  "windowed": false,
+                  "presentationFloor": 0,
+                  "trackBounds": {
+                    "videoEnd": 36.02133366666667,
+                    "audioEnd": 36.010667
+                  },
+                  "ranges": [
+                    [
+                      0.021333000000000046,
+                      6.613333
+                    ]
+                  ],
+                  "timelineBias": 1,
+                  "position": 1.186667,
+                  "quality": {},
+                  "readyState": 4,
+                  "logs": [
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options"
+                  ]
+                },
+                "position": 1.186667,
+                "rendered": 11,
+                "dropped": 0,
+                "readyState": 4
+              }
+            },
+            "selectionTrace": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: This source policy requires controlled remux transport"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-remux: Playback requirements and actual startup accepted"
+              }
+            ],
+            "nativeVerificationFailures": [],
+            "mediaTracks": [
+              {
+                "id": "2",
+                "type": "audio",
+                "codec": "aac",
+                "selected": true
+              }
+            ],
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10582519239249838,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10588273675466042,
+                "hz": 878.90625
+              }
+            ],
+            "errors": [],
+            "events": [],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "time": 2.186667,
+              "ended": false,
+              "paused": false,
+              "total": 11,
+              "dropped": 0
+            }
+          },
+          "image": {
+            "rgb": [
+              248,
+              36,
+              0
+            ],
+            "expected": "red",
+            "markerCorrect": true,
+            "magentaPixels": 0
+          }
+        },
+        {
+          "target": 10,
+          "state": {
+            "position": 10,
+            "duration": 36.021334,
+            "route": "native-remux",
+            "diagnostics": {
+              "mode": "native",
+              "plan": {
+                "id": "native-remux",
+                "mode": "native",
+                "video": "packet-copy",
+                "audio": "packet-copy",
+                "qualification": "existing",
+                "owners": {
+                  "video": "browser-media-element",
+                  "audio": "browser-media-element",
+                  "subtitle": "browser-text-track",
+                  "demux": "ffmpeg-preparation",
+                  "presentation": "browser-media-element"
+                },
+                "source": "qualified random-access file and selected codec packaging",
+                "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+                "subtitles": "browser text tracks",
+                "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+                "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+                "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+              },
+              "planAdmission": [
+                {
+                  "id": "native-direct",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "SOURCE_UNSUPPORTED",
+                  "reason": "This source policy requires controlled remux transport"
+                },
+                {
+                  "id": "native-remux",
+                  "mode": "native",
+                  "eligible": true
+                },
+                {
+                  "id": "native-direct-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-flac-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-direct-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-remux-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Subtitle component does not match the requested presentation"
+                },
+                {
+                  "id": "native-flac-ass-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "native-opus",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "QUALIFICATION_REQUIRED",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+                },
+                {
+                  "id": "native-opus-gain",
+                  "mode": "native",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid",
+                  "mode": "hybrid",
+                  "eligible": true
+                },
+                {
+                  "id": "hybrid-audio-filter",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "mpv scalar filter stage does not match the request"
+                },
+                {
+                  "id": "hybrid-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "hybrid-audio-filter-gain",
+                  "mode": "hybrid",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software-gain",
+                  "mode": "software",
+                  "eligible": false,
+                  "code": "PLAN_NOT_REQUESTED",
+                  "reason": "Gain stage does not match the requested presentation"
+                },
+                {
+                  "id": "software",
+                  "mode": "software",
+                  "eligible": true
+                }
+              ],
+              "runtimeCapabilities": [
+                {
+                  "planId": "native-direct",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "This source policy requires controlled remux transport",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "verified",
+                  "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+                  "previouslyVerified": false,
+                  "evidence": {
+                    "timing": {
+                      "preparationRequested": 4855.235000014305,
+                      "metadata": 786.4549999833107,
+                      "ready": 786.464999973774,
+                      "outputRequested": 2867.300000011921,
+                      "firstFrame": 820.0349999666214,
+                      "outputAccepted": 2892.9549999833107
+                    },
+                    "metadata": true,
+                    "decoderOutput": true,
+                    "prepared": true,
+                    "completedAtEOF": false,
+                    "outputVerified": true,
+                    "videoPresented": true,
+                    "playbackReady": true,
+                    "audioProgress": true,
+                    "audioEvidence": "decoded-byte-counter",
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  }
+                },
+                {
+                  "planId": "native-direct-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-direct-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-remux-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Subtitle component does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-flac-ass-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "native-opus-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "mpv scalar filter stage does not match the request",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "hybrid-audio-filter-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software-gain",
+                  "sourceIdentity": "source-1",
+                  "eligible": false,
+                  "state": "untested",
+                  "reason": "Gain stage does not match the requested presentation",
+                  "previouslyVerified": false
+                },
+                {
+                  "planId": "software",
+                  "sourceIdentity": "source-1",
+                  "eligible": true,
+                  "state": "untested",
+                  "previouslyVerified": false
+                }
+              ],
+              "selection": {
+                "automatic": false,
+                "attempts": [
+                  {
+                    "mode": "native",
+                    "outcome": "skipped",
+                    "reason": "native-direct: This source policy requires controlled remux transport"
+                  },
+                  {
+                    "mode": "native",
+                    "outcome": "selected",
+                    "reason": "native-remux: Playback requirements and actual startup accepted"
+                  }
+                ]
+              },
+              "switching": false,
+              "videoFilters": "",
+              "audioFilters": "",
+              "audioGain": 1,
+              "toneMapping": "off",
+              "resourceLimits": {
+                "maxDecodePixels": 8294400,
+                "maxAllocationBytes": 134217728
+              },
+              "backend": {
+                "capability": {
+                  "timing": {
+                    "preparationRequested": 4855.235000014305,
+                    "metadata": 786.4549999833107,
+                    "ready": 786.464999973774,
+                    "outputRequested": 2867.300000011921,
+                    "firstFrame": 820.0349999666214,
+                    "outputAccepted": 2892.9549999833107
+                  },
+                  "metadata": true,
+                  "decoderOutput": true,
+                  "prepared": true,
+                  "completedAtEOF": false,
+                  "outputVerified": true,
+                  "videoPresented": true,
+                  "playbackReady": true,
+                  "audioProgress": true,
+                  "audioEvidence": "decoded-byte-counter",
+                  "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                  "sourceBufferCreated": true,
+                  "initAccepted": true,
+                  "mediaAccepted": true
+                },
+                "path": "native",
+                "plan": "remux",
+                "audioProcessing": {
+                  "component": "media-element",
+                  "gain": 1
+                },
+                "remux": {
+                  "capability": {
+                    "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                    "sourceBufferCreated": true,
+                    "initAccepted": true,
+                    "mediaAccepted": true
+                  },
+                  "stats": {
+                    "fragments": [
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 690.9300000071526,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14635,
+                        "at": 696.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14134,
+                        "at": 697.75,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12790,
+                        "at": 698.2400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13465,
+                        "at": 701.4549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12764,
+                        "at": 701.9549999833107,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13459,
+                        "at": 702.3249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12738,
+                        "at": 702.9200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13512,
+                        "at": 703.375,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12751,
+                        "at": 703.9950000047684,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13426,
+                        "at": 707.8249999880791,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12767,
+                        "at": 955.4200000166893,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13026,
+                        "at": 1405.464999973774,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13196,
+                        "at": 1903.4449999928474,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13017,
+                        "at": 2407.25,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13222,
+                        "at": 3355.2099999785423,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12913,
+                        "at": 3754.7400000095367,
+                        "generation": 1
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4102.045000016689,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13021,
+                        "at": 4104.694999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13446,
+                        "at": 4106.75,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12737,
+                        "at": 4107.074999988079,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13510,
+                        "at": 4107.360000014305,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12734,
+                        "at": 4107.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4107.875,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13232,
+                        "at": 4108.319999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12960,
+                        "at": 4108.579999983311,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13224,
+                        "at": 4111.069999992847,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12929,
+                        "at": 4111.490000009537,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13295,
+                        "at": 4111.7300000190735,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12988,
+                        "at": 4112.129999995232,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13189,
+                        "at": 4204.334999978542,
+                        "generation": 2
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4466.814999997616,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14635,
+                        "at": 4469.219999969006,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 14134,
+                        "at": 4469.620000004768,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12790,
+                        "at": 4469.829999983311,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13465,
+                        "at": 4471.949999988079,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12764,
+                        "at": 4472.25,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13459,
+                        "at": 4472.564999997616,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12738,
+                        "at": 4472.865000009537,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13512,
+                        "at": 4473.139999985695,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12751,
+                        "at": 4473.370000004768,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13426,
+                        "at": 4476,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12767,
+                        "at": 4476.259999990463,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13026,
+                        "at": 4476.579999983311,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13196,
+                        "at": 4653.925000011921,
+                        "generation": 3
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 1239,
+                        "at": 4823.844999969006,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13473,
+                        "at": 4825.884999990463,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12929,
+                        "at": 4827.754999995232,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13295,
+                        "at": 4827.985000014305,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12988,
+                        "at": 4828.25,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13189,
+                        "at": 4828.459999978542,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12997,
+                        "at": 4828.724999964237,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12821,
+                        "at": 4829.004999995232,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13418,
+                        "at": 4830.615000009537,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12762,
+                        "at": 4830.870000004768,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13490,
+                        "at": 4831.224999964237,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12679,
+                        "at": 4831.464999973774,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 13521,
+                        "at": 4831.694999992847,
+                        "generation": 4
+                      },
+                      {
+                        "lane": 0,
+                        "bytes": 12706,
+                        "at": 4903,
+                        "generation": 4
+                      }
+                    ],
+                    "generatedBytes": 729927,
+                    "discardedBytes": 0,
+                    "peakQueueDepth": 1,
+                    "bufferedBytesUpperBound": 171507,
+                    "peakBufferedBytesUpperBound": 213054,
+                    "peakBufferedSeconds": 8.085333,
+                    "seeks": [
+                      {
+                        "target": 0,
+                        "started": 602.0949999690056
+                      },
+                      {
+                        "target": 6,
+                        "started": 4027.6800000071526
+                      },
+                      {
+                        "target": 1,
+                        "started": 4412.1050000190735
+                      },
+                      {
+                        "target": 10,
+                        "started": 4768.995000004768
+                      }
+                    ],
+                    "sessions": [
+                      {
+                        "generation": 1,
+                        "target": 0,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 104.19499999284744,
+                        "firstPlayableSourceBytes": 446608,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 121487,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 2,
+                        "target": 6,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 101.61500000953674,
+                        "firstPlayableSourceBytes": 708752,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 158275,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 3,
+                        "target": 1,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 73.38499999046326,
+                        "firstPlayableSourceBytes": 577680,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 160706,
+                        "fetchedBytesAtLeastSourceSize": false
+                      },
+                      {
+                        "generation": 4,
+                        "target": 10,
+                        "sourceSize": 1432936,
+                        "firstPlayableMs": 73.18000000715256,
+                        "firstPlayableSourceBytes": 708752,
+                        "packaging": [
+                          {
+                            "container": "mp4",
+                            "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                            "selected": true
+                          }
+                        ],
+                        "generatedBytes": 158801,
+                        "fetchedBytesAtLeastSourceSize": false
+                      }
+                    ],
+                    "errors": [],
+                    "workers": 2,
+                    "recoveries": [],
+                    "gapSkips": [],
+                    "researchTicks": 88,
+                    "cancellations": [
+                      {
+                        "generatedBytes": 213054,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 213054,
+                        "sourceFetchedBytes": 577680,
+                        "inFlightOutputUpperBound": 8388608
+                      },
+                      {
+                        "generatedBytes": 171464,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 171464,
+                        "sourceFetchedBytes": 708752,
+                        "inFlightOutputUpperBound": 8388608
+                      },
+                      {
+                        "generatedBytes": 173902,
+                        "pendingBytes": 0,
+                        "retainedCompressedBytesUpperBound": 173902,
+                        "sourceFetchedBytes": 577680,
+                        "inFlightOutputUpperBound": 8388608
+                      }
+                    ]
+                  },
+                  "source": {
+                    "fetchedBytes": 708752,
+                    "requests": 8,
+                    "retries": 0,
+                    "aborts": 0,
+                    "cacheBytes": 786432,
+                    "peakCacheBytes": 786432,
+                    "activeBytes": 0,
+                    "peakActiveBytes": 131072
+                  },
+                  "remux": {
+                    "calls": 13,
+                    "remuxMs": 44.99499994516373,
+                    "generatedBytes": 171507,
+                    "peakBatchBytes": 13521,
+                    "heapBytes": 67108864,
+                    "gatherCopiedBytes": 1239,
+                    "reusedOwnedBatches": 13
+                  },
+                  "windowed": false,
+                  "presentationFloor": 0,
+                  "trackBounds": {
+                    "videoEnd": 36.02133366666667,
+                    "audioEnd": 36.010667
+                  },
+                  "ranges": [
+                    [
+                      9.021333,
+                      15.509333000000002
+                    ]
+                  ],
+                  "timelineBias": 1,
+                  "position": 10.184397,
+                  "quality": {},
+                  "readyState": 4,
+                  "logs": [
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                    "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                    "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options"
+                  ]
+                },
+                "position": 10.184397,
+                "rendered": 11,
+                "dropped": 0,
+                "readyState": 4
+              }
+            },
+            "selectionTrace": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: This source policy requires controlled remux transport"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-remux: Playback requirements and actual startup accepted"
+              }
+            ],
+            "nativeVerificationFailures": [],
+            "mediaTracks": [
+              {
+                "id": "2",
+                "type": "audio",
+                "codec": "aac",
+                "selected": true
+              }
+            ],
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10609947516396852,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10600931556107503,
+                "hz": 878.90625
+              }
+            ],
+            "errors": [],
+            "events": [],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "time": 11.184397,
+              "ended": false,
+              "paused": false,
+              "total": 11,
+              "dropped": 0
+            }
+          },
+          "image": {
+            "rgb": [
+              30,
+              137,
+              0
+            ],
+            "expected": "green",
+            "markerCorrect": true,
+            "magentaPixels": 0
+          }
+        }
+      ],
+      "eof": {
+        "position": 36.031999,
+        "duration": 36.031999,
+        "route": "native-remux",
+        "diagnostics": {
+          "mode": "native",
+          "plan": {
+            "id": "native-remux",
+            "mode": "native",
+            "video": "packet-copy",
+            "audio": "packet-copy",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-media-element",
+              "audio": "browser-media-element",
+              "subtitle": "browser-text-track",
+              "demux": "ffmpeg-preparation",
+              "presentation": "browser-media-element"
+            },
+            "source": "qualified random-access file and selected codec packaging",
+            "prerequisites": "MSE, cross-origin isolation, qualified MIME",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "This source policy requires controlled remux transport"
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": true
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "This source policy requires controlled remux transport",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "timing": {
+                  "preparationRequested": 5228.319999992847,
+                  "metadata": 786.4549999833107,
+                  "ready": 786.464999973774,
+                  "outputRequested": 2867.300000011921,
+                  "firstFrame": 820.0349999666214,
+                  "outputAccepted": 2892.9549999833107
+                },
+                "metadata": true,
+                "decoderOutput": true,
+                "prepared": true,
+                "completedAtEOF": false,
+                "outputVerified": true,
+                "videoPresented": true,
+                "playbackReady": true,
+                "audioProgress": true,
+                "audioEvidence": "decoded-byte-counter",
+                "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                "sourceBufferCreated": true,
+                "initAccepted": true,
+                "mediaAccepted": true
+              }
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": false,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: This source policy requires controlled remux transport"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-remux: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "capability": {
+              "timing": {
+                "preparationRequested": 5228.319999992847,
+                "metadata": 786.4549999833107,
+                "ready": 786.464999973774,
+                "outputRequested": 2867.300000011921,
+                "firstFrame": 820.0349999666214,
+                "outputAccepted": 2892.9549999833107
+              },
+              "metadata": true,
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter",
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            },
+            "path": "native",
+            "plan": "remux",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "remux": {
+              "capability": {
+                "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.64000D,mp4a.40.2\")=true",
+                "sourceBufferCreated": true,
+                "initAccepted": true,
+                "mediaAccepted": true
+              },
+              "stats": {
+                "fragments": [
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 690.9300000071526,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14635,
+                    "at": 696.75,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14134,
+                    "at": 697.75,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12790,
+                    "at": 698.2400000095367,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13465,
+                    "at": 701.4549999833107,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12764,
+                    "at": 701.9549999833107,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13459,
+                    "at": 702.3249999880791,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12738,
+                    "at": 702.9200000166893,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13512,
+                    "at": 703.375,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12751,
+                    "at": 703.9950000047684,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13426,
+                    "at": 707.8249999880791,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12767,
+                    "at": 955.4200000166893,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13026,
+                    "at": 1405.464999973774,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13196,
+                    "at": 1903.4449999928474,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13017,
+                    "at": 2407.25,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13222,
+                    "at": 3355.2099999785423,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12913,
+                    "at": 3754.7400000095367,
+                    "generation": 1
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 4102.045000016689,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13021,
+                    "at": 4104.694999992847,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13446,
+                    "at": 4106.75,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12737,
+                    "at": 4107.074999988079,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13510,
+                    "at": 4107.360000014305,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12734,
+                    "at": 4107.579999983311,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12960,
+                    "at": 4107.875,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13232,
+                    "at": 4108.319999992847,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12960,
+                    "at": 4108.579999983311,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13224,
+                    "at": 4111.069999992847,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12929,
+                    "at": 4111.490000009537,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13295,
+                    "at": 4111.7300000190735,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12988,
+                    "at": 4112.129999995232,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13189,
+                    "at": 4204.334999978542,
+                    "generation": 2
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 4466.814999997616,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14635,
+                    "at": 4469.219999969006,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 14134,
+                    "at": 4469.620000004768,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12790,
+                    "at": 4469.829999983311,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13465,
+                    "at": 4471.949999988079,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12764,
+                    "at": 4472.25,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13459,
+                    "at": 4472.564999997616,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12738,
+                    "at": 4472.865000009537,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13512,
+                    "at": 4473.139999985695,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12751,
+                    "at": 4473.370000004768,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13426,
+                    "at": 4476,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12767,
+                    "at": 4476.259999990463,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13026,
+                    "at": 4476.579999983311,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13196,
+                    "at": 4653.925000011921,
+                    "generation": 3
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 4823.844999969006,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13473,
+                    "at": 4825.884999990463,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12929,
+                    "at": 4827.754999995232,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13295,
+                    "at": 4827.985000014305,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12988,
+                    "at": 4828.25,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13189,
+                    "at": 4828.459999978542,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12997,
+                    "at": 4828.724999964237,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12821,
+                    "at": 4829.004999995232,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13418,
+                    "at": 4830.615000009537,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12762,
+                    "at": 4830.870000004768,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13490,
+                    "at": 4831.224999964237,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12679,
+                    "at": 4831.464999973774,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13521,
+                    "at": 4831.694999992847,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 12706,
+                    "at": 4903,
+                    "generation": 4
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 1239,
+                    "at": 5201.439999997616,
+                    "generation": 5
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13574,
+                    "at": 5203.805000007153,
+                    "generation": 5
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13083,
+                    "at": 5204.139999985695,
+                    "generation": 5
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13221,
+                    "at": 5204.409999966621,
+                    "generation": 5
+                  },
+                  {
+                    "lane": 0,
+                    "bytes": 13497,
+                    "at": 5204.810000002384,
+                    "generation": 5
+                  }
+                ],
+                "generatedBytes": 784541,
+                "discardedBytes": 0,
+                "peakQueueDepth": 1,
+                "bufferedBytesUpperBound": 54614,
+                "peakBufferedBytesUpperBound": 213054,
+                "peakBufferedSeconds": 8.085333,
+                "seeks": [
+                  {
+                    "target": 0,
+                    "started": 602.0949999690056
+                  },
+                  {
+                    "target": 6,
+                    "started": 4027.6800000071526
+                  },
+                  {
+                    "target": 1,
+                    "started": 4412.1050000190735
+                  },
+                  {
+                    "target": 10,
+                    "started": 4768.995000004768
+                  },
+                  {
+                    "target": 35.371334000000004,
+                    "started": 5139.764999985695
+                  }
+                ],
+                "sessions": [
+                  {
+                    "generation": 1,
+                    "target": 0,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 104.19499999284744,
+                    "firstPlayableSourceBytes": 446608,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 121487,
+                    "fetchedBytesAtLeastSourceSize": false
+                  },
+                  {
+                    "generation": 2,
+                    "target": 6,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 101.61500000953674,
+                    "firstPlayableSourceBytes": 708752,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 158275,
+                    "fetchedBytesAtLeastSourceSize": false
+                  },
+                  {
+                    "generation": 3,
+                    "target": 1,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 73.38499999046326,
+                    "firstPlayableSourceBytes": 577680,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 160706,
+                    "fetchedBytesAtLeastSourceSize": false
+                  },
+                  {
+                    "generation": 4,
+                    "target": 10,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 73.18000000715256,
+                    "firstPlayableSourceBytes": 708752,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 158801,
+                    "fetchedBytesAtLeastSourceSize": false
+                  },
+                  {
+                    "generation": 5,
+                    "target": 35.371334000000004,
+                    "sourceSize": 1432936,
+                    "firstPlayableMs": 77.41500002145767,
+                    "firstPlayableSourceBytes": 381072,
+                    "packaging": [
+                      {
+                        "container": "mp4",
+                        "mime": "video/mp4; codecs=\"avc1.64000D,mp4a.40.2\"",
+                        "selected": true
+                      }
+                    ],
+                    "generatedBytes": 54614,
+                    "fetchedBytesAtLeastSourceSize": false
+                  }
+                ],
+                "errors": [],
+                "workers": 2,
+                "recoveries": [],
+                "gapSkips": [],
+                "researchTicks": 117,
+                "cancellations": [
+                  {
+                    "generatedBytes": 213054,
+                    "pendingBytes": 0,
+                    "retainedCompressedBytesUpperBound": 213054,
+                    "sourceFetchedBytes": 577680,
+                    "inFlightOutputUpperBound": 8388608
+                  },
+                  {
+                    "generatedBytes": 171464,
+                    "pendingBytes": 0,
+                    "retainedCompressedBytesUpperBound": 171464,
+                    "sourceFetchedBytes": 708752,
+                    "inFlightOutputUpperBound": 8388608
+                  },
+                  {
+                    "generatedBytes": 173902,
+                    "pendingBytes": 0,
+                    "retainedCompressedBytesUpperBound": 173902,
+                    "sourceFetchedBytes": 577680,
+                    "inFlightOutputUpperBound": 8388608
+                  },
+                  {
+                    "generatedBytes": 171507,
+                    "pendingBytes": 0,
+                    "retainedCompressedBytesUpperBound": 171507,
+                    "sourceFetchedBytes": 708752,
+                    "inFlightOutputUpperBound": 8388608
+                  }
+                ]
+              },
+              "source": {
+                "fetchedBytes": 381072,
+                "requests": 5,
+                "retries": 0,
+                "aborts": 0,
+                "cacheBytes": 458752,
+                "peakCacheBytes": 458752,
+                "activeBytes": 0,
+                "peakActiveBytes": 131072
+              },
+              "remux": {
+                "calls": 4,
+                "remuxMs": 43.550000071525574,
+                "generatedBytes": 54614,
+                "peakBatchBytes": 13574,
+                "heapBytes": 67108864,
+                "gatherCopiedBytes": 14736,
+                "reusedOwnedBatches": 3
+              },
+              "windowed": false,
+              "presentationFloor": 0,
+              "trackBounds": {
+                "videoEnd": 36.02133366666667,
+                "audioEnd": 36.010667
+              },
+              "ranges": [
+                [
+                  34.021333,
+                  36.031999
+                ]
+              ],
+              "timelineBias": 1,
+              "position": 36.031999,
+              "quality": {},
+              "readyState": 4,
+              "logs": [
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options",
+                "[mpegts @ 0x1344390] Could not find codec parameters for stream 1 (Audio: aac (LC) ([15][0][0][0] / 0x000F), 0 channels, 185 kb/s): unspecified sample rate",
+                "Consider increasing the value for the 'analyzeduration' (1000000) and 'probesize' (1048576) options"
+              ]
+            },
+            "position": 36.031999,
+            "rendered": 20,
+            "dropped": 0,
+            "readyState": 4
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: This source policy requires controlled remux transport"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-remux: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "2",
+            "type": "audio",
+            "codec": "aac",
+            "selected": true
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0,
+            "hz": 878.90625
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "ended",
+            "time": 37.031999
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "time": 37.031999,
+          "ended": true,
+          "paused": true,
+          "total": 20,
+          "dropped": 0
+        }
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "finishedAt": "2026-09-20T12:59:41.367Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserIdentity": "chromium/152.0.7977.83/chrome/headed",
+  "finishedAt": "2026-09-20T12:59:41.374Z",
+  "counts": {
+    "passed": 1,
+    "failed": 0,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": true
+}

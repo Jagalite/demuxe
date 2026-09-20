@@ -1,0 +1,57 @@
+{
+  "stage": "results",
+  "status": "passed",
+  "commands": [
+    "Read research checkpoint wrapper, maintained player/decoder ABI, preview evidence, and virtual-Cues generator/proxy; no builds or media execution."
+  ],
+  "analysis": "R123 and R274 retain their original component-scoped pursue decisions and scientific stage evidence. New read-only audits identify concrete missing whole-player integration prerequisites; no performance failure or whole-player pass is asserted.",
+  "decisions": [
+    {
+      "key": "R123.checkpoint-the-software-decoder-inside-a-gop",
+      "disposition": "pursue",
+      "evidence_level": "source_audit_with_retained_component_evidence",
+      "new_media_execution": false,
+      "reason": "Prior component-scoped pursue remains unchanged. Whole-player readiness: Not a JS policy or existing player ABI toggle. Faithful integration needs decoder-internal safe-boundary state plus demux position, mpv decode/filter/output queues, A/V clocks, cancellation and retained checkpoint lifetime. Existing research wrapper only owns a standalone single-thread AVC decoder. Narrow optional preview caching or already-pending batching has less decoder-internal integration burden when those requested workloads exist.",
+      "next_action": "A measured user workload repeatedly seeks inside the same eligible software-decoded GOP, ordinary preview reuse/batching does not meet that request, and profiling shows decoder replay dominates enough to repay internal integration and retained-state cost.",
+      "whole_player_qualification": {
+        "status": "deferred_integration_not_prioritized",
+        "review_kind": "source_audit",
+        "scope": "Not a JS policy or existing player ABI toggle. Faithful integration needs decoder-internal safe-boundary state plus demux position, mpv decode/filter/output queues, A/V clocks, cancellation and retained checkpoint lifetime. Existing research wrapper only owns a standalone single-thread AVC decoder. Narrow optional preview caching or already-pending batching has less decoder-internal integration burden when those requested workloads exist.",
+        "new_media_execution": false,
+        "performance_measured": false,
+        "production_integration": false,
+        "run": "research/shared/runs/20260920T130952Z-whole-player-readiness-audit/run.json",
+        "readiness": "research/items/R123.checkpoint-the-software-decoder-inside-a-gop/tests/whole-player-readiness.json"
+      },
+      "stages": {}
+    },
+    {
+      "key": "R274.virtual-webm-cues",
+      "disposition": "pursue",
+      "evidence_level": "source_audit_with_retained_component_evidence",
+      "new_media_execution": false,
+      "reason": "Prior component-scoped pursue remains unchanged. Whole-player readiness: Existing generator extracts Cues from an already indexed source and blanks those bytes; it does not construct Cues from an unindexed source. Existing proxy restores those574bytes in a3,652,612-byte file after fullsource/index hash validation and materializes the entire source. A Player wrapper alone cannot qualify a cold complete job including actual index construction.",
+      "next_action": "A real authenticated prebuilt-index source is selected, or the actual scanner/author is implemented and construction costs included without replacing the requested mechanism with an already indexed proxy.",
+      "whole_player_qualification": {
+        "status": "deferred_prerequisite",
+        "review_kind": "source_audit",
+        "scope": "Existing generator extracts Cues from an already indexed source and blanks those bytes; it does not construct Cues from an unindexed source. Existing proxy restores those574bytes in a3,652,612-byte file after fullsource/index hash validation and materializes the entire source. A Player wrapper alone cannot qualify a cold complete job including actual index construction.",
+        "new_media_execution": false,
+        "performance_measured": false,
+        "production_integration": false,
+        "run": "research/shared/runs/20260920T130952Z-whole-player-readiness-audit/run.json",
+        "readiness": "research/items/R274.virtual-webm-cues/tests/whole-player-readiness.json"
+      },
+      "stages": {}
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T130952Z-whole-player-readiness-audit",
+  "recorded_at_utc": "2026-09-20T13:09:52.934464+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "061240b61bef8552117862f601c503b11961c485",
+    "dirty_diff_sha256": "ec929a878e8c2e9c9ad879b1b9ec0913550fef84e60e863ee381e96db7143d83",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "results": [
+    {
+      "key": "R041.route-simple-subrip-captions-to-native-text-tracks",
+      "case": "h264-srt",
+      "from_tier": "Hybrid",
+      "to_tier": "Native A/V with explicit subtitle component",
+      "candidate_owners": "Native A/V plus bounded JS embedded SRT extraction and browser text tracks",
+      "performance_evidence": "results/head-to-head/tier-priority-srt-01/result.json",
+      "metrics": {
+        "startupWallMs": -28.17066854841452,
+        "startupCPUSeconds": -34.00155028274451,
+        "oneCorePercent": -49.837085924720974,
+        "peakSummedRssKiB": -4.121984492911292,
+        "mainThreadTaskSeconds": -77.4946538298429,
+        "mainThreadScriptSeconds": -83.74497674628618
+      },
+      "benefit_gate": {
+        "metric": "steady Chrome CPU",
+        "medianDeltaPercent": -49.837085924720974,
+        "everyPairLower": true,
+        "requiredMedianReductionPercent": 10,
+        "passed": true
+      },
+      "scope": "Authored36second H264/AAC h264-srt fixture in headed Chrome152/macOS on frozen assets-component-isolation-01; Hybrid versus explicit Native A/V plus bounded JS embedded SRT extraction and browser text tracks. Not current-HEAD production equivalence, automatic routing, arbitrary subtitles, hardware-unit CPU, server CPU, physical energy or release qualification.",
+      "production_integration": false
+    },
+    {
+      "key": "R019.extract-embedded-ass-while-leaving-video-native",
+      "case": "h264-ass",
+      "from_tier": "Hybrid",
+      "to_tier": "Native A/V with explicit subtitle component",
+      "candidate_owners": "Native A/V plus bounded JS embedded ASS/font extraction and independent libass overlay",
+      "performance_evidence": "results/head-to-head/tier-priority-ass-01/result.json",
+      "metrics": {
+        "startupWallMs": -20.19954907812898,
+        "startupCPUSeconds": -24.14688936926375,
+        "oneCorePercent": -38.46969394270051,
+        "peakSummedRssKiB": -3.043891380086349,
+        "mainThreadTaskSeconds": 35.68554434682973,
+        "mainThreadScriptSeconds": -8.341434693905502
+      },
+      "benefit_gate": {
+        "metric": "steady Chrome CPU",
+        "medianDeltaPercent": -38.46969394270051,
+        "everyPairLower": true,
+        "requiredMedianReductionPercent": 10,
+        "passed": true
+      },
+      "scope": "Authored36second H264/AAC h264-ass fixture in headed Chrome152/macOS on frozen assets-component-isolation-01; Hybrid versus explicit Native A/V plus bounded JS embedded ASS/font extraction and independent libass overlay. Not current-HEAD production equivalence, automatic routing, arbitrary subtitles, hardware-unit CPU, server CPU, physical energy or release qualification.",
+      "production_integration": false
+    }
+  ],
+  "selection": "Promising ready subtitle routes first; expensive/unqualified candidates deferred."
+}

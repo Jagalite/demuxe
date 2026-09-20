@@ -74,64 +74,239 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison.",
+      "basis": "Both exactruntime variants passed markedpicture/audio/seek/EOF/cleanup under the identical50ms media-response-delay server; measured runs assert intendedNative-remux route, progression and cleanup.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json"
       ]
     },
     "performance": {
-      "status": "passed",
-      "basis": "128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed.",
+      "status": "failed",
+      "basis": "Five alternating complete-player pairs under50ms media-response delay: median startup-plus-three-seek latency delta -5.8853%; predeclared median10%+allpairs-lower+30%maximumextra-server-read-media-byte gate failed. Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception. Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon. Prior local-only whole-player result remains a valid negative (startup+one-seek median+3.314%); this is a separately declared latency-sensitive workload, not removal of that result.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. 128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five alternating complete-player pairs under50ms media-response delay: median startup-plus-three-seek latency delta -5.8853%; predeclared median10%+allpairs-lower+30%maximumextra-server-read-media-byte gate failed. Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception. Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon. Prior local-only whole-player result remains a valid negative (startup+one-seek median+3.314%); this is a separately declared latency-sensitive workload, not removal of that result.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. 128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "basis": "Five alternating complete-player pairs under50ms media-response delay: median startup-plus-three-seek latency delta -5.8853%; predeclared median10%+allpairs-lower+30%maximumextra-server-read-media-byte gate failed. Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception. Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon. Prior local-only whole-player result remains a valid negative (startup+one-seek median+3.314%); this is a separately declared latency-sensitive workload, not removal of that result.",
       "evidence": [
-        "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+        "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json"
       ]
     }
   },
   "current_decision": {
     "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
-    "disposition": "pursue",
-    "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
-    "new_media_execution": false,
-    "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. 128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
-    "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+    "disposition": "stop_current_profile",
+    "evidence_level": "scoped_whole_player_paired_comparison",
+    "candidate_executed": true,
+    "reason": "Five alternating complete-player pairs under50ms media-response delay: median startup-plus-three-seek latency delta -5.8853%; predeclared median10%+allpairs-lower+30%maximumextra-server-read-media-byte gate failed. Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception. Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon. Prior local-only whole-player result remains a valid negative (startup+one-seek median+3.314%); this is a separately declared latency-sensitive workload, not removal of that result.",
+    "next_action": "Reopen only with a demonstrated latency/bandwidth/workload opportunity beyond the two tested whole-player profiles.",
     "stages": {
       "correctness": {
         "status": "passed",
-        "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison."
+        "basis": "Both exactruntime variants passed markedpicture/audio/seek/EOF/cleanup under the identical50ms media-response-delay server; measured runs assert intendedNative-remux route, progression and cleanup."
       },
       "performance": {
-        "status": "passed",
-        "basis": "128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed."
+        "status": "failed",
+        "basis": "Five alternating complete-player pairs under50ms media-response delay: median startup-plus-three-seek latency delta -5.8853%; predeclared median10%+allpairs-lower+30%maximumextra-server-read-media-byte gate failed. Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception. Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon. Prior local-only whole-player result remains a valid negative (startup+one-seek median+3.314%); this is a separately declared latency-sensitive workload, not removal of that result."
       }
     },
-    "recorded_at_utc": "2026-09-19T21:30:54.682205+00:00",
+    "recorded_at_utc": "2026-09-20T13:56:29.494020+00:00",
     "run_ids": [
-      "20260919T212800Z-policy-license-correction"
+      "20260920T135629Z-range-latency-whole-player"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T212800Z-policy-license-correction/run.json"
+      "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json"
     ]
   },
-  "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+  "next_action": "Reopen only with a demonstrated latency/bandwidth/workload opportunity beyond the two tested whole-player profiles.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
     "status": "not_assessed_by_migration"
+  },
+  "whole_player_qualification": {
+    "status": "benefit_gate_failed",
+    "tier_effect": "Native remux -> Native remux",
+    "production_admission_changed": false,
+    "evidence": "research/shared/runs/20260920T135629Z-range-latency-whole-player/run.json",
+    "protocol": {
+      "pairs": 5,
+      "order": "alternating pair order",
+      "scope": "Actual Native remux player, authored36s H264/AAC TS,50ms server response delay for each media request only; no bandwidth cap. Network emulator is not actual WAN. Byte counters are server ReadStream bytes, including possible buffered/abandoned bytes; not exact client reception.",
+      "workload": "player open through0.5s advancement,3s active,seek15 and5 and28 each API-complete+0.2s observed progression,1xEOF,destroy",
+      "primary": "startup plus three seek completion latencies",
+      "gate": "median>=10% reduction, allfive pairs lower, everycandidate server-read media-byte increase<=30%",
+      "limits": "Browser launch/common harness load excluded; all media responses delayed, module/runtime responses not delayed. Startup charges player creation. ChromeCPU excludes server/OS media services. Localhost cold browser contexts do not flush OS cache. Not physical first sound/photon."
+    },
+    "median_delta_percent": -5.8852950000854145,
+    "benefit_passed": false,
+    "prior_local_profile": {
+      "status": "benefit_gate_failed",
+      "tier_effect": "Native remux -> Native remux",
+      "production_admission_changed": false,
+      "evidence": "research/shared/runs/20260920T132058Z-whole-player-policies/run.json",
+      "metrics": {
+        "pairs": [
+          {
+            "round": 1,
+            "baseline": {
+              "mediaBytes": 2191792,
+              "startupSeekMs": 1881.1952500000043,
+              "activeCPU": 29.722554121864842,
+              "pausedCPU": 2.498956806786799,
+              "slowCPU": 7.673768849898856,
+              "slowRSS": 800224
+            },
+            "candidate": {
+              "mediaBytes": 2257328,
+              "startupSeekMs": 1856.5559169999979,
+              "activeCPU": 33.79991577668527,
+              "pausedCPU": 3.45010249141239,
+              "slowCPU": 9.804780437748546,
+              "slowRSS": 600560
+            },
+            "deltaPercent": {
+              "mediaBytes": 2.9900647506697715,
+              "startupSeekMs": -1.309770104937613,
+              "activeCPU": 13.718072942530165,
+              "pausedCPU": 38.06170967190867,
+              "slowCPU": 27.770077904780486,
+              "slowRSS": -24.951013716159476
+            }
+          },
+          {
+            "round": 2,
+            "baseline": {
+              "mediaBytes": 2191792,
+              "startupSeekMs": 1686.6777079999447,
+              "activeCPU": 34.80109960551431,
+              "pausedCPU": 6.486792117778509,
+              "slowCPU": 10.312844701690002,
+              "slowRSS": 844720
+            },
+            "candidate": {
+              "mediaBytes": 2257328,
+              "startupSeekMs": 1539.3265419999952,
+              "activeCPU": 33.77885646231999,
+              "pausedCPU": 6.6776939627705785,
+              "slowCPU": 12.429744375259059,
+              "slowRSS": 858480
+            },
+            "deltaPercent": {
+              "mediaBytes": 2.9900647506697715,
+              "startupSeekMs": -8.736177949175474,
+              "activeCPU": -2.937387481378145,
+              "pausedCPU": 2.942931444787017,
+              "slowCPU": 20.52682586427538,
+              "slowRSS": 1.628942134671844
+            }
+          },
+          {
+            "round": 3,
+            "baseline": {
+              "mediaBytes": 2191792,
+              "startupSeekMs": 1564.9517909999704,
+              "activeCPU": 35.298575416586985,
+              "pausedCPU": 6.188293435930415,
+              "slowCPU": 10.197624818561115,
+              "slowRSS": 852288
+            },
+            "candidate": {
+              "mediaBytes": 2257328,
+              "startupSeekMs": 1622.7924590000184,
+              "activeCPU": 33.42956102905357,
+              "pausedCPU": 6.580523714950404,
+              "slowCPU": 11.015312855840794,
+              "slowRSS": 849824
+            },
+            "deltaPercent": {
+              "mediaBytes": 2.9900647506697715,
+              "startupSeekMs": 3.696003182506286,
+              "activeCPU": -5.294872003970879,
+              "pausedCPU": 6.338262447973539,
+              "slowCPU": 8.01841656099537,
+              "slowRSS": -0.28910415258691896
+            }
+          },
+          {
+            "round": 4,
+            "baseline": {
+              "mediaBytes": 2191792,
+              "startupSeekMs": 1613.4807909999508,
+              "activeCPU": 37.327150647744475,
+              "pausedCPU": 5.992241688471554,
+              "slowCPU": 12.526516172602959,
+              "slowRSS": 883568
+            },
+            "candidate": {
+              "mediaBytes": 2257328,
+              "startupSeekMs": 1790.1024169999873,
+              "activeCPU": 37.24978768305039,
+              "pausedCPU": 5.930941567778753,
+              "slowCPU": 15.11584036104805,
+              "slowRSS": 845504
+            },
+            "deltaPercent": {
+              "mediaBytes": 2.9900647506697715,
+              "startupSeekMs": 10.946620931915506,
+              "activeCPU": -0.20725655012930005,
+              "pausedCPU": -1.0229914592853735,
+              "slowCPU": 20.670744784637442,
+              "slowRSS": -4.307987613856545
+            }
+          },
+          {
+            "round": 5,
+            "baseline": {
+              "mediaBytes": 2191792,
+              "startupSeekMs": 1548.7602080000797,
+              "activeCPU": 34.91777576365575,
+              "pausedCPU": 5.575344552101672,
+              "slowCPU": 13.23586013440543,
+              "slowRSS": 858528
+            },
+            "candidate": {
+              "mediaBytes": 2257328,
+              "startupSeekMs": 1600.0884160000132,
+              "activeCPU": 37.01491751902866,
+              "pausedCPU": 7.006439930198089,
+              "slowCPU": 12.199289400762877,
+              "slowRSS": 841344
+            },
+            "deltaPercent": {
+              "mediaBytes": 2.9900647506697715,
+              "startupSeekMs": 3.314148164112108,
+              "activeCPU": 6.005943132138802,
+              "pausedCPU": 25.66828587404438,
+              "slowCPU": -7.831532844231859,
+              "slowRSS": -2.0015654702001564
+            }
+          }
+        ],
+        "absoluteMedianReduction": -51.32820799993351,
+        "absoluteMinimum": 0,
+        "medianDeltas": {
+          "mediaBytes": 2.9900647506697715,
+          "startupSeekMs": 3.314148164112108,
+          "activeCPU": -0.20725655012930005,
+          "pausedCPU": 6.338262447973539,
+          "slowCPU": 20.52682586427538,
+          "slowRSS": -2.0015654702001564
+        },
+        "primary": "startupSeekMs",
+        "passed": false
+      },
+      "transport_byte_accounting": "Transport byte counts in the local whole-player run are server ReadStream bytes; they can include buffered or abandoned bytes and are not exact client-received or wire-byte measurements."
+    }
   }
 }
