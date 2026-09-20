@@ -23,19 +23,19 @@ class NativeBaseline(unittest.TestCase):
         result = m.compare('f', 'libmedia', c, p, {})
         self.assertEqual(result['medianGainPercent'], -100)
         self.assertEqual(result['playerMedianCPU'], 20)
-        self.assertEqual(m.cell(result, 'libmedia'), '🟠 (-100.0%)')
+        self.assertEqual(m.cell(result, 'libmedia'), '🟠 20.0% CPU')
         self.assertIn('playerRecord', result['pairs'][0])
 
     def test_positive_reduction(self):
         c, p = self.evidence(player=(5, 5, 5))
-        self.assertEqual(m.cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟢 (+50.0%)')
+        self.assertEqual(m.cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟢 5.0% CPU')
 
     def test_measured_percentage_is_shown_even_when_range_crosses_zero(self):
         c, p = self.evidence(player=(9, 9, 11))
         result = m.compare('f', 'libmedia', c, p, {})
         self.assertEqual(result['medianGainPercent'], 10)
-        self.assertEqual(m.cell(result, 'libmedia'), '🟢 (+10.0%)')
-        self.assertEqual(m.cell(m.compare('f', 'video', c, p, {}), 'video'), '🟢 (Pass)')
+        self.assertEqual(m.cell(result, 'libmedia'), '🟢 9.0% CPU')
+        self.assertEqual(m.cell(m.compare('f', 'video', c, p, {}), 'video'), '🟢 10.0% CPU')
 
     def test_rejected_native_round_keeps_cpu_unmeasured(self):
         c, p = self.evidence()
@@ -92,7 +92,7 @@ class NativeBaseline(unittest.TestCase):
         self.assertEqual(m.select_leader('f', c, p, {}), 'libmedia')
         result = m.compare('f', 'video', c, p, {}, baseline='libmedia')
         self.assertEqual(result['gainPercent'], -100)
-        self.assertEqual(m.cell(result, 'video'), '🟠 (-100.0%)')
+        self.assertEqual(m.cell(result, 'video'), '🟠 10.0% CPU')
 
     def test_failed_fast_candidate_cannot_lead(self):
         c, p = self.evidence(player=(1, 1, 1))
@@ -116,10 +116,15 @@ class NativeBaseline(unittest.TestCase):
     def test_every_pass_is_bold_without_bolding_percentages(self):
         c, p = self.evidence()
         leader = m.compare('f', 'video', c, p, {})
-        self.assertEqual(m.table_cell(leader, 'video'), '**🟢 (Pass)**')
+        self.assertEqual(m.table_cell(leader, 'video'), '**🟢 10.0% CPU**')
         self.assertEqual(m.table_cell({'status': 'unmeasured', 'playbackPassed': True}, 'demuxe'), '**🟢 (Pass)**')
         self.assertEqual(m.table_cell({'status': 'unmeasured', 'screeningPassed': True}, 'demuxe'), r'**🟢 (Pass)\***')
-        self.assertEqual(m.table_cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟠 (-100.0%)')
+        self.assertEqual(m.table_cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟠 20.0% CPU')
+
+    def test_actual_cpu_can_exceed_one_core_and_ties_stay_measured(self):
+        c, p = self.evidence(native=(150, 150, 150), player=(150, 150, 150))
+        self.assertEqual(m.cell(m.compare('f', 'video', c, p, {}), 'video'), '🟢 150.0% CPU')
+        self.assertEqual(m.cell(m.compare('f', 'libmedia', c, p, {}), 'libmedia'), '🟢 150.0% CPU')
 
     def test_correctness_failure_and_fidelity_are_distinct(self):
         c, p = self.evidence()

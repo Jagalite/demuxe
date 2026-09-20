@@ -2,7 +2,7 @@
 
 # Cross-player CPU baseline
 
-## Current README: each player versus the measured leader
+## Current README: actual CPU usage for each player
 
 For each media case, the reference is the player with the **lowest median CPU**
 among the four players with three accepted, matching measurement rounds. The
@@ -11,19 +11,20 @@ measurements cannot select the leader. Exact median ties use displayed player
 order; a lone eligible player is only a reference, not proof it beats unmeasured
 players. This is a descriptive baseline, not a statistical superiority claim.
 
-`gain % = 100 × (leader median CPU − player median CPU) / leader median CPU`
+Every numeric cell shows that player's **actual median CPU as a percentage of
+one core**; this can exceed 100%. For example, players using 20.2% and 37.9% of
+one core display **20.2% CPU** and **37.9% CPU**. These are not relative differences.
+The lowest measured median is bold. The detailed report retains each player's
+CPU range and raw rounds; overlapping ranges do not establish a statistical tie.
+Raw summaries preserve earlier relative-gain fields for traceability, but the
+README and current report display actual CPU usage only.
 
-The leader shows **(Pass)**; negative percentages mean higher CPU than the leader.
-Percentages now use the ratio of CPU medians, so the reference truly has the
-lowest reported CPU. The report also retains each matched-round reduction and
-its range. Nonzero measured differences display percentages even when round
-ranges overlap. All green **(Pass)** cells are bold: they can identify the reference,
-an equal measured CPU median, or successful playback without a valid CPU comparison.
-Bold does not imply a tie, native decoding or near-native performance. The detailed
-report identifies each row's reference and retains its numeric zero. Orange percentages show higher CPU, red **(Fail)** a playback
-correctness failure, green `(Pass)*` a historical playback-screening pass with
-unverified surround or HDR/color fidelity, and white **(N/A)** unavailable
-playback evidence. Native in the original ASS case includes host ASS rendering.
+All green **(Pass)** cells are bold and mean successful playback without a valid
+CPU comparison. They do not imply a tie, native decoding or near-native performance.
+Orange percentages show higher CPU, red **(Fail)** a playback correctness failure,
+green `(Pass)*` a historical screening pass with unverified surround or HDR/color
+fidelity, and white **(N/A)** unavailable playback evidence. Native in the original
+ASS case includes host ASS rendering.
 
 For the nine surround/HDR rows excluded from the CPU campaign, the renderer reads
 the exact per-player records linked by the complete-file catalogue and verifies
@@ -31,7 +32,7 @@ their run manifests. Only an explicit `screenPassed` result becomes (Pass)*;
 recorded failures stay (Fail), and missing fixtures stay N/A. These older records
 never qualify a CPU percentage or override newer playback correctness evidence.
 
-The [leader-reference report](../results/head-to-head/cpu-leader-reference-03/REPORT.md)
+The [leader-reference report](../results/head-to-head/cpu-actual-usage-01/REPORT.md)
 retains reference identity, medians, round ranges, raw-record links and exclusion
 reasons. It reuses existing measurements; no new playback, performance or fidelity
 qualification is implied. Earlier native-reference reports remain historical.

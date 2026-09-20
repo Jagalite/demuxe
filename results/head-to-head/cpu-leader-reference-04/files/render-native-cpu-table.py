@@ -28,8 +28,12 @@ def cell(result, player):
         if result.get('playbackPassed') and not result.get('fidelityLimited'):
             return '🟢 (Pass)'
         return ('🟡' if result.get('fidelityLimited') else '⚪') + ' (N/A)'
-    color = '🟠' if result['playerMedianCPU'] > result['baselineMedianCPU'] else '🟢'
-    return f"{color} {result['playerMedianCPU']:.1f}% CPU"
+    if player == result.get('referencePlayer'):
+        return f"🟢 {result['playerMedianCPU']:.1f}% CPU"
+    overhead = -result.get('gainPercent', result['medianGainPercent'])
+    if overhead == 0:
+        overhead = 0.0
+    return ('🟠' if overhead > 0 else '🟢') + f" {overhead:+.1f}% CPU"
 
 
 def table_cell(result, player):
@@ -179,26 +183,27 @@ def render(args):
     table += ['| ' + r['label'] + ' | ' + ' | '.join(table_cell(r['players'][p], p) for p, _ in PLAYERS) + ' |' for r in rows]
     out = Path(args.output).resolve()
     out.mkdir(parents=True, exist_ok=False)
-    explanation = ('Every numeric cell shows that player’s actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. '
-                   'The **bold numeric cell** identifies the lowest measured median for that media case. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. '
-                   'Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. '
-                   '`(Pass)*` means historical playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU measurement is claimed. '
+    explanation = ('The **bold numeric cell** shows the measured leader’s actual median CPU usage, as a percentage of one CPU core (it can exceed 100%). '
+                   'Other numeric cells show relative overhead: `100 × (player median CPU − leader median CPU) / leader median CPU`; +20% CPU means 20% more CPU than the leader, not 20 percentage points. '
+                   'The leader is the lowest-median-CPU eligible player among the four. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. '
+                   'Measured differences remain visible even when round ranges overlap. **Green (Pass)** means successful playback without a valid CPU comparison, not a tie or native decoding. '
+                   '`(Pass)*` means historical playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU comparison is claimed. '
                    '`(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope. '
                    'Pinned Chrome/macOS shared-host synthetic evidence; renderer counters do not certify equal physical smoothness. '
                    'Native in the original ASS case includes the host ASS renderer.')
-    report = ['# Measured player CPU usage', '', explanation, '', *table, '', '## Values, ranges and exclusions', '',
-              '| Media / player | Median CPU (% of one core) | CPU round range (% of one core) | Evidence or reason |', '| --- | --- | --- | --- |']
+    report = ['# CPU relative to the lowest-CPU eligible player', '', explanation, '', *table, '', '## Values, ranges and exclusions', '',
+              '| Media / player | CPU: player / leader (% of one core) | CPU overhead; round range | Evidence or reason |', '| --- | --- | --- | --- |']
     for r in rows:
         for p, title in PLAYERS:
             c = r['players'][p]
             if c['status'] == 'measured':
                 links = 'Reference: ' + dict(PLAYERS)[r['leader']] + ' · ' + ' · '.join(f"[round {x['round']}]({os.path.relpath(ROOT / x['playerRecord'], out)})" for x in c['pairs'])
-                report.append(f"| {r['label']} / {title} | {c['playerMedianCPU']:.2f}% | {min(x['playerOneCorePercent'] for x in c['pairs']):.2f}% to {max(x['playerOneCorePercent'] for x in c['pairs']):.2f}% | {links} |")
+                report.append(f"| {r['label']} / {title} | {c['playerMedianCPU']:.2f} / {c['baselineMedianCPU']:.2f} | {-c['gainPercent']:+.1f}%; {-c['maxGainPercent']:+.1f} to {-c['minGainPercent']:+.1f}% | {links} |")
             else:
                 evidence = f" · [historical playback]({os.path.relpath(ROOT / c['historicalPlaybackRecord'], out)})" if c.get('historicalPlaybackRecord') else ''
                 report.append(f"| {r['label']} / {title} | — | {cell(c, p)} | {c['reason'].replace('|', '/')}{evidence} |")
     (out / 'REPORT.md').write_text('\n'.join(report) + '\n')
-    summary = {'displayFormula': 'Median of three measured oneCorePercent values for the named player', 'leaderDisplay': 'Median CPU as percent of one core', 'formula': '100 * (leader median CPU - player median CPU) / leader median CPU', 'leaderRule': 'Lowest median CPU among players with three accepted matching rounds; stable displayed order breaks exact ties', 'source': str(source.relative_to(ROOT)), 'rows': rows}
+    summary = {'displayFormula': '100 * (player median CPU - leader median CPU) / leader median CPU', 'leaderDisplay': 'Median CPU as percent of one core', 'formula': '100 * (leader median CPU - player median CPU) / leader median CPU', 'leaderRule': 'Lowest median CPU among players with three accepted matching rounds; stable displayed order breaks exact ties', 'source': str(source.relative_to(ROOT)), 'rows': rows}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
     (out / 'files').mkdir()
     for name in ['render-native-cpu-table.py', 'report-cpu-baseline.py']:
