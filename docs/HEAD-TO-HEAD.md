@@ -269,10 +269,10 @@ those bounds; prepare a longer fixture if needed.
 Recorded metrics include API open wall time, CDP-listed browser-process CPU,
 sampled summed RSS where available, position, native frame drops, errors and
 server requests. Foreground loss, process turnover, stalled progression or
-excessive frame drops reject the trial. Custom routes without comparable frame-drop
-counters are explicitly blocked from this performance profile. They can still
-run correctness. Add an independently justified counter contract before comparing
-their costs as equally smooth playback.
+excessive frame drops reject the trial. The [cross-player CPU baseline](CPU-BASELINE.md) adds narrowly validated Movi,
+AVPlayer and Demuxe retained-frame submission counters, plus audio-only handling.
+Other custom routes without an established observation remain blocked. These
+route-specific counters do not establish identical physical display smoothness.
 
 Correctness analysers and screenshots are absent from scored playback. CDP and
 state polling still add overhead. CPU excludes server work, external OS media

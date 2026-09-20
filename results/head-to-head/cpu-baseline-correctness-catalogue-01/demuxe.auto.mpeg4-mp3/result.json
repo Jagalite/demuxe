@@ -1,0 +1,2746 @@
+{
+  "id": "demuxe.auto.mpeg4-mp3",
+  "player": "demuxe",
+  "lane": "auto",
+  "fixture": "mpeg4-mp3",
+  "requirements": [
+    "moving-video",
+    "marked-audio",
+    "pause-resume",
+    "rate",
+    "seek",
+    "eof",
+    "cleanup"
+  ],
+  "status": "passed",
+  "startedAt": "2026-09-20T17:13:17.155Z",
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "requestFailures": [
+    {
+      "url": "http://127.0.0.1:52026/fixtures/mpeg4-mp3/index.avi",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    }
+  ],
+  "recordPath": "demuxe.auto.mpeg4-mp3/result.json",
+  "initial": {
+    "position": 0.657,
+    "duration": 36.024,
+    "route": "software",
+    "diagnostics": {
+      "mode": "software",
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": true
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no packet-copy video construction contract for mpeg4"
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "failed",
+          "reason": "PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed",
+          "previouslyVerified": false,
+          "evidence": {},
+          "failureKind": "compatibility"
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no packet-copy video construction contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "audioDecoderConfigured": true,
+            "audioDecoded": true,
+            "audioProgress": false,
+            "videoPresented": true,
+            "decoderOutput": true
+          }
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 118,
+        "rendered": 18,
+        "renderMs": 51.59499979019165,
+        "copyMs": 18.650000035762787,
+        "maxRenderMs": 4.725000023841858,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "avi",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.524,
+        "ioPending": false,
+        "ioSerial": 15,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 862552,
+          "requests": 4,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 1048576,
+          "peakCacheBytes": 1048576,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "1891008",
+          "reads": 15,
+          "seeks": 5,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.524,
+        "queuedFrames": 6144
+      }
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "failed",
+        "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "skipped",
+        "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "skipped",
+        "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+      },
+      {
+        "mode": "software",
+        "outcome": "selected",
+        "reason": "software: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [
+      {
+        "id": "1",
+        "type": "video",
+        "src-id": 0,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 0,
+        "decoder": "mpeg4",
+        "decoder-desc": "MPEG-4 part 2",
+        "codec": "mpeg4",
+        "codec-desc": "MPEG-4 part 2",
+        "codec-profile": "Simple Profile",
+        "demux-w": 320,
+        "demux-h": 180,
+        "demux-fps": 1000,
+        "demux-par": 1,
+        "format-name": "yuv420p"
+      },
+      {
+        "id": "1",
+        "type": "audio",
+        "src-id": 1,
+        "audio-channels": 2,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 1,
+        "decoder": "mp3float",
+        "decoder-desc": "MP3 (MPEG audio layer 3)",
+        "codec": "mp3",
+        "codec-desc": "MP3 (MPEG audio layer 3)",
+        "demux-channel-count": 2,
+        "demux-channels": "stereo",
+        "demux-samplerate": 48000,
+        "demux-bitrate": 192000,
+        "format-name": "fltp"
+      }
+    ],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0.1029102144260856,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0.10289953265352553,
+        "hz": 877.47802734375
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": null
+  },
+  "initialImage": {
+    "rgb": [
+      252,
+      0,
+      0
+    ],
+    "expected": "red",
+    "markerCorrect": true,
+    "magentaPixels": 0
+  },
+  "moving": true,
+  "rateAdvance": 0.933,
+  "seeks": [
+    {
+      "target": 6,
+      "state": {
+        "position": 6.191,
+        "duration": 36.024,
+        "route": "software",
+        "diagnostics": {
+          "mode": "software",
+          "plan": {
+            "id": "software",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "existing",
+            "owners": {
+              "video": "ffmpeg",
+              "audio": "mpv-pcm-worklet",
+              "subtitle": "mpv",
+              "demux": "mpv",
+              "presentation": "demuxe-retained-frame"
+            },
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "terminal"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "failed",
+              "reason": "PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed",
+              "previouslyVerified": false,
+              "evidence": {},
+              "failureKind": "compatibility"
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "audioDecoderConfigured": true,
+                "audioDecoded": true,
+                "audioProgress": true,
+                "videoPresented": true,
+                "decoderOutput": true
+              }
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "failed",
+                "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "software",
+                "outcome": "selected",
+                "reason": "software: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "softwarePresenter": "rgb",
+            "pumpTicks": 573,
+            "rendered": 89,
+            "renderMs": 263.19500029087067,
+            "copyMs": 77.42499977350235,
+            "maxRenderMs": 6.330000042915344,
+            "heapBytes": 134217728,
+            "epoch": 4,
+            "path": "wasm",
+            "decoder": "software",
+            "demuxFormat": "avi",
+            "seekPrerollSeconds": 1,
+            "presentedPosition": 6.157,
+            "ioPending": false,
+            "ioSerial": 19,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 1124696,
+              "requests": 5,
+              "retries": 0,
+              "aborts": 0,
+              "cacheBytes": 1310720,
+              "peakCacheBytes": 1310720,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "size": "1891008",
+              "reads": 19,
+              "seeks": 5,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 6.157,
+            "queuedFrames": 6656
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "1",
+            "type": "video",
+            "src-id": 0,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 0,
+            "decoder": "mpeg4",
+            "decoder-desc": "MPEG-4 part 2",
+            "codec": "mpeg4",
+            "codec-desc": "MPEG-4 part 2",
+            "codec-profile": "Simple Profile",
+            "demux-w": 320,
+            "demux-h": 180,
+            "demux-fps": 1000,
+            "demux-par": 1,
+            "format-name": "yuv420p"
+          },
+          {
+            "id": "1",
+            "type": "audio",
+            "src-id": 1,
+            "audio-channels": 2,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 1,
+            "decoder": "mp3float",
+            "decoder-desc": "MP3 (MPEG audio layer 3)",
+            "codec": "mp3",
+            "codec-desc": "MP3 (MPEG audio layer 3)",
+            "demux-channel-count": 2,
+            "demux-channels": "stereo",
+            "demux-samplerate": 48000,
+            "demux-bitrate": 192000,
+            "format-name": "fltp"
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10296353222904175,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10289114063429995,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "image": {
+        "rgb": [
+          0,
+          0,
+          253
+        ],
+        "expected": "blue",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    },
+    {
+      "target": 1,
+      "state": {
+        "position": 1.191,
+        "duration": 36.024,
+        "route": "software",
+        "diagnostics": {
+          "mode": "software",
+          "plan": {
+            "id": "software",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "existing",
+            "owners": {
+              "video": "ffmpeg",
+              "audio": "mpv-pcm-worklet",
+              "subtitle": "mpv",
+              "demux": "mpv",
+              "presentation": "demuxe-retained-frame"
+            },
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "terminal"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "failed",
+              "reason": "PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed",
+              "previouslyVerified": false,
+              "evidence": {},
+              "failureKind": "compatibility"
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "audioDecoderConfigured": true,
+                "audioDecoded": true,
+                "audioProgress": true,
+                "videoPresented": true,
+                "decoderOutput": true
+              }
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "failed",
+                "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "software",
+                "outcome": "selected",
+                "reason": "software: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "softwarePresenter": "rgb",
+            "pumpTicks": 650,
+            "rendered": 97,
+            "renderMs": 291.64000034332275,
+            "copyMs": 84.16499972343445,
+            "maxRenderMs": 6.330000042915344,
+            "heapBytes": 134217728,
+            "epoch": 6,
+            "path": "wasm",
+            "decoder": "software",
+            "demuxFormat": "avi",
+            "seekPrerollSeconds": 1,
+            "presentedPosition": 1.157,
+            "ioPending": false,
+            "ioSerial": 20,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 1124696,
+              "requests": 5,
+              "retries": 0,
+              "aborts": 0,
+              "cacheBytes": 1310720,
+              "peakCacheBytes": 1310720,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "size": "1891008",
+              "reads": 20,
+              "seeks": 6,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 1.157,
+            "queuedFrames": 6912
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "1",
+            "type": "video",
+            "src-id": 0,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 0,
+            "decoder": "mpeg4",
+            "decoder-desc": "MPEG-4 part 2",
+            "codec": "mpeg4",
+            "codec-desc": "MPEG-4 part 2",
+            "codec-profile": "Simple Profile",
+            "demux-w": 320,
+            "demux-h": 180,
+            "demux-fps": 1000,
+            "demux-par": 1,
+            "format-name": "yuv420p"
+          },
+          {
+            "id": "1",
+            "type": "audio",
+            "src-id": 1,
+            "audio-channels": 2,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 1,
+            "decoder": "mp3float",
+            "decoder-desc": "MP3 (MPEG audio layer 3)",
+            "codec": "mp3",
+            "codec-desc": "MP3 (MPEG audio layer 3)",
+            "demux-channel-count": 2,
+            "demux-channels": "stereo",
+            "demux-samplerate": 48000,
+            "demux-bitrate": 192000,
+            "format-name": "fltp"
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.1029635675080136,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10289005918997618,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "image": {
+        "rgb": [
+          252,
+          0,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    },
+    {
+      "target": 10,
+      "state": {
+        "position": 10.156,
+        "duration": 36.024,
+        "route": "software",
+        "diagnostics": {
+          "mode": "software",
+          "plan": {
+            "id": "software",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "existing",
+            "owners": {
+              "video": "ffmpeg",
+              "audio": "mpv-pcm-worklet",
+              "subtitle": "mpv",
+              "demux": "mpv",
+              "presentation": "demuxe-retained-frame"
+            },
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "terminal"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "failed",
+              "reason": "PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed",
+              "previouslyVerified": false,
+              "evidence": {},
+              "failureKind": "compatibility"
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no packet-copy video construction contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "audioDecoderConfigured": true,
+                "audioDecoded": true,
+                "audioProgress": true,
+                "videoPresented": true,
+                "decoderOutput": true
+              }
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "failed",
+                "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "skipped",
+                "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+              },
+              {
+                "mode": "software",
+                "outcome": "selected",
+                "reason": "software: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "softwarePresenter": "rgb",
+            "pumpTicks": 758,
+            "rendered": 105,
+            "renderMs": 316.5300003886223,
+            "copyMs": 90.719999730587,
+            "maxRenderMs": 6.330000042915344,
+            "heapBytes": 134217728,
+            "epoch": 8,
+            "path": "wasm",
+            "decoder": "software",
+            "demuxFormat": "avi",
+            "seekPrerollSeconds": 1,
+            "presentedPosition": 10.156,
+            "ioPending": false,
+            "ioSerial": 21,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 1124696,
+              "requests": 5,
+              "retries": 0,
+              "aborts": 0,
+              "cacheBytes": 1310720,
+              "peakCacheBytes": 1310720,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "size": "1891008",
+              "reads": 21,
+              "seeks": 7,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 10.156,
+            "queuedFrames": 6912
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "1",
+            "type": "video",
+            "src-id": 0,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 0,
+            "decoder": "mpeg4",
+            "decoder-desc": "MPEG-4 part 2",
+            "codec": "mpeg4",
+            "codec-desc": "MPEG-4 part 2",
+            "codec-profile": "Simple Profile",
+            "demux-w": 320,
+            "demux-h": 180,
+            "demux-fps": 1000,
+            "demux-par": 1,
+            "format-name": "yuv420p"
+          },
+          {
+            "id": "1",
+            "type": "audio",
+            "src-id": 1,
+            "audio-channels": 2,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 1,
+            "decoder": "mp3float",
+            "decoder-desc": "MP3 (MPEG audio layer 3)",
+            "codec": "mp3",
+            "codec-desc": "MP3 (MPEG audio layer 3)",
+            "demux-channel-count": 2,
+            "demux-channels": "stereo",
+            "demux-samplerate": 48000,
+            "demux-bitrate": 192000,
+            "format-name": "fltp"
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10297471735755455,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10288745909813847,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "image": {
+        "rgb": [
+          0,
+          127,
+          0
+        ],
+        "expected": "green",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    }
+  ],
+  "eof": {
+    "position": 36.00198397392298,
+    "duration": 36.024,
+    "route": "software",
+    "diagnostics": {
+      "mode": "software",
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": true
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no packet-copy video construction contract for mpeg4"
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "failed",
+          "reason": "PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed",
+          "previouslyVerified": false,
+          "evidence": {},
+          "failureKind": "compatibility"
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no packet-copy video construction contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Demuxe has no browser bridge configuration contract for mpeg4",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "audioDecoderConfigured": true,
+            "audioDecoded": true,
+            "audioProgress": true,
+            "videoPresented": true,
+            "decoderOutput": true
+          }
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 954,
+        "rendered": 128,
+        "renderMs": 387.0400003194809,
+        "copyMs": 108.38499975204468,
+        "maxRenderMs": 6.330000042915344,
+        "heapBytes": 134217728,
+        "epoch": 10,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "avi",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 35.99588420068035,
+        "ioPending": false,
+        "ioSerial": 22,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 1386840,
+          "requests": 6,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 1572864,
+          "peakCacheBytes": 1572864,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "1891008",
+          "reads": 22,
+          "seeks": 8,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 36.00198397392298,
+        "queuedFrames": 0
+      }
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "failed",
+        "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "skipped",
+        "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "skipped",
+        "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+      },
+      {
+        "mode": "software",
+        "outcome": "selected",
+        "reason": "software: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [
+      {
+        "id": "1",
+        "type": "video",
+        "src-id": 0,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 0,
+        "decoder": "mpeg4",
+        "decoder-desc": "MPEG-4 part 2",
+        "codec": "mpeg4",
+        "codec-desc": "MPEG-4 part 2",
+        "codec-profile": "Simple Profile",
+        "demux-w": 320,
+        "demux-h": 180,
+        "demux-fps": 1000,
+        "demux-par": 1,
+        "format-name": "yuv420p"
+      },
+      {
+        "id": "1",
+        "type": "audio",
+        "src-id": 1,
+        "audio-channels": 2,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 1,
+        "decoder": "mp3float",
+        "decoder-desc": "MP3 (MPEG audio layer 3)",
+        "codec": "mp3",
+        "codec-desc": "MP3 (MPEG audio layer 3)",
+        "demux-channel-count": 2,
+        "demux-channels": "stereo",
+        "demux-samplerate": 48000,
+        "demux-bitrate": 192000,
+        "format-name": "fltp"
+      }
+    ],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0,
+        "hz": 877.47802734375
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": null
+  },
+  "cleanup": {
+    "remainingSurfaces": 0,
+    "contexts": [
+      "closed"
+    ]
+  },
+  "workersAfter": 0,
+  "finishedAt": "2026-09-20T17:13:26.039Z"
+}

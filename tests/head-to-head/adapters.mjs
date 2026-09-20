@@ -120,6 +120,7 @@ export function snapshot() {
       route:player.isMSE()?'mse':'custom',stats:player.getStats()};
     else state={position:player.currentTime,duration:player.duration,paused:player.paused,route:(video||(config.audio!==false&&surfaces('video').some(v=>v.currentSrc&&v.readyState>=2))||surfaces('audio').some(v=>v.currentSrc))?'native-direct':'custom'};
   }
+  if(config.player==='movi'&&!video&&typeof player?.getVideoPlaybackQuality==='function')state.renderQuality=player.getVideoPlaybackQuality();
   const audio=analysers.map(({analyser,channel})=>{
     const wave=new Float32Array(analyser.fftSize),bins=new Float32Array(analyser.frequencyBinCount);
     analyser.getFloatTimeDomainData(wave);analyser.getFloatFrequencyData(bins);

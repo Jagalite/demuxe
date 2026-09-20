@@ -1,0 +1,2395 @@
+{
+  "id": "demuxe.auto.hevc-pgs",
+  "player": "demuxe",
+  "lane": "auto",
+  "fixture": "hevc-pgs",
+  "requirements": [
+    "moving-video",
+    "marked-audio",
+    "pause-resume",
+    "rate",
+    "seek",
+    "eof",
+    "cleanup",
+    "subtitle-output"
+  ],
+  "status": "failed",
+  "startedAt": "2026-09-20T17:17:46.523Z",
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "requestFailures": [
+    {
+      "url": "http://127.0.0.1:52026/fixtures/hevc-pgs/index.mkv",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    }
+  ],
+  "recordPath": "demuxe.auto.hevc-pgs/result.json",
+  "subtitleSelection": {
+    "tracks": [
+      {
+        "id": "1:sub:stream:2",
+        "type": "subtitle",
+        "label": "Subtitle 1",
+        "language": null,
+        "codec": "hdmv_pgs_subtitle",
+        "selected": true,
+        "external": false
+      }
+    ]
+  },
+  "initial": {
+    "position": 0.9329999999999999,
+    "duration": 36,
+    "route": "hybrid",
+    "diagnostics": {
+      "mode": "hybrid",
+      "plan": {
+        "id": "hybrid",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Embedded subtitles require mpv rendering"
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Embedded subtitles require mpv rendering"
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": true
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "mpv scalar filter stage does not match the request"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Embedded subtitles require mpv rendering",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Embedded subtitles require mpv rendering",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "audioDecoderConfigured": true,
+            "audioDecoded": true,
+            "audioProgress": false,
+            "videoPresented": true,
+            "decoderOutput": true,
+            "apiHint": "{\"requested\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false},\"source\":{\"kind\":2,\"width\":320,\"height\":180,\"profile\":-99,\"level\":-99,\"depth\":0,\"descriptionBytes\":2447},\"supported\":true,\"recognized\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false}}"
+          }
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv scalar filter stage does not match the request",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "selected",
+            "reason": "hybrid: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "pumpTicks": 107,
+        "subtitles": {
+          "updates": 1,
+          "bytes": 8400,
+          "peakBytes": 8400,
+          "parts": 1,
+          "renders": 31
+        },
+        "presentation": {
+          "position": 0.933,
+          "received": 31,
+          "closed": 28,
+          "drawn": 29,
+          "redraws": 1,
+          "peakRetained": 4,
+          "peakPending": 1,
+          "missing": 0,
+          "lateMs": [
+            14.858792021457646,
+            14.444914978542329,
+            22.658138985694904,
+            19.397975957084668,
+            16.538399014305128,
+            25.9321100095367,
+            10.997876988079042,
+            25.666396969005632,
+            10.116024997615796,
+            5.537084016689278,
+            10.6456750429154,
+            18.101612011920906,
+            25.54623403337871,
+            16.254948976158175,
+            25.534674961853057,
+            24.115612000000056,
+            19.76460302622604,
+            19.239496040531094,
+            22.58434305245214,
+            11.964304009536818,
+            8.510052983310743,
+            17.75378699523162,
+            27.218689028610243,
+            2.9183499618529822,
+            24.423652985694844,
+            12.889550990463249,
+            20.693318011920837,
+            12.098066026226206,
+            24.398047973773828
+          ],
+          "pts": [
+            0,
+            33000,
+            67000,
+            100000,
+            133000,
+            167000,
+            200000,
+            233000,
+            267000,
+            300000,
+            333000,
+            367000,
+            400000,
+            433000,
+            467000,
+            500000,
+            533000,
+            567000,
+            600000,
+            633000,
+            667000,
+            700000,
+            733000,
+            767000,
+            800000,
+            833000,
+            867000,
+            900000,
+            933000
+          ],
+          "pixelChecks": [],
+          "retained": 3,
+          "pending": 0
+        },
+        "mode": "retained",
+        "skipCanvas": true,
+        "canvasSubmissions": 29,
+        "rendered": 31,
+        "renderMs": 1.834999680519104,
+        "copyMs": 0,
+        "maxRenderMs": 0.4300000071525574,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderStats": {
+          "packetBytes": 1524,
+          "ownedPacketBytes": 0,
+          "sharedPacketInputs": 33,
+          "sharedPacketFallbacks": 0,
+          "submitted": 33,
+          "frames": 30,
+          "receivedFrames": 31,
+          "closedFrames": 30,
+          "peakOutstanding": 8,
+          "peakFrames": 9,
+          "resets": 0,
+          "errors": 0,
+          "copyMs": 0,
+          "input": {
+            "kind": 2,
+            "width": 320,
+            "height": 180,
+            "profile": -99,
+            "level": -99,
+            "depth": 0,
+            "descriptionBytes": 2447
+          },
+          "codec": "hev1.2.4.L60.90",
+          "supportCheck": {
+            "requested": {
+              "codec": "hev1.2.4.L60.90",
+              "codedWidth": 320,
+              "codedHeight": 180,
+              "descriptionBytes": 2447,
+              "hardwareAcceleration": "no-preference",
+              "optimizeForLatency": false
+            },
+            "source": {
+              "kind": 2,
+              "width": 320,
+              "height": 180,
+              "profile": -99,
+              "level": -99,
+              "depth": 0,
+              "descriptionBytes": 2447
+            },
+            "supported": true,
+            "recognized": {
+              "codec": "hev1.2.4.L60.90",
+              "codedWidth": 320,
+              "codedHeight": 180,
+              "descriptionBytes": 2447,
+              "hardwareAcceleration": "no-preference",
+              "optimizeForLatency": false
+            }
+          },
+          "actualWidth": 320,
+          "actualHeight": 180,
+          "pixelFormat": null,
+          "placeholderFrames": 30,
+          "transferredFrames": 30,
+          "outstanding": 0,
+          "queued": 1,
+          "active": true
+        },
+        "demuxFormat": "mkv",
+        "seekPrerollSeconds": 0.5,
+        "presentedPosition": 0.9329999999999999,
+        "ioPending": false,
+        "ioSerial": 1,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 262144,
+          "requests": 1,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 262144,
+          "peakCacheBytes": 262144,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "921804",
+          "reads": 1,
+          "seeks": 1,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.9329999999999999,
+        "queuedFrames": 7680
+      }
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct: Embedded subtitles require mpv rendering"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux: Embedded subtitles require mpv rendering"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "selected",
+        "reason": "hybrid: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [
+      {
+        "id": "1",
+        "type": "video",
+        "src-id": 1,
+        "image": false,
+        "albumart": false,
+        "default": true,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 0,
+        "decoder": "hevc",
+        "decoder-desc": "HEVC (High Efficiency Video Coding)",
+        "codec": "hevc",
+        "demux-w": 320,
+        "demux-h": 180,
+        "demux-fps": 30.000000300000004,
+        "demux-par": 1,
+        "metadata": {
+          "ENCODER": "Lavc62.28.102 libx265",
+          "HANDLER_NAME": "VideoHandler",
+          "DURATION": "00:00:36.000000000"
+        }
+      },
+      {
+        "id": "1",
+        "type": "audio",
+        "src-id": 2,
+        "audio-channels": 2,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 1,
+        "decoder": "ac3",
+        "decoder-desc": "ATSC A/52A (AC-3)",
+        "codec": "ac3",
+        "codec-desc": "ATSC A/52A (AC-3)",
+        "demux-channel-count": 2,
+        "demux-channels": "stereo",
+        "demux-samplerate": 48000,
+        "metadata": {
+          "ENCODER": "Lavc62.28.102 ac3",
+          "DURATION": "00:00:36.000000000"
+        }
+      },
+      {
+        "id": "1",
+        "type": "sub",
+        "src-id": 3,
+        "image": false,
+        "albumart": false,
+        "default": true,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 2,
+        "decoder": "pgssub",
+        "decoder-desc": "HDMV Presentation Graphic Stream subtitles",
+        "codec": "hdmv_pgs_subtitle",
+        "codec-desc": "HDMV Presentation Graphic Stream subtitles",
+        "metadata": {
+          "DURATION": "00:00:35.300000000"
+        }
+      }
+    ],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0.10608946570712763,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0.10607548079778517,
+        "hz": 877.47802734375
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": null
+  },
+  "initialImage": {
+    "rgb": [
+      252,
+      1,
+      0
+    ],
+    "expected": "red",
+    "markerCorrect": true,
+    "magentaPixels": 4725
+  },
+  "moving": true,
+  "rateAdvance": 0.9330000000000003,
+  "seeks": [
+    {
+      "target": 6,
+      "state": {
+        "position": 6.167,
+        "duration": 36,
+        "route": "hybrid",
+        "diagnostics": {
+          "mode": "hybrid",
+          "plan": {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "video": "webcodecs",
+            "audio": "mpv",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-webcodecs",
+              "audio": "mpv-pcm-worklet",
+              "subtitle": "mpv",
+              "demux": "mpv",
+              "presentation": "demuxe-retained-frame"
+            },
+            "source": "existing mpv source/track contract",
+            "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+            "subtitles": "mpv/libass",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Embedded subtitles require mpv rendering"
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation"
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Embedded subtitles require mpv rendering",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Embedded subtitles require mpv rendering",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "audioDecoderConfigured": true,
+                "audioDecoded": true,
+                "audioProgress": true,
+                "videoPresented": true,
+                "decoderOutput": true,
+                "apiHint": "{\"requested\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false},\"source\":{\"kind\":2,\"width\":320,\"height\":180,\"profile\":-99,\"level\":-99,\"depth\":0,\"descriptionBytes\":2447},\"supported\":true,\"recognized\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false}}"
+              }
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct: Embedded subtitles require mpv rendering"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-remux: Embedded subtitles require mpv rendering"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+              },
+              {
+                "mode": "hybrid",
+                "outcome": "selected",
+                "reason": "hybrid: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "pumpTicks": 343,
+            "subtitles": {
+              "updates": 2,
+              "bytes": 8400,
+              "peakBytes": 8400,
+              "parts": 0,
+              "renders": 103
+            },
+            "presentation": {
+              "position": 6.133,
+              "received": 134,
+              "closed": 131,
+              "drawn": 97,
+              "redraws": 2,
+              "peakRetained": 7,
+              "peakPending": 1,
+              "missing": 0,
+              "lateMs": [
+                14.858792021457646,
+                14.444914978542329,
+                22.658138985694904,
+                19.397975957084668,
+                16.538399014305128,
+                25.9321100095367,
+                10.997876988079042,
+                25.666396969005632,
+                10.116024997615796,
+                5.537084016689278,
+                10.6456750429154,
+                18.101612011920906,
+                25.54623403337871,
+                16.254948976158175,
+                25.534674961853057,
+                24.115612000000056,
+                19.76460302622604,
+                19.239496040531094,
+                22.58434305245214,
+                11.964304009536818,
+                8.510052983310743,
+                17.75378699523162,
+                27.218689028610243,
+                2.9183499618529822,
+                24.423652985694844,
+                12.889550990463249,
+                20.693318011920837,
+                12.098066026226206,
+                24.398047973773828,
+                27.733151988079044,
+                14.978069002384018,
+                18.278029011921035,
+                21.93271100953666,
+                15.383821992847288,
+                12.352435964237202,
+                25.53763199523155,
+                16.06242297377389,
+                14.572381019073646,
+                27.172519023841915,
+                6.718440954700554,
+                13.102106011920796,
+                21.187031002384174,
+                17.848040028610285,
+                19.617966992847414,
+                23.287961990463373,
+                14.046793011920954,
+                18.721727957084568,
+                21.057793038146883,
+                13.011716992847596,
+                13.686694023841937,
+                18.652398961853123,
+                25.51738900715236,
+                16.666530026226155,
+                21.00123198807887,
+                3.682428997615716,
+                6.9959759999997,
+                15.396833988078924,
+                30.367189997615696,
+                15.215695976158258,
+                20.66674698092629,
+                20.9859259737741,
+                12.12588801668926,
+                5.745882983310821,
+                18.344695995231632,
+                26.6852440429152,
+                16.511233990463552,
+                20.183830992847106,
+                14.490662016689384,
+                12.902103978542073,
+                5.574500980926587,
+                22.598118997615984,
+                14.164858007152361,
+                18.193138028610065,
+                13.646484978542048,
+                16.249977016689172,
+                27.078176014304972,
+                16.70214099284749,
+                23.896253033378798,
+                12.160019997616018,
+                12.018877011920722,
+                26.638235011920642,
+                17.637682042915458,
+                31.461786973773997,
+                15.581147966621302,
+                15.331845038147094,
+                11.646093040531014,
+                19.41078201192113,
+                10.414038004768372,
+                2.834724992847441,
+                6.918458042915518,
+                1.3430569928473233,
+                44.78370098092637,
+                0.26999998092651367,
+                10.994054002384473,
+                6.873776007151719,
+                19.816998964237428,
+                5.33729400476841
+              ],
+              "pts": [
+                0,
+                33000,
+                67000,
+                100000,
+                133000,
+                167000,
+                200000,
+                233000,
+                267000,
+                300000,
+                333000,
+                367000,
+                400000,
+                433000,
+                467000,
+                500000,
+                533000,
+                567000,
+                600000,
+                633000,
+                667000,
+                700000,
+                733000,
+                767000,
+                800000,
+                833000,
+                867000,
+                900000,
+                933000,
+                967000,
+                1000000,
+                1033000,
+                1067000,
+                1100000,
+                1133000,
+                1167000,
+                1200000,
+                1233000,
+                1267000,
+                1300000,
+                1333000,
+                1367000,
+                1400000,
+                1433000,
+                1467000,
+                1500000,
+                1533000,
+                1567000,
+                1600000,
+                1633000,
+                1667000,
+                1700000,
+                1733000,
+                1767000,
+                1800000,
+                1833000,
+                1867000,
+                1900000,
+                1933000,
+                1967000,
+                2000000,
+                2033000,
+                2067000,
+                2100000,
+                2133000,
+                2167000,
+                2200000,
+                2233000,
+                2267000,
+                2300000,
+                2333000,
+                2367000,
+                2400000,
+                2433000,
+                2467000,
+                2500000,
+                2533000,
+                2567000,
+                2600000,
+                2633000,
+                2667000,
+                2700000,
+                2733000,
+                2767000,
+                2800000,
+                2833000,
+                2867000,
+                2900000,
+                2933000,
+                2967000,
+                3000000,
+                3100000,
+                6000000,
+                6033000,
+                6067000,
+                6100000,
+                6133000
+              ],
+              "pixelChecks": [],
+              "retained": 3,
+              "pending": 0
+            },
+            "mode": "retained",
+            "skipCanvas": true,
+            "canvasSubmissions": 97,
+            "rendered": 100,
+            "renderMs": 4.274999558925629,
+            "copyMs": 0,
+            "maxRenderMs": 0.4300000071525574,
+            "heapBytes": 134217728,
+            "epoch": 4,
+            "path": "wasm",
+            "decoder": "webcodecs",
+            "decoderStats": {
+              "packetBytes": 5525,
+              "ownedPacketBytes": 0,
+              "sharedPacketInputs": 149,
+              "sharedPacketFallbacks": 0,
+              "submitted": 149,
+              "frames": 128,
+              "receivedFrames": 133,
+              "closedFrames": 133,
+              "peakOutstanding": 8,
+              "peakFrames": 11,
+              "resets": 2,
+              "errors": 0,
+              "copyMs": 0,
+              "input": {
+                "kind": 2,
+                "width": 320,
+                "height": 180,
+                "profile": -99,
+                "level": -99,
+                "depth": 0,
+                "descriptionBytes": 2447
+              },
+              "codec": "hev1.2.4.L60.90",
+              "supportCheck": {
+                "requested": {
+                  "codec": "hev1.2.4.L60.90",
+                  "codedWidth": 320,
+                  "codedHeight": 180,
+                  "descriptionBytes": 2447,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                },
+                "source": {
+                  "kind": 2,
+                  "width": 320,
+                  "height": 180,
+                  "profile": -99,
+                  "level": -99,
+                  "depth": 0,
+                  "descriptionBytes": 2447
+                },
+                "supported": true,
+                "recognized": {
+                  "codec": "hev1.2.4.L60.90",
+                  "codedWidth": 320,
+                  "codedHeight": 180,
+                  "descriptionBytes": 2447,
+                  "hardwareAcceleration": "no-preference",
+                  "optimizeForLatency": false
+                }
+              },
+              "actualWidth": 320,
+              "actualHeight": 180,
+              "pixelFormat": null,
+              "placeholderFrames": 128,
+              "transferredFrames": 128,
+              "outstanding": 6,
+              "queued": 0,
+              "active": true
+            },
+            "demuxFormat": "mkv",
+            "seekPrerollSeconds": 0.5,
+            "presentedPosition": 6.133,
+            "ioPending": false,
+            "ioSerial": 3,
+            "interruptions": 0,
+            "io": {
+              "fetchedBytes": 262904,
+              "requests": 2,
+              "retries": 0,
+              "aborts": 0,
+              "cacheBytes": 524288,
+              "peakCacheBytes": 524288,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "size": "921804",
+              "reads": 3,
+              "seeks": 3,
+              "interruptions": 0
+            },
+            "seeking": false,
+            "position": 6.133,
+            "queuedFrames": 7168
+          }
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "selected",
+            "reason": "hybrid: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [
+          {
+            "id": "1",
+            "type": "video",
+            "src-id": 1,
+            "image": false,
+            "albumart": false,
+            "default": true,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 0,
+            "decoder": "hevc",
+            "decoder-desc": "HEVC (High Efficiency Video Coding)",
+            "codec": "hevc",
+            "demux-w": 320,
+            "demux-h": 180,
+            "demux-fps": 30.000000300000004,
+            "demux-par": 1,
+            "metadata": {
+              "ENCODER": "Lavc62.28.102 libx265",
+              "HANDLER_NAME": "VideoHandler",
+              "DURATION": "00:00:36.000000000"
+            }
+          },
+          {
+            "id": "1",
+            "type": "audio",
+            "src-id": 2,
+            "audio-channels": 2,
+            "image": false,
+            "albumart": false,
+            "default": false,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 1,
+            "decoder": "ac3",
+            "decoder-desc": "ATSC A/52A (AC-3)",
+            "codec": "ac3",
+            "codec-desc": "ATSC A/52A (AC-3)",
+            "demux-channel-count": 2,
+            "demux-channels": "stereo",
+            "demux-samplerate": 48000,
+            "metadata": {
+              "ENCODER": "Lavc62.28.102 ac3",
+              "DURATION": "00:00:36.000000000"
+            }
+          },
+          {
+            "id": "1",
+            "type": "sub",
+            "src-id": 3,
+            "image": false,
+            "albumart": false,
+            "default": true,
+            "forced": false,
+            "dependent": false,
+            "visual-impaired": false,
+            "hearing-impaired": false,
+            "external": false,
+            "selected": true,
+            "main-selection": 0,
+            "ff-index": 2,
+            "decoder": "pgssub",
+            "decoder-desc": "HDMV Presentation Graphic Stream subtitles",
+            "codec": "hdmv_pgs_subtitle",
+            "codec-desc": "HDMV Presentation Graphic Stream subtitles",
+            "metadata": {
+              "DURATION": "00:00:35.300000000"
+            }
+          }
+        ],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10612669036580767,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10606947249365328,
+            "hz": 877.47802734375
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "image": {
+        "rgb": [
+          0,
+          0,
+          252
+        ],
+        "expected": "blue",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    }
+  ],
+  "reason": "Error: Required marked subtitle drawing missing\n    at expect (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:98:56)\n    at checkSubtitle (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:112:84)\n    at correctness (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:164:5)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:238:7",
+  "failureState": {
+    "position": 6.2669999999999995,
+    "duration": 36,
+    "route": "hybrid",
+    "diagnostics": {
+      "mode": "hybrid",
+      "plan": {
+        "id": "hybrid",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation, supported complete WebCodecs configuration",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Embedded subtitles require mpv rendering"
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Embedded subtitles require mpv rendering"
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": true
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "mpv scalar filter stage does not match the request"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Embedded subtitles require mpv rendering",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Embedded subtitles require mpv rendering",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "audioDecoderConfigured": true,
+            "audioDecoded": true,
+            "audioProgress": true,
+            "videoPresented": true,
+            "decoderOutput": true,
+            "apiHint": "{\"requested\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false},\"source\":{\"kind\":2,\"width\":320,\"height\":180,\"profile\":-99,\"level\":-99,\"depth\":0,\"descriptionBytes\":2447},\"supported\":true,\"recognized\":{\"codec\":\"hev1.2.4.L60.90\",\"codedWidth\":320,\"codedHeight\":180,\"descriptionBytes\":2447,\"hardwareAcceleration\":\"no-preference\",\"optimizeForLatency\":false}}"
+          }
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv scalar filter stage does not match the request",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Embedded subtitles require mpv rendering"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "selected",
+            "reason": "hybrid: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "pumpTicks": 343,
+        "subtitles": {
+          "updates": 2,
+          "bytes": 8400,
+          "peakBytes": 8400,
+          "parts": 0,
+          "renders": 103
+        },
+        "presentation": {
+          "position": 6.133,
+          "received": 134,
+          "closed": 131,
+          "drawn": 97,
+          "redraws": 2,
+          "peakRetained": 7,
+          "peakPending": 1,
+          "missing": 0,
+          "lateMs": [
+            14.858792021457646,
+            14.444914978542329,
+            22.658138985694904,
+            19.397975957084668,
+            16.538399014305128,
+            25.9321100095367,
+            10.997876988079042,
+            25.666396969005632,
+            10.116024997615796,
+            5.537084016689278,
+            10.6456750429154,
+            18.101612011920906,
+            25.54623403337871,
+            16.254948976158175,
+            25.534674961853057,
+            24.115612000000056,
+            19.76460302622604,
+            19.239496040531094,
+            22.58434305245214,
+            11.964304009536818,
+            8.510052983310743,
+            17.75378699523162,
+            27.218689028610243,
+            2.9183499618529822,
+            24.423652985694844,
+            12.889550990463249,
+            20.693318011920837,
+            12.098066026226206,
+            24.398047973773828,
+            27.733151988079044,
+            14.978069002384018,
+            18.278029011921035,
+            21.93271100953666,
+            15.383821992847288,
+            12.352435964237202,
+            25.53763199523155,
+            16.06242297377389,
+            14.572381019073646,
+            27.172519023841915,
+            6.718440954700554,
+            13.102106011920796,
+            21.187031002384174,
+            17.848040028610285,
+            19.617966992847414,
+            23.287961990463373,
+            14.046793011920954,
+            18.721727957084568,
+            21.057793038146883,
+            13.011716992847596,
+            13.686694023841937,
+            18.652398961853123,
+            25.51738900715236,
+            16.666530026226155,
+            21.00123198807887,
+            3.682428997615716,
+            6.9959759999997,
+            15.396833988078924,
+            30.367189997615696,
+            15.215695976158258,
+            20.66674698092629,
+            20.9859259737741,
+            12.12588801668926,
+            5.745882983310821,
+            18.344695995231632,
+            26.6852440429152,
+            16.511233990463552,
+            20.183830992847106,
+            14.490662016689384,
+            12.902103978542073,
+            5.574500980926587,
+            22.598118997615984,
+            14.164858007152361,
+            18.193138028610065,
+            13.646484978542048,
+            16.249977016689172,
+            27.078176014304972,
+            16.70214099284749,
+            23.896253033378798,
+            12.160019997616018,
+            12.018877011920722,
+            26.638235011920642,
+            17.637682042915458,
+            31.461786973773997,
+            15.581147966621302,
+            15.331845038147094,
+            11.646093040531014,
+            19.41078201192113,
+            10.414038004768372,
+            2.834724992847441,
+            6.918458042915518,
+            1.3430569928473233,
+            44.78370098092637,
+            0.26999998092651367,
+            10.994054002384473,
+            6.873776007151719,
+            19.816998964237428,
+            5.33729400476841
+          ],
+          "pts": [
+            0,
+            33000,
+            67000,
+            100000,
+            133000,
+            167000,
+            200000,
+            233000,
+            267000,
+            300000,
+            333000,
+            367000,
+            400000,
+            433000,
+            467000,
+            500000,
+            533000,
+            567000,
+            600000,
+            633000,
+            667000,
+            700000,
+            733000,
+            767000,
+            800000,
+            833000,
+            867000,
+            900000,
+            933000,
+            967000,
+            1000000,
+            1033000,
+            1067000,
+            1100000,
+            1133000,
+            1167000,
+            1200000,
+            1233000,
+            1267000,
+            1300000,
+            1333000,
+            1367000,
+            1400000,
+            1433000,
+            1467000,
+            1500000,
+            1533000,
+            1567000,
+            1600000,
+            1633000,
+            1667000,
+            1700000,
+            1733000,
+            1767000,
+            1800000,
+            1833000,
+            1867000,
+            1900000,
+            1933000,
+            1967000,
+            2000000,
+            2033000,
+            2067000,
+            2100000,
+            2133000,
+            2167000,
+            2200000,
+            2233000,
+            2267000,
+            2300000,
+            2333000,
+            2367000,
+            2400000,
+            2433000,
+            2467000,
+            2500000,
+            2533000,
+            2567000,
+            2600000,
+            2633000,
+            2667000,
+            2700000,
+            2733000,
+            2767000,
+            2800000,
+            2833000,
+            2867000,
+            2900000,
+            2933000,
+            2967000,
+            3000000,
+            3100000,
+            6000000,
+            6033000,
+            6067000,
+            6100000,
+            6133000
+          ],
+          "pixelChecks": [],
+          "retained": 3,
+          "pending": 0
+        },
+        "mode": "retained",
+        "skipCanvas": true,
+        "canvasSubmissions": 97,
+        "rendered": 100,
+        "renderMs": 4.274999558925629,
+        "copyMs": 0,
+        "maxRenderMs": 0.4300000071525574,
+        "heapBytes": 134217728,
+        "epoch": 4,
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderStats": {
+          "packetBytes": 5525,
+          "ownedPacketBytes": 0,
+          "sharedPacketInputs": 149,
+          "sharedPacketFallbacks": 0,
+          "submitted": 149,
+          "frames": 128,
+          "receivedFrames": 133,
+          "closedFrames": 133,
+          "peakOutstanding": 8,
+          "peakFrames": 11,
+          "resets": 2,
+          "errors": 0,
+          "copyMs": 0,
+          "input": {
+            "kind": 2,
+            "width": 320,
+            "height": 180,
+            "profile": -99,
+            "level": -99,
+            "depth": 0,
+            "descriptionBytes": 2447
+          },
+          "codec": "hev1.2.4.L60.90",
+          "supportCheck": {
+            "requested": {
+              "codec": "hev1.2.4.L60.90",
+              "codedWidth": 320,
+              "codedHeight": 180,
+              "descriptionBytes": 2447,
+              "hardwareAcceleration": "no-preference",
+              "optimizeForLatency": false
+            },
+            "source": {
+              "kind": 2,
+              "width": 320,
+              "height": 180,
+              "profile": -99,
+              "level": -99,
+              "depth": 0,
+              "descriptionBytes": 2447
+            },
+            "supported": true,
+            "recognized": {
+              "codec": "hev1.2.4.L60.90",
+              "codedWidth": 320,
+              "codedHeight": 180,
+              "descriptionBytes": 2447,
+              "hardwareAcceleration": "no-preference",
+              "optimizeForLatency": false
+            }
+          },
+          "actualWidth": 320,
+          "actualHeight": 180,
+          "pixelFormat": null,
+          "placeholderFrames": 128,
+          "transferredFrames": 128,
+          "outstanding": 6,
+          "queued": 0,
+          "active": true
+        },
+        "demuxFormat": "mkv",
+        "seekPrerollSeconds": 0.5,
+        "presentedPosition": 6.133,
+        "ioPending": false,
+        "ioSerial": 3,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 262904,
+          "requests": 2,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 524288,
+          "peakCacheBytes": 524288,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "921804",
+          "reads": 3,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 6.133,
+        "queuedFrames": 7168
+      }
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct: Embedded subtitles require mpv rendering"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux: Embedded subtitles require mpv rendering"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+      },
+      {
+        "mode": "hybrid",
+        "outcome": "selected",
+        "reason": "hybrid: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [
+      {
+        "id": "1",
+        "type": "video",
+        "src-id": 1,
+        "image": false,
+        "albumart": false,
+        "default": true,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 0,
+        "decoder": "hevc",
+        "decoder-desc": "HEVC (High Efficiency Video Coding)",
+        "codec": "hevc",
+        "demux-w": 320,
+        "demux-h": 180,
+        "demux-fps": 30.000000300000004,
+        "demux-par": 1,
+        "metadata": {
+          "ENCODER": "Lavc62.28.102 libx265",
+          "HANDLER_NAME": "VideoHandler",
+          "DURATION": "00:00:36.000000000"
+        }
+      },
+      {
+        "id": "1",
+        "type": "audio",
+        "src-id": 2,
+        "audio-channels": 2,
+        "image": false,
+        "albumart": false,
+        "default": false,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 1,
+        "decoder": "ac3",
+        "decoder-desc": "ATSC A/52A (AC-3)",
+        "codec": "ac3",
+        "codec-desc": "ATSC A/52A (AC-3)",
+        "demux-channel-count": 2,
+        "demux-channels": "stereo",
+        "demux-samplerate": 48000,
+        "metadata": {
+          "ENCODER": "Lavc62.28.102 ac3",
+          "DURATION": "00:00:36.000000000"
+        }
+      },
+      {
+        "id": "1",
+        "type": "sub",
+        "src-id": 3,
+        "image": false,
+        "albumart": false,
+        "default": true,
+        "forced": false,
+        "dependent": false,
+        "visual-impaired": false,
+        "hearing-impaired": false,
+        "external": false,
+        "selected": true,
+        "main-selection": 0,
+        "ff-index": 2,
+        "decoder": "pgssub",
+        "decoder-desc": "HDMV Presentation Graphic Stream subtitles",
+        "codec": "hdmv_pgs_subtitle",
+        "codec-desc": "HDMV Presentation Graphic Stream subtitles",
+        "metadata": {
+          "DURATION": "00:00:35.300000000"
+        }
+      }
+    ],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0.1060924848202212,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0.10607547202205508,
+        "hz": 877.47802734375
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": null
+  },
+  "cleanup": {
+    "remainingSurfaces": 0,
+    "contexts": [
+      "closed"
+    ]
+  },
+  "workersAfter": 0,
+  "finishedAt": "2026-09-20T17:17:53.030Z"
+}

@@ -8,6 +8,8 @@ import {parseArgs} from 'node:util';
 import {chromium,firefox} from 'playwright';
 import {serve} from './server.mjs';
 import {markedAudio,markedImage,selectCases,performanceEligible} from './checks.mjs';
+import {frameObservation,validateFrameWindow} from './performance-metrics.mjs';
+import {closeBrowserObserved} from './browser-exit.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -50,7 +52,7 @@ for(const [name,record]of Object.entries(manifest.files)) {
 const stamp=new Date().toISOString().replaceAll(':','-');
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['browser-exit.mjs','performance-metrics.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
@@ -172,9 +174,10 @@ async function measure(page,config,result,browser) {
   const before=Date.now();await deadline(page.evaluate(c=>api.start(c),config),20000,'open');
   result.openWallMs=Date.now()-before;
   await page.waitForFunction(()=>api.snapshot().position>.25,null,{timeout:10000});
+  if(config.subtitleCheck)await page.evaluate(()=>api.subtitles());
   await delay(warmupSeconds*1000);
   const cdp=await browser.newBrowserCDPSession();
-  if(!(await page.evaluate(()=>api.snapshot())).video)throw Error('UNQUALIFIED: no comparable dropped-frame counters for this custom route');
+  frameObservation(await page.evaluate(()=>api.snapshot()),config);
   result.samples=[];
   for(let tick=0;tick<=measureSeconds;tick+=2) {
     const processes=(await cdp.send('SystemInfo.getProcessInfo')).processInfo;
@@ -192,15 +195,15 @@ async function measure(page,config,result,browser) {
   const wall=(last.at-first.at)/1000,advance=last.state.position-first.state.position;
   expect(Math.abs(advance-wall)<1,'Playback stalled or reached EOF during measurement');
   const cpu=sample=>sample.processes.reduce((sum,p)=>sum+p.cpuTime,0);
-  const dropped=first.state.video&&last.state.video?last.state.video.dropped-first.state.video.dropped:null;
-  if(dropped!==null)expect(dropped<=Math.max(2,wall*30*.01),'Excessive dropped frames');
+  const quality=validateFrameWindow(result.samples,config,manifest.fixture.fps);
+  const dropped=quality.droppedFrames;
   result.measurement={wallSeconds:wall,cpuSeconds:cpu(last)-cpu(first),oneCorePercent:100*(cpu(last)-cpu(first))/wall,
-    peakSummedRssKiB:Math.max(...result.samples.map(s=>s.rssKiB??0)),droppedFrames:dropped,
-    scope:'CDP-listed browser processes; excludes server, external media services and physical energy. Summed RSS can double count shared pages. Custom-path dropped frames unavailable.'};
+    peakSummedRssKiB:Math.max(...result.samples.map(s=>s.rssKiB??0)),droppedFrames:dropped,quality,
+    scope:'CDP-listed browser processes; excludes server, external media services and physical energy. Summed RSS can double count shared pages. Route-specific frame submission semantics; missing drop counters remain null.'};
 }
 
 try {
-  const schedule=args.performance?Array.from({length:rounds},(_,round)=>selected.map((_,i)=>({...selected[(i+round)%selected.length],round:round+1}))).flat():selected;
+  const schedule=args.performance?[...new Set(selected.map(c=>c.fixture))].flatMap(fixture=>{const group=selected.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):selected;
   for(const c of schedule) {
     const result={...c,status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
     const recordName=c.id+(c.round?'.round-'+c.round:'');result.recordPath=recordName+'/result.json';
@@ -247,7 +250,17 @@ try {
           result.status='failed';result.reason='Cleanup did not release observed surfaces, contexts or workers';
         }
       }
-      await active?.close();active=null;result.finishedAt=new Date().toISOString();
+      let processIDs;
+      if(active&&args.browser==='chromium'&&['darwin','linux'].includes(os.platform())){
+        try{const session=await active.newBrowserCDPSession();const info=(await session.send('SystemInfo.getProcessInfo')).processInfo;
+          if(!info.some(p=>p.type==='browser'))throw Error('Browser process identity unavailable');
+          processIDs=info.map(p=>p.id);await session.detach();
+        }catch(error){result.status='failed';result.reason=(result.reason??'')+'; Process observation: '+String(error);}
+      }
+      if(page)await deadline(page.context().close(),10000,'context teardown').catch(error=>{result.status='failed';result.reason=(result.reason??'')+'; '+String(error);});
+      try{if(processIDs)result.browserCleanup=await closeBrowserObserved(active,processIDs);else await deadline(active?.close()??Promise.resolve(),10000,'browser teardown');}
+      catch(error){result.status='failed';result.reason=(result.reason??'')+'; '+String(error);}
+      active=null;result.finishedAt=new Date().toISOString();
       await fs.writeFile(path.join(directory,'result.json'),JSON.stringify(result,null,2)+'\n');await save();
       console.log(result.status.toUpperCase(),c.id,result.reason?.split('\n')[0]??'');
     }
