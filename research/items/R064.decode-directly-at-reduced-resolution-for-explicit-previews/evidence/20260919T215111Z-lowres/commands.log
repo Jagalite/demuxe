@@ -1,0 +1,7 @@
+pkg-config --cflags --libs libavcodec
+cc -O2 research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews/tests/codec-lowres.c -I/opt/homebrew/Cellar/ffmpeg/8.1.2/include -L/opt/homebrew/Cellar/ffmpeg/8.1.2/lib -lavcodec -o build/catalogue-tools/codec-lowres
+build/catalogue-tools/codec-lowres
+ffmpeg -v error -f lavfi -i testsrc2=size=1280x720:rate=24 -frames:v 12 -c:v mjpeg -q:v 2 -pix_fmt yuvj420p research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews/evidence/20260919T215111Z-lowres/input.avi
+ffprobe -v error -show_frames -select_streams v -of json research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews/evidence/20260919T215111Z-lowres/input.avi
+ffmpeg -v error -threads 1 -i research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews/evidence/20260919T215111Z-lowres/input.avi -vf scale=320:180:flags=area -fps_mode passthrough -pix_fmt rgba -f rawvideo -
+ffmpeg -v error -threads 1 -lowres 2 -i research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews/evidence/20260919T215111Z-lowres/input.avi -fps_mode passthrough -pix_fmt rgba -f rawvideo -

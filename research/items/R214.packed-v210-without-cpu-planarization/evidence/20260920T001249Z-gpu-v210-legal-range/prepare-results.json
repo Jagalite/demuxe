@@ -1,0 +1,50 @@
+{
+  "width": 50,
+  "height": 8,
+  "stride": 256,
+  "Ysamples": 400,
+  "UVsamples": 200,
+  "host_exact": true,
+  "commands": [
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-f",
+      "rawvideo",
+      "-pixel_format",
+      "yuv422p10le",
+      "-video_size",
+      "50x8",
+      "-i",
+      "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/oracle.yuv",
+      "-frames:v",
+      "1",
+      "-c:v",
+      "v210",
+      "-f",
+      "rawvideo",
+      "-y",
+      "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/source.v210"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-f",
+      "v210",
+      "-video_size",
+      "50x8",
+      "-i",
+      "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/source.v210",
+      "-frames:v",
+      "1",
+      "-f",
+      "rawvideo",
+      "-pix_fmt",
+      "yuv422p10le",
+      "-y",
+      "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/host.yuv"
+    ]
+  ]
+}

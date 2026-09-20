@@ -1,0 +1,5 @@
+{
+  "scope": "Actual IMA WAV mono/stereo nibble parsing; two associative clipped-transition scans: step-index then predictor. Work-efficient four-chunk local-prefix/carry/correction scan in compiledC++,actual4threads perphase; current per-shift delta rule matchesFFmpeg8.1.2, older product-rounding rule explicitly excluded.",
+  "correctness": "Compiled serial/parallel outputs exactly matchFFmpeg,25synthetic controls startingindices0/1/44/87/88 and predictors min/max/zero, nibbleextremes. Invalidheader/code guards.",
+  "performance": "Five alternating complete mono+stereo jobs source read/hash/WAVparse/nibble serialization/compiled process/tableload/threadcreation/shutdown/output read/reinterleave versus same compiled serial ordinary decode. <=0.9cost; intermediate storage reported, compilation excluded."
+}

@@ -2,20 +2,24 @@
 
 # WebM negative DiscardPadding head-crop composition [report paragraph label]
 
-Current decision: **pursue**. Corrected prior transcription: Chrome native decode applies requested additional480-sample head trim exactly, output95520 samples; host FFmpeg output stays unchanged96000 despite identical packet payloads. Browser composition is viable for this profile, but cross-decoder trim semantics/oracle divergence must be resolved before integration. No universal trimming rule.
+Full key: `R124.webm-negative-discardpadding-head-crop-composition-report-paragraph-label.report-frontier`
 
-Historical stage reconciliation; no new experiment.
+Current decision: **stop_current_profile** (2026-09-19T22:27:18.319573+00:00).
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Chrome exactly applies additional480sample head trim to95520frames while independent FFmpeg remains96000. Cross-decoder semantic divergence is unresolved, not a passed universal trim oracle. |
-| performance | not_applicable | Resolve trim correctness/oracle disagreement before any performance question. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+Literal negativeDiscardPadding matrix retains312Opuspreskip/6.5msCodecDelay and tailtrim. ActualJS writer changes onlyfirstOpusBlockGroup padding (plusremovesstaleindexes/CRC), preservesallcodedpackets. Chrome152 exactlymatches everycontinuous-reference sample for additional0/240/480/648headsamples (96000/95760/95520/95352frames); fullrender/end/closedcontext pass.649samples, wrongpreskip and malformedinput reject. HostFFmpeg preservesall96000frames for everyvariant: portablecrossdecodercontract fails; this is destinationbehavior, not unresolvedsourceidentity. Fivealternating Chrome-only fullJSparse/rewrite/native decode/render pairs8.2ms versus7.6ms nativefulldecode/PCMsubarraycopy/render, ratio1.07895 fails0.9. Originalreport96,072count not reproduced on this pinnedsource/runtime; exactobservations retained.
 
-Next: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
+Stop current negativepaddingoptimization profile: no measuredChrome-only costwin and hostconsumerdoesnotcomposeadditionalheadcrop. Browser-specific semanticcapability is bounded0..648 withunchangedpreskip/CodecDelay; never inferuniversalnegativepaddingrule. Reopen with explicitconsumercontract and measurableavoidanceofPCMmaterialization, or resolvehostdemuxskip behavior separately. RFC9559fielddefinitions pinned byprimaryURL; no productionmuxchange.
 
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T222718Z-negative-padding/run.json) · [Analysis](../../shared/runs/20260919T222718Z-negative-padding/analysis.md) · [Manifest](../../shared/runs/20260919T222718Z-negative-padding/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

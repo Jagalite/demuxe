@@ -2,12 +2,24 @@
 
 # Compile screen operations directly into video prediction commands
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full identity: `R128.compile-screen-operations-directly-into-video-prediction-commands`.
 
-Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.
+Current decision: **inconclusive** (actual_producer_authored_avc_and_native_decoder).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive.
 
-Next: Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.
+Next action: Keep producer-assisted scope and bounds; pursue only with a realistic local transport/bitrate budget or a cheaper exact replacement code before product integration.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | Actual producer trace, reference raster renderer, legal AVC I_PCM/skip-run writer and in-process ordinaryencoder baseline. |
+| screen | passed | Knownscreencommands directly encode prediction syntax; no motion search or reencode proxy. |
+| correctness | passed | 30host/native fullframes+PTS exact, frame_num wrap and stale/legalwrongcopy falsifier; operationbounds reject and allframesclose. |
+| performance | failed | Reliable gain not established against incrementalbaseline:median0.8643ratio,bootstrap95 .6080–1.0096;3.45xencodedbytes, local-only costprofile. |
+| results | passed | Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive. |
+| decision | passed | Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive. |
+
+[New run](../../shared/runs/20260920T002106Z-screen-command-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

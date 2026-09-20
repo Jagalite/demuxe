@@ -1,0 +1,28 @@
+{
+  "warmup": 0.23090341698843986,
+  "measuredSeconds": [
+    0.15448475000448525,
+    0.05768729199189693,
+    0.04296887497184798,
+    0.037535374984145164,
+    0.040091666975058615
+  ],
+  "medianSeconds": 0.04296887497184798,
+  "command": [
+    "ffmpeg",
+    "-nostdin",
+    "-v",
+    "error",
+    "-y",
+    "-i",
+    "research/shared/runs/20260919T_audio_mixed_tracks/audio.aac",
+    "-c:a",
+    "copy",
+    "-bsf:a",
+    "aac_adtstoasc",
+    "-movflags",
+    "frag_keyframe+delay_moov+default_base_moof",
+    "research/shared/runs/20260919T_audio_mixed_tracks/audio.mp4"
+  ],
+  "scope": "Corrected delayed-moov native mux; includes ASC extraction, fresh process and full file I/O"
+}

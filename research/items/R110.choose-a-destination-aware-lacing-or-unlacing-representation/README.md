@@ -2,14 +2,24 @@
 
 # Choose a destination-aware lacing or unlacing representation
 
-Current disposition: **already_implemented**. Historical execution reconciled; no new media run.
+Full identity: `R110.choose-a-destination-aware-lacing-or-unlacing-representation`.
 
-Reconciled completed prior evidence: Chrome rejects Xiph-laced Opus; current actual Wasm remux emits a playable representation with all 101 packet payloads, exact decoded PCM and 648-sample final trim preserved. Seek and cleanup pass. Preserve this existing normalization and add regression coverage; no new unlacing subsystem needed for this profile.
+Current decision: **already_implemented** (opportunity-review-grounded-in-actual-route-evidence).
 
-Correctness: **passed**. Performance: **pending**.
+Existing maintainedWasm route already converts Chrome-rejectedXiph-lacedWebM into acceptedunlacedoutput with101packetpayloads and648sample finaldiscard preserved, realseek andcleanup. Sourcecontract is destination-specificpackagingcapability; no new subsystem or added admission remains for this testedprofile. NoCPU/startupspeed claim; other lacing modes requireseparateprofiles.
 
-Chrome rejects paired and single Xiph laces while unlaced baseline plays. Actual maintained Wasm remux preserves 101 packet payloads and 648-sample final discard padding; seek and cleanup pass. Accepted existing normalization profile, no new subsystem.
+Next action: Scopedresearch complete; reopen only for newdestination/configuration not covered by preservedactualroute.
 
-Next: Keep lacing and final-trim regression coverage; extend other lacing modes only with separate destination/output evidence.
+## Stages
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution. |
+| screen | passed | Historical outcome retained and individually reconciled. Chrome rejects paired and single Xiph laces while unlaced baseline plays. Actual maintained Wasm remux preserves 101 packet payloads and 648-sample final discard padding; seek and cleanup pass. Accepted existing normalization profile, no new subsystem. |
+| correctness | passed | Chrome rejects paired and single Xiph laces while unlaced baseline plays. Actual maintained Wasm remux preserves 101 packet payloads and 648-sample final discard padding; seek and cleanup pass. Accepted existing normalization profile, no new subsystem. |
+| performance | not_applicable | Existing maintainedWasm route already converts Chrome-rejectedXiph-lacedWebM into acceptedunlacedoutput with101packetpayloads and648sample finaldiscard preserved, realseek andcleanup. Sourcecontract is destination-specificpackagingcapability; no new subsystem or added admission remains for this testedprofile. NoCPU/startupspeed claim; other lacing modes requireseparateprofiles. |
+| results | passed | Existing maintainedWasm route already converts Chrome-rejectedXiph-lacedWebM into acceptedunlacedoutput with101packetpayloads and648sample finaldiscard preserved, realseek andcleanup. Sourcecontract is destination-specificpackagingcapability; no new subsystem or added admission remains for this testedprofile. NoCPU/startupspeed claim; other lacing modes requireseparateprofiles. |
+| decision | passed | Existing maintainedWasm route already converts Chrome-rejectedXiph-lacedWebM into acceptedunlacedoutput with101packetpayloads and648sample finaldiscard preserved, realseek andcleanup. Sourcecontract is destination-specificpackagingcapability; no new subsystem or added admission remains for this testedprofile. NoCPU/startupspeed claim; other lacing modes requireseparateprofiles. |
+
+[New run](../../shared/runs/20260919T214400Z-framing-opportunity-review/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

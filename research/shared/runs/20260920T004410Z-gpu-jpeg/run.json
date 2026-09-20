@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260920T004410Z-gpu-jpeg",
+  "item_keys": [
+    "R177.gpu-jpeg-entropy-decoding"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual WebGPU Huffman JPEG entropy kernel dispatches64 real restart-delimited intervals,4baseline grayscale blocks each. All16384 quantized coefficients match independent libjpeg and ordinary Wasm; every interval consumed-bit count matches. Actual source header/table/stuffing/restart parsing is included; GPU is not a CPU substitute. Truncated GPU interval, oversubscribed table, truncated whole JPEG and wrong restart order reject; stale epoch prevents publication and all buffers/device close. Five alternating complete source parsing/device/pipeline/upload/dispatch/readback jobs5.600ms vs ordinary prederived-table Wasm3.100ms ratio1.80645 fails0.9. First shader/device setup observations and prior prepared-buffer diagnostic retained."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this tiny restarted-JPEG GPU entropy profile on complete cost; GPU environment prerequisite is resolved and actual kernel output is correct. Larger streams or persistent resident batches require new amortization measurements. No no-restart generality, color/interleaving, progressive JPEG, GPU IDCT or production browser route claim.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/huffman_prepare.py",
+    "research/shared/runs/20260920T003439Z-huffman-special/generic.wasm",
+    "research/shared/runs/20260920T003439Z-huffman-special/oracle",
+    "research/shared/runs/20260920T003439Z-huffman-special/frame0.pgm",
+    "research/shared/runs/20260920T003439Z-huffman-special/frame0.coeff",
+    "/opt/homebrew/opt/jpeg-turbo/bin/cjpeg",
+    "/opt/homebrew/opt/jpeg-turbo/LICENSE.md"
+  ],
+  "commands_log": "research/shared/runs/20260920T004410Z-gpu-jpeg/commands.log"
+}

@@ -2,28 +2,10 @@
 
 # native frame relay without JS pixel readback
 
-Full identity: `R145.native-frame-relay-without-js-pixel-readback.report-continuity`. Original rank: 132.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Implemented the exact report-continuity native route: nativevideo captureStream→MediaStreamTrackProcessor→unchanged VideoFrame writes→MediaStreamTrackGenerator→second nativevideo. Destination observer verifies every full-frame RGBA against an independent hostFFmpeg oracle for24 losslesscoded visual IDs0..23 at12fps. All24 distinct IDs arrive in order, including final23; every observed image is exact. Capture emitted60 frames including repeated source images, so framecallback counts are explicitly not the source completeness oracle. A separate negative relay deliberately identifies/drops finalID23 and fails completeness despite otherwise healthy playback. Actual cancellation holds one old capture frame, changes sourceepoch, closes/discards stale output, then forwards a surviving newowner frame; all capture/generator tracks end. Main relay does no application pixel readback; only independent destinationobserver and negativecontrol inspectpixels. This is a new routing capability, not zero-copy/hardware/latency equivalence: destination track has its own capture timestamps and repeatedimages. No independent audiovisual-clock or precise source-PTS preservation claim. No performance cost-reduction hypothesis is present in this exact report key, so performance is not applicable.
 
-Current Hybrid transfers decoded VideoFrames directly to a single canvas consumer, already avoiding pixel copies in noCopy mode. The exact report proposes native media-track capture/generator routing, an absent destination contract.
+Next: Scoped native media-track routing capability verified with complete visual IDs and final-frame falsifier. A timing-preserving audiovisual destination, higher cadence/load or different browser needs its own output-clock and deadline contract; no production admission.
 
-No matching candidate/reference/control execution for this exact gate. Requested media-track destination and capture/processor/generator relay with frame completeness oracle.
-
-Next action: Name a required second media-track destination and verify one capture/processor/generator relay with frame IDs; a dropped/delayed final frame must fail requested output completeness. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Requested media-track destination and capture/processor/generator relay with frame completeness oracle. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Requested media-track destination and capture/processor/generator relay with frame completeness oracle. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T220411Z-native-relay/analysis.md)

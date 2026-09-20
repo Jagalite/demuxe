@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222954Z-opus-rollback",
+  "item_keys": [
+    "R161.roll-back-speculative-audio-when-a-late-packet-arrives"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actualpinnedhostlibopus snapshots decoderbeforePLC, decodesfourfollowingpackets provisionally, restoreslateoriginal and replacesfivepacketwindow beforepublication. Latepositions2/20/60/95 allreproduce everycontinuousno-loss floatbyte throughcomplete96000sample output with312preskip/endtrim. Missingrestore changesoutput; actualone-sampleconsumerread prohibitsrollback withoutstatechange; source/runtime identity, epoch andclosedguardsreject. Fivealternating completepacket40lateevent jobs including snapshot/PLC/restore/redecode cost2.393ms versus3.350ms freshdecoderprefix replay baseline, ratio0.71437 passes0.9. Retainedsnapshot18468bytes plus19200pendingPCMbytes explicit. Installedopus.h documents contiguousstate memcpy; no inventedopaque-state API."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue bounded controlledhostlate-packet transaction beforeirreversibleconsumption, pinnedlibopus/runtimeABI andsource/epochkey. No WebCodecs opaque-state cloning, browseraudio rollback afteroutput, packetnetworkdeadline or production integration claim. Costsharedpreencodedinput/runtime; no networkwait included. Real-time application needs ownerpublication discipline matching this provedboundary.",
+  "reused_evidence": [
+    "results/catalogue-current/opus/original.ogg",
+    "/opt/homebrew/Cellar/opus/1.6.1/lib/libopus.0.dylib",
+    "/opt/homebrew/include/opus/opus.h"
+  ],
+  "commands_log": "research/shared/runs/20260919T222954Z-opus-rollback/commands.log"
+}

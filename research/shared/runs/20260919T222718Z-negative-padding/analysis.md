@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Literal negativeDiscardPadding matrix retains312Opuspreskip/6.5msCodecDelay and tailtrim. ActualJS writer changes onlyfirstOpusBlockGroup padding (plusremovesstaleindexes/CRC), preservesallcodedpackets. Chrome152 exactlymatches everycontinuous-reference sample for additional0/240/480/648headsamples (96000/95760/95520/95352frames); fullrender/end/closedcontext pass.649samples, wrongpreskip and malformedinput reject. HostFFmpeg preservesall96000frames for everyvariant: portablecrossdecodercontract fails; this is destinationbehavior, not unresolvedsourceidentity. Fivealternating Chrome-only fullJSparse/rewrite/native decode/render pairs8.2ms versus7.6ms nativefulldecode/PCMsubarraycopy/render, ratio1.07895 fails0.9. Originalreport96,072count not reproduced on this pinnedsource/runtime; exactobservations retained.
+
+Stop current negativepaddingoptimization profile: no measuredChrome-only costwin and hostconsumerdoesnotcomposeadditionalheadcrop. Browser-specific semanticcapability is bounded0..648 withunchangedpreskip/CodecDelay; never inferuniversalnegativepaddingrule. Reopen with explicitconsumercontract and measurableavoidanceofPCMmaterialization, or resolvehostdemuxskip behavior separately. RFC9559fielddefinitions pinned byprimaryURL; no productionmuxchange.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

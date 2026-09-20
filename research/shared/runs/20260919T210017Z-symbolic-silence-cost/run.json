@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T210017Z-symbolic-silence-cost",
+  "item_keys": [
+    "R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual unchanged PCMOutput renders all48000 float samples exactly from symbolic zero spans, retaining the three nonzero FIR tail samples. Media-clock versus underrun, epoch reset, close and nonlinear noise materialization controls pass. Explicit cached PCM payload1040bytes versus192000bytes meets8x reduction criterion, but complete scan/descriptor/materialize/playback median2.9885ms versus2.592417ms (1.152785x) fails1.10 time ceiling."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this post-filter scan-to-spans-to-materialized-ring cost profile. Reopen with upstream certified symbolic intervals or a consumer that avoids ring materialization; this prototype does not avoid initial decoding/filter allocations, and explicit retained payload is not total process memory.",
+  "reused_evidence": [
+    "web/audio-worklet.js",
+    "research/shared/tooling/audio-stage-probes/silence.mjs"
+  ],
+  "commands_log": "research/shared/runs/20260919T210017Z-symbolic-silence-cost/commands.log"
+}

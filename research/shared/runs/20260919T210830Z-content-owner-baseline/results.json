@@ -1,0 +1,177 @@
+{
+  "plan": {
+    "item": "R200.content-addressed-reuse-across-different-files",
+    "workload": "Two authorized existing generated movies with different wrappers but identical coded H264 packets. Same independent FFprobe indexes supplied to both strategies; actual source reads and packet creation included. Cheaper baseline already deduplicates within each owner; candidate additionally deduplicates across owners. Original private-packet baseline retained but superseded. Baseline retains independent per-owner content indexes; candidate retains one verified byte/config-keyed payload with separate per-file ordered references.",
+    "sampling": "Nine alternating pairs, fresh Python object graph and collected heap each. Live and peak tracemalloc bytes include packet lists, content index, hashes and object overhead; exclude common FFprobe indexes and interpreter/OS native allocations.",
+    "threshold": "Every reconstructed packet list must exactly match each file independently, poisoned claims rejected, references released. Candidate median live traced allocations must be at least10% lower to support memory pursuit in this small exact sharing workload. Runtime CPU time and peak allocations reported without claiming CPU or whole-process RSS savings."
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "baseline": {
+        "liveTracedBytes": 4904,
+        "peakTracedBytes": 13029,
+        "wallNs": 216166,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      },
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 148459,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      }
+    },
+    {
+      "pair": 1,
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 146000,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      },
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 136583,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      }
+    },
+    {
+      "pair": 2,
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 135291,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      },
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 235125,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      }
+    },
+    {
+      "pair": 3,
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 219250,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      },
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 204625,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      }
+    },
+    {
+      "pair": 4,
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 142708,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      },
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 138416,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      }
+    },
+    {
+      "pair": 5,
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 135500,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      },
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 168750,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      }
+    },
+    {
+      "pair": 6,
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 130375,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      },
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 145375,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      }
+    },
+    {
+      "pair": 7,
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 138000,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      },
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 133750,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      }
+    },
+    {
+      "pair": 8,
+      "baseline": {
+        "liveTracedBytes": 4856,
+        "peakTracedBytes": 12981,
+        "wallNs": 132084,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 1612
+      },
+      "candidate": {
+        "liveTracedBytes": 3252,
+        "peakTracedBytes": 12981,
+        "wallNs": 129709,
+        "logicalPayloadBytes": 4552,
+        "uniquePayloadBytes": 806
+      }
+    }
+  ],
+  "sourceHashes": [
+    "e5d070789ce56b027ef25e9b1e1903da9b704a800e80c4ea99bdc7aa46e882f8",
+    "bd41f3ffd25736ce218490191a72ccf728bebeb0608b43518137b56c9ceec4df"
+  ],
+  "analysis": {
+    "medianLiveSaving": 0.33031301482701814,
+    "minLiveSaving": 0.33031301482701814,
+    "maxLiveSaving": 0.33686786296900484,
+    "accepted": true,
+    "baselineLiveBytes": 4856,
+    "candidateLiveBytes": 3252
+  },
+  "allOwnerRefsReleased": true,
+  "passed": true
+}

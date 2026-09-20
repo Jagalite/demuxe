@@ -2,22 +2,18 @@
 
 # Switch same-codec audio at a future boundary without pausing
 
-`R035.switch-same-codec-audio-at-a-future-boundary-without-pausing`
-
-Current decision: **pursue**. Same-codec AAC future T=2 replacement commits while playing near .5 s, retains old prefix and exact presentation objects, reaches EOF and observes 440-to-880 Hz change. Stale generation and invalid preparation leave old ranges untouched.
+Current decision: **stop_current_profile**. Livefutureboundary same-rateAAC switch renderswith2.667ms boundedquietgap, but actualfailedincominginit afterremove destroysoldfuture andendsMediaSource. Stop currentdestructivecommit profile; API/MIME preflight andsameobject identity are nottransactionalcorrectness.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only. |
-| screen | passed | Same-codec AAC future T=2 replacement commits while playing near .5 s, retains old prefix and exact presentation objects, reaches EOF and observes 440-to-880 Hz change. Stale generation and invalid preparation leave old ranges untouched. |
-| correctness | pending | Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice. |
-| performance | pending | No equivalent-work benchmark before relevant output correctness gates. |
-| results | passed | Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism. |
-| decision | passed | Pursue bounded mechanism; no integration or release qualification. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Livefutureboundary same-rateAAC switch renderswith2.667ms boundedquietgap, but actualfailedincominginit afterremove destroysoldfuture andendsMediaSource. Stop currentdestructivecommit profile; API/MIME preflight andsameobject identity are nottransactionalcorrectness. |
+| correctness | failed | Exactsame48kAAC440-to880 fixtures, future-audio. ActualPCM5msquietgap gatepasses(2.667ms vsuninterrupted0); oldvideo/sourcebuffer identities, stalegeneration,seek/EOFcontrols passvalidcase. Actualwrongvideo-only MP4 initialization suppliedasincomingaudio rejects withappenderror; afterremove oldaudio0–2.005333s, futureto6s lost, MediaSourceended. Pausedcase seeks.25beforecommit; livecase commitsaround.51. Thisdemonstrates non-atomicfailedcommit, not genericMSEswitch failure. FullPCMidentity notclaimed. |
+| performance | not_applicable | Currenttransaction correctnessfails actualfailedappend ownership gate. Stop beforeefficiencybenchmark; validcaseincidental timings/frequency or quietgap pass cannotauthorize performancequalification. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: Livefutureboundary same-rateAAC switch renderswith2.667ms boundedquietgap, but actualfailedincominginit afterremove destroysoldfuture andendsMediaSource. Stop currentdestructivecommit profile; API/MIME preflight andsameobject identity are nottransactionalcorrectness. |
 
-Next: Run lossless FLAC digital marker oracle and reject any boundary gap/repeat; current AAC frequency samples do not establish sample-exact non-pausing splice.
+Next/reopen: Reopen withpreparedincoming track/config admission and a realtransaction recoverystrategy that preservesoldfuture acrossfatalappend failure; prove cancellation/sourceidentity beforepublishing. A newMediaSource rebuild mustbeexplicit fallback, not claimedas retained-owner rollback. Keep R052rate-change, videoqueue andvideoconfig outcomes separate.
 
-[Contract and current state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
-
-Research-only; shipping behavior unchanged.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

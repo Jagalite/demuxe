@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T213600Z-full-frame-release",
+  "item_keys": [
+    "R132.incremental-mdat-sample-release.report-continuity"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:25:05.976998+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R132.incremental-mdat-sample-release.report-continuity/tests/qualified.mjs # all48pictures every24streams exact,11performancepairs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "666443d20c575ff07188d72b5a180d2acdda18b49dd4339b54ac67bb98163f1c",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Exact source report parserquestion: completecoded samples delivered fromexistingmdat before enclosingpayloadcomplete.48distinct fullRGBA referenceframe hashes fromindependentwhole-input MSE; all48 continuouslypresented frames exact ininitialpartial,incompletecontrol and22timedstreams. Partialhead12samples presents11before450ms tail; incompletefirstsample0beforetail. Cancelledgeneration stale tailappend returnsfalse beforeSourceBuffer mutation. Allmediaelements/URLs released. Preparedencodedinput, not newstreamingmux emission, selectedaudio or arbitraryfragment layouts."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared11alternating fresh-owner pairs, samebytesavailable headt0/tailt450ms. Candidateappendshead, baselineawaitswholemdat. Every48framefullhash/EOF checked; sourceopen/append/play/finaltail/cleanup included and firstcorrectframe/completeEOF separatelyreported. Median startupimprovement449.84ms, bootstrap95[444.71,455.48]ms, threshold200ms passed. Controllednetworkavailability model, no physicalnetwork/CPU/memory claim; sharedbrowser/sourceacquisition common. Mechanismonly helpswhen producer releasescomplete samplesbeforetail; currentmux interface not changed."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission."
+}

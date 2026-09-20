@@ -1,0 +1,10 @@
+{
+  "before_execution": true,
+  "scope": "Explicit requested native-video160x90 approximate preview images, never normalplayback readbacks; eightImageBitmap/460800logicalpixelbyte LRU cap",
+  "keys": "source generation, video selection, geometry, source time; stale capture closes, source replacement newpixels",
+  "oracle": "Separate no-cache requested-preview captures fromsame native decoder/canvas output; exact cache-versus-baseline RGBA identity. This qualifies retention notnative decoder fidelity.",
+  "workloads": "One-way12 unique previews andbackforth24 requests across8 previews reportedseparately; allcoldvideoowners. Expected cachebenefit onlyonrevisit.",
+  "gate": "Nine alternatingpairs perworkload; wholeload/seek/capture/cache/hash/closecost; repeatedvalue requireslower95 aggregate paired saving>=10%. One-wayoverhead reported, nohitcount-onlyclaim.",
+  "diagnosed_correction": "Evict oldest owned image before starting new image capture so temporary ninth image cannot violate eight-image cap. Prior output/timings retained; no threshold changes.",
+  "prior_run": "research/items/R055.cache-bounded-decoded-previews-for-scrub-revisits/evidence/20260919T215243Z-bounded-cache"
+}

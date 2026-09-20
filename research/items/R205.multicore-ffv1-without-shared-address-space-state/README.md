@@ -2,14 +2,10 @@
 
 # Multicore FFV1 without shared address-space state
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Disposition: **stop_current_profile**. correctness: **passed**, performance: **failed**.
 
-Prepared four independent FFV1 quadrant streams decoded by four separate host processes reconstruct 12 frames exactly. Swapped quadrants fail; preparation size recorded. Original-bitstream slice extraction and browser multicore route are not proven.
+Prepared four FFV1quadrant processes now compared with one fullFFV1process using4decoderthreads. Both outputs equal independently generated originaltestsrc visibleBGR for all12frames, wrongquadrant swapfails, freshprocessowners exit. OriginalBGR0 source differs only in unusedfourthbyte255vsdecoded0; allmeaningfulcolorbytes alreadyexact. Canonicalunusedpadding0 plus preservedrawsource/failure providesexactstorage comparison without pixel tolerancechange. Wholecoldprocess/decode/transfer/parentassembly/check/exit task: candidate34.364ms versusbaseline29.464ms, saving-16.63% bootstrap95[-20.89214325936353, -10.998241648882413]; candidate slower, fails10%gate. Preparedcompressedbytes increase24351to28965; encodingcost excluded and no originalsliceextraction orbrowserworker claim. Stop this native preparedquadrant smallprofile; no justificationfor porting it on these results.
 
-Correctness: **passed**. Performance: **pending**.
+Next: Reopen only for specified larger independently addressable FFV1 workload with full preparation/storage/owner cost and a declared browser implementation target; current tiny preparedquadrant path is slower.
 
-Four separate host FFV1 process outputs reconstruct all 12 full frames exactly; swapped quadrant control fails. Prepared compressed size increases 24351→28965 bytes. Accepted independently prepared quadrant component, not original-stream slice extraction or browser threads.
-
-Next: Establish target browser/process transport and account preparation plus decode/assembly costs before claiming multicore value.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T211705Z-prepared-cost/analysis.md)

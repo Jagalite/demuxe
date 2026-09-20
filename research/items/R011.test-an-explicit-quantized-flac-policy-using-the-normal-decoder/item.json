@@ -47,102 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "status": "passed",
+      "basis": "Explicit research-only nearest signed24/32 no-dither policy keeps ordinary AC3float decoder and rejects nonfinite/out-of-range instead of clipping. All96768stereo normal-decoder frames retained, including AC3padding; FLACinteger roundtrips exact. Native Chrome complete render max/RMS errors24bit5.96046e-8/3.44907e-8 and32bit2.32831e-10/2.68456e-11. Chrome actually admits experimental32bitFLAC; ordinary encoder silently chooses24bit, preserved diagnostic.24bit223872bytes versus774144float bytes. Five alternating full decode/quantize/encode/binary-delivery/render/cleanup pairs:24bit208.773/150.581ms ratio1.38645,32bit218.601/150.686ms ratio1.45071; both fail1.25. Truncated destination and closed-render ownership controls pass.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+      "status": "failed",
+      "basis": "Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "basis": "stop_current_profile: Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder",
-      "rank": 293,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T21:51:52.136279+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T215152Z-quantized-flac"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current FLAC path requires established integer precision and rejects unqualified conversion. allowLossy applies Opus, not an explicit float quantization/error policy. Float-to-24-bit FLAC needs a separate requested fidelity contract; it must not weaken sample-exact admission.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Explicit research-only nearest signed24/32 no-dither policy keeps ordinary AC3float decoder and rejects nonfinite/out-of-range instead of clipping. All96768stereo normal-decoder frames retained, including AC3padding; FLACinteger roundtrips exact. Native Chrome complete render max/RMS errors24bit5.96046e-8/3.44907e-8 and32bit2.32831e-10/2.68456e-11. Chrome actually admits experimental32bitFLAC; ordinary encoder silently chooses24bit, preserved diagnostic.24bit223872bytes versus774144float bytes. Five alternating full decode/quantize/encode/binary-delivery/render/cleanup pairs:24bit208.773/150.581ms ratio1.38645,32bit218.601/150.686ms ratio1.45071; both fail1.25. Truncated destination and closed-render ownership controls pass.",
+      "next_action": "Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
+      "reopen_condition": "Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder.md"
-      ],
-      "next_test": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
-      "reopen_condition": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T215152Z-quantized-flac/run.json"
+      ]
     }
   },
-  "next_action": "Define a research-only float quantization contract on one in-range signal plus out-of-range rejection and compare against the same normal float decoder.",
+  "next_action": "Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

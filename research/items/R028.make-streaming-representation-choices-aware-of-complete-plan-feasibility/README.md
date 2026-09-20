@@ -2,28 +2,18 @@
 
 # Make streaming representation choices aware of complete-plan feasibility
 
-Full identity: `R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility`. Original rank: 247.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-chooseVariant uses explicit representation or bandwidth while planAdmission separately enforces complete playback requirements. There is a genuine compatibility-policy separation, but current bounded manifest selection is not a qualified dynamic ABR owner; per-track invalidation requires a larger streaming transition contract.
-
-No matching candidate/reference/control execution for this exact gate. Two-rendition complete-plan selection audit and scoped per-track transition contract respecting explicit representation intent.
-
-Next action: Audit one two-rendition manifest selection against complete-plan facts before introducing runtime switching; retain explicit representation intent. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **blocked**. Actual maintained HLS selector chooses highest bandwidth under cap, honors an explicit rendition even above cap, and rejects missing explicit IDs. It does not consult plan feasibility; StreamingOptions explicitly specifies one session rendition, not automatic bitrate switching. The source-required existing adaptive controller and qualified R015 per-track transactional switch are not available. This is a verified implementation/setup prerequisite blocker, not a negative experiment on the proposed policy.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Two-rendition complete-plan selection audit and scoped per-track transition contract respecting explicit representation intent. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two-rendition complete-plan selection audit and scoped per-track transition contract respecting explicit representation intent. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | blocked | Required existing ABR/per-track transition implementation is absent; one-shot selector probe does not supply it. |
+| screen | passed | Actual maintained HLS selector chooses highest bandwidth under cap, honors an explicit rendition even above cap, and rejects missing explicit IDs. It does not consult plan feasibility; StreamingOptions explicitly specifies one session rendition, not automatic bitrate switching. The source-required existing adaptive controller and qualified R015 per-track transactional switch are not available. This is a verified implementation/setup prerequisite blocker, not a negative experiment on the proposed policy. |
+| correctness | blocked | No complete-plan-aware adaptive transition candidate ran. The existing one-shot selector probe confirms boundary only; it cannot qualify HDR/audio/subtitle preservation, playback fidelity or track invalidation. Missing ABR owner and R015 transactional prerequisite remain explicit. |
+| performance | blocked | No relevant policy correctness candidate; no speed, energy or bandwidth advantage inferred from selector choices. No invented controller or expensive baseline. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | blocked: Actual maintained HLS selector chooses highest bandwidth under cap, honors an explicit rendition even above cap, and rejects missing explicit IDs. It does not consult plan feasibility; StreamingOptions explicitly specifies one session rendition, not automatic bitrate switching. The source-required existing adaptive controller and qualified R015 per-track transactional switch are not available. This is a verified implementation/setup prerequisite blocker, not a negative experiment on the proposed policy. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Supply a qualified adaptive transition owner and transactional selected-track boundary, then compare equivalent-role renditions under explicit user intent and full output constraints. A static initial-plan selector would be a separately scoped component, not fulfillment of this source-defined ABR hypothesis.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

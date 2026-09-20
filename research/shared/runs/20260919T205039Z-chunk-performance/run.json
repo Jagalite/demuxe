@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "run_id": "20260919T205039Z-chunk-performance",
+  "item_keys": [
+    "R160.turn-a-whole-file-audio-decoder-into-a-bounded-streaming-component"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed"
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "conclusion": "All15 independent2s stereo FLAC chunks match continuous30s browser PCM exactly. Retained decoded PCM payload falls15-fold (11,520,000 to768,000 bytes), but prepared wall median62.3ms versus34.8ms (1.79023 ratio) fails1.25 ceiling;625.041ms cold preparation further loses. Naive stale-STREAMINFO segmenter failure preserved.",
+  "limits": "Stop this sequential prepared-chunk speed profile. Reopen for an actual memory-bound workload or a materially different batched/prefetched implementation; explicit PCM ownership is measured, total browser memory and physical energy are not.",
+  "original_output_directory": "research/shared/runs/20260919T_audio_chunk_performance",
+  "commands_log": "research/shared/runs/20260919T205039Z-chunk-performance/commands.log"
+}

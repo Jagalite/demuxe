@@ -1,0 +1,254 @@
+{
+  "plan": {
+    "scope": "ActualPyAV ordinarydemux commonqualifiedstart stableH264/AAC, two independent persistentMP4muxers with0s/2s timestampmapping andpacketwrappers pluscopiedside data. Independenttwo-demux references fullpacket/config/timing/decodedAV; canceled/slowconsumer explicitlyfails without damaging survivor.",
+    "gate": "Correctness first then11alternatingfreshsource/muxownerpairs lower95completecostsaving>5percent; alloutputbytesmatchreferences.",
+    "limits": "HostcomponentnotWasm/browserproductionAPI. Twoauthorizedsamefiniteinterval consumers; nopreroll/newclipstartclaims;8packet boundedslowqueuefailsclosed.",
+    "correction": "Baseline muxes independentlydemuxed originalAVPackets directly (notsharedclonehelper). Candidate copies keyframeflags alongwithpayload/side_data/timing. Compareoutputpacketflags too. Heavyimmutable-record SHAchecks separatedfromcost; firstdiagnostic reusedsameclonehelper inbaseline andmissedkeyframeflag, soitsperformance isnotacceptance."
+  },
+  "runtime": {
+    "pyav": "17.1.0",
+    "libraries": {
+      "libavutil": [
+        60,
+        26,
+        101
+      ],
+      "libavcodec": [
+        62,
+        28,
+        101
+      ],
+      "libavformat": [
+        62,
+        12,
+        101
+      ],
+      "libavdevice": [
+        62,
+        3,
+        101
+      ],
+      "libavfilter": [
+        11,
+        14,
+        101
+      ],
+      "libswscale": [
+        9,
+        5,
+        101
+      ],
+      "libswresample": [
+        6,
+        3,
+        101
+      ]
+    }
+  },
+  "controls": {
+    "cancel": {
+      "cancelledAtPacket": 10,
+      "staleRejected": true
+    },
+    "slow": {
+      "explicitSlowConsumerFailure": true,
+      "staleRejected": true
+    }
+  },
+  "rows": [
+    {
+      "pair": 0,
+      "baseline": {
+        "ms": 2.5327500188723207,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 2.9768329695798457,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 1,
+      "candidate": {
+        "ms": 2.950957976281643,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      },
+      "baseline": {
+        "ms": 3.121500019915402,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 2,
+      "baseline": {
+        "ms": 2.716417016927153,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 3.1233750050887465,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 3,
+      "candidate": {
+        "ms": 3.4826669725589454,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      },
+      "baseline": {
+        "ms": 2.7639170293696225,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 4,
+      "baseline": {
+        "ms": 2.9493749607354403,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 3.1050840043462813,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 5,
+      "candidate": {
+        "ms": 3.0460419948212802,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      },
+      "baseline": {
+        "ms": 2.6822909712791443,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 6,
+      "baseline": {
+        "ms": 2.4837079690769315,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 2.9260829905979335,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 7,
+      "candidate": {
+        "ms": 2.922667015809566,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      },
+      "baseline": {
+        "ms": 2.4649580009281635,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 8,
+      "baseline": {
+        "ms": 2.4484589812345803,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 3.111250000074506,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 9,
+      "candidate": {
+        "ms": 3.2174999942071736,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      },
+      "baseline": {
+        "ms": 2.638292033225298,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      }
+    },
+    {
+      "pair": 10,
+      "baseline": {
+        "ms": 2.501541981473565,
+        "demuxPackets": 428,
+        "outputBytes": 83676
+      },
+      "candidate": {
+        "ms": 2.963958017062396,
+        "demuxPackets": 214,
+        "outputBytes": 83676
+      }
+    }
+  ],
+  "correctness": [
+    {
+      "consumer": 0,
+      "offsetSeconds": 0,
+      "packets": 214,
+      "oracle": [
+        {
+          "kind": "v",
+          "bytes": 1658880,
+          "sha256": "8cc821919ec49b56b426cb9c76b907bfa5e1dbf469a20786a38b23be730910e9"
+        },
+        {
+          "kind": "a",
+          "bytes": 577536,
+          "sha256": "8401ff9b3ab397fcf4a9fdc927222fd3ab23b6ae022e096bcc67501558afbac1"
+        }
+      ],
+      "packetConfigTimingExact": true
+    },
+    {
+      "consumer": 1,
+      "offsetSeconds": 2,
+      "packets": 214,
+      "oracle": [
+        {
+          "kind": "v",
+          "bytes": 1658880,
+          "sha256": "8cc821919ec49b56b426cb9c76b907bfa5e1dbf469a20786a38b23be730910e9"
+        },
+        {
+          "kind": "a",
+          "bytes": 581632,
+          "sha256": "5cf6a009580268edb304a246dd539e703888ace85232b1688fe67a804ced0e53"
+        }
+      ],
+      "packetConfigTimingExact": true
+    }
+  ],
+  "demuxPackets": {
+    "baseline": 428,
+    "candidate": 214
+  },
+  "analysis": {
+    "medianSaving": -0.17811072276963813,
+    "bootstrap95": [
+      -0.21953898722644327,
+      -0.1356120672354455
+    ],
+    "accepted": false
+  },
+  "passed": true
+}

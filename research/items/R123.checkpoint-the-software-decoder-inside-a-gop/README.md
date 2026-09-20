@@ -2,12 +2,24 @@
 
 # Checkpoint the software decoder inside a GOP
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full identity: `R123.checkpoint-the-software-decoder-inside-a-gop`.
 
-Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.
+Current decision: **pursue** (actual_codec_aware_owned_state_in_wasm).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065–1.3971), so pursue bounded already-loaded scrubbing only.
 
-Next: Inventory one pinned decoder checkpoint field set and state hash against packet replay; reject any opaque pointer dependency before implementation.
+Next action: Keep pinned runtime/profile and source-owner guards. Portable serialization, B-frame queues and thread-transition support remain separate implementation work before broader qualification.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | Actual codec-aware retained/rebased state copier wrapped by versioned in-process handle; no raw context memcpy. |
+| screen | passed | Checkpoint inside one GOP restores repeated suffixes after original decoder continuation. |
+| correctness | passed | 3x30 full frames/PTS exact per7paired jobs; source/runtime/owner/version/cut and dropped-handle controls; all owned contexts retired. |
+| performance | passed | Prepared-runtime complete3scrub job including checkpoint construction median16.57% faster;95% paired-bootstrap saving1.565–22.23%; cold startup variability kept separate. |
+| results | passed | A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065–1.3971), so pursue bounded already-loaded scrubbing only. |
+| decision | passed | A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065–1.3971), so pursue bounded already-loaded scrubbing only. |
+
+[New run](../../shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

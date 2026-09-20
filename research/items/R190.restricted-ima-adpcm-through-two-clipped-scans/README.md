@@ -2,12 +2,24 @@
 
 # restricted IMA ADPCM through two clipped scans
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R190.restricted-ima-adpcm-through-two-clipped-scans`
 
-Pinned IMA expansion is scalar recurrence with exact clipping; no associative scan representation/kernel or scratch owner exists. The historical Python two-scan implementation was slower and is algebra evidence only.
+Current decision: **stop_current_profile** (2026-09-19T23:33:14.118808+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual mono/stereo IMA-WAV parser feeds work-efficient compiled clipped-transition prefix scans: four-thread local prefixes/carry correction for step-index, then predictor. All8164mono and8136stereo frames exactly match compiled ordinary sequential decoder and installedFFmpeg8.1.2. Twenty-five extreme predictor/index synthetic cases also exact; invalid index rejected before publication. Current per-shift delta rule is explicitly pinned; old product-rounding formula disagrees at first sample13vs11 and is preserved in fixture run. Five alternating complete mono+stereo source/hash/WAVparse/nibble serialization/process/table/thread setup/output read/reinterleave jobs439.182ms parallel versus317.401ms compiled serial median ratio1.38368 fails<=0.9.
 
-Next: Design one work-efficient compiled two-scan kernel only after accounting scratch/synchronization; compare all samples plus index0/88 and predictor-extreme controls before any timing.
+Stop this cold per-block threaded clipped-scan profile. Associative scan correctness is demonstrated with actual work-efficient CPU implementation and all transfer/synchronization costs charged, but no speedup here. A persistent runtime, larger blocks or GPU implementation needs new full-pass evidence; do not propagate across IMA arithmetic variants or claim currentFFmpeg equivalence for older rounding.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T233314Z-ima-scan/run.json) · [Analysis](../../shared/runs/20260919T233314Z-ima-scan/analysis.md) · [Manifest](../../shared/runs/20260919T233314Z-ima-scan/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

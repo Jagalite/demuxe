@@ -2,24 +2,10 @@
 
 # Decode a GOP once for exact reverse-frame playback
 
-`R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity`
+Disposition: **pursue**. Correctness **passed**, performance **passed**; other research gates passed.
 
-Current disposition: **pursue**. Component evidence; no production integration or release qualification.
+Twelve exact64x48 H264 frames reversed within one closed GOP. One decoder/cache of12frames versus12 decoder owners replaying78 total packets. Full output plane hashes match independent FFmpeg source; dependent entry and >12-frame cache inputs reject. Cache closes12 retained frames;55,296 visible plane bytes, not native surface memory. Complete owner wall-time saving87.40%, bootstrap95[85.4166663993426, 89.38193316847808]; predeclared performance gate passed.
 
-One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed.
+Scoped component research gates complete. Production integration requires a separate owner/workload contract and representative media validation.
 
-Scope limits: Immutable closed GOP cache batch only; no B/open GOP, renderer cadence, long-GOP fallback, or production seek lifecycle.
-
-- define: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- prepare: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- screen: **passed** — One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed.
-- correctness: **passed** — One closed 12-frame H.264 I/P GOP decoded once and retained for reverse hash/timestamp presentation; all frames exact against independent host decode. 55,296 visible plane bytes; 24-frame budget and dependent-entry controls rejected before decode; retained frames closed. Immutable closed GOP cache batch only; no B/open GOP, renderer cadence, long-GOP fallback, or production seek lifecycle.
-- performance: **pending** — Not measured. Complete missing lifecycle gates and predeclare an actual workload, threshold and complete costs before benchmarking.
-- results: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- decision: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-
-Next: Add actual reverse UI presenter, cache replacement/cancellation and GOP capability parser; then compare persistent cached baseline with declared byte budget.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-[Shared results](../../shared/runs/20260919T200002Z-presentation/results.json) · [Analysis](../../shared/runs/20260919T200002Z-presentation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T204922Z-presentation-ownership/analysis.md)

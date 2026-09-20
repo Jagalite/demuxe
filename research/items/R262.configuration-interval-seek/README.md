@@ -2,32 +2,18 @@
 
 # configuration-interval seek
 
-Full identity: `R262.configuration-interval-seek`. Original rank: 2.
-
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
-
-Explicit source-bound SPS/RAP intervals decode all96 authored pictures exactly through browser configuration change; indexed second interval matches48 pictures/timestamps, dependent cold start rejects. Container indexing and source replacement integration remain later.
-
-## Accepted scope
-
-Explicit source-bound SPS/RAP configuration intervals; not generic container indexing.
-
-96 full-transition and 48 interval-seek pictures match independent visible-plane hashes. Recorded timestamps also independently checked against input packets; dependent cold-start rejects and decoders close.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
+Current decision: **stop_current_profile**. New11-pair complete requested-output experiment preserves all48 target pictures/timestamps every job, but indexed entry misses the declared5% cost gate: median saving -2.04%, bootstrap95%[-27.47%,25.05%]. Stop the current warm tiny-profile performance claim; retain proven configuration-entry capability.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | 96 full-transition and 48 interval-seek pictures match independent visible-plane hashes. Recorded timestamps also independently checked against input packets; dependent cold-start rejects and decoders close. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | New11-pair complete requested-output experiment preserves all48 target pictures/timestamps every job, but indexed entry misses the declared5% cost gate: median saving -2.04%, bootstrap95%[-27.47%,25.05%]. Stop the current warm tiny-profile performance claim; retain proven configuration-entry capability. |
+| correctness | passed | Both replay and indexed paths reproduce all48 independent requested frame hashes/PTS in qualification and every timed run, close all frames/decoders; prior dependent-start negative retained. Explicit supplied source-bound interval, not generalized indexing. |
+| performance | failed | Predeclared11alternating-order pairs after qualification; complete configure/decode/target-copy/hash/flush/close measured. Median paired saving -2.04% misses5% threshold. Wide deterministic bootstrap95% interval[-27.47%,25.05%] gives no established speed benefit. Resident inputs/shared acquisition and cold index build excluded explicitly. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: New11-pair complete requested-output experiment preserves all48 target pictures/timestamps every job, but indexed entry misses the declared5% cost gate: median saving -2.04%, bootstrap95%[-27.47%,25.05%]. Stop the current warm tiny-profile performance claim; retain proven configuration-entry capability. |
 
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
+Next/reopen: Reopen only with a materially heavier preceding interval or measured repeated-seek workload; include cold index/acquisition and reuse count before any whole-route benefit claim. No production policy from this small noisy negative.
 
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

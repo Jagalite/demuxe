@@ -53,96 +53,84 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "status": "passed",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "status": "passed",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Identify one repeated regional MJPEG/image decode workload; author one restart layout and compare coefficients/output before measuring use of boundaries.",
+      "status": "failed",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "basis": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "research-presentation-stage-completion",
     "record": {
       "key": "R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss",
-      "rank": 370,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:36:33.468645+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T233358Z-restart-regional-cost"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "FFmpeg already honors JPEG restart boundaries, but Demuxe has no coefficient-preserving JPEG entropy reserializer or regional JPEG requester. Markers alone would not prove browser parallel work or repay rewriting.",
+      "new_execution": true,
+      "evidence_level": "component_test",
+      "reason": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss.md"
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/results.json",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/analysis.md",
+        "research/items/R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss/evidence/20260919T233358Z-restart-regional-cost/manifest.json"
       ],
-      "next_test": "Identify one repeated regional MJPEG/image decode workload; author one restart layout and compare coefficients/output before measuring use of boundaries.",
-      "reopen_condition": "Identify one repeated regional MJPEG/image decode workload; author one restart layout and compare coefficients/output before measuring use of boundaries.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+      "next_test": "Reopen with a justified retained-memory constraint, a real regional source adapter, or a different decoder scheduling workload that repays authoring and extra metadata. Do not replace the one-decode retained baseline with repeated full decodes to manufacture a benefit.",
+      "reopen_condition": "Reopen with a justified retained-memory constraint, a real regional source adapter, or a different decoder scheduling workload that repays authoring and extra metadata. Do not replace the one-decode retained baseline with repeated full decodes to manufacture a benefit."
     }
   },
-  "next_action": "Identify one repeated regional MJPEG/image decode workload; author one restart layout and compare coefficients/output before measuring use of boundaries.",
+  "next_action": "Reopen with a justified retained-memory constraint, a real regional source adapter, or a different decoder scheduling workload that repays authoring and extra metadata. Do not replace the one-decode retained baseline with repeated full decodes to manufacture a benefit.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

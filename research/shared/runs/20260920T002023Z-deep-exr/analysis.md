@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual three OpenEXR3.4.15 deep scanline RGBAZ128x128 files contain172032 depth-sorted premultiplied point samples; all decoded deep sample values exactly equal authored sources. Nine32x32ROI views match independent float64 full-composition oracle exactly on CPU and within1.1921e-7 on actual WebGPU. Wrong source/frame, unsorted depth and invalid alpha controls reject; epoch change before GPU readback prevents publication, buffers/device destroyed. CPU retained ROI vs eager flatten-once ratio0.67427 passes, but complete cold real EXR read/hash/validate/pack HTTP adapter plus GPU device/pipeline/upload/ROI/readback/cleanup839.800vs824.300ms ratio1.01880 fails0.9. Eager baseline flattens once per frame, never once per view; existing browser startup excluded equally.
+
+Stop this cold real-deep-EXR-to-GPU workload on end-to-end cost despite genuine CPU sparse-ROI capability. Retaining already parsed/uploaded deep samples across many view changes is a distinct workload requiring new setup-amortization measurements. No volumetric overlapping-segment semantics, production viewer, display color management or general deep-file admission; GPU prerequisite is now resolved for this component.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

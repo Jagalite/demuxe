@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actualpinnedhostlibopus snapshots decoderbeforePLC, decodesfourfollowingpackets provisionally, restoreslateoriginal and replacesfivepacketwindow beforepublication. Latepositions2/20/60/95 allreproduce everycontinuousno-loss floatbyte throughcomplete96000sample output with312preskip/endtrim. Missingrestore changesoutput; actualone-sampleconsumerread prohibitsrollback withoutstatechange; source/runtime identity, epoch andclosedguardsreject. Fivealternating completepacket40lateevent jobs including snapshot/PLC/restore/redecode cost2.393ms versus3.350ms freshdecoderprefix replay baseline, ratio0.71437 passes0.9. Retainedsnapshot18468bytes plus19200pendingPCMbytes explicit. Installedopus.h documents contiguousstate memcpy; no inventedopaque-state API.
+
+Pursue bounded controlledhostlate-packet transaction beforeirreversibleconsumption, pinnedlibopus/runtimeABI andsource/epochkey. No WebCodecs opaque-state cloning, browseraudio rollback afteroutput, packetnetworkdeadline or production integration claim. Costsharedpreencodedinput/runtime; no networkwait included. Real-time application needs ownerpublication discipline matching this provedboundary.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

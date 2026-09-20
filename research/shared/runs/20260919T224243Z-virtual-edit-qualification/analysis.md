@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual finite closed-GOP video-only2s–4s virtual MP4 uses1045header bytes plus48source-range extents for39504logical bytes. Authored sample tables,48full independent host pictures, native forward/back target hashes, cross-boundary reads, changed source and real in-flight HTTP cancellation all pass. Five alternating native owners including cold index/source identity and preparation fail5%cost gate: median10.18%slower (observed4.90–16.98%slower). No media bytes materialized by virtual server; validation copy is independently retained, not served. Audio joins and multi-edit lists excluded.

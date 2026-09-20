@@ -2,28 +2,12 @@
 
 # Incremental MJPEG stripe decode/upload
 
-Full identity: `R206.incremental-mjpeg-stripe-decode-upload`. Original rank: 164.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Built a real native libjpeg64-row callback producer and browser streaming texture owner for2048x2048 genuineJPEG. First diagnostic stripe GPUupload completed before the producer decoded its finalscanlines (independent epoch clocks), and all nine timed candidate firstuploads were submitted while decoding continued. No artificial producer delay. Complete WebGL2 texture RGBA exactly matches separate djpeg CLI reference; decoder implementation is intentionallysame, so this proves pipeline identity rather than decoder substitution. Partialtexture differs and publicationguard rejects beforecomplete; canceledstream retires unpublishedresources, malformedJPEG fails, freshowner afterwards remains exact. Baseline buffersfullRGB anduploads once throughsameprocess/HTTP/GPUobserver stack. Nine alternating wholecoldtask pairs charge childlaunch/sourceopen/decode/streamassembly/upload/draw/fullreadback/hash/cleanup: baseline259.378ms, candidate323.889ms, saving-24.87%,95%[-59.40233580625463, 1.5762304588429532], fails10%lower-boundgate. Native RGBscratch is393216B vs12582912B, a measured allocationbound notwholeprocessmemory. Actual overlap does not imply userbenefit; this implementation is slower/variable. Physical GPU attribution, currentWasm callback integration, sourcecapture timing and energy remainunclaimed.
 
-Presenter gets complete mp_image/VideoFrame outputs, not partial libjpeg stripes. Overlap would require a decoder stripe callback and unpublished-texture owner; multiple uploads alone showed no reported gain.
+Next: Reopen only with a materially cheaper existing decoder-to-texture callback/transport path or a representative workload that can beat complete-frame control. Keep unpublished texture and completion/cancellation fence. Do not treat firststripe latency alone as end-to-end win.
 
-No matching candidate/reference/control execution for this exact gate. Decoder stripe callback plus unpublished-texture completion fence and partial-frame rejection.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T221857Z-overlap/analysis.md)
 
-Next action: Expose one bounded stripe callback and completion fence only if existing decoder permits it; compare complete pixels and withhold publication until final stripe, with partial-frame negative control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Decoder stripe callback plus unpublished-texture completion fence and partial-frame rejection. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Decoder stripe callback plus unpublished-texture completion fence and partial-frame rejection. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Fixture provenance metadata amendment](../../shared/runs/20260919T222740Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

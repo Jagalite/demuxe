@@ -78,58 +78,50 @@
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Origin capability, header/latency/CPU and cancellation/fallback overhead not performance-qualified.",
+      "status": "failed",
+      "basis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload.",
       "evidence": [
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/ownership/result.json"
+        "research/shared/runs/20260919T210400Z-range-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
+      "basis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload.",
       "evidence": [
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/ownership/result.json"
+        "research/shared/runs/20260919T210400Z-range-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
+      "basis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload.",
       "evidence": [
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/ownership/result.json"
+        "research/shared/runs/20260919T210400Z-range-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "canonical-stage-reconciliation",
-    "record": {
-      "key": "R216.one-request-for-distant-byte-ranges",
-      "state": "pursue",
-      "reason": "Actual HTTP multipart range response matches two independent single-range reads; truncated multipart rejects. One request replaces two for capable test origin, with575 response bytes for384 payload bytes. Production origin capability remains prerequisite.",
-      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
-      "evidence_level": "reconciled_component_test",
-      "run_ids": [
-        "20260919T204000Z-stage-reconciliation"
-      ],
-      "evidence": [
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R216.one-request-for-distant-byte-ranges/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/ownership/result.json"
-      ],
-      "new_experiment": false,
-      "original_state": "PURSUE",
-      "scope": "Actual multipart HTTP bytes match two independent single-range bodies; truncation rejects. One request/575body bytes for384payload documented. Restricted capable-origin parser component.",
-      "performance_gate": "Origin capability, header/latency/CPU and cancellation/fallback overhead not performance-qualified.",
-      "next_test": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
-      "reopen_condition": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes."
-    }
+    "key": "R216.one-request-for-distant-byte-ranges",
+    "disposition": "inconclusive",
+    "evidence_level": "actual_parallel_http_cost",
+    "new_media_execution": true,
+    "reason": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload.",
+    "next_action": "Bounded latency gate concluded without sufficient benefit. Reopen only for request-limited/high-latency capable origin where equivalent concurrent ranges are measured; retain correct optional multipart parser.",
+    "stages": {
+      "performance": {
+        "status": "failed",
+        "basis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T21:06:51.871108+00:00",
+    "run_ids": [
+      "20260919T210400Z-range-cost"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T210400Z-range-cost/run.json"
+    ]
   },
-  "next_action": "Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.",
+  "next_action": "Bounded latency gate concluded without sufficient benefit. Reopen only for request-limited/high-latency capable origin where equivalent concurrent ranges are measured; retain correct optional multipart parser.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

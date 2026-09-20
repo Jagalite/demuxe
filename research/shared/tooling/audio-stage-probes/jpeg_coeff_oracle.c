@@ -1,0 +1,9 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <jpeglib.h>
+int main(int argc,char**argv){if(argc<3)return 2;FILE*f=fopen(argv[2],"rb");if(!f)return 3;struct jpeg_decompress_struct d;struct jpeg_error_mgr e;d.err=jpeg_std_error(&e);jpeg_create_decompress(&d);jpeg_stdio_src(&d,f);jpeg_read_header(&d,TRUE);if(d.num_components!=1)return 4;jvirt_barray_ptr*arr=jpeg_read_coefficients(&d);int bw=d.comp_info[0].width_in_blocks,bh=d.comp_info[0].height_in_blocks;
+if(argv[1][0]=='c'){for(int y=0;y<bh;y++){JBLOCKARRAY row=(*d.mem->access_virt_barray)((j_common_ptr)&d,arr[0],y,1,FALSE);for(int x=0;x<bw;x++)fwrite(row[0][x],sizeof(JCOEF),64,stdout);}}
+else{FILE*coef=fopen(argv[3],"rb");if(!coef)return 5;for(int y=0;y<bh;y++){JBLOCKARRAY row=(*d.mem->access_virt_barray)((j_common_ptr)&d,arr[0],y,1,TRUE);for(int x=0;x<bw;x++)if(fread(row[0][x],sizeof(JCOEF),64,coef)!=64)return 6;}fclose(coef);struct jpeg_compress_struct c;struct jpeg_error_mgr ce;c.err=jpeg_std_error(&ce);jpeg_create_compress(&c);unsigned char*memory=NULL;unsigned long size=0;jpeg_mem_dest(&c,&memory,&size);jpeg_copy_critical_parameters(&d,&c);jpeg_write_coefficients(&c,arr);jpeg_finish_compress(&c);jpeg_destroy_compress(&c);struct jpeg_decompress_struct r;struct jpeg_error_mgr re;r.err=jpeg_std_error(&re);jpeg_create_decompress(&r);jpeg_mem_src(&r,memory,size);jpeg_read_header(&r,TRUE);r.out_color_space=JCS_GRAYSCALE;jpeg_start_decompress(&r);unsigned char*line=malloc(r.output_width);while(r.output_scanline<r.output_height){JSAMPROW rows[1]={line};jpeg_read_scanlines(&r,rows,1);fwrite(line,1,r.output_width,stdout);}free(line);jpeg_finish_decompress(&r);jpeg_destroy_decompress(&r);free(memory);}
+jpeg_finish_decompress(&d);jpeg_destroy_decompress(&d);fclose(f);return 0;}

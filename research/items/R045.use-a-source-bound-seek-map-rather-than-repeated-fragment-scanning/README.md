@@ -2,18 +2,18 @@
 
 # Use a source-bound seek map rather than repeated fragment scanning
 
-Current decision: **pursue**. Finite source-bound fragment map selects exact packet payload/timing and yields independently verified excerpt; same-name changed-source token, outside offset and corrupted offset reject. Full cold source scan cost recorded.
+Current decision: **stop_current_profile**. Actual source-bound map retains exact packet payload/timing with stale/bounds/corruption guards and cuts userspace source-file bytes69.25% including cold map cost. Eleven repeated fresh-owner batches nevertheless add34.61% median elapsed cost after map parsing/copy/file preparation. Stop this host profile as a latency optimization.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen. |
-| screen | passed | Finite source-bound fragment map selects exact packet payload/timing and yields independently verified excerpt; same-name changed-source token, outside offset and corrupted offset reject. Full cold source scan cost recorded. |
-| correctness | passed | Scoped immutable fragment lookup correctness: source/span integrity controls plus independent packet, picture andPCM oracle. Does not qualify asynchronous index service or prove current owner opportunity. |
-| performance | pending | No equivalent-work benchmark or owner opportunity measurement. |
-| results | passed | Immutable positive/negative evidence and manifests registered. |
-| decision | passed | Scoped pursue; remaining gate and actual owner opportunity explicit. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Actual source-bound map retains exact packet payload/timing with stale/bounds/corruption guards and cuts userspace source-file bytes69.25% including cold map cost. Eleven repeated fresh-owner batches nevertheless add34.61% median elapsed cost after map parsing/copy/file preparation. Stop this host profile as a latency optimization. |
+| correctness | passed | Real hostlibavformat8.1.2 custom AVIO; each regenerated query requests24video packets at sourcebound fragments2,4,6,8seconds. Every query candidate/fullsource payload+PTS+DTS+duration digest exact, independently FFprobe checks eachselected24packets. Sourceidentity,corruptspan,outofbounds reject. Prior complete excerpt pixels/PCM oracle retained separately. Model is finite immutable map plus freshdemux owner, not remoteRange/Wasm/nativeplayer or same-context seek integration. |
+| performance | failed | Predeclared11alternating batches of10regenerated seeks, cold source read/hash/mapbuild chargedonceperbatch; selection/spanhash/copy/scratchwrite plus libavformat fileload/open/findstream/seek/24packet hash/close included. Processlaunch common excluded. Median elapsed saving -34.6139%, bootstrap95 median[-150.7609%,0.7790%], failing5% gate. Userspace sourcefilebytes saving69.25197% passes50% readgate; logicalAVIOreads separately raw. Warm hostfilecache, no physicaldisk/network/CPUenergy claim. Existing same-contextMOV fragment index remains and this is not claimed universally duplicated scanning. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: Actual source-bound map retains exact packet payload/timing with stale/bounds/corruption guards and cuts userspace source-file bytes69.25% including cold map cost. Eleven repeated fresh-owner batches nevertheless add34.61% median elapsed cost after map parsing/copy/file preparation. Stop this host profile as a latency optimization. |
 
-Next: Trace real repeated distant seeks and existing FFmpeg index use before adding another owner; test source-version changes during asynchronous reads, map config/RAP coverage and incremental useful-read construction.
+Next/reopen: Reopen for a direct scatter/gather or range-backed input that avoids host temporary-file copying, or a measured network-latency workload where source-byte reductions dominate. Prove new owner integration and predeclare profile; retain current negative.
 
-[Contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

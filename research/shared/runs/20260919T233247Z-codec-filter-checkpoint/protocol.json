@@ -1,0 +1,5 @@
+{
+  "scope": "Real stereo IMA-WAV logical decoder state plus requested integer stereo mix, exact pair-average2to1 resampler phase/pending sample, and integer IIR state. Serialize only versioned logical values/positions, source+runtime+recipe+epoch identity and checksum, no pointers/raw decoder memory.8136decoded stereo inputframes\u21924068output4k frames.",
+  "correctness": "Restored continuations exact independent FFmpeg8.1.2 decode then ordinary pipeline oracle, including odd-input pending resampler phase, block resets, nearEOF; wrong codec-only/filter-only restores differ. Reject source/runtime/recipe/epoch/corrupted snapshot/cancel.",
+  "performance": "Five alternating cold source read/hash/parse, complete checkpoint-building pass, JSONserialization/write/read and35seek/output128 jobs versus same source setup+ordinary prefix replay for35queries. Candidate<=0.9; cachebytes separately measured."
+}

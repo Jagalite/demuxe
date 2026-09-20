@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+The proposed troublesome AVC4:4:4 section is already accepted by actual Chrome152 WebCodecs, along with surrounding AVC4:2:0. All9 full native-API picture planes and timestamps match independent FFmpeg across420→444→420 configure/reset epochs, with every output closed. Thus this tested profile has no software-island opportunity. No custom island candidate executed; do not infer physical hardware decoding, unsupported-codec coverage, or general software-island correctness. Initial about:blank attempt had no VideoDecoder secure-context API; rerun on localhost resolves this setup issue. It is not counted as native format rejection.

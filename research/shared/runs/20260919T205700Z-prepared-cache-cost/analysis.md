@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate. Scope: repeated full closed video interval, up to1MiB retained entry, cold first preparation charged; no browser seek latency, audio switching, authorization, eviction policy or global hit-rate claim.

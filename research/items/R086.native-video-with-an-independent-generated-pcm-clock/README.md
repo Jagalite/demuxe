@@ -2,32 +2,24 @@
 
 # Native video with an independent generated-PCM clock
 
-Full identity: `R086.native-video-with-an-independent-generated-pcm-clock`. Original rank: 22.
+Full key: `R086.native-video-with-an-independent-generated-pcm-clock`
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE_CLOCK_CONTROL**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Current decision: **pursue** (2026-09-19T20:50:39.914275+00:00).
 
-Actual maintained PCM AudioWorklet with native video survives seek/rate epochs and injected producer starvation. Active phase clock errors up to80ms, starvation grows to253ms and rebase recovers below18ms; correct generated tone observed. Needs tighter output-time feedback before sync qualification; not acoustic or arbitrary decoded-audio proof.
+Actual worklet output-timestamp feedback with bounded video-rate adjustment and starvation pause was compared in3 alternating trace pairs. Correctness35ms settled digital-clock bound: True; median95th absolute error baseline0.027766s candidate0.014008s, predeclared performance gate True. Old epoch callback is actually rejected without publishing ring frames; seek/rate/recovery, tone, wrong+200ms mapping and close controls exercised.
 
-## Accepted scope
+Generated-PCM digital clock controller only; acoustic A/V synchronization, decoded-audio pitch preservation and production admission remain separate. Reopen for a real integrated player workload.
 
-Browser clocks only; no acoustic sync or arbitrary decoded-audio pitch fidelity.
+Only this declared component/profile is decided. All failed variants retained. Run directory renamed after capture. Replay into a fresh output directory. No production integration or release qualification.
 
-Maintained PCM worklet handles seek/rate epochs and stale producer rejection with generated tones. Errors approach80ms active and253ms during starvation; tighter output-time feedback and sync acceptance remain unresolved.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | pending | Maintained PCM worklet handles seek/rate epochs and stale producer rejection with generated tones. Errors approach80ms active and253ms during starvation; tighter output-time feedback and sync acceptance remain unresolved. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
-
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Run](../../shared/runs/20260919T205039Z-clock-feedback/run.json) · [Analysis](../../shared/runs/20260919T205039Z-clock-feedback/analysis.md) · [Manifest](../../shared/runs/20260919T205039Z-clock-feedback/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

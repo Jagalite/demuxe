@@ -2,12 +2,10 @@
 
 # Decode RAW sensor data once; develop the picture during playback
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Presenter receives decoded YUV/RGB; there is no retained Bayer sensor plane, DNG metadata/profile parser or development recipe owner. Existing 601/709 shader is not RAW development.
+ActualuncompressedTIFF/DNG64x48 R16 RGGB sensor source/replacement. IndependentlibTIFF4.7.2 TIFFReadScanline reproducesall3072raw16bitsamples exactly; initialFFmpegoracle attempt actuallyappliesDNG black/white scaling, retainedasdiagnostic notsensorcorruption. BrowserstrictCFA/layout/levels/strip parser retains6144BsensorGPUbuffer, unpackstwo16bitsamples perword; GPUinteger bilinear matching-CFA-neighbor mean/floor, black64 subtraction, Q8whitebalance/clamp4095 producesall12288RGBAintegerchannels exactlyindependentPython at3recipes, allboundarypixels included. No camera-calibratedcolor claim. BadCFA/8bitlayout/truncationreject; gray-as-RGBwrongoutputfalsifierdiffers; submittedstaleGPUsource discarded andfreshdifferentrawsource30views exact; GPUbuffers/devicesclosed. Thirtyviews CPUdevelop+RGBAupload1474560B vsGPU retainedraw+recipeuniform6624B, namedGPUrawretention6144B additionaltosourceCPUbackingheldbybothroutes, common49152Boutput+readbackbuffers. Ninealternating devicecold jobs inonealreadyinitializedbrowser: CPU27.656ms GPU19.522ms saving29.41% CI[19.753086415378984, 41.068331630409894], repeated-joblower95>=10%passes. However firstactualcorrectnessjob CPU39.900ms GPU397.200ms; observedinitial+9measuredjobs CPU288.800ms GPU572.900ms, saving-98.37%. First-usecost isnotexcludedtoassertgeneralcoldbenefit. Overallcold-session performanceguard remainsfailed/inconclusive despitepositivewarm-device comparison; initialshader/driverpreparation notcausallyprofiled. Sourcefetch/unpack, CPUorGPUdevelopment, transfer/setup/readback/compare/teardown charged; nofullscreenpresentation/physicalmemory/energy/generalRAWcompressionclaim.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: ExactretainedRGGB development andlargeuploadreduction established, repeatedjobsfavorable; cold-sessionguard notsatisfied duefirst-usecost. Reopenonrepresentative actualRAWedit/playback session withpreparationamortization measured, sameintegeroracle andallsourceowner controls. No defaultcameraRAWadmission.
 
-Next: Scope one RGGB R16 sensor-plane adapter with integer color oracle before UI adjustments; gray-as-RGB and unsupported CFA/layout must fail, counting upload/retention.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T003504Z-libtiff-sensor-oracle/analysis.md)

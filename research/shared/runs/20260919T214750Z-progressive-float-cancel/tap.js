@@ -1,0 +1,2 @@
+// SPDX-License-Identifier: Apache-2.0
+class Tap extends AudioWorkletProcessor{process(inputs,outputs){const a=inputs[0];if(a.length===2){this.port.postMessage([a[0].slice(),a[1].slice()]);}return true;}}registerProcessor('tap',Tap);

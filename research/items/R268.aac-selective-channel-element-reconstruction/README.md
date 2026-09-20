@@ -2,28 +2,24 @@
 
 # AAC selective channel-element reconstruction
 
-Full identity: `R268.aac-selective-channel-element-reconstruction`. Original rank: 226.
+Full key: `R268.aac-selective-channel-element-reconstruction`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T23:01:28.660279+00:00).
 
-AAC initialization is parsed for muxing, but element-level SCE dependency admission/rewriting is not implemented. Whole audio-track selection is not independent channel-element selection; arbitrary CPE/SBR tools cannot inherit the six-SCE result.
+Actual AAC-LC48k independent-SCE parser traverses ICS/window groups, sections, scale factors, spectral Huffman signs/escapes without reconstructing PCM. Six separately encoded mono streams assembled with explicit six-SCE6.0 PCE; selected631Hz tag4 retained coded bits unchanged apart from mono tag naming. All49152 samples match original mono and selected full-source channel exactly in host FFmpeg and Chrome, with native render/end/closed. CPE, coupling, prediction, SBR, truncation, source identity, invalid intent and cancellation reject. Host selected channel index4 differs from Chrome index5; all-channel diagnostic uniquely identified exact native mapping, initial incorrect index failure retained. Five alternating cold source identity/read/full parser/table-load/write/mono-decode jobs152.561ms vs six-channel decode/slice31.200ms ratio4.88978 fails<=0.9. Selected bytes8712 vs51053 is separate from CPU/latency.
 
-No matching candidate/reference/control execution for this exact gate. Independent-SCE AAC fixture with exact selected-channel oracle and rejection of coupling/CPE/SBR/prediction before parser authoring.
+Stop this cold Python AAC selector cost profile. Compressed-domain independent-SCE capability is real, but transfer-limited use or faster implementation requires new declared measurements. Six SCEs are truthfully6.0 here, not ordinary5.1 requiring an LFE element; do not inherit report layout label or half-CPE/SBR/coupling admission. LGPL tables read from pinned original FFmpeg source retaining notices; no production integration.
 
-Next action: Use one independent-SCE AAC fixture to select element4 and compare full source-channel PCM, rejecting CPE, SBR, prediction and coupling. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Independent-SCE AAC fixture with exact selected-channel oracle and rejection of coupling/CPE/SBR/prediction before parser authoring. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Independent-SCE AAC fixture with exact selected-channel oracle and rejection of coupling/CPE/SBR/prediction before parser authoring. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T230128Z-aac-elements/run.json) · [Analysis](../../shared/runs/20260919T230128Z-aac-elements/analysis.md) · [Manifest](../../shared/runs/20260919T230128Z-aac-elements/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

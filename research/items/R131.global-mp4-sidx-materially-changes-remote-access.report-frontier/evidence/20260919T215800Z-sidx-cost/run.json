@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T215800Z-sidx-cost",
+  "item_keys": [
+    "R131.global-mp4-sidx-materially-changes-remote-access.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:07:18.247711+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R131.global-mp4-sidx-materially-changes-remote-access.report-frontier/tests/sidx-cost.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "1814519b9316464a36c991950ff58ccf2ca3c52607fa69ba1bdd4d8ecef91ccf",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Two preflights and22timed fresh browser-context owners all produce the same exact full1920x1080 target image and correct requested20s position, with element/context cleanup. Existing same-length indexed/no-SIDX variants retain independently verified2002packet metadata identity. Source-authored static file endpoint only; no arbitraryremoteauth, all-file playback or physicalnetwork claim."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "11alternating cold contexts,64KiB response cap plus20ms server delay. Median completed-response-byte saving5.4685%, bootstrap95[5.4685,6.3992]%, belowdeclared20%. Complete native load+seek+fullimagehash+elementcleanup saving0.4744%, bootstrap95[0.0300,0.7553]%, belowdeclared5%. Context creation/closing and resident serverfixture setup excluded equally; source alreadyhasindex. No sample dropping. Browser request strategy andwaitingforloadeddata differ from metadata-only/early-seek sourceprofiles."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with an independently declared realistic delivery workload, including metadata-only versus early-seek policy if applicable. Do not change the failed thresholds or infer globalSIDX has no utility; currentcompletejob fails material-benefit gates."
+}

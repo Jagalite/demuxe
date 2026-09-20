@@ -2,12 +2,24 @@
 
 # Cache fractional-pixel reference predictions
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full identity: `R235.cache-fractional-pixel-reference-predictions`.
 
-Actual qpel owner already reuses horizontal temporaries within a block. Historical H264-like cache is not a normative replacement across phases/chroma/weighted prediction; persistent cache needs finalized reference identity and measured hot repeat exposure.
+Current decision: **stop_current_profile** (actual-route screen).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection.
 
-Next: Instrument repeated nontrivial qpel keys in the pinned kernel before adding a bounded cache; compare an old/new reference at identical coordinates.
+Next action: Research profile complete; reopen only after a representative workload exposes substantially repeated nontrivial interpolation work and lower-cost trustworthy reference identity.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+| screen | passed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+| correctness | passed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+| performance | failed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+| results | passed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+| decision | passed | Actual FFmpeg/Wasm8bit put-qpel cache512entries keys full interpolation footprint bytes, address, stride, geometry and phase; integer prediction and avg kernels unchanged. All120full graphics/natural frames andPTS exact across7fresh-browser pairs. Repeated same-address reference hits, changed reference content misses and owner reset pass a native kernel control. Graphics33/1013hits,natural0/3208. Decode+oracle median ratios1.0284/1.1067; complete cold median0.9856 with broad0.4515–1.5142range does not establish improvement. Stop this full-key cache; no browser opaque-decoder or general qpel rejection. |
+
+[New run](../../shared/runs/20260920T004306Z-qpel-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

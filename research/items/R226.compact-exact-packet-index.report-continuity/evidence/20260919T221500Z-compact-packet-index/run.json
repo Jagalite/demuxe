@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221500Z-compact-packet-index",
+  "item_keys": [
+    "R226.compact-exact-packet-index.report-continuity"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:43:31.908532+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R226.compact-exact-packet-index.report-continuity/tests/compact-index.py research/items/R226.compact-exact-packet-index.report-continuity/evidence/20260919T221500Z-compact-packet-index"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "2fc476d0142ff3febf8f560b1f18bae0d29cfb92424820db05ae4b76c9879718",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "All byte offsets, sizes, DTS, PTS, durations and key flags match independent FFprobe for 96 signed-CTTS samples. Source identity, truncated stream and invalid ordinal reject. Fixture-specific edit/DTS normalization is not general timeline support."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "11 alternating batches of 100 fresh-owner eight-query jobs. Source hash/table parsing common, sidecar authoring included. 12.55% serialized saving passes 10%; complete latency saving -545.65% fails predeclared 5%. Resident file read and oracle excluded equally."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen only with a concrete persisted index owner and measured reuse sufficient to amortize authoring; do not add a redundant sidecar to current native seeking."
+}

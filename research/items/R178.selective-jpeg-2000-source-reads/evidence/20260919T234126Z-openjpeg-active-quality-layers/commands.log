@@ -1,0 +1,7 @@
+git clone --depth 1 --branch v2.5.3 https://github.com/uclouvain/openjpeg.git build/catalogue-tools/openjpeg
+cmake -S build/catalogue-tools/openjpeg -B build/catalogue-tools/openjpeg-build -DCMAKE_BUILD_TYPE=Release -DBUILD_CODEC=ON -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DBUILD_JPIP=OFF -DBUILD_JAVA=OFF -DBUILD_VIEWER=OFF -DBUILD_THIRDPARTY=OFF -DCMAKE_PREFIX_PATH=/opt/homebrew
+cmake --build build/catalogue-tools/openjpeg-build --target opj_compress opj_decompress -j 4
+cc -std=c11 -O2 research/items/R178.selective-jpeg-2000-source-reads/tests/source-callback.c -Ibuild/catalogue-tools/openjpeg/src/lib/openjp2 -Ibuild/catalogue-tools/openjpeg-build/src/lib/openjp2 -Lbuild/catalogue-tools/openjpeg-build/bin -Wl,-rpath,$PWD/build/catalogue-tools/openjpeg-build/bin -lopenjp2 -o build/catalogue-tools/openjpeg-source
+python3 research/items/R178.selective-jpeg-2000-source-reads/tests/selective.py research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T233549Z-openjpeg-selective
+python3 research/items/R178.selective-jpeg-2000-source-reads/tests/selective-texture.py research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers
+All native argv retained commands.json; callback offsets/lengths retained *-trace.csv.

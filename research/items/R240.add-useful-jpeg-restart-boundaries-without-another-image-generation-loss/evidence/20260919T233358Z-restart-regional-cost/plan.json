@@ -1,0 +1,6 @@
+{
+  "candidate": "Coefficient-preserving jpegtran restart authoring at one MCU row; extract complete8-row entropy regions into512x64 grayscale JPEGs without reencoding coefficients.",
+  "baseline": "One full native ImageBitmap retained for all16 regional requests, not repeated full decodes.",
+  "correctness": "Full coefficients and independent host pixels exact before/after restart authoring; extracted region pixels equal full source crop; browser fullRGBA exact. Missing/mismatchedrestart layout rejects, stale bitmap closes.",
+  "performance": "9alternating whole tasks of16regions, candidate includes fresh jpegtran entropy rewrite and binary HTTP read, parse, selected payload construction,16browser decodes/draw/readback/hash/close. Baseline1decode16crops. Threshold lower95saving>=10%; preparation and size increase reported. No browserparallelism claim."
+}

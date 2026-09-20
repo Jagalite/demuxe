@@ -2,32 +2,24 @@
 
 # Probe a real six-channel Native FLAC destination
 
-Full identity: `R057.probe-a-real-six-channel-native-flac-destination`. Original rank: 15.
+Full key: `R057.probe-a-real-six-channel-native-flac-destination`
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Current decision: **pursue** (2026-09-19T20:50:39.914275+00:00).
 
-Reconciled completed prior evidence: Direct and MSE FLAC preserve six independently identified channels at the Web Audio boundary; intentional stereo downmix fails the same matrix oracle. Native adaptation work is worth pursuing without assuming physical speaker support.
+Both FLAC and MP4 browser decode preserve all96000 signed16 samples in each of6 channels; conversion-policy diagnosis explains nonidentical host/browser float hashes. Direct and MSE playback retain6 channel identities after seeking to0.8s and reach EOF. Stereo downmix, swapped-channel and malformed-input controls reject; contexts close.
 
-## Accepted scope
+Capability and fidelity question is resolved for this16-bit48kHz synthetic destination profile. Original proposal explicitly asks preservation of six distinct channels and contains no speed or resource hypothesis; physical speaker routing,24-bit and production integration are outside this completed profile.
 
-Six channel identities at Web Audio boundary; not sample-exact wholePCM or six physical speaker proof.
+Only this declared component/profile is decided. All failed variants retained. Run directory renamed after capture. Replay into a fresh output directory. No production integration or release qualification.
 
-Independent six-tone channel matrix stays diagonal for direct and MSE FLAC, while intentional stereo downmix fails the matrix. Both destinations reach EOF and clean up.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | Independent six-tone channel matrix stays diagonal for direct and MSE FLAC, while intentional stereo downmix fails the matrix. Both destinations reach EOF and clean up. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
-
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Run](../../shared/runs/20260919T205039Z-six-channel-closure/run.json) · [Analysis](../../shared/runs/20260919T205039Z-six-channel-closure/analysis.md) · [Manifest](../../shared/runs/20260919T205039Z-six-channel-closure/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

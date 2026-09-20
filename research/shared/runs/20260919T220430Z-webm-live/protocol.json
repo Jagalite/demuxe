@@ -1,0 +1,6 @@
+{
+  "item": "R054.tune-webm-cluster-production-for-early-audio-availability",
+  "scope": "Genuine FFmpeg producer reads same pinned6sOpus source at real-time rate and copies packets into stdout WebM; bytes forwarded immediately to same-ownerMSE audio with identical prepreparedH264video. Defaultmux versus cluster_time_limit40ms and flush_packets1. This is actualproducer output, not prebuiltfile pacing.",
+  "correctness": "All Opus packet hashes, codec delay/tail samples and hostcontinuousPCM identical; actualbrowser EOF, media clock, nonzeroPCM and continuousaudio owner. Delayedproducer SIGSTOP/CONT and actualfetchabort cleanup/restart controls.",
+  "performance": "Only after full producer/browser correctness and identity,3alternating pairs cold request→firstnonzeroAudioWorklet sample. Candidate median<=0.9baseline, deliveredbyte overhead<=20percent. Producer starts fresh eachrequest; inputpreencoded shared setup; video prep identical outside request timer."
+}

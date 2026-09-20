@@ -47,79 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Source-grounded contract retained; current scope and falsifier narrowed in run analysis.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Generated deterministic signal, independent FIR convolution, wrong-tail control, and actual unchanged PCMOutput source pinned.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Actual unchanged PCMOutput reproduced all 4096 float32 samples through symbolic post-FIR zero spans, media clock, epoch and close; wrong early-zero control loses three nonzero tail samples. Component feasibility passes. Ring materialization and detection scan remain, so no allocation/CPU saving claim.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Scoped Node PCMOutput component fidelity and epoch/close controls passed; no browser or upstream producer qualification.",
+      "basis": "Actual unchanged PCMOutput renders all48000 float samples exactly from symbolic zero spans, retaining the three nonzero FIR tail samples. Media-clock versus underrun, epoch reset, close and nonlinear noise materialization controls pass. Explicit cached PCM payload1040bytes versus192000bytes meets8x reduction criterion, but complete scan/descriptor/materialize/playback median2.9885ms versus2.592417ms (1.152785x) fails1.10 time ceiling.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No benchmark: payload counts exclude descriptors, scan, ring materialization and browser cost.",
+      "status": "failed",
+      "basis": "Actual unchanged PCMOutput renders all48000 float samples exactly from symbolic zero spans, retaining the three nonzero FIR tail samples. Media-clock versus underrun, epoch reset, close and nonlinear noise materialization controls pass. Explicit cached PCM payload1040bytes versus192000bytes meets8x reduction criterion, but complete scan/descriptor/materialize/playback median2.9885ms versus2.592417ms (1.152785x) fails1.10 time ceiling.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Commands, output identities, source/runtime manifest, limitations and expected adverse outcomes captured.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scoped disposition recorded; integration and release qualification remain separate.",
+      "basis": "stop_current_profile: Stop this post-filter scan-to-spans-to-materialized-ring cost profile. Reopen with upstream certified symbolic intervals or a consumer that avoids ring materialization; this prototype does not avoid initial decoding/filter allocations, and explicit retained payload is not total process memory.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "audio-stage-reconciliation",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples",
-      "recorded_at_utc": "2026-09-19T19:59:33.240223+00:00",
+      "recorded_at_utc": "2026-09-19T21:00:17.431150+00:00",
       "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T195933Z-symbolic-silence"
+        "20260919T210017Z-symbolic-silence-cost"
       ],
-      "evidence_level": "component_test",
-      "profile": "post-FIR mono float32 spans duplicated to stereo; actual PCMOutput executed under Node worklet shim",
+      "evidence_level": "actual_component_execution",
       "candidate_executed": true,
       "fallback_observed": false,
-      "reason": "Actual unchanged PCMOutput reproduced all 4096 float32 samples through symbolic post-FIR zero spans, media clock, epoch and close; wrong early-zero control loses three nonzero tail samples. Component feasibility passes. Ring materialization and detection scan remain, so no allocation/CPU saving claim.",
-      "next_action": "Measure a real zero-span producer after stateful processing and its transport benefit; browser scheduling and source replacement integration remain unqualified.",
-      "reopen_condition": "Measure a real zero-span producer after stateful processing and its transport benefit; browser scheduling and source replacement integration remain unqualified.",
+      "reason": "Actual unchanged PCMOutput renders all48000 float samples exactly from symbolic zero spans, retaining the three nonzero FIR tail samples. Media-clock versus underrun, epoch reset, close and nonlinear noise materialization controls pass. Explicit cached PCM payload1040bytes versus192000bytes meets8x reduction criterion, but complete scan/descriptor/materialize/playback median2.9885ms versus2.592417ms (1.152785x) fails1.10 time ceiling.",
+      "next_action": "Stop this post-filter scan-to-spans-to-materialized-ring cost profile. Reopen with upstream certified symbolic intervals or a consumer that avoids ring materialization; this prototype does not avoid initial decoding/filter allocations, and explicit retained payload is not total process memory.",
+      "reopen_condition": "Stop this post-filter scan-to-spans-to-materialized-ring cost profile. Reopen with upstream certified symbolic intervals or a consumer that avoids ring materialization; this prototype does not avoid initial decoding/filter allocations, and explicit retained payload is not total process memory.",
       "evidence": [
-        "research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/evidence/20260919T195933Z-symbolic-silence/run.json"
-      ],
-      "blocker_category": null
+        "research/shared/runs/20260919T210017Z-symbolic-silence-cost/run.json"
+      ]
     }
   },
-  "next_action": "Measure a real zero-span producer after stateful processing and its transport benefit; browser scheduling and source replacement integration remain unqualified.",
+  "next_action": "Stop this post-filter scan-to-spans-to-materialized-ring cost profile. Reopen with upstream certified symbolic intervals or a consumer that avoids ring materialization; this prototype does not avoid initial decoding/filter allocations, and explicit retained payload is not total process memory.",
   "integration": {
     "status": "not_integrated"
   },

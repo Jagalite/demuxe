@@ -2,12 +2,24 @@
 
 # Use frame CRCs to narrow a repair, then require trusted-hash verification
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full identity: `R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification`.
 
-Current readers validate range identity and retry transport but have no independently trusted compressed-frame hashes or FLAC frame-length index. Related report CRC32 localization/collision filtering is not the proposed FLAC single-bit syndrome implementation.
+Current decision: **pursue** (actual_compressed_repair_and_native_decode).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual1033-byte FLAC frame under explicit single-bit corruption model: CRC16 syndrome map nominates locations, then only separately trusted SHA256 identity admits a temporary repaired view. All12 damaged cases repair to original full bytes; two-bit, CRC-valid/hash-invalid, missing-identity and wrong-identity controls reject. Repaired fullFLAC yields all2048 host PCM samples and native Chrome audio samples exactly. Seven paired12-repair jobs, including fresh syndrome-table construction, cost median0.19645x direct SHA256 candidate enumeration (range0.0881–0.3621). Pursue bounded offline repair; CRC never becomes admission authority.
 
-Next: Provide a tiny frame extent plus separately trusted SHA256, then enumerate bounded single-bit candidates on a temporary copy and reject CRC-valid hash-invalid, missing-identity and two-bit controls.
+Next action: Retain explicit single-bit/known-extent model and independently trusted identity; do not admit CRC-only or expand to arbitrary repair without a new bounded cost/correctness contract.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | ActualFLAC frame/extent and separately trusted expectedSHA256; real corrupted temporary views. |
+| screen | passed | CRC syndrome table nominates sparse candidate bits, no weakened final identity check. |
+| correctness | passed | 12cases exact bytes; all2048host/native samples exact;2bit/CRCvalid-wronghash/missingidentity/wrongidentity reject before native admission. |
+| performance | passed | Fresh table+12repair job median80.35% faster than direct SHA256 enumeration, all7pairs faster; bounded1033Bframe profile. |
+| results | passed | Actual1033-byte FLAC frame under explicit single-bit corruption model: CRC16 syndrome map nominates locations, then only separately trusted SHA256 identity admits a temporary repaired view. All12 damaged cases repair to original full bytes; two-bit, CRC-valid/hash-invalid, missing-identity and wrong-identity controls reject. Repaired fullFLAC yields all2048 host PCM samples and native Chrome audio samples exactly. Seven paired12-repair jobs, including fresh syndrome-table construction, cost median0.19645x direct SHA256 candidate enumeration (range0.0881–0.3621). Pursue bounded offline repair; CRC never becomes admission authority. |
+| decision | passed | Actual1033-byte FLAC frame under explicit single-bit corruption model: CRC16 syndrome map nominates locations, then only separately trusted SHA256 identity admits a temporary repaired view. All12 damaged cases repair to original full bytes; two-bit, CRC-valid/hash-invalid, missing-identity and wrong-identity controls reject. Repaired fullFLAC yields all2048 host PCM samples and native Chrome audio samples exactly. Seven paired12-repair jobs, including fresh syndrome-table construction, cost median0.19645x direct SHA256 candidate enumeration (range0.0881–0.3621). Pursue bounded offline repair; CRC never becomes admission authority. |
+
+[New run](../../shared/runs/20260920T000413Z-crc-repair/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

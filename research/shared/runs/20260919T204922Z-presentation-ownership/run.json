@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "run_id": "20260919T204922Z-presentation-ownership",
+  "item_keys": [
+    "R318.decode-a-gop-once-for-exact-reverse-frame-playback.report-continuity",
+    "R289.share-one-native-decoder-across-unrelated-independent-picture-jobs",
+    "R323.fan-one-decoded-videoframe-into-several-workers-without-copying-its-pixels-up-front",
+    "R118.mse-append-window-clipping-report-paragraph-label.report-frontier"
+  ],
+  "recorded_at_utc": "2026-09-19T20:52:44.389477+00:00",
+  "stage": "performance",
+  "commands": [
+    "node research/shared/tooling/presentation-stage7/ownership.mjs research/shared/runs/20260919T204922Z-presentation-ownership R318",
+    "node research/shared/tooling/presentation-stage7/ownership.mjs research/shared/runs/20260919T204922Z-presentation-ownership R289",
+    "node research/shared/tooling/presentation-stage7/ownership.mjs research/shared/runs/20260919T204922Z-presentation-ownership R323",
+    "node research/shared/tooling/presentation-stage7/ownership.mjs research/shared/runs/20260919T204922Z-presentation-ownership R118"
+  ],
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "browser": "152.0.7977.83"
+  },
+  "statistics": {
+    "R318": {
+      "baseline_mean_ms": 5.644444439146254,
+      "candidate_mean_ms": 0.7111111150847541,
+      "saving_percent": 87.40157472092484,
+      "bootstrap95": [
+        85.4166663993426,
+        89.38193316847808
+      ],
+      "gate_passed": true,
+      "pairs": 9,
+      "seed": 3181,
+      "resamples": 10000
+    },
+    "R289": {
+      "baseline_mean_ms": 1.8444444470935397,
+      "candidate_mean_ms": 0.6999999947018094,
+      "saving_percent": 62.048193112844174,
+      "bootstrap95": [
+        56.521738502678595,
+        67.30769258690539
+      ],
+      "gate_passed": true,
+      "pairs": 9,
+      "seed": 2891,
+      "resamples": 10000
+    },
+    "R323": {
+      "baseline_mean_ms": 9.533333341280619,
+      "candidate_mean_ms": 6.77777777115504,
+      "saving_percent": 28.90442903316569,
+      "bootstrap95": [
+        -12.499999923662086,
+        56.27450994852183
+      ],
+      "gate_passed": false,
+      "pairs": 9,
+      "seed": 3231,
+      "resamples": 10000
+    },
+    "R118": {
+      "baseline_mean_ms": 6.8888888822661505,
+      "candidate_mean_ms": 7.877777788374159,
+      "saving_percent": -14.354838973432615,
+      "bootstrap95": [
+        -40.90225623228005,
+        13.06930697790467
+      ],
+      "gate_passed": false,
+      "pairs": 9,
+      "seed": 1181,
+      "resamples": 10000
+    }
+  },
+  "limits": [
+    "Prepared compatible H264 component only",
+    "Tiny fixtures and cold worker overhead limit generalization",
+    "No production admission changes"
+  ]
+}

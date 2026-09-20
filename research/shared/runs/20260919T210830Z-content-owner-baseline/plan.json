@@ -1,0 +1,6 @@
+{
+ "item":"R200.content-addressed-reuse-across-different-files",
+ "workload":"Two authorized existing generated movies with different wrappers but identical coded H264 packets. Same independent FFprobe indexes supplied to both strategies; actual source reads and packet creation included. Cheaper baseline already deduplicates within each owner; candidate additionally deduplicates across owners. Original private-packet baseline retained but superseded. Baseline retains independent per-owner content indexes; candidate retains one verified byte/config-keyed payload with separate per-file ordered references.",
+ "sampling":"Nine alternating pairs, fresh Python object graph and collected heap each. Live and peak tracemalloc bytes include packet lists, content index, hashes and object overhead; exclude common FFprobe indexes and interpreter/OS native allocations.",
+ "threshold":"Every reconstructed packet list must exactly match each file independently, poisoned claims rejected, references released. Candidate median live traced allocations must be at least10% lower to support memory pursuit in this small exact sharing workload. Runtime CPU time and peak allocations reported without claiming CPU or whole-process RSS savings."
+}

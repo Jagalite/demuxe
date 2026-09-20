@@ -65,96 +65,101 @@
     },
     "prepare": {
       "status": "passed",
-      "basis": "Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen.",
+      "basis": "New executable probe and declared workload/controls registered with source/input/runtime evidence.",
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Explicit video-only empty edit preserves mdat, holds red during requested inserted second and resumes green. Baseline middle interval is green. Candidate ends at2.958333s with74 reported frames versus48 baseline, so no sparse-decoding saving.",
+      "basis": "A one-second empty edit does not implement the required hold-last-picture behavior on the changing-frame fixture. Eleven of twelve middle-interval queries are wrong; actual continuous playback also shows changing source pictures through the supposed freeze. Earlier constant-red source concealed this difference. Stop the empty-edit freeze recipe; unchanged mdat alone does not prove timeline fidelity.",
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Color/timeline component passes; exact complete frame sequence, final endpoint, soundtrack policy and seeks remain unqualified.",
+      "status": "failed",
+      "basis": "Independent24distinct native whole-file frame references. Authored edit maps source0\u20131s, empty1s, then source1\u20132s; mdat exactly unchanged.36requestedpresentation images show11wrongmiddleimages, includingseek1.5s showing sourceframe6 instead ofheldframe11. Actualcontinuousmiddle frames also change (source12 then1..11), so this isnotonlypausedseek behavior. Outer source intervals andEOF pass; duration2.916667 ratherthanclaimed3s retained. Video-only, no soundtrack semantics.",
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No equivalent-work benchmark or owner opportunity measurement.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "Not applicable after wrong-picture freeze contract failure. Smallmetadata growth andunchangedpayload are not an accepted optimization result.",
+      "evidence": [
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Immutable positive/negative evidence and manifests registered.",
+      "basis": "Actual new execution raw outcomes, controls and scoped interpretation retained.",
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scoped pursue; remaining gate and actual owner opportunity explicit.",
+      "basis": "stop_current_profile: A one-second empty edit does not implement the required hold-last-picture behavior on the changing-frame fixture. Eleven of twelve middle-interval queries are wrong; actual continuous playback also shows changing source pictures through the supposed freeze. Earlier constant-red source concealed this difference. Stop the empty-edit freeze recipe; unchanged mdat alone does not prove timeline fidelity.",
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "canonical-stage-advancement",
+    "campaign": "all-stages-transport",
     "record": {
       "key": "R121.insert-a-freeze-with-an-empty-edit.report-frontier",
-      "state": "pursue",
-      "reason": "Explicit video-only empty edit preserves mdat, holds red during requested inserted second and resumes green. Baseline middle interval is green. Candidate ends at2.958333s with74 reported frames versus48 baseline, so no sparse-decoding saving.",
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
+      "reason": "A one-second empty edit does not implement the required hold-last-picture behavior on the changing-frame fixture. Eleven of twelve middle-interval queries are wrong; actual continuous playback also shows changing source pictures through the supposed freeze. Earlier constant-red source concealed this difference. Stop the empty-edit freeze recipe; unchanged mdat alone does not prove timeline fidelity.",
+      "recorded_at_utc": "2026-09-19T22:11:34.503371+00:00",
       "evidence_level": "component_test",
-      "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
       "run_ids": [
-        "20260919T203100Z-empty-edit",
-        "20260919T203400Z-empty-edit-blob"
+        "20260919T220400Z-empty-edit-continuous"
       ],
       "evidence": [
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
-        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/run.json",
+        "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T220400Z-empty-edit-continuous/manifest.json"
       ],
-      "next_test": "Define final-frame/end-time and audio gap policy, then exact image/seek and lifecycle oracle. This is an altered requested timeline, not unchanged-playback optimization.",
-      "reopen_condition": "Define final-frame/end-time and audio gap policy, then exact image/seek and lifecycle oracle. This is an altered requested timeline, not unchanged-playback optimization.",
-      "scope": "Color/timeline component passes; exact complete frame sequence, final endpoint, soundtrack policy and seeks remain unqualified."
+      "next_test": "Reopen with an explicit hold-frame representation or presentation policy whose full changing-picture timeline and endpoint match; preserve the constant-color prior result as insufficient freeze evidence. No sparse-decode claim.",
+      "reopen_condition": "Reopen with an explicit hold-frame representation or presentation policy whose full changing-picture timeline and endpoint match; preserve the constant-color prior result as insufficient freeze evidence. No sparse-decode claim.",
+      "scope": "Independent24distinct native whole-file frame references. Authored edit maps source0\u20131s, empty1s, then source1\u20132s; mdat exactly unchanged.36requestedpresentation images show11wrongmiddleimages, includingseek1.5s showing sourceframe6 instead ofheldframe11. Actualcontinuousmiddle frames also change (source12 then1..11), so this isnotonlypausedseek behavior. Outer source intervals andEOF pass; duration2.916667 ratherthanclaimed3s retained. Video-only, no soundtrack semantics.",
+      "new_experiment": true,
+      "prior_decision": {
+        "campaign": "canonical-stage-advancement",
+        "record": {
+          "key": "R121.insert-a-freeze-with-an-empty-edit.report-frontier",
+          "state": "pursue",
+          "reason": "Explicit video-only empty edit preserves mdat, holds red during requested inserted second and resumes green. Baseline middle interval is green. Candidate ends at2.958333s with74 reported frames versus48 baseline, so no sparse-decoding saving.",
+          "evidence_level": "component_test",
+          "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
+          "run_ids": [
+            "20260919T203100Z-empty-edit",
+            "20260919T203400Z-empty-edit-blob"
+          ],
+          "evidence": [
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/run.json",
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/results.json",
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203100Z-empty-edit/manifest.json",
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/run.json",
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/results.json",
+            "research/items/R121.insert-a-freeze-with-an-empty-edit.report-frontier/evidence/20260919T203400Z-empty-edit-blob/manifest.json"
+          ],
+          "next_test": "Define final-frame/end-time and audio gap policy, then exact image/seek and lifecycle oracle. This is an altered requested timeline, not unchanged-playback optimization.",
+          "reopen_condition": "Define final-frame/end-time and audio gap policy, then exact image/seek and lifecycle oracle. This is an altered requested timeline, not unchanged-playback optimization.",
+          "scope": "Color/timeline component passes; exact complete frame sequence, final endpoint, soundtrack policy and seeks remain unqualified."
+        }
+      }
     }
   },
-  "next_action": "Define final-frame/end-time and audio gap policy, then exact image/seek and lifecycle oracle. This is an altered requested timeline, not unchanged-playback optimization.",
+  "next_action": "Reopen with an explicit hold-frame representation or presentation policy whose full changing-picture timeline and endpoint match; preserve the constant-color prior result as insufficient freeze evidence. No sparse-decode claim.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

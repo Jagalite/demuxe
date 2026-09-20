@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "20260919T232533Z-flac-lpc",
+  "item_keys": [
+    "R234.replace-general-flac-predictors-with-equivalent-fixed-predictors"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual authored zero-shift LPC coefficients exactly equal fixed predictors1..4; converter preserves every warmup and Rice residual bit while changing predictor syntax/framing. All1028samples match original and independent ordinary encoding exactly in FFmpeg/Chrome, libFLAC integrity/render/end/closed pass. Near coefficient, nonzero shift, CRC and truncation reject. A real ordinary FFmpeg encoding of same PCM had one order7/shift13 non-binomial LPC subframe and zero eligible opportunities; no broader prevalence inference. Five cold transform/write/decode jobs48.462ms versus simply decoding original already-valid LPC41.689ms ratio1.16245 fails<=0.9. Authored output2066 vs2075bytes."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold LPC-syntax conversion profile. Mathematical conversion is exact only for admitted zero-shift binomial predictors, but direct decoding is cheaper here and the one ordinary encoding showed no opportunity. Do not invent re-encoding work in baseline or infer normal-catalogue exposure from authored equivalent fixtures. Reopen only with measured eligible frequency or repeated-decode savings including preparation.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_bits.py"
+  ],
+  "commands_log": "research/shared/runs/20260919T232533Z-flac-lpc/commands.log"
+}

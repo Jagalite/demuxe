@@ -2,30 +2,24 @@
 
 # Make independently resampled audio chunks join exactly
 
-Full identity: `R233.make-independently-resampled-audio-chunks-join-exactly`.
+Full key: `R233.make-independently-resampled-audio-chunks-join-exactly`
 
-Current decision: **blocked** (2026-09-19T19:59:33.240223+00:00).
+Current decision: **pursue** (2026-09-19T20:59:29.963950+00:00).
 
-Maintained adaptation explicitly preserves sample rate without swresample and has no independent absolute-output resampling job interface. A host or rational toy would not prove production state/phase equivalence.
+New independent finite-polyphase resampler and exact biquad checkpoint components executed. Every PCM byte, randomrange, boundary and adverse-control gate passes. Resampler44.1k profile fails1.20 time overhead ceiling (1.22027x);32k passes (1.17926x). IIR cold checkpoint construction plus80 queries costs0.03814 of replay-from-zero baseline.
 
-## Contract
+These are independent bounded algorithm components, not the maintained FFmpeg resampler or a shipping checkpoint ABI. Missing integration remains separate from feasibility. Changes to recurrence, precision, filter bank, state identity or denormal policy require new qualification.
 
-Address jobs by absolute output-sample intervals and provide the finite filter's input halo and global phase. Compare irregularly partitioned execution with the same continuous resampler including edges, delays and sample counts.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-Next action: Select an actual independent resampling consumer and pinned kernel/state interface; compare irregular output intervals including phase, halo, edges and delay.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Source-grounded contract retained; current scope and falsifier narrowed in run analysis. |
-| prepare | blocked | Setup: no admitted resampler job interface exists in the audited audio path. |
-| screen | passed | Maintained adaptation explicitly preserves sample rate without swresample and has no independent absolute-output resampling job interface. A host or rational toy would not prove production state/phase equivalence. |
-| correctness | blocked | Depends on selecting a faithful maintained implementation/consumer. |
-| performance | blocked | No executable candidate or correctness gate; not a negative numerical result. |
-| results | passed | Commands, output identities, source/runtime manifest, limitations and expected adverse outcomes captured. |
-| decision | passed | Scoped disposition recorded; integration and release qualification remain separate. |
-
-[Run and environment](evidence/20260919T195933Z-resampler-gate/run.json) · [Results](evidence/20260919T195933Z-resampler-gate/results.json) · [Manifest](evidence/20260919T195933Z-resampler-gate/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [All evidence](evidence/index.json)
-
-No production integration or release qualification is claimed. Historical bytes and original definition retained.
+[Run](../../shared/runs/20260919T205929Z-continuity/run.json) · [Analysis](../../shared/runs/20260919T205929Z-continuity/analysis.md) · [Manifest](../../shared/runs/20260919T205929Z-continuity/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

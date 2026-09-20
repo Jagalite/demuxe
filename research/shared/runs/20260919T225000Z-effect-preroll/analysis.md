@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Executed opt-in Q24 integer first-order lowpass y=floor((255*y+x)/256) under explicit |input|,|state|<=1 and normalized absolute error budget1e-4. Derived state difference plus two implemented-arithmetic rounding bounds:2*(255/256)^N+512/2^24; exact rational comparison certifies N2624 and bound9.9827351e-5. Continuous-reference comparisons across seeded noise and positive/negative DC, targets20000/80000/160000, all2048 output samples each: maximum observed error2.7298927e-5. Zero-preroll errors up to0.996; rounding-floor, near-unit excessive preroll, unknown bounds, source identity and cancellation controls reject. Five alternating complete source-read/hash/bounds/certificate/three-seek jobs:19.022ms candidate versus33.121ms full-prefix replay, ratio0.57431 passes<=0.9. Baseline does not compute candidate certificate.
+
+Pursue only explicit bounded-error Q24 controlled-filter seeking with this admitted source/state bound. This changes numerical semantics and cannot replace exact checkpoints, arbitrary effects, decoder preroll or production routing. Near-unit poles and budgets below arithmetic floor remain rejected with full-prefix replay as separate baseline. Generic floating-point filters require their own implemented-arithmetic proof; no general DSP qualification.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

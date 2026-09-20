@@ -2,28 +2,24 @@
 
 # Tune FLAC effort without changing frame duration
 
-Full identity: `R071.tune-flac-effort-without-changing-frame-duration`. Original rank: 239.
+Full key: `R071.tune-flac-effort-without-changing-frame-duration`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T22:38:22.367612+00:00).
 
-No new matched Wasm compression-level experiment was run. Historical host level0 trades more bytes for little CPU saving and does not match maintained frame_size, so it cannot select the production level. Defer until preparation CPU is an actual bottleneck and level0/5 can be compared at identical frame duration including browser decode and bytes.
+ActualmaintainedWasmadapter source copied/linkedisolated atFLAClevels0/5 againstsamecachedlockedFFmpeg7.1.1 libraries; explicitframe_size4608bothprofiles. Two30s48kstereoS16tonal/seedednoise sources: all1440000samples perchannel exacthost/nativebrowser,720copiedH264packets unchanged,313FLACpackets with312x4608+2304durationidentical. ActualnativeMSEseek/audiblePCM/nearendEOF andowner cleanup passallfour; cancellation after20actualadaptersteps terminatesreader/worker andfreshjobpasses. Fivealternating fullworker/File-reader setup+Wasmencode+transfer+nativedecode/render pairs:tonal749.845ms vs743.720ms ratio1.00824,bytes1.85582;noise689.940ms vs752.485ms ratio0.91688,bytes1.07099. Bothfail declaredcost<=0.9 andbytes<=1.25 combinedgate; tonalbytepenaltyalone large.
 
-No matching candidate/reference/control execution for this exact gate. Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode.
+Stop general level0-at-fixed4608frames profile. Noise improvesmeasuredcost8.3percent but missespredeclared10percent; no repeat-to-pass. MatchedWasmproduction-family encoder gap resolved withouteditingservedruntime orproduction source. Fixedframe research policy is explicit and notthedefaultencoderconfiguration; noautomaticlevelchange or physicalplayback claim.
 
-Next action: Next missing gate: Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Matched maintained-Wasm level0/5 workload with fixed frame duration and demonstrated preparation bottleneck, including emitted bytes/browser decode. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T223822Z-flac-effort/run.json) · [Analysis](../../shared/runs/20260919T223822Z-flac-effort/analysis.md) · [Manifest](../../shared/runs/20260919T223822Z-flac-effort/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

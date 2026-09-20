@@ -2,28 +2,10 @@
 
 # Hibernate long-paused presentations under an explicit memory policy
 
-Full identity: `R067.hibernate-long-paused-presentations-under-an-explicit-memory-policy`. Original rank: 157.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Implemented explicit opt-in paused-VOD hibernation for eight localvideo-only owners, retaining eight bounded320x180stills (1843200logicalRGBAbytes) and source/time/rate/volume/mute/selection snapshot. Live/PiP/nonoptin/non-userpaused policy guards reject. Retired media owners remove src/load toreadyState0; all eight restored paused images and settings are exact, and cancellation discards an in-flight restoration without retiring eight survivors. Original run caught playbackRate reset to1 during native media load; a diagnostic confirmed it, then one correction sets defaultPlaybackRate and reapplies1.25 afterload. Preserve both negatives. Nine before/after within-owner browserprocess RSS pairs (only ownCDP processIDs;150ms afterretirement) show1.93% resident-proxy reduction,95%[0.19428124207718778, 3.431383609483629]; below10%lower-boundgate. All8-owner restores <= 232.20ms meet250ms ceiling. Therefore correctnesspasses but memoryvalue notestablished; do not replace failed memorygate with fewer video elements. RSS includes shared pages/caches and is not physicalallocation attribution; baseline/candidate ordering fixed by lifecycle and concurrenthost activity limits inference. No live/PiP/DRM/caption/alternate-track/networkauth or production idlepolicy admission.
 
-Pause retains presentation; destroy releases it but no public idle hibernation policy/snapshot owner exists. Choosing when to discard live buffers is user-visible behavior, not a low-risk cleanup patch.
+Next: Reopen with a workload showing measured resident-memory benefit under a declared idle/resume tradeoff, or a more attributable memory instrument. Preserve explicit opt-in and complete source/settings snapshot; no production policy change.
 
-No matching candidate/reference/control execution for this exact gate. Opt-in idle policy, complete resumable snapshot and cancellation-safe restore owner.
-
-Next action: Specify opt-in idle threshold and saved tracks/rate/gain/captions/authorization first; one pause-release-resume pilot must reject live/PiP and cancel restoration cleanly. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Opt-in idle policy, complete resumable snapshot and cancellation-safe restore owner. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Opt-in idle policy, complete resumable snapshot and cancellation-safe restore owner. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T221431Z-restore-rate/analysis.md)

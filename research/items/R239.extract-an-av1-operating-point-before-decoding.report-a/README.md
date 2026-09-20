@@ -4,11 +4,11 @@
 
 Full identity: `R239.extract-an-av1-operating-point-before-decoding.report-a`.
 
-Current decision: **pursue** (component_test).
+Current decision: **pursue** (actual_complete_task_performance).
 
-The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream.
+480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms.
 
-Next action: Test the report-specific generalized header rewriting and selected-point seek boundary before integration.
+Next action: Bounded temporal-layer extraction research complete for declared profile. Integrate only behind validated advertised operating point and exact timestamp contract; separately measure target browser hardware workload.
 
 ## Definition and contract
 
@@ -28,8 +28,8 @@ Adverse control: Alter one admission-critical configuration, remove a required d
 | prepare | passed | Pinned inputs, actual commands, tool identities and independent references captured in run manifest. |
 | screen | passed | The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
 | correctness | passed | Restricted AV1 temporal subset: independent FFmpeg and actual Chrome complete pixel/timestamp comparison in prior hashed run; new selector actually rejects unsupported mask before output and reproduces accepted candidate bytes exactly. No tile evidence borrowed. |
-| performance | not_applicable | Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness. |
-| results | passed | Positive/negative evidence and limitations captured in immutable run. |
-| decision | passed | pursue: The report mechanism now has a real two-layer source and exact layer extraction: selected mask 257 retains 12 of 24 frames with identical coded OBU bytes; independent host decoding, libaom selected operating point and browser pixels/timestamps agree. Missing required keyframe fails. This report-specific evidence does not cover arbitrary masks or decoder-model timing. Review correction: the earlier unsupportedMaskRejected field was membership observation only. New callable extractor actually rejects unadvertised mask258; accepted257 output is byte-identical to the independently host/browser-qualified stream. |
+| performance | passed | 480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms. |
+| results | passed | 480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms. |
+| decision | passed | 480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms. |
 
-[New run](../../shared/runs/20260919T202700Z-av1-guard/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+[New run](../../shared/runs/20260919T205300Z-av1-temporal-cost/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

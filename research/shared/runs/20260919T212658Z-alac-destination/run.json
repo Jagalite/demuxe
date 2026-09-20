@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "run_id": "20260919T212658Z-alac-destination",
+  "item_keys": [
+    "R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual original native ALAC decode rejects; ordinary ALAC Wasm decoding plus ordinary FLAC adaptation and copied H264 produces384000 exact host PCM bytes/96000 stereo frames. Chrome recovers every signed16 sample exactly; all48 coded video packets are unchanged with normalized timeline within1microsecond. Partial decoder job close/reopen, actual native MSE seek/audio/EOF and graph/worker cleanup pass. Finite bridge uses existing pinned modules, no different lossy decoder."
+  },
+  "performance": {
+    "status": "not_applicable"
+  },
+  "decision": "pursue",
+  "limits": "Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
+  "reused_evidence": [
+    "results/top100/audio/alac.m4a",
+    "results/top100/lossless/input.json",
+    "results/top100/lossless/decoder.c",
+    "results/top100/lossless/result.json",
+    "build/top100-lossless/runtime/lossless.mjs",
+    "build/top100-lossless/runtime/lossless.wasm",
+    "results/top100/lanes/small.mp4",
+    "web/native-remux-source-worker.js",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/manifest.json",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/remux.mjs",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/remux.wasm"
+  ],
+  "commands_log": "research/shared/runs/20260919T212658Z-alac-destination/commands.log"
+}

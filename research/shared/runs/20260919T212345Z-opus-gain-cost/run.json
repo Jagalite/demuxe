@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T212345Z-opus-gain-cost",
+  "item_keys": [
+    "R095.fixed-opus-gain-through-codec-container-headers"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Existing+3dB plus requested-6dB becomes-3dB Opus header with every encoded packet unchanged. All96000 browser output samples match GainNode reference within7.451e-9, RMS ratio1.000000006; double attenuation control yields0.501187 ratio. Nine-pair full copy/patch/decode/render/cleanup median3.880ms versus3.985ms (0.97365x) passes1.10 no-regression ceiling. Prior actual native seek/EOF persistence is pinned and reused."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue static WebM Opus gain metadata for this known existing-gain policy. No generalized speedup, physical energy, dynamic gain automation, loudness-tag rewrite, Ogg or MP4 claim.",
+  "reused_evidence": [
+    "results/full-completion/r95/existing-plus3.webm",
+    "results/full-completion/r95/requested-minus6.webm",
+    "results/full-completion/r95/result.json",
+    "results/full-completion/r95/host-oracle.json"
+  ],
+  "commands_log": "research/shared/runs/20260919T212345Z-opus-gain-cost/commands.log"
+}

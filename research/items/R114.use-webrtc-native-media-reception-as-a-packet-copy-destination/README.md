@@ -2,32 +2,24 @@
 
 # Use WebRTC native media reception as a packet-copy destination
 
-Full identity: `R114.use-webrtc-native-media-reception-as-a-packet-copy-destination`. Original rank: 18.
+Full identity: `R114.use-webrtc-native-media-reception-as-a-packet-copy-destination`.
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Current decision: **pursue** (actual_packet_only_native_webrtc_route).
 
-Actual loopback WebRTC native receiver renders pre-encoded H264 red frame substituted into outgoing encoded frames; all three received NAL lists match source exactly. Isolated Chrome disabled mDNS IP hiding after local mDNS ICE stall. Placeholder encoder still runs; proves destination capability, not encoder-free sender/service or net CPU savings.
+Actual authorized local aiortc AVPacket-only H264/Opus sender reaches normal Chrome native WebRTC reception with mDNS privacy enabled. Two replacement sessions independently receive five exact H264 NAL lists and first eight exact Opus packets, render red pictures and878.90625Hz expected880Hz tone, then close all tracks/peers. Instrumented sender encode calls stay zero; H264/Opus pack calls are nonzero. Unlike prior placeholder route, no encoder runs. Wrong coded packet fails independent identity check; mismatched VP8 negotiation control produced no decoded frames and is preserved.
 
-## Accepted scope
-
-Chrome --disable-features=WebRtcHideLocalIpsWithMdns; placeholder encoder still runs, so no encoder-free or default-privacy claim.
-
-Three received H264 NAL lists match substituted source and native receiver renders red instead of green placeholder; connections/tracks cleaned up. Qualification restricted to diagnostic mDNS-disabled environment.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
+Next action: Scoped live H264-IDR/Opus packet-copy capability research complete under normal ICE privacy. Production pursuit requires source timing/seek/authorization and target-network qualification; file priming, arbitrary GOPs and CPU benefit remain separate claims.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
+| prepare | passed | Isolated pinned aiortc1.15.0/PyAV17.1.0/aiohttp3.14.3 environment; captured primary packet-vs-frame sender source and pip identities; owned coded fixtures. |
 | screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | Three received H264 NAL lists match substituted source and native receiver renders red instead of green placeholder; connections/tracks cleaned up. Qualification restricted to diagnostic mDNS-disabled environment. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
+| correctness | passed | Actual authorized local aiortc AVPacket-only H264/Opus sender reaches normal Chrome native WebRTC reception with mDNS privacy enabled. Two replacement sessions independently receive five exact H264 NAL lists and first eight exact Opus packets, render red pictures and878.90625Hz expected880Hz tone, then close all tracks/peers. Instrumented sender encode calls stay zero; H264/Opus pack calls are nonzero. Unlike prior placeholder route, no encoder runs. Wrong coded packet fails independent identity check; mismatched VP8 negotiation control produced no decoded frames and is preserved. |
+| performance | not_applicable | Declared original question is additional packet-copy native reception capability. Actual zero encode calls establish mechanism; no numerical CPU, latency, bandwidth or energy improvement is asserted. |
+| results | passed | Actual authorized local aiortc AVPacket-only H264/Opus sender reaches normal Chrome native WebRTC reception with mDNS privacy enabled. Two replacement sessions independently receive five exact H264 NAL lists and first eight exact Opus packets, render red pictures and878.90625Hz expected880Hz tone, then close all tracks/peers. Instrumented sender encode calls stay zero; H264/Opus pack calls are nonzero. Unlike prior placeholder route, no encoder runs. Wrong coded packet fails independent identity check; mismatched VP8 negotiation control produced no decoded frames and is preserved. |
+| decision | passed | Actual authorized local aiortc AVPacket-only H264/Opus sender reaches normal Chrome native WebRTC reception with mDNS privacy enabled. Two replacement sessions independently receive five exact H264 NAL lists and first eight exact Opus packets, render red pictures and878.90625Hz expected880Hz tone, then close all tracks/peers. Instrumented sender encode calls stay zero; H264/Opus pack calls are nonzero. Unlike prior placeholder route, no encoder runs. Wrong coded packet fails independent identity check; mismatched VP8 negotiation control produced no decoded frames and is preserved. |
 
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[New run](../../shared/runs/20260919T211000Z-webrtc-replacement/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

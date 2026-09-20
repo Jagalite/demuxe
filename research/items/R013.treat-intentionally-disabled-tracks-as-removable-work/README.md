@@ -2,28 +2,24 @@
 
 # Treat intentionally disabled tracks as removable work
 
-Full identity: `R013.treat-intentionally-disabled-tracks-as-removable-work`. Original rank: 173.
+Full key: `R013.treat-intentionally-disabled-tracks-as-removable-work`
 
-Current decision: **pursue** (reconciled from **PURSUE_DESIGN**). No new media execution.
+Current decision: **pursue** (2026-09-19T21:56:57.857916+00:00).
 
-Explicit disabled-track intent has a concrete owner gap: current Native audio=no only mutes, while negative remux selection means automatic. Selected-track metadata experiment establishes packet-preserving exclusion is feasible, but no no-audio remux sentinel was implemented. Worth a separate explicit disable/re-enable contract; ordinary mute must keep audio prepared.
+Actual native AC3 decode rejects. Research explicit disabled audio selection copies48H264payloads exactly and emits video-only with zero decoded/encoded audio samples in FFmpeg executed-stream counters; ordinary muted comparator retains96768decoded and96768encoded audio samples. Same element owner rebuild sequence disabled→muted→audio-only→muted seeks1s and reachesEOF; actual MediaElementSource PCM RMS0 when disabled and0.04986 for enabled/muted, audio-only video frame count0. Old MediaSources close; source mismatch and ambiguous automatic selector reject; a genuinely completed obsolete preparation job is refused publication after epoch change. Five alternating cold host preparation pairs27.349ms disabled/33.716ms muted, ratio0.81116 passes0.9; allvideo hashes unchanged.
 
-Related existing controls are retained; this specific candidate has no complete output/lifecycle gate.
+Pursue explicit disabled-track intent with source-scoped epoch and bounded rebuild-on-reenable at retained RAP. Research muted comparator explicitly permits qualified24bit float quantization; no change to default sample-exact admission. This is executed host mapping/browser owner prototype, not production Native sentinel implementation. No claim ordinary volume mute reduces decode work or browser decoder CPU measured. Native continuous seamless reenable not qualified.
 
-Next action: Build only the bounded missing component: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Exact candidate setup not implemented: Explicit disable/re-enable sentinel and lifetime contract; negative stream selection currently means automatic and ordinary mute must retain audio. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | Related existing controls are retained; this specific candidate has no complete output/lifecycle gate. |
-| performance | blocked | No performance claim or equivalent candidate workload established. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T215657Z-disabled-tracks/run.json) · [Analysis](../../shared/runs/20260919T215657Z-disabled-tracks/analysis.md) · [Manifest](../../shared/runs/20260919T215657Z-disabled-tracks/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

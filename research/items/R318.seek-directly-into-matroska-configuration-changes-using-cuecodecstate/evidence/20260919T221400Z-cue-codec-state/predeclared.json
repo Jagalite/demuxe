@@ -1,0 +1,4 @@
+{
+  "correctness": "Actual two-epoch source-authored Matroska with CueCodecState pointing to high-profile CABAC initialization, first epoch baseline CAVLC. No in-band SPS/PPS in either source, so stale state cannot hide behind self-repair. Native WebCodecs exact ten host-decoded YUV420 frames per seek; target order1,0,1,0. Wrong-state, malformed-offset, non-RAP and stale-source controls must detect failure before performance.",
+  "performance": "11 alternating pairs, four fresh seek owners [1,0,1,0] per job, cue-directed epoch decode versus sequential replay of preceding epoch then target. Same40requestedpictures copied/hashed each; candidate40 versusbaseline60submittedpackets. Include source hash/index parse, state selection, freshdecoders, configure/decode/flush/copy/hash/close. Residentfile transfer and independentoracle generation commonexcluded. Median paired completejob saving>=5%, bootstrap95medianreported."
+}

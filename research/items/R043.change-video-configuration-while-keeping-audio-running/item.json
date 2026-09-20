@@ -65,92 +65,102 @@
     },
     "prepare": {
       "status": "passed",
-      "basis": "Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only.",
+      "basis": "New executable probe and declared workload/controls registered with source/input/runtime evidence.",
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Actual future AVC video replacements small160x96\u2192large320x180\u2192small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.",
+      "basis": "The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination.",
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+      "status": "failed",
+      "basis": "Actual wrong-track AAC initialization appended to the AVC video lane rejects after future-video removal. Old video ends at 1.999999 s instead of 6 s in both variants; audio remains buffered through 6.021333 s while the MediaSource has ended. Cleanup and stale-generation rejection pass. Independent 72-frame legal geometry evidence is retained separately; no claim of exact PCM or rollback.",
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No equivalent-work benchmark before relevant output correctness gates.",
-      "evidence": []
+      "status": "not_applicable",
+      "basis": "No benchmark after the failed transaction fidelity gate.",
+      "evidence": [
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
+      ]
     },
     "results": {
       "status": "passed",
-      "basis": "Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism.",
+      "basis": "Actual new execution raw outcomes, controls and scoped interpretation retained.",
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Pursue bounded mechanism; no integration or release qualification.",
+      "basis": "stop_current_profile: The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination.",
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "canonical-stage-advancement",
+    "campaign": "all-stages-transport",
     "record": {
       "key": "R043.change-video-configuration-while-keeping-audio-running",
-      "state": "pursue",
-      "reason": "Actual future AVC video replacements small160x96\u2192large320x180\u2192small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.",
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
+      "reason": "The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination.",
+      "recorded_at_utc": "2026-09-19T21:46:09.225875+00:00",
       "evidence_level": "component_test",
-      "recorded_at_utc": "2026-09-19T20:06:24.309553+00:00",
       "run_ids": [
-        "20260919T200300Z-mse-transactions",
-        "20260919T200700Z-mse-transactions-tail"
+        "20260919T214400Z-video-commit-acceptance"
       ],
       "evidence": [
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
-        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
-        "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
-        "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/run.json",
+        "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T214400Z-video-commit-acceptance/manifest.json"
       ],
-      "next_test": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
-      "reopen_condition": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
-      "candidate_executed": true,
-      "fallback_observed": false,
-      "case": "video-config"
+      "next_test": "Reopen with actual source/configuration preparation that prevents this mismatch before removal, plus a declared recovery path for post-removal failures; then repeat unchanged PCM, paused/seek lifecycle, and equivalent complete-cost gates.",
+      "reopen_condition": "Reopen with actual source/configuration preparation that prevents this mismatch before removal, plus a declared recovery path for post-removal failures; then repeat unchanged PCM, paused/seek lifecycle, and equivalent complete-cost gates.",
+      "scope": "Actual wrong-track AAC initialization appended to the AVC video lane rejects after future-video removal. Old video ends at 1.999999 s instead of 6 s in both variants; audio remains buffered through 6.021333 s while the MediaSource has ended. Cleanup and stale-generation rejection pass. Independent 72-frame legal geometry evidence is retained separately; no claim of exact PCM or rollback.",
+      "new_experiment": true,
+      "prior_decision": {
+        "campaign": "canonical-stage-advancement",
+        "record": {
+          "key": "R043.change-video-configuration-while-keeping-audio-running",
+          "state": "pursue",
+          "reason": "Actual future AVC video replacements small160x96\u2192large320x180\u2192small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.",
+          "evidence_level": "component_test",
+          "recorded_at_utc": "2026-09-19T20:06:24.309553+00:00",
+          "run_ids": [
+            "20260919T200300Z-mse-transactions",
+            "20260919T200700Z-mse-transactions-tail"
+          ],
+          "evidence": [
+            "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/run.json",
+            "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/results.json",
+            "research/items/R043.change-video-configuration-while-keeping-audio-running/evidence/20260919T200700Z-mse-transactions-tail/manifest.json",
+            "research/shared/runs/20260919T200300Z-mse-transactions/manifest.json",
+            "research/shared/runs/20260919T200700Z-mse-transactions-tail/manifest.json"
+          ],
+          "next_test": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+          "reopen_condition": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+          "candidate_executed": true,
+          "fallback_observed": false,
+          "case": "video-config"
+        }
+      }
     }
   },
-  "next_action": "Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.",
+  "next_action": "Reopen with actual source/configuration preparation that prevents this mismatch before removal, plus a declared recovery path for post-removal failures; then repeat unchanged PCM, paused/seek lifecycle, and equivalent complete-cost gates.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

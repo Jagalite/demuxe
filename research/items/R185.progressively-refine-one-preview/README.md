@@ -2,28 +2,24 @@
 
 # progressively refine one preview
 
-Full identity: `R185.progressively-refine-one-preview`. Original rank: 246.
+Full identity: `R185.progressively-refine-one-preview`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (actual-route screen).
 
-The existing seek UI and retained video draw have no progressive-image preview resource owner. The report relies on compositor-visible progressive JPEG states that canvas did not expose; piping through current canvas drawing would not reproduce that mechanism.
+Actual fresh image-element owner displayed a provisional progressive JPEG but did not refine between two partial releases: both RGB errors34.71918/255. Final compositor differs from independent completed-source reference in94channels by1 (mean0.00015937); strict exact-final gate failed. Replacement image is exact; incomplete transport cancellation and stale-owner rejection pass. Initial same-element run accidentally retained the prior complete image and is explicitly invalid as preview evidence. Scoped negative, not missing setup or universal rejection of progressive JPEG.
 
-No matching candidate/reference/control execution for this exact gate. Image-element progressive preview owner and source-generation cancellation; canvas snapshots do not expose the reported compositor refinement.
-
-Next action: Specify one image-element preview owner and source-generation token before using a progressive JPEG; inspect compositor refinement and cancel before final scan. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Research profile concluded at visual failure. Reopen only with demonstrated refinement and exact final fidelity under a declared revised profile.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Image-element progressive preview owner and source-generation cancellation; canvas snapshots do not expose the reported compositor refinement. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Image-element progressive preview owner and source-generation cancellation; canvas snapshots do not expose the reported compositor refinement. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Owned512x384 ten-scan162844-byte JPEG, fresh browser owner, independent completed reference, compositor screenshots and source/cancel controls executed. |
+| screen | passed | Owned512x384 ten-scan162844-byte JPEG, fresh browser owner, independent completed reference, compositor screenshots and source/cancel controls executed. |
+| correctness | failed | Actual fresh image-element owner displayed a provisional progressive JPEG but did not refine between two partial releases: both RGB errors34.71918/255. Final compositor differs from independent completed-source reference in94channels by1 (mean0.00015937); strict exact-final gate failed. Replacement image is exact; incomplete transport cancellation and stale-owner rejection pass. Initial same-element run accidentally retained the prior complete image and is explicitly invalid as preview evidence. Scoped negative, not missing setup or universal rejection of progressive JPEG. |
+| performance | not_applicable | Required refinement and strict final-fidelity gate failed; staged artificial delivery is not performance evidence. |
+| results | passed | Actual fresh image-element owner displayed a provisional progressive JPEG but did not refine between two partial releases: both RGB errors34.71918/255. Final compositor differs from independent completed-source reference in94channels by1 (mean0.00015937); strict exact-final gate failed. Replacement image is exact; incomplete transport cancellation and stale-owner rejection pass. Initial same-element run accidentally retained the prior complete image and is explicitly invalid as preview evidence. Scoped negative, not missing setup or universal rejection of progressive JPEG. |
+| decision | passed | Actual fresh image-element owner displayed a provisional progressive JPEG but did not refine between two partial releases: both RGB errors34.71918/255. Final compositor differs from independent completed-source reference in94channels by1 (mean0.00015937); strict exact-final gate failed. Replacement image is exact; incomplete transport cancellation and stale-owner rejection pass. Initial same-element run accidentally retained the prior complete image and is explicitly invalid as preview evidence. Scoped negative, not missing setup or universal rejection of progressive JPEG. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260920T003053Z-progressive-owner-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

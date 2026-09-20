@@ -64,96 +64,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
+      "status": "passed",
+      "basis": "Built matched actual FFmpeg IDCT Wasm variants and independent graphics/natural full-frame references.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
+      "basis": "Real decoder counters:8553/26916 eligible non-DC calls;380/2465 exact cache hits.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
+      "status": "passed",
+      "basis": "120 full frames and timestamps exact in each of7 pairs; each new source resets cache, later references remain exact.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Instrument bounded counts/hashes of real nonzero non-DC 4x4 blocks before implementing cache; compare graphics and natural-video traces.",
+      "status": "failed",
+      "basis": "No5% complete-job gain;1.017 median cold ratio,1.101/1.123 decode+oracle medians and102400B retained cache; variable timing disclosed.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
+      "basis": "A real compiled Wasm AVC decoder caches exact signed4x4 inverse-transform residuals keyed by all16 dequantized coefficients, before adding each blocks own prediction/clipping. Bounded1024-slot collision-checked cache excludes zero/DC-only work and resets per owner. Graphics60frames and natural60frames match independent host full planes/PTS in all7 paired browser jobs. Hits are380/8553 (4.44%) and2465/26916 (9.16%). Median decode+oracle cost ratios1.101 and1.123; complete cold load/start/two-source job1.017 with broad0.417\u20133.052 range. No useful gain established; stop this cache variant, without claiming a stable general slowdown.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
+      "basis": "A real compiled Wasm AVC decoder caches exact signed4x4 inverse-transform residuals keyed by all16 dequantized coefficients, before adding each blocks own prediction/clipping. Bounded1024-slot collision-checked cache excludes zero/DC-only work and resets per owner. Graphics60frames and natural60frames match independent host full planes/PTS in all7 paired browser jobs. Hits are380/8553 (4.44%) and2465/26916 (9.16%). Median decode+oracle cost ratios1.101 and1.123; complete cold load/start/two-source job1.017 with broad0.417\u20133.052 range. No useful gain established; stop this cache variant, without claiming a stable general slowdown.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
+        "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R300.reuse-repeated-inverse-transform-results-across-different-video-blocks",
-      "rank": 375,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "A concrete transform-plus-prediction/clipping boundary exists, with DC fast paths already present. Historical dct_coeff emitted no real trace; model cache success cannot establish nontrivial reuse. Source is available now but an instrumented coefficient trace is still new setup.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R300.reuse-repeated-inverse-transform-results-across-different-video-blocks.md"
-      ],
-      "next_test": "Instrument bounded counts/hashes of real nonzero non-DC 4x4 blocks before implementing cache; compare graphics and natural-video traces.",
-      "reopen_condition": "Instrument bounded counts/hashes of real nonzero non-DC 4x4 blocks before implementing cache; compare graphics and natural-video traces.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R300.reuse-repeated-inverse-transform-results-across-different-video-blocks",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual_modified_software_decoder_in_browser",
+    "new_media_execution": true,
+    "reason": "A real compiled Wasm AVC decoder caches exact signed4x4 inverse-transform residuals keyed by all16 dequantized coefficients, before adding each blocks own prediction/clipping. Bounded1024-slot collision-checked cache excludes zero/DC-only work and resets per owner. Graphics60frames and natural60frames match independent host full planes/PTS in all7 paired browser jobs. Hits are380/8553 (4.44%) and2465/26916 (9.16%). Median decode+oracle cost ratios1.101 and1.123; complete cold load/start/two-source job1.017 with broad0.417\u20133.052 range. No useful gain established; stop this cache variant, without claiming a stable general slowdown.",
+    "next_action": "Reopen for a source with materially higher nontrivial coefficient reuse or cheaper measured lookup; retain pure residual/own-prediction separation and full-key collision checks.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Built matched actual FFmpeg IDCT Wasm variants and independent graphics/natural full-frame references."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Real decoder counters:8553/26916 eligible non-DC calls;380/2465 exact cache hits."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "120 full frames and timestamps exact in each of7 pairs; each new source resets cache, later references remain exact."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "No5% complete-job gain;1.017 median cold ratio,1.101/1.123 decode+oracle medians and102400B retained cache; variable timing disclosed."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T23:50:28.112499+00:00",
+    "run_ids": [
+      "20260919T235028Z-idct-cache-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T235028Z-idct-cache-qualification/run.json"
+    ]
   },
-  "next_action": "Instrument bounded counts/hashes of real nonzero non-DC 4x4 blocks before implementing cache; compare graphics and natural-video traces.",
+  "next_action": "Reopen for a source with materially higher nontrivial coefficient reuse or cheaper measured lookup; retain pure residual/own-prediction separation and full-key collision checks.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

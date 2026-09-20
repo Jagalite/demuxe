@@ -2,24 +2,12 @@
 
 # Retarget in-flight decoding instead of restarting a forward scrub
 
-`R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub`
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current disposition: **stop_current_profile**. Component evidence; no production integration or release qualification.
+An actual720p48-picture closed-GOP WebCodecs owner continues already-started forward targets35→40→47. Every timed retarget occurred while required output was still in flight. Target pixels and PTS match independent FFmpeg I420; backward and source-epoch changes restart, delayed old frame cannot publish, all frames/decoders close. Candidate submits48 packets in one decoder versus125 packets in three restarting owners. Nine alternating whole-owner pairs include setup, scheduled requests, decode, copy/hash, flush and teardown: baseline69.922ms, candidate65.978ms, saving5.64% with95%CI[-5.69956277294843, 14.488591025058795]; lower10%gate fails. Preserve variance and do not infer latency value from fewer submissions alone. The earlier broad absence-of-scrub-workload statement is narrowed: maintained component/custom-controls commits onchange, but legacy web/index.html and software-full.html issue oninput seeks. This research adapter is not integrated into that software owner; coalescing unstarted requests remains cheaper. Source replacement control uses a new epoch over identical encoded bytes; no cross-codec or B-picture qualification. Concurrent host load and warm browser limit extrapolation.
 
-Continuing H.264 decode retargeted 3→8→10 and published only frame 10, matching host output. Current UI already coalesces scrub commits; this component submitted 12 packets versus 11 needed for the final-only target baseline, so it establishes no saved work for the present UI.
+Next: Reopen with a concrete owner that receives already-started forward requests and a representative timed trace. Preserve coalescing for unstarted input; independently validate any new sample reordering, source/config transition, or compressed dependency shape.
 
-Scope limits: Eligibility predicates reject backward/source changes, but their full restart paths were not executed. No user latency claim.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T214730Z-retarget/analysis.md)
 
-- define: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- prepare: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- screen: **passed** — Continuing H.264 decode retargeted 3→8→10 and published only frame 10, matching host output. Current UI already coalesces scrub commits; this component submitted 12 packets versus 11 needed for the final-only target baseline, so it establishes no saved work for the present UI.
-- correctness: **pending** — Scoped output checks pass; full affected lifecycle acceptance remains pending: Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing.
-- performance: **not_applicable** — Current final-only scrub has no demonstrated redundant decode opportunity; no benchmark warranted.
-- results: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-- decision: **passed** — Scoped contract, exact commands/fixtures, immutable outputs and decision recorded for this run; not production qualification.
-
-Next: Reopen when a real workload issues multiple already-started forward seeks; execute source/config changes, backward restart and stale callbacks before performance testing.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-[Shared results](../../shared/runs/20260919T200002Z-presentation/results.json) · [Analysis](../../shared/runs/20260919T200002Z-presentation/analysis.md)
+[Fixture provenance metadata amendment](../../shared/runs/20260919T220430Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

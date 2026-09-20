@@ -2,12 +2,18 @@
 
 # Extract a native 2D view from multiview HEVC
 
-Current disposition: **blocked** — **fixture** prerequisite. Historical review; no new media execution.
+Current decision: **pursue**. Genuine Apple MV-HEVC base extraction preserves124codedVCL/timing packets and122presented pictures after single-layerVPS and presentation-edit restoration. Independent two-eye oracle shows124different eye pairs. NativeChrome eight fullRGBA seeks plus reverse/forward andEOF exactly match originalMOV2D output. Dependent-only negative decodes zero. Scoped video-only capability, no3D or audio preservation claim.
 
-The historical HEVC browser failure and x265 limitation are not transplanted to this machine: current secure WebCodecs HEVC configuration query succeeds. No marked-eye multiview fixture, view/dependency selector or stereo oracle is supplied to the maintained HEVC configuration bridge. Ordinary HEVC is not evidence of base-view extraction. Primary prerequisite is a conforming marked-eye MV-HEVC source and corresponding view oracle; browser hvc1 API absence is explicitly not the current blocker. Selector implementation remains secondary setup.
+| Stage | Status | Basis |
+| --- | --- | --- |
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Genuine Apple MV-HEVC base extraction preserves124codedVCL/timing packets and122presented pictures after single-layerVPS and presentation-edit restoration. Independent two-eye oracle shows124different eye pairs. NativeChrome eight fullRGBA seeks plus reverse/forward andEOF exactly match originalMOV2D output. Dependent-only negative decodes zero. Scoped video-only capability, no3D or audio preservation claim. |
+| correctness | passed | Independent FFmpeg124packet/VCL/timestamp proof,122displayed framehash oracle,124picture two-eye decoding, dependent-only0picture negative; native1280x1280RGBA equality at8queries plus reverse/forward/EOF andcleanup. Guarded source-specific VPS rewrite and timeline edits explicit. |
+| performance | not_applicable | Source-defined base-view extraction capability, no latency/CPU/energy claim; correctness setup and whole-source preparation included in recorded provenance. No performance benchmark required for this endpoint. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Genuine Apple MV-HEVC base extraction preserves124codedVCL/timing packets and122presented pictures after single-layerVPS and presentation-edit restoration. Independent two-eye oracle shows124different eye pairs. NativeChrome eight fullRGBA seeks plus reverse/forward andEOF exactly match originalMOV2D output. Dependent-only negative decodes zero. Scoped video-only capability, no3D or audio preservation claim. |
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next/reopen: Preserve source/configuration guards and base-view identity; extend sources and audio/timecode retention before whole-file integration. Do not infer generic MV-HEVC or3D support.
 
-Next: Acquire one conforming marked-eye MV-HEVC fixture and exact layer/dependency metadata, then validate a single requested 2D view and reconstructed configuration against the corresponding stereo-reference view before destination playback.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -1,0 +1,73 @@
+{
+  "stage": "results",
+  "status": "passed",
+  "commands": [
+    "Read SPDX first line of all78unchanged player/reader snapshots; no media execution."
+  ],
+  "analysis": "Append-only license metadata correction. All78preserved snapshots declareGPL-3.0-or-later. Previous metadata incorrectly saidGPL-2.0-or-later; original evidence and hashes unchanged. No scientific result changes.",
+  "decisions": [
+    {
+      "key": "R003.coalesce-range-reads-around-useful-media-boundaries",
+      "disposition": "pursue",
+      "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
+      "new_media_execution": false,
+      "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. 128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+      "stages": {
+        "correctness": {
+          "status": "passed",
+          "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "128KiB sequential range window reduces median requests by41.89percent; worst paired fetched-byte increase25.76percent, within predeclared30percent budget inall5pairs. 256KiB prior variant exceeded budget in2pairs and remains recorded. Includes cold player/reader creation and actual distantseek; cost is requests/bytes, not CPU or network speed."
+        }
+      }
+    },
+    {
+      "key": "R026.replace-polling-chains-with-bounded-credits-and-deadlines",
+      "disposition": "pursue",
+      "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
+      "new_media_execution": false,
+      "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+      "stages": {
+        "correctness": {
+          "status": "passed",
+          "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. DelayedHTTP cancellation terminates promptly."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Paused deadlines reduce timer calls24to1 over equal1.2second windows (95.83percent), play/seek wake and0.5x/4x progress pass. Actual cancel during500ms delayedHTTP source initialization rejects AbortError in0.47ms, allworkers terminate. No CPU/energy claim; tested paused-work reduction is accepted."
+        }
+      }
+    },
+    {
+      "key": "R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds",
+      "disposition": "pursue",
+      "evidence_level": "actual-browser-policy-and-complete-work-count-comparison",
+      "new_media_execution": false,
+      "reason": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.",
+      "next_action": "Scoped research gate complete. Production integration and broader workload qualification remain separate.",
+      "stages": {
+        "correctness": {
+          "status": "passed",
+          "basis": "All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T212800Z-policy-license-correction",
+  "recorded_at_utc": "2026-09-19T21:30:54.682205+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "78ab631835c1a66ed1d99bb9e96112f28e53806ea0a4b51f3438f8a09e00a33d",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

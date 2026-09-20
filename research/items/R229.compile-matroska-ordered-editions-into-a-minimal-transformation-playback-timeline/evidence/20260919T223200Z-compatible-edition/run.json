@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T223200Z-compatible-edition",
+  "item_keys": [
+    "R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:08:35.946122+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/tests/ordered-compatible.py research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/evidence/20260919T223100Z-compatible-sources",
+    "python3 research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/tests/validate-compatible.py research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/evidence/20260919T223200Z-compatible-edition",
+    "python3 research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/tests/controls-compatible.py research/items/R229.compile-matroska-ordered-editions-into-a-minimal-transformation-playback-timeline/evidence/20260919T223200Z-compatible-edition"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "16b25f3d23bff6b8431b57caa3c0034c52508d4b32594ec0e33c4410dc2b946a",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Compiler reads real EBML EditionFlagOrdered, EditionUID, ChapterTimeStart/End and ChapterSegmentUID bytes; trusted source map binds exact files/hashes and track UIDs. Independent source packet/decoded A/V/subtitle oracle exact. Identical AVC extradata/color and selected audio/subtitle configs explicitly checked. Unauthorized/stale/wrong-track/wrong-edition/out-of-bounds controls reject; all child processes exit. Independent chapter boundaries only."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source-defined capability/minimal-transformation endpoint: all encoded packets remain identical and FFmpeg performs copy only. No speed or memory benefit claimed; a full transcode is not the cheapest equivalent baseline and was not manufactured for benchmarking. Repeated/open-ended editions, incompatible tracks and browser-owner transition costs are outside this profile."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue an explicit authorized finite ordered-edition map with matching selected tracks/configs and independent boundaries. Browser timeline ownership and general subtitle/language/config transitions need separate integration work."
+}

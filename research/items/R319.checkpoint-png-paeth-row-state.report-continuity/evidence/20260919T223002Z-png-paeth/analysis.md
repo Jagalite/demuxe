@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Checkpoint PNG Paeth row state
+
+Implemented native Paeth row checkpoints on actual512x512RGBA PNG filtered rows. Originalpixels independently verified by FFmpeg PNGdecode; ten16-row bands in forward/backward order match exactly. Checkpoints every64rows retain16384activeprior-row bytes and4096workingrow bytes, bound toinputidentity; corrupt checkpoint andchangedsource controls exit5/6 beforeanyoutput. Candidate pays a full512-row checkpoint preparation within each task, thenbandreplays; totalreconstructedrows768 versus2880 fromrow-zero baseline. FullIDATinflate remainsrequired andwasmeasuredseparately(mean0.422ms,1049088bytes); no compressedPNG random-access/byte-saving claim. Nine alternating wholeprocess input-read/setup/preparation/reconstruction/output/exit pairs: baseline59.229ms,candidate52.799ms,saving10.86%,95%[-12.967955806661259, 35.90579791820241], fails10%lower-boundgate. Largeconcurrenthost/IO variability retained rather than rerun untilpositive; fewer reconstructedrows do not establish a whole-taskwin. Internalcheckpoint checksums detect mutation withintrustedowner, not authentication against malicious pairedmetadata. Nativecomponent only, no generalPNG filters/browserintegration claim.
+
+Next: Reopen with a representative repeated-band owner and stable cost evidence that includes checkpointpreparation and whole-fileinflation. Preserve source/priorrowstate identity and exactbytes; do not claim compressedPNG range-seeking from an already-inflated rowcheckpoint.

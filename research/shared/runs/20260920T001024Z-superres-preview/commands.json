@@ -1,0 +1,375 @@
+[
+  {
+    "command": [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "build/local-screening/media/bbb-key-060.mp4",
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale=640:360",
+      "-pix_fmt",
+      "yuv420p",
+      "-f",
+      "rawvideo",
+      "-y",
+      "research/shared/runs/20260920T001024Z-superres-preview/source.yuv"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "build/catalogue-tools/aom-build/aomenc",
+      "--ivf",
+      "--i420",
+      "--width=640",
+      "--height=360",
+      "--fps=24/1",
+      "--passes=1",
+      "--cpu-used=8",
+      "--threads=1",
+      "--lag-in-frames=0",
+      "--limit=1",
+      "--end-usage=q",
+      "--cq-level=24",
+      "--superres-mode=1",
+      "--superres-denominator=12",
+      "--superres-kf-denominator=12",
+      "--enable-restoration=0",
+      "-o",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/source.yuv"
+    ],
+    "exit": 0,
+    "stderr": "\rPass 1/1 frame    1/0          0B       0 us 0.00 fpm [ETA  unknown]   23102F\u001b[K\u001b[K\rPass 1/1 frame    1/1      23102B  184816b/f 4435584b/s  319044 us (3.13 fps)\u001b[K\n",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "build/catalogue-tools/aom-build/aomenc",
+      "--ivf",
+      "--i420",
+      "--width=640",
+      "--height=360",
+      "--fps=24/1",
+      "--passes=1",
+      "--cpu-used=8",
+      "--threads=1",
+      "--lag-in-frames=0",
+      "--limit=1",
+      "--end-usage=q",
+      "--cq-level=24",
+      "--superres-mode=1",
+      "--superres-denominator=8",
+      "--superres-kf-denominator=8",
+      "--enable-restoration=0",
+      "-o",
+      "research/shared/runs/20260920T001024Z-superres-preview/ordinary.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/source.yuv"
+    ],
+    "exit": 0,
+    "stderr": "\rPass 1/1 frame    1/0          0B       0 us 0.00 fpm [ETA  unknown]   36087F\u001b[K\u001b[K\rPass 1/1 frame    1/1      36087B  288696b/f 6928704b/s  452872 us (2.21 fps)\u001b[K\n",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/mode0",
+      "0"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":0,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/mode1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/mode2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/ordinary.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/wrong-no-superres",
+      "1"
+    ],
+    "exit": 6,
+    "stderr": "no cancelled owned preview status0 captured0\n",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/truncated.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/wrong-truncated",
+      "1"
+    ],
+    "exit": 4,
+    "stderr": "",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-0-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-0-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-1-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-1-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-2-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-2-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-3-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-3-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-4-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-4-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-5-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-5-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-6-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-6-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-7-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-7-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-8-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-8-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-9-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-9-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-10-2",
+      "2"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":2,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":640,\"displayHeight\":360,\"decoderStatus\":0,\"capturedBeforeUpscale\":false,\"ownedAfterDestroy\":true}\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview",
+      "research/shared/runs/20260920T001024Z-superres-preview/superres.ivf",
+      "research/shared/runs/20260920T001024Z-superres-preview/cost-10-1",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout": "{\"mode\":1,\"previewWidth\":427,\"previewHeight\":360,\"displayWidth\":0,\"displayHeight\":0,\"decoderStatus\":1,\"capturedBeforeUpscale\":true,\"ownedAfterDestroy\":true}\n"
+  }
+]

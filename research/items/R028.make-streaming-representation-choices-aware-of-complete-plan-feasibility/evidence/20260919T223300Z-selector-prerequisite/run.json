@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T223300Z-selector-prerequisite",
+  "item_keys": [
+    "R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:11:31.881031+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility/tests/selector.mjs research/items/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility/evidence/20260919T223300Z-selector-prerequisite"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "47c10b20d1bcc2124de777a62459f176273382c8065247546c3c4541bd0ca9ef",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": false,
+    "fallback_observed": false,
+    "note": "Only existing one-shot selector prerequisite probe executed; no proposed ABR plan candidate."
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "blocked",
+      "basis": "No complete-plan-aware adaptive transition candidate ran. The existing one-shot selector probe confirms boundary only; it cannot qualify HDR/audio/subtitle preservation, playback fidelity or track invalidation. Missing ABR owner and R015 transactional prerequisite remain explicit."
+    },
+    "performance": {
+      "status": "blocked",
+      "basis": "No relevant policy correctness candidate; no speed, energy or bandwidth advantage inferred from selector choices. No invented controller or expensive baseline."
+    }
+  },
+  "decision": "blocked",
+  "next_action": "Supply a qualified adaptive transition owner and transactional selected-track boundary, then compare equivalent-role renditions under explicit user intent and full output constraints. A static initial-plan selector would be a separately scoped component, not fulfillment of this source-defined ABR hypothesis."
+}

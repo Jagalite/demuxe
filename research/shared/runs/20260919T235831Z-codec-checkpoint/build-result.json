@@ -1,0 +1,32 @@
+{
+  "command": [
+    "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+    "-O2",
+    "-pthread",
+    "-msimd128",
+    "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+    "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+    "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T235831Z-codec-checkpoint/bridge.c",
+    "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavcodec/libavcodec.a",
+    "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavutil/libavutil.a",
+    "/Volumes/seed2/Projects/webmpv/build/prefix-playback/lib/libdav1d.a",
+    "/Volumes/seed2/Projects/webmpv/build/prefix/lib/libz.a",
+    "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libswresample/libswresample.a",
+    "-sMODULARIZE=1",
+    "-sEXPORT_ES6=1",
+    "-sEXPORT_NAME=createDecoder",
+    "-sENVIRONMENT=web,worker",
+    "-sINITIAL_MEMORY=33554432",
+    "-sMAXIMUM_MEMORY=134217728",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sSTACK_SIZE=2097152",
+    "-sWASM_BIGINT=1",
+    "-sFILESYSTEM=0",
+    "-sEXPORTED_FUNCTIONS=[\"_vd_init\",\"_vd_packet\",\"_vd_flush\",\"_vd_close\",\"_malloc\",\"_free\"]",
+    "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\"]",
+    "-o",
+    "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T235831Z-codec-checkpoint/decoder.mjs"
+  ],
+  "exit": 0,
+  "stderr": "emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]\n"
+}

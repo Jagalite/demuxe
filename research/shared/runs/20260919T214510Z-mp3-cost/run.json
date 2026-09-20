@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T214510Z-mp3-cost",
+  "item_keys": [
+    "R230.exact-mp3-seek-closure.report-continuity"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Fresh20 alternating seek queries to packets100/220 in pinned48k stereo128k no-Xing MP3 reproduce every continuous-reference float byte after3frame72ms preroll; no-preroll and wrong-source-identity controls reject. Five complete alternating batch pairs include cold ffprobe index/read/hash, tail file writes, decoder processes, PCM output and trim:778.862ms candidate versus750.574ms baseline, ratio1.03769 fails0.9. Initial overlapping cost run retained invalid; final isolated timings used."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop",
+  "limits": "Stop current host subprocess suffix-seek cost profile; exact closure remains demonstrated at these two targets. Reopen with persistent decoder/range reader implementation and independent exact PCM oracle, then rerun complete cost; no universal3frame guarantee.",
+  "reused_evidence": [
+    "results/top100/mp3/source.mp3",
+    "results/top100/mp3/result.json"
+  ],
+  "commands_log": "research/shared/runs/20260919T214510Z-mp3-cost/commands.log"
+}

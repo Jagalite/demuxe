@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload. First harness decode stdout buffer was too small; retained ENOBUFS error is setup/harness failure, not media rejection. All complete source bytes equivalent; malformed multipart termination rejected. No generic server availability, HTTP2/3, high-concurrency or CPU claim.

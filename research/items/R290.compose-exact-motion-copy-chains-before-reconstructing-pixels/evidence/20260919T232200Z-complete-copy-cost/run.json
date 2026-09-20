@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T232200Z-complete-copy-cost",
+  "item_keys": [
+    "R290.compose-exact-motion-copy-chains-before-reconstructing-pixels"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-20T00:47:10.325491+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels/tests/copy-map-alternating.py research/items/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels/evidence/20260919T232100Z-alternating-copy-map",
+    "python3 research/items/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels/tests/copy-cost.py research/items/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels/evidence/20260919T232200Z-complete-copy-cost research/items/R290.compose-exact-motion-copy-chains-before-reconstructing-pixels/evidence/20260919T232100Z-alternating-copy-map"
+  ],
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "dirty_diff_sha256_at_registration": "476c6137006e7daa564011cfe0795c2135e60c320698bf32ed6962e45102f8fa",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actualcompressed512motion-onlyMB syntax parsed, composedmaps from immutableI, wholepicture fallback atfractionalpicture8, allfinalplanes exact. Wrongroundedluma/chroma shortcuts differ. All66 timedoutputs exact. No intermediatepresentation, GPU or generalMPEG2 decoder claim."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Predeclared11alternatingpairs each of3profiles, completecold sourcejob for samefinaloutput.5%median saving gate fails:\u2212.72885 integer bootstrap95[-.77091,-.64904];\u22121.76087 fractional[-1.83350,-1.62542];\u22121.79100 halfchroma[-1.83783,-1.73902]. Includes actualFFmpegbootstrap/fallback, allocation, parse and finalgather."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen for an optimized in-decoder representation and larger eligible workload with equivalent output, storage and fallback costs. Preserve actual syntax eligibility including chroma phase and immutable reference ownership."
+}

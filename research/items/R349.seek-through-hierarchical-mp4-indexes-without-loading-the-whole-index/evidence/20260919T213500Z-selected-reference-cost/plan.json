@@ -1,0 +1,7 @@
+{
+  "declared_before_correctness_and_sampling": true,
+  "source": "Actual96sample changing all-intra AVC divided into8SIDX childgroups of12; oneimmutable twolevel version0 hierarchy.",
+  "workload": "Four sparseoutoforder queries20,3,21,3, cold perbatch. Eager baseline loadsall8childindexes once thenqueries; candidate cachesroot plusonly visitedchildren, sourceidentity sharedchecked. Bothretrieve exactlysameleaf payloads and preservecaller initialization.",
+  "metric": "11alternating pairs of100freshjobs: complete indexparse, sourceidentity comparison, lookup and sameleafbytecopy/hash. Median latency saving>=5percent AND retainedPython graph/indexmetadata>=20percentlower. Include coldroot+childreads; sharedmedia init/sourceacquisition commonexcluded. Alllogicalindexreads retained; notphysicalnetwork/memory.",
+  "controls": "Everyquery leaf bytes/timing and fullpixels independently equal source; staleidentity,outofbounds and nestedunsupported reference rejects. No asyncremote reader orbrowser lifecycleclaim."
+}

@@ -1,0 +1,9 @@
+{
+  "declared_before_execution": true,
+  "scope": "Actual generated128x128 uncompressedBC1 Hap inAVI and2frame FLC COPY/palette-only source, independently decoded byFFmpeg. No Snappy or FLIC delta compression support claimed.",
+  "baseline": "ColdGPUowner, sourceparse, CPUexpand decoded representation toRGBA, uploadRGBA and render/readback30frames, destroyowner.",
+  "candidate": "Same source/owner task preserving BC1 blocks or FLCindices+palette toGPU, shader/render and exact fullRGBAreadback everyframe; FLC displayorder0,1,0 repeated10times.",
+  "correctness": "Full independentFFmpegRGBA exact; malformed length/header rejects; FLC truncatedchunk rejects; paletteonly update and backwardseek reconstructcorrect; newowner same output. Badsource rejected before dispatch, owners always destroy.",
+  "performance": "Ninealternatingpairs after untimedcorrectness; complete taskwallms includingcoldadapter/device/pipeline,parse,representationconversion/upload,30readbacks,oraclecheck,teardown. Fixturegeneration/hostreference excluded.10000pairedbootstrapseed1731/1721,lower95saving>=10%. Bytesreportedseparately; noCPU/physicalenergyclaims.",
+  "diagnosed_correction": "Prior CPU baseline used subarray/set for each palette pixel and byte writes for BC1. Optimize cheap packed32 palette stores before accepting value. Earlier experiment retained; same sources, output thresholds and sampling. New baseline still expands source representation; no reusing finalRGBA prepared by oracle."
+}

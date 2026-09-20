@@ -1,0 +1,59 @@
+{
+  "stage": "performance",
+  "status": "passed",
+  "commands": [
+    "node research/shared/tooling/hls-destination-cost.mjs research/shared/runs/20260919T204700Z-hls-cost",
+    "node research/shared/tooling/hls-destination-gap-cost.mjs research/shared/runs/20260919T205100Z-hls-cost-gap",
+    "python3 research/shared/tooling/normalize-hls-timeline.py research/shared/runs/20260919T205500Z-hls-normalized",
+    "python3 research/shared/tooling/normalize-hls-timeline-duration.py research/shared/runs/20260919T205900Z-hls-duration",
+    "node research/shared/tooling/hls-normalized-cost.mjs research/shared/runs/20260919T205900Z-hls-duration"
+  ],
+  "analysis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim. The maintained player intentionally adds a1sec timeline bias; standalone destinations must map it explicitly. Research adapter subtracts it from tfdt, restores the final AAC packet duration768 (capture had1024), and constructs group durations from packet timeline. Original player not changed. Failed pre-normalization MSE stall and duration mismatch retained. No cold remux cost benefit, CPU, power, complete waveform browser capture, arbitrary multisegment or large-media qualification claimed; startup gate is scoped to2sec resident local fixture. First cold HLS case is retained in all raw results (not discarded).",
+  "decisions": [
+    {
+      "key": "R088.native-hls-playlist-views-over-compatible-existing-media",
+      "disposition": "pursue",
+      "evidence_level": "actual_destination_cost_with_host_timeline_oracle",
+      "new_media_execution": true,
+      "reason": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
+      "next_action": "Bounded finite H264/AAC HLS destination research gates complete with explicit timeline/duration adapter. Production manifest ownership/authorization and long segmented-media integration remain separate; no CPU or speedup promotion.",
+      "stages": {
+        "correctness": {
+          "status": "passed",
+          "basis": "Scoped143 coded packets and integer packet times/durations, full host pixels/PCM exact; native HLS/direct/MSE actual marked A/V, seek/EOF/cleanup; previous wrong-range rejection retained. Exact browser waveform and arbitrary sources not claimed."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim."
+        }
+      }
+    },
+    {
+      "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+      "disposition": "pursue",
+      "evidence_level": "actual_destination_cost_with_host_timeline_oracle",
+      "new_media_execution": true,
+      "reason": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
+      "next_action": "Bounded finite H264/AAC HLS destination research gates complete with explicit timeline/duration adapter. Production manifest ownership/authorization and long segmented-media integration remain separate; no CPU or speedup promotion.",
+      "stages": {
+        "correctness": {
+          "status": "passed",
+          "basis": "Scoped143 coded packets and integer packet times/durations, full host pixels/PCM exact; native HLS/direct/MSE actual marked A/V, seek/EOF/cleanup; previous wrong-range rejection retained. Exact browser waveform and arbitrary sources not claimed."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T205900Z-hls-duration",
+  "recorded_at_utc": "2026-09-19T20:51:06.528050+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "40af7e6215e76bb3cff38122e0114c48973d7469eb6c1501c83aa3fbd20039ad",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "stage": "decision",
+  "status": "passed",
+  "commands": [
+    "node research/shared/tooling/deadline-stage-observer.mjs research/shared/runs/20260919T215408Z-deadline-stage-observer",
+    "node research/shared/tooling/deadline-stage-isolated.mjs research/shared/runs/20260919T215518Z-deadline-stage-isolated",
+    "node research/shared/tooling/deadline-stage-cancel.mjs research/shared/runs/20260919T215705Z-deadline-stage-cancel"
+  ],
+  "analysis": "ActualmaintainedWasmRemuxPlayer deadlineobserver attributes read/process/append injections correctly and preserves independentnative fullpausedpicturehash. 0/300/600/900ms grid against800msfirstpresentedframe deadline finds600mslastobservedsafe and900msfirstmiss forall3stages. Thismeasuresfirst-framecriticalpath, not originalmodelssteady-statestages orproofappendistightest. Actualcancelafterobservedread/processinjection rejectsAbortError in20.595/13.720ms andnoworkers/latepublication. UIappendblock is synchronous andnotclaimedinterruptible. OriginalmissingCOEPworkerroute failure preserved.",
+  "decisions": [
+    {
+      "key": "R267.deadline-slack-before-optimization",
+      "disposition": "pursue",
+      "evidence_level": "actual-browser-protocol-and-stage-observation",
+      "new_media_execution": true,
+      "reason": "ActualmaintainedWasmRemuxPlayer deadlineobserver attributes read/process/append injections correctly and preserves independentnative fullpausedpicturehash. 0/300/600/900ms grid against800msfirstpresentedframe deadline finds600mslastobservedsafe and900msfirstmiss forall3stages. Thismeasuresfirst-framecriticalpath, not originalmodelssteady-statestages orproofappendistightest. Actualcancelafterobservedread/processinjection rejectsAbortError in20.595/13.720ms andnoworkers/latepublication. UIappendblock is synchronous andnotclaimedinterruptible. OriginalmissingCOEPworkerroute failure preserved.",
+      "next_action": "Scopedresearchdecision complete. Productionintegration andbroaderworkload qualification remainseparate.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Smallactualresearchimplementation, independentfixture/oracle, explicitadversecontrols andimmutable source snapshots."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Candidateactuallyexecuted; no API-only or synthesizedperformance result."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "ActualmaintainedWasmRemuxPlayer deadlineobserver attributes read/process/append injections correctly and preserves independentnative fullpausedpicturehash. 0/300/600/900ms grid against800msfirstpresentedframe deadline finds600mslastobservedsafe and900msfirstmiss forall3stages. Thismeasuresfirst-framecriticalpath, not originalmodelssteady-statestages orproofappendistightest. Actualcancelafterobservedread/processinjection rejectsAbortError in20.595/13.720ms andnoworkers/latepublication. UIappendblock is synchronous andnotclaimedinterruptible. OriginalmissingCOEPworkerroute failure preserved."
+        },
+        "performance": {
+          "status": "not_applicable",
+          "basis": "Diagnosticdeadlineobservability contract, nooptimization/speedupclaim; controlledinjectionbounds aremethodcorrectness evidence."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T215826Z-deadline-qualification",
+  "recorded_at_utc": "2026-09-19T21:58:26.027768+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "23f58a2cea9529c7e538bed7fdb47b542b5c0c6eddf67944c1f196bf12736f45",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

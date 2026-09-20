@@ -1,0 +1,80 @@
+{
+  "originalSources": {
+    "native/remux/remux.c": "a3251fd423784e6b7a7bfc51ff0ee57eab46c13248ab66002e359ad8468d2812",
+    "native/adaptation/flac.h": "94deaa10fabfc32a04839cd68627115f8dc5537fcbb764d1afaee460f366adce"
+  },
+  "baselineManifest": "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/engine-1789826284257134000/manifest.json",
+  "variant": "copied maintainedadapter source, fixed4608frames bothlevels, onlyeffort macro differs",
+  "commands": [
+    {
+      "args": [
+        "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+        "-O2",
+        "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+        "-DDEMUXE_FLAC_LEVEL=0",
+        "-DDEMUXE_AUDIO_ADAPTATION=1",
+        "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe=/demuxe",
+        "-pthread",
+        "-msimd128",
+        "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg",
+        "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1",
+        "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T_audio_flac_effort/sources/native/remux/remux.c",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavformat/libavformat.a",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavcodec/libavcodec.a",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavutil/libavutil.a",
+        "-sMODULARIZE=1",
+        "-sEXPORT_ES6=1",
+        "-sEXPORT_NAME=createRemux",
+        "-sENVIRONMENT=worker",
+        "-sINITIAL_MEMORY=67108864",
+        "-sMAXIMUM_MEMORY=134217728",
+        "-sALLOW_MEMORY_GROWTH=1",
+        "-sSTACK_SIZE=2097152",
+        "-sWASM_BIGINT=1",
+        "-sFILESYSTEM=0",
+        "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+        "-o",
+        "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T_audio_flac_effort/level0/remux.mjs"
+      ],
+      "elapsedSeconds": 13.385880000016186,
+      "exit": 0,
+      "stderr": "emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]\n"
+    },
+    {
+      "args": [
+        "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+        "-O2",
+        "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+        "-DDEMUXE_FLAC_LEVEL=5",
+        "-DDEMUXE_AUDIO_ADAPTATION=1",
+        "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe=/demuxe",
+        "-pthread",
+        "-msimd128",
+        "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg",
+        "-I/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1",
+        "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T_audio_flac_effort/sources/native/remux/remux.c",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavformat/libavformat.a",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavcodec/libavcodec.a",
+        "/Volumes/seed2/Projects/demuxe/build/local-screening/adaptation-reference/ffmpeg/libavutil/libavutil.a",
+        "-sMODULARIZE=1",
+        "-sEXPORT_ES6=1",
+        "-sEXPORT_NAME=createRemux",
+        "-sENVIRONMENT=worker",
+        "-sINITIAL_MEMORY=67108864",
+        "-sMAXIMUM_MEMORY=134217728",
+        "-sALLOW_MEMORY_GROWTH=1",
+        "-sSTACK_SIZE=2097152",
+        "-sWASM_BIGINT=1",
+        "-sFILESYSTEM=0",
+        "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+        "-o",
+        "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T_audio_flac_effort/level5/remux.mjs"
+      ],
+      "elapsedSeconds": 12.728772375034168,
+      "exit": 0,
+      "stderr": "emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]\n"
+    }
+  ]
+}

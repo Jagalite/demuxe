@@ -1,0 +1,6 @@
+python3 research/shared/tooling/audio-stage-probes/flac_residual_reverse.py research/shared/runs/20260919T_audio_flac_reverse
+ffmpeg -v error -i INPUT.flac -f s16le -
+ffmpeg -v error -y -f s16le -ar 48000 -ac 1 -i INPUT.s16 -c:a flac OUTPUT.flac
+python3 research/shared/tooling/audio-stage-probes/flac_reverse_controls.py research/shared/runs/20260919T_audio_flac_reverse
+node research/shared/tooling/audio-stage-probes/flac_reverse_browser.mjs research/shared/runs/20260919T_audio_flac_reverse
+flac -t research/shared/runs/20260919T_audio_flac_reverse/source.flac research/shared/runs/20260919T_audio_flac_reverse/reversed.flac

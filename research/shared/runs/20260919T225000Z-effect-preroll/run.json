@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225000Z-effect-preroll",
+  "item_keys": [
+    "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Not used; host integer DSP execution",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Executed opt-in Q24 integer first-order lowpass y=floor((255*y+x)/256) under explicit |input|,|state|<=1 and normalized absolute error budget1e-4. Derived state difference plus two implemented-arithmetic rounding bounds:2*(255/256)^N+512/2^24; exact rational comparison certifies N2624 and bound9.9827351e-5. Continuous-reference comparisons across seeded noise and positive/negative DC, targets20000/80000/160000, all2048 output samples each: maximum observed error2.7298927e-5. Zero-preroll errors up to0.996; rounding-floor, near-unit excessive preroll, unknown bounds, source identity and cancellation controls reject. Five alternating complete source-read/hash/bounds/certificate/three-seek jobs:19.022ms candidate versus33.121ms full-prefix replay, ratio0.57431 passes<=0.9. Baseline does not compute candidate certificate."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue only explicit bounded-error Q24 controlled-filter seeking with this admitted source/state bound. This changes numerical semantics and cannot replace exact checkpoints, arbitrary effects, decoder preroll or production routing. Near-unit poles and budgets below arithmetic floor remain rejected with full-prefix replay as separate baseline. Generic floating-point filters require their own implemented-arithmetic proof; no general DSP qualification.",
+  "reused_evidence": [],
+  "commands_log": "research/shared/runs/20260919T225000Z-effect-preroll/commands.log"
+}

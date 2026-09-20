@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "run_id": "20260919T205627Z-opus-group-delivery",
+  "item_keys": [
+    "R093.opus-repacketization-without-pcm-decoding",
+    "R203.regroup-existing-opus-frames-without-re-encoding"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Matched20ms versus40ms codec packets with one packet per Ogg page preserve pinned full host/browser PCM and split-back frames. Real paced HTTP delivery reduces audio packet/page submissions101\u219251 (0.50495 ratio) and bytes5.8920%; median browser first audio2036.1\u21922040.8ms (+4.7ms) passes80ms budget. Measured complete adapter setup23.705\u219227.470ms yields cold first-output totals2060.440\u21922068.904ms, still within budget. Actual trials reach EOF with full response and cleanup."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue restricted40ms grouping when packet/page submission reduction is valuable. This is a submission/byte/availability tradeoff versus one-packet-page20ms baseline, not a CPU or earlier-start claim; original FFmpeg Ogg mux remains smaller. Production routing, multistream and universal page policies are outside this profile.",
+  "reused_evidence": [
+    "results/catalogue-current/opus/original.ogg",
+    "results/catalogue-current/opus/group-1.ogg",
+    "results/catalogue-current/opus/group-2.ogg",
+    "results/catalogue-current/opus/result.json",
+    "results/catalogue-current/opus/browser-result.json",
+    "results/catalogue-current/opus/probe.py",
+    "research/shared/runs/20260919T201000Z-opus-lifecycle/manifest.json"
+  ],
+  "commands_log": "research/shared/runs/20260919T205627Z-opus-group-delivery/commands.log"
+}

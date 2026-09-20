@@ -1,0 +1,5 @@
+{
+  "scope": "Signed16 fixed-order1 FLAC blocks257, escape-coded17bit residuals; derive last sample by warmup+sum(residual), emit new warmup and reversed-negated residuals. Reverse block order and regenerate truthful headers/CRCs/STREAMINFO; reject other predictor/residual/mode profiles.",
+  "correctness": "Independent full decode/reverse integer oracle, every host/native sample; involution, negative residuals, malformed CRC/truncation/order controls.",
+  "performance": "Five alternating cold source read/parse/transform/write plus destination decode versus full source decode/PCM reversal/ordinary FLAC encode plus destination decode. Required endpoint is standalone reversed lossless FLAC with exact PCM. <=0.9cost and <=1.25output bytes relative source; no implied superiority over a PCM-only playback endpoint."
+}

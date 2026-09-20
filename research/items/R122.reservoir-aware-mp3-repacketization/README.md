@@ -2,28 +2,24 @@
 
 # Reservoir-aware MP3 repacketization
 
-Full identity: `R122.reservoir-aware-mp3-repacketization`. Original rank: 206.
+Full key: `R122.reservoir-aware-mp3-repacketization`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T22:48:32.024471+00:00).
 
-MP3 currently passes as complete codec packets to ordinary muxing. No parser exposes reservoir-dependent coded units or synthesis-state restart certificates; packet reshuffling could preserve headers while changing output.
+Real MPEG1 LayerIII48k stereo128kbps source has334 reservoir-bearing frames, backpointers up to511bytes. Coded units gathered across main-data slots, with granule coded-bit lengths and all side information retained except rewritten zero main_data_begin; ordinary320kbps frames reconstructed. Whole385920 stereo sample frames and repeated targets100/220 with3frame synthesis preroll exactly match continuous host and Chrome PCM, render/end/closed. No preroll changes PCM; missing dependency, source identity, unit proof and cancellation reject. Five alternating20-excerpt complete cold parse/rebuild/decode versus direct frame-index/copy/decode medians1033.707ms vs982.014ms ratio1.05264; output bytes2.5x. Both miss predeclared<=0.9cost and<=1.25bytes. Initial baseline unnecessarily reconstructed units; invalid measurements and executed script retained separately, final direct index baseline authoritative.
 
-No matching candidate/reference/control execution for this exact gate. MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle.
+Stop the fixed320kbps zero-reservoir profile. Reconstruction capability and synthesis history are demonstrated for this restricted noCRC/noXing MPEG1 stereo profile; no universal preroll count or broader MP3 mapping claim. Reopen only with materially better packing/reuse economics and new exact-output controls.
 
-Next action: Use one reservoir-bearing MP3 excerpt to compare ordinary decode and reconstructed units across repeated starts, with a missing reservoir dependency control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. MP3 coded-unit/reservoir reconstruction and synthesis-state restart contract, not complete-packet shuffle. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T224832Z-mp3-reservoir/run.json) · [Analysis](../../shared/runs/20260919T224832Z-mp3-reservoir/analysis.md) · [Manifest](../../shared/runs/20260919T224832Z-mp3-reservoir/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

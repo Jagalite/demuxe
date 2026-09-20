@@ -1,0 +1,7 @@
+{
+  "declared_before_sampling": true,
+  "correction": "av_seek_frame uses presentation-time search: DTS3sec targets precedingRAP2sec because targetRAPPTS3.041667. Use3.05 and.05 inside intendedRAP presentationinterval. Originalpreflight failedpacketoracle retained; no benchmarkran.",
+  "workload": "Same four out-of-order dependent-GOP requests73,4,74,4. Each emits precedingRAP-throughrequestedpacket as independent fragment, relative decode origin0, original composition deltas. Baseline fresh native libavformat demux/mux process per request; candidate one full cold source+FFprobe packet index followed by stateless direct construction for4requests.",
+  "metric": "End-to-end caller elapsed per4request batch, including native subprocess launch, source/index helper launch, parsing/copies/outputwrite/teardown. Elevenalternating pairs; median saving>=5percent. Native baseline internal times also exposed; do not confuse process orchestration saving with muxCPU.",
+  "scope": "Host prototype caller under warm OS filesystem cache; not browser/Wasm, no network or memory claim. Cold map cost charged eachbatch, not amortized away. Generated source preparation and independent oracle common/excluded."
+}

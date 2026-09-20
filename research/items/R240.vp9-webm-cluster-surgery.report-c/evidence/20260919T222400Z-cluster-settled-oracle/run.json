@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222400Z-cluster-settled-oracle",
+  "item_keys": [
+    "R240.vp9-webm-cluster-surgery.report-c"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:57:39.679037+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -f lavfi -i testsrc2=size=160x96:rate=30:duration=4 -an -c:v libvpx-vp9 -threads 2 -deadline realtime -cpu-used 8 -g 120 -cluster_time_limit 5000 -cluster_size_limit 10000000 research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split/source.webm",
+    "python3 research/items/R240.vp9-webm-cluster-surgery.report-c/tests/prepare.py research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split",
+    "node research/items/R240.vp9-webm-cluster-surgery.report-c/tests/cluster-browser.mjs research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split",
+    "node research/items/R240.vp9-webm-cluster-surgery.report-c/tests/cluster-settled.mjs research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222400Z-cluster-settled-oracle"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "16679a91742ab68d3bb9a083313ca999ba5032d437363bf9e00083879ba182ad",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "All120 source/candidate packet and host decoded frame records exact. Independent settled whole-source browser oracle and all candidate continuous pictures exact; source-generation stale tail rejected and owners closed. Splitting does not create RAPs. One baseline callback samples following picture at metadata0; recorded separately as instrumentation limitation."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "No measured opportunity: all11 long-Cluster owners already release pictures before the450ms tail. Exploratory first-frame difference median1.25ms, range[-10.25,17.27], never reaches20ms target; one baseline sample violates timestamp/picture pairing, so this is not accepted positive performance evidence. Subsequent performance qualification is not applicable after scoped no-opportunity stop."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen only when a real producer or intermediary demonstrably withholds an entire long Cluster despite complete useful blocks; do not treat arbitrary whole-Cluster waiting as the cheapest baseline."
+}

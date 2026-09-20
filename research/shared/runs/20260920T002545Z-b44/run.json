@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260920T002545Z-b44",
+  "item_keys": [
+    "R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual OpenEXR B44 single HALF-Y/pLinearfalse130x98 file parsed into825four-by-four blocks including right/bottom padding. All12740 reconstructed half bit patterns exactly match independent OpenEXR decoder; encoded output intentionally differs from precompression pixels. Actual WebGPU direct block sampling1066queried pixels matches the same half bits and identical HDR grayscale consumer output versus GPU expanding only87selected unique blocks into compact half storage. Truncated/version/wrong-pixel controls pass; stale epoch prevents readback publication and all GPU resources close. Five alternating cold device/read/hash/upload/pipeline/sample/consumer/readback medians6.9vs7.2ms ratio0.95833 fails0.9. Initial shader/pipeline startup is separately retained and variable; no stable speedup claim."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
+  "reused_evidence": [
+    "/tmp/demuxe-audio-numeric/OpenEXR.cpython-314-darwin.so",
+    "/tmp/demuxe-audio-numeric/openexr-3.4.15.dist-info/METADATA"
+  ],
+  "commands_log": "research/shared/runs/20260920T002545Z-b44/commands.log"
+}

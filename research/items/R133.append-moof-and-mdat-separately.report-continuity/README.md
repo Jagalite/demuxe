@@ -2,28 +2,18 @@
 
 # append moof and mdat separately
 
-Full identity: `R133.append-moof-and-mdat-separately.report-continuity`. Original rank: 127.
-
-Current decision: **pursue** (reconciled from **PURSUE**). No new media execution.
-
-Separate moof/mdat append reaches identical marked A/V through EOF; increases append count3to4 in this fixture. API feasibility supports localized copy-versus-event-overhead comparison, not measured CPU savings.
-
-Separate moof/mdat append and whole baseline each reach marked A/V/EOF with cleanup; append count3to4, not a CPU win.
-
-Next action: Compare equivalent owned-buffer copy/event costs only after a real copy bottleneck is identified.
-
-## Stages
+Current decision: **pursue**. Separate moof/mdat appends preserve all96 complete native reference pictures on the same AVC/AAC source and avoid the application gather allocation. Eleven alternating fresh-owner pairs show6.05% median complete-job savings;95% bootstrap interval1.19–13.47%. This supports the bounded no-gather component, not a general muxer or physical-memory claim.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Read and pinned historical fixture/output/control evidence; no rerun. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | passed | Separate moof/mdat append and whole baseline each reach marked A/V/EOF with cleanup; append count3to4, not a CPU win. |
-| performance | pending | No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Separate moof/mdat appends preserve all96 complete native reference pictures on the same AVC/AAC source and avoid the application gather allocation. Eleven alternating fresh-owner pairs show6.05% median complete-job savings;95% bootstrap interval1.19–13.47%. This supports the bounded no-gather component, not a general muxer or physical-memory claim. |
+| correctness | passed | New baseline/candidate each match96independent whole-file native RGBA hashes at requested frame times. All22timed owners verify three fullimages and cleanup. Actual unchangedAVC/AAC coded bytes supplied in either one gathered media append or separate moof/mdat appends; previously accepted shared A/V marked-output, abort/stale and EOF controls retained. No new exact PCM/lip-sync or partially produced live-mux qualification. |
+| performance | passed | Predeclared11alternating pairs,5%median saving gate passes6.0480%, bootstrap95median[1.1893,13.4682]%. Includes freshMSE owner, actual baseline allocation/gather copy, allappends, three correct-image seeks/hashes, teardown. Resident source/reference preparation excluded equally. Fivecandidate versus threebaseline appends; copy avoidance is not zero-copy or physicalmemory evidence. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Separate moof/mdat appends preserve all96 complete native reference pictures on the same AVC/AAC source and avoid the application gather allocation. Eleven alternating fresh-owner pairs show6.05% median complete-job savings;95% bootstrap interval1.19–13.47%. This supports the bounded no-gather component, not a general muxer or physical-memory claim. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Bounded research stage complete. Reopen for maintained muxer ownership integration or a new payload-size/append-scheduling workload; preserve full lifecycle/output gates before claiming deployment savings.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

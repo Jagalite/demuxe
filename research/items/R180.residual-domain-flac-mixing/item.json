@@ -47,102 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "status": "passed",
+      "basis": "Two real signed16 mono FLAC frames use fixed predictor3 and Rice parameter1. Actual parsed warmups and4093residuals summed; output Rice parameter chosen, frame/integrity regenerated. Rolling three-sample recurrence validates headroom without materializing full source PCM buffers; all4096output samples exactly match independent PCM sum, range-4509..5000. FFmpeg/Chrome/libFLAC integrity/native render/end/closed pass. Mismatched predictor, origin/alignment, overflow, CRC and truncation reject. Five alternating complete read/parse/mix/write/destination-decode jobs71.452ms versus ordinary FFmpeg dual-input amix(no normalization)/signed16FLAC encode/destination-decode102.732ms ratio0.69552 passes<=0.9. Output1600bytes; sourceA1403bytes, not a compression-win claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+      "status": "passed",
+      "basis": "Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "basis": "pursue: Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R180.residual-domain-flac-mixing",
-      "rank": 383,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:25:33.880396+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "pursue",
+      "state": "pursue",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T232533Z-flac-mix"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Two real signed16 mono FLAC frames use fixed predictor3 and Rice parameter1. Actual parsed warmups and4093residuals summed; output Rice parameter chosen, frame/integrity regenerated. Rolling three-sample recurrence validates headroom without materializing full source PCM buffers; all4096output samples exactly match independent PCM sum, range-4509..5000. FFmpeg/Chrome/libFLAC integrity/native render/end/closed pass. Mismatched predictor, origin/alignment, overflow, CRC and truncation reject. Five alternating complete read/parse/mix/write/destination-decode jobs71.452ms versus ordinary FFmpeg dual-input amix(no normalization)/signed16FLAC encode/destination-decode102.732ms ratio0.69552 passes<=0.9. Output1600bytes; sourceA1403bytes, not a compression-win claim.",
+      "next_action": "Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.",
+      "reopen_condition": "Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R180.residual-domain-flac-mixing.md"
-      ],
-      "next_test": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
-      "reopen_condition": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T232533Z-flac-mix/run.json"
+      ]
     }
   },
-  "next_action": "Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.",
+  "next_action": "Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

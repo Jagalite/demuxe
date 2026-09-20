@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "run_id": "20260919T223822Z-flac-effort",
+  "item_keys": [
+    "R071.tune-flac-effort-without-changing-frame-duration"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "ActualmaintainedWasmadapter source copied/linkedisolated atFLAClevels0/5 againstsamecachedlockedFFmpeg7.1.1 libraries; explicitframe_size4608bothprofiles. Two30s48kstereoS16tonal/seedednoise sources: all1440000samples perchannel exacthost/nativebrowser,720copiedH264packets unchanged,313FLACpackets with312x4608+2304durationidentical. ActualnativeMSEseek/audiblePCM/nearendEOF andowner cleanup passallfour; cancellation after20actualadaptersteps terminatesreader/worker andfreshjobpasses. Fivealternating fullworker/File-reader setup+Wasmencode+transfer+nativedecode/render pairs:tonal749.845ms vs743.720ms ratio1.00824,bytes1.85582;noise689.940ms vs752.485ms ratio0.91688,bytes1.07099. Bothfail declaredcost<=0.9 andbytes<=1.25 combinedgate; tonalbytepenaltyalone large."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop general level0-at-fixed4608frames profile. Noise improvesmeasuredcost8.3percent but missespredeclared10percent; no repeat-to-pass. MatchedWasmproduction-family encoder gap resolved withouteditingservedruntime orproduction source. Fixedframe research policy is explicit and notthedefaultencoderconfiguration; noautomaticlevelchange or physicalplayback claim.",
+  "reused_evidence": [
+    "native/remux/remux.c",
+    "native/adaptation/flac.h",
+    "build/local-screening/adaptation-reference/engine-1789826284257134000/manifest.json",
+    "build/local-screening/adaptation-reference/preferred-source-hashes.json",
+    "build/local-screening/adaptation-reference/ffmpeg/config.h",
+    "build/local-screening/adaptation-reference/ffmpeg/config_components.h",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/libavcodec/flacenc.c",
+    "web/native-remux-source-worker.js",
+    "build/local-screening/adaptation-reference/ffmpeg/libavformat/libavformat.a",
+    "build/local-screening/adaptation-reference/ffmpeg/libavcodec/libavcodec.a",
+    "build/local-screening/adaptation-reference/ffmpeg/libavutil/libavutil.a"
+  ],
+  "commands_log": "research/shared/runs/20260919T223822Z-flac-effort/commands.log"
+}

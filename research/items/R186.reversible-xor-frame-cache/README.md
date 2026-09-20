@@ -2,12 +2,10 @@
 
 # reversible XOR frame cache
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-Current retained output is a bounded live VideoFrame map plus one redraw frame; it is not an archive of full decoded reverse-preview frames. A checkpoint/XOR/zlib representation would require an exact decoded-plane cache and eviction owner. The report also shows random data can exceed raw size. New R318 closed-GOP component supplies exact decoded frames; XOR/checkpoint encoding, eviction and growth fallback remain separate unimplemented setup.
+Implemented bounded60-picture checkpoint/XOR/zlib owner over real256x144 MPEG2 decoded I420, checkpoint15 with bridge deltas atboundaries. Full59-step reverse and10crosscheckpoint randomqueries reproduce everycomplete frame exactly; damageddelta rejects; old completed sourcegeneration owner discarded beforepublication, freshsurvivor exact; allowners close. Incompressible realbytecontrol detectscompressedrepresentation growth and fallsbacktoownedrawframes withsame dynamicpayload/list representation asrawbaseline; compressionpreparation cost stillpaid. Ninealternating completecoldcachebuild+reverse+10randomquery+fullhash+close pairs: dense1.869ms versusXOR38.518ms, 1960.3% slower. This doesnotbeatrawpointer traversal. Measuredretainedpayload/checkpoint/delta/container representation shrinks99.1597%; worstrequestedframe3.432ms, maximumbuild13.722ms, passingpredeclared memoryboundcapability gates >=50%retentionreduction,<16.7ms observedrequest,<250msbuild. Fixedowner/interpreter/allocator/globalfixture/processRSS excluded from namedrepresentation counts; no universaldeadline guaranteeorphysicalmemoryclaim. Pursue onlyboundedcoherent reversecache when retention matters andthisCPUtradeoff fits; noisycontentfallbackpreservesnegative. No decoderinternal state/reconstruction skip orproductioncache admission.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Scoped memorybound coherent reversecache research gates complete with explicit~20.6xwholejobcost versusrawcache. Do not claim speedup; integrateonlyif actualretention budget and measuredquerylatency justify it, and preserve rawfallback/admission limits.
 
-Next: If reverse-preview retention is requested, compare one bounded coherent and one incompressible real decoded sequence against both raw-cache traversal and persistent decode; cap representation growth and preserve checkpoint bridge reconstruction.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T232616Z-bounded-xor-owner/analysis.md)

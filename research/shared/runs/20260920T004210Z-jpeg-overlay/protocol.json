@@ -1,0 +1,5 @@
+{
+  "scope": "Existing libjpeg-turbo cjpeg fixedQ83 + jpegtran coefficient-drop primitive, requested opaque32x16grayscale overlay at(40,48), aligned8x8blocks. Original sourcecoefficients outside8changed blocks preserved. Actual outputJPEG serialization and decode included. No chroma or partial-block alpha blending claim.",
+  "baseline": "Conventional full-image decode/paint/reencode at sameQ, then crop encoded overlay and coefficient-drop into original to satisfy identical untouched-coefficient contract; ordinary full reencode alone violates that contract. Both use installed library primitives; this is route selection, not a novel coefficient algorithm.",
+  "cost": "Five alternating four-frame complete operations including overlay encode/read/hash/encode/drop/outputdecode versus matched full-image render/encode/crop/drop/outputdecode;<=0.9median. Full-image entropy serialization charged both."
+}

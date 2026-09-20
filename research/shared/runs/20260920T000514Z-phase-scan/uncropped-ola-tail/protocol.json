@@ -1,0 +1,5 @@
+{
+  "recipe": "Original simple phase vocoder:1024 Hann,hop256,rate0.8; adjacent magnitude interpolation; phase residual wrap uses NumPy round ties-even; exclusive increment sum across four jobs; main-process inverseFFT and normalized overlap-add. Explicitly no transient preservation claim.",
+  "correctness": "Independent sequential frame loop vs actual four-process local prefix+ordered offset; waveform absolute tolerance1e-9. Wrong independent phase resets must fail. Source bytes bound by hash, process context closes on completion.",
+  "cost": "Five alternating cold source read/hash/STFT/process startup/serialization/local-prefix/composition/iFFT/OLA/cleanup vs sequential frame-loop same endpoint;<=0.9 median."
+}

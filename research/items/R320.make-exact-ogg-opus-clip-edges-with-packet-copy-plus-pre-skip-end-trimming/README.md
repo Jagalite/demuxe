@@ -2,30 +2,26 @@
 
 # Make exact Ogg Opus clip edges with packet copy plus pre-skip/end trimming
 
-Full identity: `R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming`.
+Full key: `R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming`
 
-Current decision: **pursue** (2026-09-19T20:13:17.931463+00:00).
+Current decision: **stop_current_profile** (2026-09-19T21:45:10.321305+00:00).
 
-Exact copied-packet full-prefix Ogg crop reused from R094 retains the correct same-decoder state. Newly shortened 83.6875ms preroll keeps 55545 samples but changes 4315 samples, max absolute float error 0.00774363; do not substitute a recommended duration for an exact-state proof.
+Exact crop12345:67890 retains complete compressed prefix and55545 mono48k float samples, bit-identical to same-decoder continuous reference; wrong preskip fails. Five fresh alternating cold copy-author+decode pairs cost54.999ms versus32.198ms full decode+slice, ratio1.70814 fails0.9. Prepared decode median30.247ms reported separately, excludes authoring. Initial overlapping timings retained invalid. Earlier independent browser exactness and shortened-preroll mismatch remain pinned.
 
-## Tested contract
+Stop current cold Python page-authoring cost profile. Exact Ogg sample-edge capability remains valid with fullprefix; prepared output has separate tradeoffs but measured savings below10percent. Reopen with faster page authoring or applicable repeatedly consumed clip workload and full endpoint cost.
 
-Mono chirp/impulse Ogg Opus crop 12345:67890; full-prefix host/browser oracle reused; shortened-prefix host adverse run
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-Next action: Measure practical retained-prefix costs; admit a shorter history only with an explicit non-bit-exact tolerance or a justified state equivalence proof.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-## Stages
+[Run](../../shared/runs/20260919T214510Z-ogg-exact-cost/run.json) · [Analysis](../../shared/runs/20260919T214510Z-ogg-exact-cost/analysis.md) · [Manifest](../../shared/runs/20260919T214510Z-ogg-exact-cost/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Exact mechanism and bounded profile distinguished from overlapping item keys. |
-| prepare | passed | Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned. |
-| screen | passed | Exact copied-packet full-prefix Ogg crop reused from R094 retains the correct same-decoder state. Newly shortened 83.6875ms preroll keeps 55545 samples but changes 4315 samples, max absolute float error 0.00774363; do not substitute a recommended duration for an exact-state proof. |
-| correctness | passed | Full-prefix exact sample oracle plus meaningful same-length shortened-state failure establish bounded component contract. |
-| performance | pending | No benchmark; full-prefix preservation may remove practical seek/cut savings. |
-| results | passed | New and reused execution identities, controls, limits, manifests and commands captured. |
-| decision | passed | Scoped pursue disposition; integration and release qualification remain separate. |
-
-[Shared run](../../shared/runs/20260919T201317Z-ogg-controls/run.json) · [Analysis](../../shared/runs/20260919T201317Z-ogg-controls/analysis.md) · [Manifest](../../shared/runs/20260919T201317Z-ogg-controls/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Historical definitions/evidence remain intact. No production integration or release qualification.
+Disposition vocabulary normalized 2026-09-19T21:48:27.630401+00:00; no new execution.

@@ -2,28 +2,18 @@
 
 # Seek directly into Matroska configuration changes using CueCodecState
 
-Full identity: `R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate`. Original rank: 172.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-Remux explicitly rejects changed video extradata and its seek state does not expose Matroska CueCodecState. Indexed configuration-epoch mapping requires a demux/configuration transaction, while cues cannot recreate prediction history.
-
-No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.
-
-Next action: Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay. |
+| correctness | passed | Two 10-frame, 10 fps AVC epochs share dimensions but differ in baseline CAVLC versus high-profile CABAC configuration. The second BlockGroup contains CodecState and its cue references that actual Segment-relative element; first cue uses the initial TrackEntry. No in-band SPS/PPS masks stale initialization. Four initial seek targets [1,0,1,0] and all 880 timed target pictures match independent host-decoded YUV420 hashes, dimensions and absolute timestamps exactly. Wrong initialization yields zero pictures and EncodingError. Stale source identity, invalid state position and non-RAP entry reject. Every frame and decoder closes. This is a narrow browser component, not maintained Matroska demux integration or arbitrary codec-state support. |
+| performance | passed | Predeclared 11 alternating pairs of four fresh seek owners [1,0,1,0]. Both return 40 exact target pictures per job; cue-directed mode submits 40 packets, sequential replay submits 60. Includes source hash/index parsing, state lookup, decoder creation/configure/decode/flush, target plane copies/hashes and cleanup; resident byte transfer and independent oracle preparation excluded equally. Median complete-job saving 29.5472%, bootstrap 95% median [24.0741,42.0798]%; 5% gate passed. No remote-range, physical memory or energy claim. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Pursue this source-bound configuration-seek component. Maintained demux integration must propagate CodecState correctly and preserve explicit RAP dependencies, source identity and owner cleanup; other codec/container profiles require separate admission.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

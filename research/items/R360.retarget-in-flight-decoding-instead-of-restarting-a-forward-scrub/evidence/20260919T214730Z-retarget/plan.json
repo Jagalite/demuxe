@@ -1,0 +1,9 @@
+{
+  "predeclared": true,
+  "fixture": "48-frame 1280x720 H264 closed GOP, no B pictures; independent FFmpeg I420 visible-plane hash for all target pictures",
+  "candidate": "Continue intact same-source/config forward decoder from old supplied prefix; explicit sample ordinal reachability. Backward and source epoch changes restart. Close every output; publish only committed target.",
+  "schedule": "Targets35,40,47 requested at owner start and after1ms and2ms; log actual delivered ordinal at each request so already-finished work cannot masquerade as in-flight. No artificial decoder delays.",
+  "baseline": "Close old decoder and replay prefix for each already-started seek; final-only coalescing remains preferable if requests have not started.",
+  "correctness": "Independent target pixels/PTS, actual source-generation cancel and backward restart, delayed stale output rejected, zero retained frames/end decoders.",
+  "performance": "Nine alternating cold owner pairs after correctness; prepare encoding excluded; includes all decoder/config/request waits/decode/copy/hash/flush/cleanup. Paired aggregate saving bootstrap10000, lower95 >=10% gate, require actual in-flight retarget observed."
+}

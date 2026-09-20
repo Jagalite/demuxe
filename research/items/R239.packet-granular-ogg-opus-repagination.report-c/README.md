@@ -2,30 +2,24 @@
 
 # packet-granular Ogg Opus repagination
 
-Full identity: `R239.packet-granular-ogg-opus-repagination.report-c`.
+Full key: `R239.packet-granular-ogg-opus-repagination.report-c`
 
-Current decision: **pursue** (2026-09-19T20:13:17.931463+00:00).
+Current decision: **stop_current_profile** (2026-09-19T20:56:27.118329+00:00).
 
-One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit.
+Real progressive HTTP page-readiness delivery reaches first browser audio at median2035.9ms original pages versus2036.9ms one-packet pages;1.00049 ratio fails0.90 startup target while bytes grow12.9155%. All8 actual delivery trials consume complete responses, produce audio and reach EOF. No lower latency on this browser/fixture policy; additional23.705ms repagination setup only increases candidate cost.
 
-## Tested contract
+Stop the low-latency claim for this2s Chrome page-delivery profile. Reopen only with a materially different consumer/buffering policy or justified live workload; unchanged packets and PCM remain correct.
 
-Reused genuine 2s mono Ogg source and group-1 repagination, new independent page/packet validation; no codec frame regrouping
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-Next action: Require a real page-withholding delivery trace before building a production Ogg output path; compare full latency and byte cost under that policy.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Exact mechanism and bounded profile distinguished from overlapping item keys. |
-| prepare | passed | Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned. |
-| screen | passed | One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit. |
-| correctness | passed | Whole-output host/browser evidence reused with exact artifact identities; new CRC/lacing/continuation and packet-identity adverse controls pass. |
-| performance | pending | Byte overhead observed, but no equivalent actual delivery trace or latency measurement. |
-| results | passed | New and reused execution identities, controls, limits, manifests and commands captured. |
-| decision | passed | Scoped pursue disposition; integration and release qualification remain separate. |
-
-[Shared run](../../shared/runs/20260919T201317Z-ogg-controls/run.json) · [Analysis](../../shared/runs/20260919T201317Z-ogg-controls/analysis.md) · [Manifest](../../shared/runs/20260919T201317Z-ogg-controls/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Historical definitions/evidence remain intact. No production integration or release qualification.
+[Run](../../shared/runs/20260919T205627Z-ogg-delivery/run.json) · [Analysis](../../shared/runs/20260919T205627Z-ogg-delivery/analysis.md) · [Manifest](../../shared/runs/20260919T205627Z-ogg-delivery/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

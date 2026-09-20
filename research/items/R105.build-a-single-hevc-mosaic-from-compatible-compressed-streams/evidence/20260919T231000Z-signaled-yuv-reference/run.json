@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260919T231000Z-signaled-yuv-reference",
+  "item_keys": [
+    "R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-20T00:28:28.800190+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/tests/prepare-larger.py research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/evidence/20260919T230600Z-larger-main-tiles",
+    "/tmp/demuxe-gpac-mosaic/bin/gcc/gpac -i a.mp4:#CropOrigin=0x0 -i b.mp4:#CropOrigin=256x0 hevcmerge:strict -o explicit.mp4",
+    "python3 research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/tests/isolate-traced.py research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/evidence/20260919T230600Z-larger-main-tiles research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/evidence/20260919T230700Z-larger-isolated-tiles",
+    "python3 research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/tests/entropy-proof.py research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/evidence/20260919T230700Z-larger-isolated-tiles",
+    "node research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/tests/browser-full-picture.mjs research/items/R105.build-a-single-hevc-mosaic-from-compatible-compressed-streams/evidence/20260919T231000Z-signaled-yuv-reference"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "22b6c49cdcb78117a1c136b5481769e253a3c0f47ef890b5f920a4c27316bd77",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual pinned strict merger, independent FFmpeg fullYUV and bit-aligned CABAC payload observer, all12payloads unchanged and all6timing tuples exact. Cross-tile-filter-on negative changes edge pixels; one-bit traced correction restores exactness. Real mismatched10bit source rejected. Final256x128-source native complete512x128RGBA oracle is exact for all6pictures plus backward/forward seeks/EOF/cleanup.64x64merged native seek failure remains unqualified; no inter-picture motion in admitted inputs."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source asks whether compressed compatible regions can form one coded mosaic. This bounded capability is established without a speed/memory/power claim; source encoding, isolated GPAC build and oracle generation are disclosed. No performance benchmark applies to the current endpoint."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Require strict compatible configuration, synchronized frames, certified motion independence and disabled cross-boundary filtering. Use complete-picture YUV semantics for reference. Qualify actual intended predictive clips and native tile geometry before integration; never infer pixel identity from a strict-merger return code alone."
+}

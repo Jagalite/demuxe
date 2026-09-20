@@ -1,0 +1,24 @@
+{
+  "scope": "Exactly aligned independent AAC-LC mono sources retained as two SCEs in stereo PCE, channel_configuration0. Encoder-authored source identities/rate/origin/priming/input length certificates mandatory; no inference from codec name.",
+  "correctness": "All49152 decoded samples each channel equal original independent mono in host and Chrome. Parser rejects unsupported dependencies; priming/origin/hash/length mismatch, cancellation reject.",
+  "performance": "Five alternating cold table read/init, both source read/identity/parser/PCE assembly/write+single stereo decode versus two original mono decodes+PCM interleave. Same stereo float PCM endpoint, <=0.9cost. Prepared decode-only claims excluded.",
+  "claims": [
+    {
+      "sha256": "3904263a259aa48f1a67007f95cbb2d586dda513e70169770c0ab5ecdf7bf1f8",
+      "rate": 48000,
+      "priming": 1024,
+      "origin": 0,
+      "inputSamples": 48000,
+      "frames": 48
+    },
+    {
+      "sha256": "4923b4aed530c32b610d6a36ad01ff58bd69edbb3fd223f99d7c46be3b83cbdd",
+      "rate": 48000,
+      "priming": 1024,
+      "origin": 0,
+      "inputSamples": 48000,
+      "frames": 48
+    }
+  ],
+  "sourceRun": "research/shared/runs/20260919T230128Z-aac-elements"
+}

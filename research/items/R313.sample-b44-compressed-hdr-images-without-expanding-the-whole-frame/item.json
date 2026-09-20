@@ -64,116 +64,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "status": "passed",
+      "basis": "Actual OpenEXR B44 single HALF-Y/pLinearfalse130x98 file parsed into825four-by-four blocks including right/bottom padding. All12740 reconstructed half bit patterns exactly match independent OpenEXR decoder; encoded output intentionally differs from precompression pixels. Actual WebGPU direct block sampling1066queried pixels matches the same half bits and identical HDR grayscale consumer output versus GPU expanding only87selected unique blocks into compact half storage. Truncated/version/wrong-pixel controls pass; stale epoch prevents readback publication and all GPU resources close. Five alternating cold device/read/hash/upload/pipeline/sample/consumer/readback medians6.9vs7.2ms ratio0.95833 fails0.9. Initial shader/pipeline startup is separately retained and variable; no stable speedup claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+      "status": "failed",
+      "basis": "Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "basis": "stop_current_profile: Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T002545Z-b44/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame",
-      "rank": 331,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-20T00:25:45.238923+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260920T002545Z-b44"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual OpenEXR B44 single HALF-Y/pLinearfalse130x98 file parsed into825four-by-four blocks including right/bottom padding. All12740 reconstructed half bit patterns exactly match independent OpenEXR decoder; encoded output intentionally differs from precompression pixels. Actual WebGPU direct block sampling1066queried pixels matches the same half bits and identical HDR grayscale consumer output versus GPU expanding only87selected unique blocks into compact half storage. Truncated/version/wrong-pixel controls pass; stale epoch prevents readback publication and all GPU resources close. Five alternating cold device/read/hash/upload/pipeline/sample/consumer/readback medians6.9vs7.2ms ratio0.95833 fails0.9. Initial shader/pipeline startup is separately retained and variable; no stable speedup claim.",
+      "next_action": "Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
+      "reopen_condition": "Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R313-R317-report.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
-      ],
-      "next_test": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
-      "reopen_condition": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260920T002545Z-b44/run.json"
+      ]
     }
   },
-  "next_action": "Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.",
+  "next_action": "Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

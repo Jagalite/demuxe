@@ -2,28 +2,26 @@
 
 # Offer explicit compatible-core extraction before audio re-encoding
 
-Full identity: `R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding`. Original rank: 194.
+Full key: `R029.offer-explicit-compatible-core-extraction-before-audio-re-encoding`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T22:10:57.352909+00:00).
 
-Current finite plans preserve requested audio or explicitly allow lossy encoding; no separate permission represents discarding compatibility extensions. DTS core is not automatically browser-supported, so extraction alone does not establish a usable route.
+ActualFFmpeg archive DTS-HD MA5.1 core-plus-extension input yields329DTS corepackets; everycore packet is exact originalprefix,63276extensionbytes discarded (725224to661948). Bothhostdecoded168448frames; nonzero full/corePCM differs max0.00045344, so no losslessfullfidelity claim. Chrome152 rejects actual core.dts and core.mp4 decodeAudioData; DTSCoreMSE typefalse and realaddSourceBuffer raisesNotSupportedError. Samecore decodedtoFLAC positivecontrol succeeds6channels/168448frames/48k, provingvalidfixture. Destination correctness fails as proposalstoprule predicts; no downstreamperformance or video-preservation qualification attempted.
 
-No matching candidate/reference/control execution for this exact gate. True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination.
+Stop current Chrome native DTS-core profile: extracted core stillunsupported, so addingbitstreamfilter alone cannot admit route. Reopen only for an actual supportedcore destination and explicit extension-loss intent, then test preservedvideo and completecost. Sourcefixture missingblock resolved; nativecapability failure is experimentalnegative, not environment/setupblock. External/derivedmedia NOASSERTION and localresearch-only attribution pinned.
 
-Next action: Identify one true core-plus-extension fixture and explicitly permitted core output, then query/decode that exact core destination before adding a dca_core path. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | failed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. True core-plus-extension source and an explicitly permitted, actually decodable compatibility-core destination. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+[Run](../../shared/runs/20260919T221057Z-dts-core/run.json) · [Analysis](../../shared/runs/20260919T221057Z-dts-core/analysis.md) · [Manifest](../../shared/runs/20260919T221057Z-dts-core/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+Gate classification clarified 2026-09-19T23:44:08.258984+00:00: R029 actual native DTS-core destination rejection is a failed correctness gate and stop_current_profile, not a missing prerequisite. Performance is not_applicable after that terminal failure. No new media execution or scientific verdict change. Audit found R012 and R052 already correctly classified not_applicable. [Audit](../../shared/runs/20260919T234408Z-audio-terminal-gate-audit/run.json).

@@ -2,28 +2,12 @@
 
 # Use Document PiP to keep Native subtitles and controls
 
-Full identity: `R022.use-document-pip-to-keep-native-subtitles-and-controls`. Original rank: 233.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Actual Chrome Document PiP with trusted click retains the same maintained native Player video, ASS worker, gain0.5, paused0.7s/rate1.25 and exact full video/ASS-mask hashes. No-activation request correctly throws NotAllowedError. Research custom control shell moves to actual PiP document: focus and volume0.3 work, old document pointer listener removed/new listener bound, video/overlay coordinates agree.640x360 resize then320x180 restore exactly restores the complete original ASS mask; close restores same owner, reopen/source replacement retires old video/canvas and renders different black source/new ASS; destroy while PiP open leaves zero workers and detached shell. Preserve initial harness ReferenceError and substantive second-resize failure: transferred original ResizeObserver stopped scheduling and left640x360 mask on320x180 video. Bounded research correction installs an observer from current owner document and invokes retained ASS invalidation hook; disconnect/rebind on transfer/source/destroy. No production edits. Native-direct ASS/gain and custom Player shell only; full custom-element global listeners, fullscreen, worker MSE and physical PiP geometry remain outside scope. Capability performance not applicable; no speed claim.
 
-Historical Document-PiP setup defer remains, but missing-libass is no longer a blanket claim: an isolated runtime exists. ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred.
+Next: Scoped native-direct custom Player shell capability passes. Integrating owner-document observer/control rebinding into maintained custom element or fullscreen/worker-MSE profiles requires separate validation.
 
-No matching candidate/reference/control execution for this exact gate. ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T225320Z-pip-owner-observer/analysis.md)
 
-Next action: Next missing gate: ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. ASS-bearing cross-document owner transfer/restore adapter and activation/close/source-change controls. Isolated libass runtime exists, but web/engine-ass/subtitles.mjs remains absent; no API failure inferred. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Fixture provenance metadata amendment](../../shared/runs/20260919T230543Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T231100Z-native-base",
+  "item_keys": [
+    "R240.extract-a-native-2d-view-from-multiview-hevc.report-a"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-20T00:41:52.663127+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R240.extract-a-native-2d-view-from-multiview-hevc.report-a/tests/browser-base-bounded.mjs research/items/R240.extract-a-native-2d-view-from-multiview-hevc.report-a/evidence/20260919T230500Z-apple-mvhevc research/items/R240.extract-a-native-2d-view-from-multiview-hevc.report-a/evidence/20260919T231100Z-native-base",
+    "ffmpeg -v error -i stereo-oracle.hevc -map 0:v:0:vidx:0 -f framemd5 left-raw.framemd5",
+    "ffmpeg -v error -i stereo-oracle.hevc -map 0:v:0:vidx:1 -f framemd5 right-raw.framemd5",
+    "python3 research/items/R240.extract-a-native-2d-view-from-multiview-hevc.report-a/tests/packet-proof.py research/items/R240.extract-a-native-2d-view-from-multiview-hevc.report-a/evidence/20260919T230500Z-apple-mvhevc"
+  ],
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "dirty_diff_sha256_at_registration": "05a36f928e6a622adb4c64647f117bc4df0664a4e9664ff5c5e6cfa0acc92bb2",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent FFmpeg124packet/VCL/timestamp proof,122displayed framehash oracle,124picture two-eye decoding, dependent-only0picture negative; native1280x1280RGBA equality at8queries plus reverse/forward/EOF andcleanup. Guarded source-specific VPS rewrite and timeline edits explicit."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source-defined base-view extraction capability, no latency/CPU/energy claim; correctness setup and whole-source preparation included in recorded provenance. No performance benchmark required for this endpoint."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Preserve source/configuration guards and base-view identity; extend sources and audio/timecode retention before whole-file integration. Do not infer generic MV-HEVC or3D support."
+}

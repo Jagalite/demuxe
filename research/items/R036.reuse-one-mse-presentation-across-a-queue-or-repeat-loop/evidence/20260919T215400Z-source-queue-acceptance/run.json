@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T215400Z-source-queue-acceptance",
+  "item_keys": [
+    "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:56:27.509190+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "FFmpeg fixture commands: research/shared/runs/20260919T215100Z-queue-fixtures/generator.json",
+    "node research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/tests/queue-pcm.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "e9a59e57ee36ed5eae622ef6f193a6e237849d39962e7b1824ce168d85f1671a",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "failed",
+      "basis": "Actual48kAAC source-linked queue captures256quiet samples (5.333ms) around first boundary; gate<=240samples. The64-sample RMS-bin method has1.333ms bin resolution and is not exact acoustic placement. Both buffers appear continuous0\u20135.999999s, retained identity, tone mapping, reverse/forward seek and EOF pass. Full image, subtitle, real pending source replacement and long bounded eviction remain unqualified because the initial PCM gate failed; no inference that generic MSE queue reuse is impossible."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Not applicable after this declared correctness failure; no benchmark or long-run resource claim."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with a sample-accurate independent-encoder boundary construction or an explicitly nongapless queue contract. Repeat the predeclared PCM gate with sufficient temporal resolution before full picture/source-replacement/bounded-retention and complete-cost work."
+}

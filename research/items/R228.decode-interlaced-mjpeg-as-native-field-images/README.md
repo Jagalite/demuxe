@@ -2,12 +2,10 @@
 
 # Decode interlaced MJPEG as native field images
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **stop_current_profile**. correctness: **failed**, performance: **not_applicable**.
 
-Video configuration and presentation do not expose a JPEG-field parser or field-time compositor. Current image dimensions alone cannot distinguish temporally separate interlaced fields; weaving would not satisfy the requested deinterlacing output.
+Obtained real archived interlaced Motion JPEG A source, independently identified container top-field-first and two complete160x60 JPEG field images per160x120 packet. First fetched source was progressive and isretained as rejected fixture, not interlaced evidence. Actual APP1 next-field offsets locate both complete pictures; remove only wrapper APP1 to browser-decode independent fields. First2 packets yield4 distinct temporal fields at0,41667,83333,125000us/24fieldspersecond; independent host full-source decode exactly equals interleaved standalone-field pixels, with27170/27238 different channels between actualfieldpairs. Browser ImageDecoder plus declared nearest-row bob runs all4 fields with exact order/duration and correct geometry, but strict independent FFmpeg RGBA gate fails:28224/28260/28394/28136 differing channels, max15/12/17/13. Preserve true fidelity failure consistent with browser JPEG color/reconstruction differences; do not relabel API/fixture unavailable or relax threshold. Wrong temporal order/missing second field reject; late source epoch closes, fresh survivor exact;12frames opened/closed. Correctnessfailed, performanceN/A: no benchmark afterstrictpixel failure. This doesnotreject all interlaced field-image routes; itrejects this exact browser-output profile and doesnot substitute progressive weaving or claim physical fieldtiming/deinterlacing quality.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Reopen only with browser component/color reconstruction satisfying the original exact pixel contract, or a separately requested and predeclared image precision profile; do not rerun timing or erase true color differences. Other field formats/deinterlacing/physical timing remain unqualified.
 
-Next: Extract two known opposite field identifiers and compare field order/timing with the software decoder before browser image decoding integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T230440Z-genuine-mjpa-fields/analysis.md)

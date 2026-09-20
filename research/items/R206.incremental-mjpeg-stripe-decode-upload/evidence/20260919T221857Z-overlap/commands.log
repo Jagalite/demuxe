@@ -1,0 +1,8 @@
+ffmpeg -v error -f rawvideo -pixel_format rgb24 -video_size 2048x2048 -i research/items/R206.incremental-mjpeg-stripe-decode-upload/evidence/20260919T221857Z-overlap/source.rgb -frames:v 1 -c:v mjpeg -q:v 5 -pix_fmt yuvj444p research/items/R206.incremental-mjpeg-stripe-decode-upload/evidence/20260919T221857Z-overlap/input.jpg
+djpeg -rgb -outfile research/items/R206.incremental-mjpeg-stripe-decode-upload/evidence/20260919T221857Z-overlap/reference.ppm research/items/R206.incremental-mjpeg-stripe-decode-upload/evidence/20260919T221857Z-overlap/input.jpg
+pkg-config --cflags --libs libjpeg
+cc -O2 research/items/R206.incremental-mjpeg-stripe-decode-upload/tests/jpeg-stripes.c -I/opt/homebrew/opt/jpeg-turbo/include -L/opt/homebrew/opt/jpeg-turbo/lib -ljpeg -o build/catalogue-tools/jpeg-stripes
+
+node research/items/R206.incremental-mjpeg-stripe-decode-upload/tests/stripe-overlap.mjs research/items/R206.incremental-mjpeg-stripe-decode-upload/evidence/20260919T221857Z-overlap
+Native producer spawned perrequest: build/catalogue-tools/jpeg-stripes <full|stripe> input.jpg
+Paired bootstrap Python seed206,10000samples

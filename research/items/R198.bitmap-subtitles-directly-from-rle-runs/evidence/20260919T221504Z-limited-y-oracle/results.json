@@ -1,0 +1,37 @@
+{
+  "correctness": false,
+  "performance": "not_applicable",
+  "preparation": {
+    "realPGS": true,
+    "segments": 10,
+    "runCount": 32,
+    "negativeParserControls": 2,
+    "referenceControls": [
+      {
+        "state": 0,
+        "exact": true,
+        "maxError": 0,
+        "mismatches": 0
+      },
+      {
+        "state": 1,
+        "exact": false,
+        "maxError": 2,
+        "mismatches": 768
+      },
+      {
+        "state": 2,
+        "exact": false,
+        "maxError": 2,
+        "mismatches": 768
+      }
+    ]
+  },
+  "original_model_prediction": 128,
+  "independent_FFmpeg_actual": 129,
+  "attempted_correction_prediction": 127,
+  "attempted_explanation_falsified": true,
+  "GPU_executed": false,
+  "prior_run": "research/items/R198.bitmap-subtitles-directly-from-rle-runs/evidence/20260919T221346Z-real-pgs-runs",
+  "reason": "Implemented real binaryPGS display/palette-only-update/clear packets with complete64x16 short colored/transparent RLE runs, rather than only a packet model. Bounded parser validates segment/object/row bounds and retains32 spans; oversized/truncated runs reject, independent FFmpeg subtitle timestamps confirm0.5/0.75/1.5second events. However exact fullRGBA compositing fails before GPU qualification: the proposed RGB integer-over rule yields128 at semitransparent white while actual FFmpeg overlay gives129, affecting768 channels in both active palette states. Clear is exact. One attempted limited-Y-domain correction hypothesized127; it instead increased mismatch to2 and is explicitly falsified, not an explanation accepted as proof. Preserve both failed outputs/plans and stop this strict compositor variant. No GPU runtime or performance claim follows an unresolved output-domain mismatch. The realPGS parser/setup is available; blocker is now experimental fidelity, not missingGPUAPI or absentproductionadapter. Multiple/fragmentedobjects and generalchroma are outside this bounded fixture."
+}

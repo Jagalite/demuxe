@@ -1,0 +1,5 @@
+{
+  "workload": "11 alternating cold browser owner jobs; startup128B,distant128B,final64B. Include header acquisition, HKDF/key import, segment authentication, range copies and owner cancellation. HTTP modeled256KiB/s+5ms each response, no-store. Compare wait-full sequential decrypt once per job, plus plaintext range baseline.",
+  "gate": "All plaintext ranges equal official Python Tink reference; wrong key/context/header/cipher/position/truncation/stale owner reject before exposing requested data. Median ciphertext bytes reduction>=80%, median total latency ratio<=1.25 versus sequential.",
+  "scope": "Authorized pinned encrypted-object identity/key/context are input. Tink AES128_GCM_HKDF_4KB exact format; not a new scheme, secret manager, peer transport or maintained Demuxe integration."
+}

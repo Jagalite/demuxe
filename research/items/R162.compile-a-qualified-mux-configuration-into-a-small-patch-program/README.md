@@ -2,20 +2,24 @@
 
 # Compile a qualified mux configuration into a small patch program
 
-Current decision: **pursue**. Compiled fixed moof template plus typed duration/size/tfdt/sequence/data-offset fields reproduces24 qualified single-sample fragments with exact packet payload/timing and decoded frames. Mutated nonparameter skeleton and zero duration reject; generic mux layouts excluded.
+Full identity: `R162.compile-a-qualified-mux-configuration-into-a-small-patch-program`.
 
-Historical stage reconciliation; no new experiment.
+Current decision: **pursue** (actual-complete-cost-comparison).
+
+Qualifiedfixedmoofpatchconstructor versusdirectboundedboxconstructor,200movies/4800fragmentsperjob,11pairs includingcoldtemplateparsing/compilation andoutputhashing. Everyoutputbyteexact existingqualifiedfixture; priorfullhostdecodedpixel/packet/timing andadversecontrols retained. Median23.00percent saving95[21.91,24.01] passes5percentgate. 104byte template retention; hostPython only, not arbitraryrecipes/Wasm/browserCPU.
+
+Next action: Scopedresearch costdecision complete; broaden only for a materially differentowner/workload withnewdeclaredgate.
+
+## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
 | prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
 | correctness | passed | Fixed moof patch program reproduces24single-sample packet payload/timing and complete decoded pixels; mutated skeleton/zero duration reject. Pure qualified constructor, arbitrary layout excluded. |
-| performance | pending | No equivalent construction benchmark including compile/setup/retention costs. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+| performance | passed | Qualifiedfixedmoofpatchconstructor versusdirectboundedboxconstructor,200movies/4800fragmentsperjob,11pairs includingcoldtemplateparsing/compilation andoutputhashing. Everyoutputbyteexact existingqualifiedfixture; priorfullhostdecodedpixel/packet/timing andadversecontrols retained. Median23.00percent saving95[21.91,24.01] passes5percentgate. 104byte template retention; hostPython only, not arbitraryrecipes/Wasm/browserCPU. |
+| results | passed | Qualifiedfixedmoofpatchconstructor versusdirectboundedboxconstructor,200movies/4800fragmentsperjob,11pairs includingcoldtemplateparsing/compilation andoutputhashing. Everyoutputbyteexact existingqualifiedfixture; priorfullhostdecodedpixel/packet/timing andadversecontrols retained. Median23.00percent saving95[21.91,24.01] passes5percentgate. 104byte template retention; hostPython only, not arbitraryrecipes/Wasm/browserCPU. |
+| decision | passed | Qualifiedfixedmoofpatchconstructor versusdirectboundedboxconstructor,200movies/4800fragmentsperjob,11pairs includingcoldtemplateparsing/compilation andoutputhashing. Everyoutputbyteexact existingqualifiedfixture; priorfullhostdecodedpixel/packet/timing andadversecontrols retained. Median23.00percent saving95[21.91,24.01] passes5percentgate. 104byte template retention; hostPython only, not arbitraryrecipes/Wasm/browserCPU. |
 
-Next: Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.
-
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[New run](../../shared/runs/20260919T214500Z-owned-and-patch-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

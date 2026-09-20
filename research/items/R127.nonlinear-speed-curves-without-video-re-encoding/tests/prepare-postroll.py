@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+import pathlib,sys,subprocess,json,hashlib,struct,math
+h=pathlib.Path(__file__).resolve().parents[1];o=pathlib.Path(sys.argv[1]);commands=[]
+def run(cmd):
+ commands.append(cmd);p=subprocess.run(cmd,capture_output=True,text=True);assert p.returncode==0,p.stderr;return p.stdout
+run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=s=160x96:r=24:d=4','-f','lavfi','-i','sine=frequency=440:sample_rate=48000:duration=4.1','-map','0:v','-map','1:a','-c:v','libx264','-bf','0','-g','48','-sc_threshold','0','-pix_fmt','yuv420p','-color_primaries','bt709','-color_trc','bt709','-colorspace','bt709','-color_range','tv','-c:a','pcm_s16le',str(o/'source.mkv')])
+# One authorized audio preparation recipe: full continuous stretches with interior slices, avoiding per-segment encoder startup/drain.
+af='[0:a]asplit=3[a][b][c];[a]atrim=start=0:end=1,asetpts=PTS-STARTPTS[a0];[b]atempo=2,atrim=start=0.5:end=1,asetpts=PTS-STARTPTS[b0];[c]atempo=0.5,atrim=start=4:end=8,atrim=duration=4,asetpts=PTS-STARTPTS[c0];[a0][b0][c0]concat=n=3:v=0:a=1[out]'
+run(['ffmpeg','-v','error','-i',str(o/'source.mkv'),'-filter_complex',af,'-map','[out]','-c:a','pcm_s16le',str(o/'audio-reference.wav')])
+run(['cc',str(h/'tests/map.c'),'-o',str(o/'map')]+subprocess.check_output(['pkg-config','--cflags','--libs','libavformat','libavcodec','libavutil'],text=True).split())
+run([str(o/'map'),str(o/'source.mkv'),str(o/'mapped.mp4')])
+run(['ffmpeg','-v','error','-i',str(o/'mapped.mp4'),'-i',str(o/'audio-reference.wav'),'-map','0:v','-map','1:a','-c:v','copy','-c:a','flac','-strict','-2','-movflags','+faststart',str(o/'candidate.mp4')])
+(o/'commands.json').write_text(json.dumps(commands,indent=2));(o/'contract.json').write_text(json.dumps({'map':[[0,0],[1,1],[2,1.5],[4,5.5]],'audio':'Explicit pitch-preserving FFmpeg atempo recipe; three full-source branches with interior slicing form one authorized preparation output. Source has100ms actual audio post-roll for filter window; no synthetic silence padding. No generic seamless perceptual claim.','scope':'4s synthetic progressive AVC noB, mono440Hz48k with100ms actual post-roll, requested piecewise speed1/2/0.5; packet payload/config unchanged, mapped video PTS and independent picture sequence, exact prepared audio PCM after losslessFLAC.','gates':'96 pictures and packet hashes exact; DTS/PTS monotone, map error<=1ms;264000 audio samples exact reference; tone pitch within1%, no internal silent gap>5ms at joins.','performance':'N/A capability-only nonlinear mapping; no claim video-timewarp cheaper than existing faithful packet remux.'},indent=2))

@@ -2,12 +2,12 @@
 
 # JPEG XL DC preview
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-The report uses libjxl progressive events and intentionally approximate DC output. Current player has no JPEG XL decoder/event bridge or progressive still-preview consumer, so a new codec service exceeds a first-pass candidate patch.
+Built official libjxl v0.11.2 pinned332feb17d17311c748445f7ee75c4fb55cc38530 with isolated pinnedHighway/Brotli and installedLCMS2, generated genuine1024x768 progressiveVarDCT JPEGXL. Actual streaming API feeds64bytes atatime. First FRAME_PROGRESSION+FlushImage reports intended1:8 DC output after12795consumed/12800provided bytes of46709total (27.40%read,5bytes bounded readahead). Expanded intentionallyapproximate previewPSNR20.8523dB vs final, passes predeclared20dB; bytefraction<50%gatepasses. Full stream decode matches separate djxl CLI complete2359296RGBbytes exactly. Cancellation atsameactualevent gives identicalpreview/consumed/providedcounts, neverreads moreorproducesfullimage, destroysdecoder/closesfile. Truncatedheader rejects8; freshfullowner aftercancel/badsource exact. Correctnesspassed forcodec-progressive preview capability, performanceN/A: byteboundary and earlyreadstop arenotbrowserlatency/energy claims. No browserJPEGXLcodecservice, generic truncatedJPEGheuristic, exactpreviewclaim, orproductionroutingchange. Fixture/source/runtime/notices and buildlogs retained.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Scoped native codec-progressive preview gates complete. Browser/Wasm service, widercontent quality, latency/resource comparison and delivery byte savings need separate requestedprofiles; no productionroute changed.
 
-Next: Identify an existing libjxl runtime and scope only progression event/FlushImage plus cancel on a tiny image before UI integration.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T231357Z-libjxl-progressive/analysis.md)
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Upstream notice clarification](../../shared/runs/20260919T232748Z-presentation-notice-amendment/analysis.md); gates unchanged.

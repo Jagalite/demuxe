@@ -1,0 +1,245 @@
+{
+  "plan": {
+    "items": [
+      "R176.jspi-backed-synchronous-wasm-i-o",
+      "R006.offer-a-non-pthread-remux-path-without-isolation"
+    ],
+    "contract": "Existing scoped AVC/AAC TS input, complete remux bytes equal independently decoded prior exact-output oracle. Nonisolated JSPI execution; no MP4 priming claim.",
+    "workload": "228608-byte 4.021333-second fixture. Compare full acquisition then resident reads with HTTP byte ranges, both using same actual JSPI FFmpeg remux, fresh worker and engine. Every HTTP fixture request has15ms injected latency.",
+    "sampling": "Seven paired trials alternating order; cold worker/module initialization every trial, same browser HTTP cache state; no discarded warmups.",
+    "metrics": [
+      "total wall through worker termination",
+      "first output wall",
+      "read count",
+      "read bytes",
+      "retained Wasm heap bytes",
+      "total output bytes"
+    ],
+    "threshold": "Every exact-output and cleanup control must pass. Practicality for this tiny scoped fixture requires worst observed complete remux below source duration4021.333ms. This is a declared component throughput bound, not evidence JSPI is faster than pthreads. Compare observed overhead and report all raw pairs.",
+    "limits": "Shared host load; no matched pthread build benchmark, physical memory RSS, player integration or energy claim. Input acquisition, range transfer, startup, output transfer, close and termination included. Resident mode retains full source; range mode does not retain previous reads in JS. Browser cache/OS may retain source separately."
+  },
+  "oracle": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5",
+  "pairs": [
+    {
+      "index": 0,
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 157.5,
+        "totalMs": 166.10000002384186,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 154.39999997615814,
+        "totalMs": 216.5,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 1,
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 146,
+        "totalMs": 208.19999998807907,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 44.700000047683716,
+        "totalMs": 53.10000002384186,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 2,
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 40.5,
+        "totalMs": 48.59999996423721,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 142.80000001192093,
+        "totalMs": 201.5,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 3,
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 142,
+        "totalMs": 200.69999998807907,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 48.39999997615814,
+        "totalMs": 56,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 4,
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 41.69999998807907,
+        "totalMs": 48.90000003576279,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 180.4000000357628,
+        "totalMs": 257.4000000357628,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 5,
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 159,
+        "totalMs": 217.69999998807907,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 74,
+        "totalMs": 85.89999997615814,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    },
+    {
+      "index": 6,
+      "resident": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 228608,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 52.69999998807907,
+        "totalMs": 63.19999998807907,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      },
+      "range": {
+        "done": true,
+        "reads": 10,
+        "readBytes": 588288,
+        "heapBytes": 67108864,
+        "residentBytes": 0,
+        "isolated": false,
+        "shared": "undefined",
+        "firstOutputMs": 153.69999998807907,
+        "totalMs": 211.60000002384186,
+        "terminated": true,
+        "outputBytes": 202330,
+        "sha256": "08dbfa69e7aa84416c0b1d584a337a9deb6dafd4c58f143568fcd34aab920de5"
+      }
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "maxTotalMs": 257.4000000357628,
+  "thresholdPassed": true,
+  "passed": true
+}

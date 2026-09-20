@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T212345Z-graph-cost",
+  "item_keys": [
+    "R061.keep-explicit-channel-processing-on-the-native-audio-graph",
+    "R241.decode-an-ambisonic-sound-field-natively-then-render-its-spatial-meaning-separately"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual browser decode\u2192native channel graph output is sample-identical to independently materialized software-matrix output for both six-channel permutation/gains and four ACN/SN3D directions. Wrong ordering and failure to stop a real stale source produce large errors; stop/disconnect/closed lifecycle passes. Seven-pair full decode/setup/render ratios1.05190 and1.05202 pass the predeclared1.10 cost ceiling; no speedup, CPU, energy or opaque-memory claim."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue declared static indexed channel operations/directional renderer within bounded cost. Physical speakers, headtracking and realtime video-owner integration are separate from this offline component.",
+  "reused_evidence": [
+    "results/full-completion/r57/six.flac",
+    "results/top100/audio/ambisonic.opus",
+    "results/top100/audio/seams-result.json"
+  ],
+  "commands_log": "research/shared/runs/20260919T212345Z-graph-cost/commands.log"
+}

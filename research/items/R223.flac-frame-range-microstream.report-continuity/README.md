@@ -2,28 +2,24 @@
 
 # FLAC frame-range microstream
 
-Full identity: `R223.flac-frame-range-microstream.report-continuity`. Original rank: 222.
+Full key: `R223.flac-frame-range-microstream.report-continuity`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T22:23:12.889048+00:00).
 
-Historical defer retained for the exact complete-frame identity gate. Exact complete-frame suffix writer and duration/checksum contract. R270 now supplies header/CRC/oracle tooling, but rewrites headers and does not prove original complete-frame identity for this item.
+Actual8s48kstereoFLAC has84frames; original42-frame suffix starting193536 yields190464samples/3.968s with truthfultotal and explicitlyunknownzeroMD5. Everycompletecodedframe hash unchanged; hostPCM and allChrome native/reference/render float samples exactly match continuoussuffix. CorruptedCRC rejected. Five alternating coldindex/read/copy/microdecode pairs64.865ms versus34.579ms fullsource decode+crop, ratio1.87585 fails0.9. Separate encodedmicrofile randomseek testfails libFLAC SEEK_ERROR at1/5000/189952 dueunchangedabsolute frame numbers; sequentialmicrodecode remains valid.
 
-No matching candidate/reference/control execution for this exact gate. Exact complete-frame suffix writer and duration/checksum contract. R270 now supplies header/CRC/oracle tooling, but rewrites headers and does not prove original complete-frame identity for this item.
+Stop current cold indexed suffix-microdecode costprofile; pursue no productionroute from this result. Exactsequential source-range restart is demonstrated, but standalone encodedfile randomseek is not. Reopen on cachedindex/range-source workload with fullcost and truthfulmetadata. Headerrebasing changescompleteframeidentity and is separate variant.
 
-Next action: Extract complete frames from one FLAC suffix, fix total samples/checksum policy and compare exact suffix samples plus reported duration. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Shared immutable component run; no production qualification.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Exact complete-frame suffix writer and duration/checksum contract. R270 now supplies header/CRC/oracle tooling, but rewrites headers and does not prove original complete-frame identity for this item. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Exact complete-frame suffix writer and duration/checksum contract. R270 now supplies header/CRC/oracle tooling, but rewrites headers and does not prove original complete-frame identity for this item. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T222312Z-flac-microstreams/run.json) · [Analysis](../../shared/runs/20260919T222312Z-flac-microstreams/analysis.md) · [Manifest](../../shared/runs/20260919T222312Z-flac-microstreams/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

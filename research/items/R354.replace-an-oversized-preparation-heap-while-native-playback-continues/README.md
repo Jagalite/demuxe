@@ -2,12 +2,18 @@
 
 # Replace an oversized preparation heap while native playback continues
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Current decision: **pursue**. Genuine maintained preparation heap grows to76.8125MiB on16 indexed video tracks. A selected-track Blob view plus explicit next-sample/config/source recipe starts a64MiB native worker;61 returned compressed packets/timestamps and6 full independent native pictures verify before/after handoff. Original MSE/SB/URL stay identical, playback crosses boundary without waiting, stale recipe/corrupt media reject and workers close.16.68% reserved-Wasm reduction passes scoped gate, with140.8125MiB overlap and228ms first-verification cost exposed. Qualified only explicit BT709 video-only already-grown-owner recovery; upfront projection can avoid the spike.
 
-MediaSource lives on page while preparation uses a separate worker, so lifetime separation exists. Worker currently owns FFmpeg demux/mux state, not immutable continuation sample recipes. Historical 64 MiB scratch handoff is synthetic and no real temporary spike is established by that report.
+| Stage | Status | Basis |
+| --- | --- | --- |
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Genuine maintained preparation heap grows to76.8125MiB on16 indexed video tracks. A selected-track Blob view plus explicit next-sample/config/source recipe starts a64MiB native worker;61 returned compressed packets/timestamps and6 full independent native pictures verify before/after handoff. Original MSE/SB/URL stay identical, playback crosses boundary without waiting, stale recipe/corrupt media reject and workers close.16.68% reserved-Wasm reduction passes scoped gate, with140.8125MiB overlap and228ms first-verification cost exposed. Qualified only explicit BT709 video-only already-grown-owner recovery; upfront projection can avoid the spike. |
+| correctness | passed | Real FFmpeg Wasm workers, original immutable File and selected-track virtual view. Explicit recipe ordinal166/config/timebase/source generation;61 payload/DTS/duration tuples exact against independent host FFprobe;6 full native pictures exact against direct-source continuous oracle. Same presentation owners and no waiting across retirement. Stale recipe and actual corrupted first fragment rejected before publication; worker count0 after cleanup. Unspecified-color failures retained; audio/subtitles/B-frame continuation excluded. |
+| performance | passed | Exact observed reserved-Wasm capacity80543744→67108864B gives16.6802% reduction>=10%. Simultaneous capacities147652608B<=2x old.60B replacement tags plus bounded800585B selected-header scratch and reader327680B peak-owned bytes disclosed. Preparation224.445ms/first verification228.070ms are single-run descriptive overhead, not latency savings. No RSS/physical release claim. Conditional already-grown state only; upfront projection may avoid original cost. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Genuine maintained preparation heap grows to76.8125MiB on16 indexed video tracks. A selected-track Blob view plus explicit next-sample/config/source recipe starts a64MiB native worker;61 returned compressed packets/timestamps and6 full independent native pictures verify before/after handoff. Original MSE/SB/URL stay identical, playback crosses boundary without waiting, stale recipe/corrupt media reject and workers close.16.68% reserved-Wasm reduction passes scoped gate, with140.8125MiB overlap and228ms first-verification cost exposed. Qualified only explicit BT709 video-only already-grown-owner recovery; upfront projection can avoid the spike. |
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next/reopen: Prefer upfront selected-track projection where possible. For a genuinely already-grown owner, consider this validated continuation pattern with explicit config/source/sample recipes. Qualify actual audio/B-frame selected profile and memory pressure before integration; never infer physical memory reclamation from Wasm byteLength.
 
-Next: First observe a genuine remux high-water spike; if present, specify one fragment continuation identity and compare keeping instance with safe replacement peak overlap.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

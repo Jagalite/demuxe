@@ -1,0 +1,82 @@
+{
+  "new_execution": false,
+  "reason": "Exact proposal defines additional Native embeddedASS/font extraction capability, with shared reads preferred, not a required speed claim. Retained restrictedMatroska component extracts threecues and exactattachedfont using764367of7873050bytes; actual libass output agrees with independently demuxed reference at seven times including distant active longcue andrewind; stale sourcegeneration rejects and workercloses. This completes the declared scoped component capability endpoint.8372tinyreads remain an explicit cost limitation; no readlatency, startup, CPU, energy or production route advantage asserted, so performanceN/A for this capability decision. GeneralMatroska/attachments/productioncombinedplan remainseparate. Exact existingresults reread; no new experiment.",
+  "historical_outputs": [
+    {
+      "scope": "Restricted finite EBML Matroska, selected ASS BlockGroups and attached font,2MiB total range-read cap. Skips all video/audio payloads; no generic remote index or default route change.",
+      "sourceBytes": 7873050,
+      "readBytes": 764367,
+      "readCalls": 8372,
+      "budgetBytes": 2097152,
+      "cues": 3,
+      "activeCueAt15Seconds": true,
+      "fontExact": true,
+      "fontSHA256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        "build/local-screening/media/bbb-key-060.mp4",
+        "-i",
+        "/Volumes/seed2/Projects/demuxe/results/top100/embedded-ass/source.ass",
+        "-map",
+        "0:v",
+        "-map",
+        "0:a",
+        "-map",
+        "1:s",
+        "-c",
+        "copy",
+        "-attach",
+        "fixtures/DejaVuSans.ttf",
+        "-metadata:s:t",
+        "mimetype=application/x-truetype-font",
+        "/Volumes/seed2/Projects/demuxe/results/top100/embedded-ass/source.mkv"
+      ],
+      "passed": true
+    },
+    {
+      "scope": "Bounded extracted embedded ASS against independently demuxed ASS on the muxed timeline through actual libass worker, including long active cue after seek and rewind. No native default-route promotion.",
+      "browser": "152.0.7977.83",
+      "probe": {
+        "exact": true,
+        "observations": [
+          {
+            "seconds": 0,
+            "tiles": 0
+          },
+          {
+            "seconds": 0.75,
+            "tiles": 3
+          },
+          {
+            "seconds": 5,
+            "tiles": 9
+          },
+          {
+            "seconds": 15,
+            "tiles": 3
+          },
+          {
+            "seconds": 24.5,
+            "tiles": 3
+          },
+          {
+            "seconds": 25.5,
+            "tiles": 0
+          },
+          {
+            "seconds": 15,
+            "tiles": 3
+          }
+        ],
+        "staleRejected": true,
+        "cleanup": true
+      },
+      "passed": true
+    }
+  ],
+  "performance": "not_applicable"
+}

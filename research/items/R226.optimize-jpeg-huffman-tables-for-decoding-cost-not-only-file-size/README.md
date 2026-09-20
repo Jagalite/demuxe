@@ -2,12 +2,12 @@
 
 # Optimize JPEG Huffman tables for decoding cost, not only file size
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **stop_current_profile**. correctness: **passed**, performance: **failed**.
 
-Current custom browser codec bridge does not author JPEG Huffman tables and does not admit MJPEG there. This proposal needs an entropy parser/serializer preserving coefficients, plus a decoder-cost workload rather than just smaller bytes.
+Implemented bounded actual JPEG Huffman-table candidate: standard/default entropy tables instead of coefficient-identical size-optimized tables, using3 retained512x512 grayscale JPEGs. Actual DHT bytes differ; all786432 quantized coefficients plus quant tables and complete independent FFmpeg RGB outputs match exactly. Repeated decoder outputs stay exact, all fresh decoder owners destroy; malformed JPEG rejects, wrong source produces different full-output digest. Nine alternating freshprocess pairs compare3images×100independent decoderowners, including candidate3entropy rewrites, input read, decoder setup, full scanline checksum and teardown: baseline1002.362ms versus candidate1329.507ms, saving-32.637% bootstrap95[-49.345873285781124, -18.163492953993998], fails declared10%lowerbound. Optimized/default compressed sizes [(139881, 147894), (141096, 148812), (140141, 148080)]. Rewrite preparation ischarged on everycandidatejob; no observed wholejob break-even at100decodes/image. This stock-table candidate doesnotestablish arbitrary decoder-optimal Huffman search, browser/Wasm cost, or pureentropy-loop timing; checksum/scanlinework and concurrenthostbuild included equally. Correctnesspassed/performancefailed; stop this measured default-table variant, no extrapolation that all custom codebooks lackvalue.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Reopen with a materially different table-cost heuristic or a target decoder/workload where measured savings repay preparation and larger packets; retain strict coefficient/output identity. No production default changes.
 
-Next: First compare one image coefficient dump before/after a table rewrite with a corrupted-code control; identify repeated decode amortization before runtime integration.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T231736Z-huffman-table-choice/analysis.md)
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Upstream notice clarification](../../shared/runs/20260919T232748Z-presentation-notice-amendment/analysis.md); gates unchanged.

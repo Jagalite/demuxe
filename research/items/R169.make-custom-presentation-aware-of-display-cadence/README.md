@@ -2,20 +2,10 @@
 
 # Make custom presentation aware of display cadence
 
-Current decision: **blocked**. Current headless Chrome can exercise browser APIs but supplies no physical display overlay promotion, compositor scanout or refresh-cadence evidence. Physical fixed-display diagnostic run remains required; this is not an experimental negative.
+Disposition: **blocked (setup)**. Physical display and Instruments are available; source-to-surface attribution remains unresolved.
 
-Historical stage reconciliation; no new experiment.
+Fresh owned headful Chrome 152 on Apple M1 / ANGLE Metal and the online built-in 2560x1600 Color LCD establishes that the former physical-display-absent/headless-only prerequisite description is stale. Expanded Chrome tracing records 95 Display::FrameDisplayed events, 95 native CoreAnimation commits and scheduled overlay layer count 9; these are not hardware promotion or source-frame scanout proof. Actual Instruments Metal System Trace succeeds after increasing startup budget from 25 to 75 seconds; the first timed-out incomplete trace is retained, not called permission denial. Exported displayed-surfaces-interval has 260 physical surface intervals and Direct to Display=false for all, but no Chrome source attribution: generic compositor surface labels and some unrelated process labels, no source VideoFrame/PTS identity. Surface queue export has swap IDs, no source mapping; ca-client-present-request and compositor-event tables have schemas but no rows. Therefore neither overlay eligibility nor source-frame cadence has passed or failed. Physical telemetry is accessible; the remaining prerequisite is a controlled foreground source-to-IOSurface mapping and application-owner comparison, a setup gap, not absent GPU, absent display, or an experimental negative. Browser and owned recorder are closed. No power, subtitle composition, custom presenter cadence, fidelity or comparative performance claim.
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Physical display environment absent; API probe only. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | blocked | Headless API prerequisite run explicitly lacks physical refresh/scanout evidence; no display-cadence correctness claim. |
-| performance | blocked | Physical display diagnostic environment required, not experimental failure. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+Next: Connect retained custom presenter source frame IDs and mpv masterclock to physical displayed-surface swaps; compare current deadline timer with a bounded display-opportunity scheduler. Native video events are not this owner.
 
-Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current record](item.json) · [History](history.jsonl) · [Evidence](evidence/20260920T005445Z-physical-surface-attribution/analysis.md)

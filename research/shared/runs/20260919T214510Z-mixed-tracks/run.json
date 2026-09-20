@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "20260919T214510Z-mixed-tracks",
+  "item_keys": [
+    "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "R032.use-different-output-containers-for-different-tracks",
+    "R058.change-video-codec-while-retaining-the-audio-presentation"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual Chrome same-owner raw AAC/MP3 and WebM Opus audio with H264 fragmented video passes digital marker timing within50ms, no audio gaps above5ms (zero measured), presented pictures/geometry against independent standalone destination, parser partial-append abort/reset, unsupported changeType rejection, forward/backward seek, EOF and cleanup. H264160x96 to VP9WebM240x136 to H264 preserves continuous Opus owner and passes same checks. AAC283 and Opus301 payload hashes match wrapped comparators. After correctness,5alternating preparation pairs plus fresh host wrapping show cold candidate/baseline ratios0.19485 AAC and0.16322 Opus against0.9 threshold; prepared browser alone16.945/19.755ms and13.3/13.87ms. Preserved rejected missing-bsf and empty_moov variants; independent reference corrects prior unsupported VP9 RGB expectation."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+  "reused_evidence": [],
+  "commands_log": "research/shared/runs/20260919T214510Z-mixed-tracks/commands.log"
+}

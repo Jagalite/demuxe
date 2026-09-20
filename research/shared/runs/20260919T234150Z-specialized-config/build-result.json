@@ -1,0 +1,142 @@
+[
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O3",
+      "-pthread",
+      "-msimd128",
+      "-std=c17",
+      "-DHAVE_AV_CONFIG_H",
+      "-D_ISOC11_SOURCE",
+      "-D_FILE_OFFSET_BITS=64",
+      "-D_LARGEFILE_SOURCE",
+      "-D_POSIX_C_SOURCE=200112",
+      "-D_XOPEN_SOURCE=600",
+      "-DZLIB_CONST",
+      "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/compat/stdbit",
+      "-fno-math-errno",
+      "-fno-signed-zeros",
+      "-c",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/baseline/h264_slice.o"
+    ],
+    "exit": 0,
+    "stderr": "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:135:44: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  135 |     av_fast_malloc(&sl->bipred_scratchpad, &sl->bipred_scratchpad_allocated, 16 * 6 * alloc_size);\n      |                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:322:46: note: passing argument to parameter 'size' here\n  322 | void av_fast_malloc(void *ptr, unsigned int *size, size_t min_size);\n      |                                              ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:138:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  138 |     av_fast_malloc(&sl->edge_emu_buffer, &sl->edge_emu_buffer_allocated, alloc_size * 2 * 21);\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:322:46: note: passing argument to parameter 'size' here\n  322 | void av_fast_malloc(void *ptr, unsigned int *size, size_t min_size);\n      |                                              ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:140:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  140 |     av_fast_mallocz(&sl->top_borders[0], &sl->top_borders_allocated[0],\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:342:47: note: passing argument to parameter 'size' here\n  342 | void av_fast_mallocz(void *ptr, unsigned int *size, size_t min_size);\n      |                                               ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:142:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  142 |     av_fast_mallocz(&sl->top_borders[1], &sl->top_borders_allocated[1],\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:342:47: note: passing argument to parameter 'size' here\n  342 | void av_fast_mallocz(void *ptr, unsigned int *size, size_t min_size);\n      |                                               ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:1809:35: warning: passing 'unsigned int *' to parameter of type 'int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1809 |     ret = ff_h264_parse_ref_count(&sl->list_count, sl->ref_count,\n      |                                   ^~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:115:34: note: passing argument to parameter 'plist_count' here\n  115 | int ff_h264_parse_ref_count(int *plist_count, int ref_count[2],\n      |                                  ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:1809:52: warning: passing 'unsigned int[2]' to parameter of type 'int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1809 |     ret = ff_h264_parse_ref_count(&sl->list_count, sl->ref_count,\n      |                                                    ^~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:115:51: note: passing argument to parameter 'ref_count' here\n  115 | int ff_h264_parse_ref_count(int *plist_count, int ref_count[2],\n      |                                                   ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/h264_slice.c:1831:55: warning: passing 'unsigned int[2]' to parameter of type 'const int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1831 |         ret = ff_h264_pred_weight_table(&sl->gb, sps, sl->ref_count,\n      |                                                       ^~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:96:42: note: passing argument to parameter 'ref_count' here\n   96 |                               const int *ref_count, int slice_type_nos,\n      |                                          ^\n7 warnings generated.\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emar",
+      "r",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/baseline/libavcodec.a",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/baseline/h264_slice.o"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O2",
+      "-pthread",
+      "-msimd128",
+      "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/bridge.c",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/baseline/libavcodec.a",
+      "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavutil/libavutil.a",
+      "/Volumes/seed2/Projects/webmpv/build/prefix-playback/lib/libdav1d.a",
+      "/Volumes/seed2/Projects/webmpv/build/prefix/lib/libz.a",
+      "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libswresample/libswresample.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sEXPORT_NAME=createDecoder",
+      "-sENVIRONMENT=web,worker",
+      "-sINITIAL_MEMORY=33554432",
+      "-sMAXIMUM_MEMORY=134217728",
+      "-sALLOW_MEMORY_GROWTH=1",
+      "-sSTACK_SIZE=2097152",
+      "-sWASM_BIGINT=1",
+      "-sFILESYSTEM=0",
+      "-sEXPORTED_FUNCTIONS=[\"_vd_init\",\"_vd_packet\",\"_vd_flush\",\"_vd_close\",\"_malloc\",\"_free\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\"]",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/baseline/decoder.mjs"
+    ],
+    "exit": 0,
+    "stderr": "emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O3",
+      "-pthread",
+      "-msimd128",
+      "-std=c17",
+      "-DHAVE_AV_CONFIG_H",
+      "-D_ISOC11_SOURCE",
+      "-D_FILE_OFFSET_BITS=64",
+      "-D_LARGEFILE_SOURCE",
+      "-D_POSIX_C_SOURCE=200112",
+      "-D_XOPEN_SOURCE=600",
+      "-DZLIB_CONST",
+      "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/compat/stdbit",
+      "-fno-math-errno",
+      "-fno-signed-zeros",
+      "-c",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/specialized/h264_slice.o"
+    ],
+    "exit": 0,
+    "stderr": "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:135:44: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  135 |     av_fast_malloc(&sl->bipred_scratchpad, &sl->bipred_scratchpad_allocated, 16 * 6 * alloc_size);\n      |                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:322:46: note: passing argument to parameter 'size' here\n  322 | void av_fast_malloc(void *ptr, unsigned int *size, size_t min_size);\n      |                                              ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:138:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  138 |     av_fast_malloc(&sl->edge_emu_buffer, &sl->edge_emu_buffer_allocated, alloc_size * 2 * 21);\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:322:46: note: passing argument to parameter 'size' here\n  322 | void av_fast_malloc(void *ptr, unsigned int *size, size_t min_size);\n      |                                              ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:140:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  140 |     av_fast_mallocz(&sl->top_borders[0], &sl->top_borders_allocated[0],\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:342:47: note: passing argument to parameter 'size' here\n  342 | void av_fast_mallocz(void *ptr, unsigned int *size, size_t min_size);\n      |                                               ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:142:42: warning: passing 'int *' to parameter of type 'unsigned int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n  142 |     av_fast_mallocz(&sl->top_borders[1], &sl->top_borders_allocated[1],\n      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavutil/mem.h:342:47: note: passing argument to parameter 'size' here\n  342 | void av_fast_mallocz(void *ptr, unsigned int *size, size_t min_size);\n      |                                               ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:1809:35: warning: passing 'unsigned int *' to parameter of type 'int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1809 |     ret = ff_h264_parse_ref_count(&sl->list_count, sl->ref_count,\n      |                                   ^~~~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:115:34: note: passing argument to parameter 'plist_count' here\n  115 | int ff_h264_parse_ref_count(int *plist_count, int ref_count[2],\n      |                                  ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:1809:52: warning: passing 'unsigned int[2]' to parameter of type 'int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1809 |     ret = ff_h264_parse_ref_count(&sl->list_count, sl->ref_count,\n      |                                                    ^~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:115:51: note: passing argument to parameter 'ref_count' here\n  115 | int ff_h264_parse_ref_count(int *plist_count, int ref_count[2],\n      |                                                   ^\n/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/h264_slice.c:1831:55: warning: passing 'unsigned int[2]' to parameter of type 'const int *' converts between pointers to integer types with different sign [-Wpointer-sign]\n 1831 |         ret = ff_h264_pred_weight_table(&sl->gb, sps, sl->ref_count,\n      |                                                       ^~~~~~~~~~~~~\n/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg/libavcodec/h264_parse.h:96:42: note: passing argument to parameter 'ref_count' here\n   96 |                               const int *ref_count, int slice_type_nos,\n      |                                          ^\n7 warnings generated.\n"
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emar",
+      "r",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/specialized/libavcodec.a",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/specialized/h264_slice.o"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O2",
+      "-pthread",
+      "-msimd128",
+      "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/bridge.c",
+      "/Volumes/seed2/Projects/demuxe/build/research-specialized-decoder/specialized/libavcodec.a",
+      "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavutil/libavutil.a",
+      "/Volumes/seed2/Projects/webmpv/build/prefix-playback/lib/libdav1d.a",
+      "/Volumes/seed2/Projects/webmpv/build/prefix/lib/libz.a",
+      "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libswresample/libswresample.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sEXPORT_NAME=createDecoder",
+      "-sENVIRONMENT=web,worker",
+      "-sINITIAL_MEMORY=33554432",
+      "-sMAXIMUM_MEMORY=134217728",
+      "-sALLOW_MEMORY_GROWTH=1",
+      "-sSTACK_SIZE=2097152",
+      "-sWASM_BIGINT=1",
+      "-sFILESYSTEM=0",
+      "-sEXPORTED_FUNCTIONS=[\"_vd_init\",\"_vd_packet\",\"_vd_flush\",\"_vd_close\",\"_malloc\",\"_free\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\"]",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260919T234150Z-specialized-config/specialized/decoder.mjs"
+    ],
+    "exit": 0,
+    "stderr": "emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]\n"
+  }
+]

@@ -1,0 +1,57 @@
+{
+  "frames": 3,
+  "width": 128,
+  "height": 96,
+  "timestamps": [
+    0,
+    41667,
+    83333
+  ],
+  "duration": 41667,
+  "commands": [
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-f",
+      "rawvideo",
+      "-pixel_format",
+      "yuv420p",
+      "-video_size",
+      "128x96",
+      "-framerate",
+      "24",
+      "-i",
+      "research/items/R083.decode-graphics-processing-encode/evidence/20260920T002651Z-three-frame-gpu-encode/source.yuv",
+      "-c:v",
+      "libvpx-vp9",
+      "-lossless",
+      "1",
+      "-deadline",
+      "realtime",
+      "-cpu-used",
+      "8",
+      "-g",
+      "3",
+      "-lag-in-frames",
+      "0",
+      "-f",
+      "ivf",
+      "-y",
+      "research/items/R083.decode-graphics-processing-encode/evidence/20260920T002651Z-three-frame-gpu-encode/source.ivf"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "research/items/R083.decode-graphics-processing-encode/evidence/20260920T002651Z-three-frame-gpu-encode/source.ivf",
+      "-f",
+      "rawvideo",
+      "-pix_fmt",
+      "rgba",
+      "-y",
+      "research/items/R083.decode-graphics-processing-encode/evidence/20260920T002651Z-three-frame-gpu-encode/source.rgba"
+    ]
+  ]
+}

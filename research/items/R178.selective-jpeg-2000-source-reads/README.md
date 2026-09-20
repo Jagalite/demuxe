@@ -2,12 +2,10 @@
 
 # selective JPEG 2000 source reads
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.
+Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024×1024 grayscale codestream with 256×256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256×256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Scoped spatial source-byte selectivity is established. Preserve zero additional byte savings from quality/resolution limits. Browser transport integration or latency/energy claims require separate complete-cost measurements and offset/identity controls.
 
-Next: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md)

@@ -2,12 +2,24 @@
 
 # Reconstruct predictor-4 lossless JPEG with two-dimensional prefix sums
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums`
 
-Pinned lossless JPEG decoder handles boundary seeds, precision alignment and restart state serially. Historical predictor-4 scans prove a constrained component but no current GPU residual-grid interface; source may use another predictor and cannot be re-encoded merely to hide setup.
+Current decision: **stop_current_profile** (2026-09-20T00:16:58.867872+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual SOF3 grayscale8bit predictor4/Pt0/no-restart Huffman JPEG384x256: all98304 parsed signed residuals match independently derived image differences; two modular row/column NumPy prefix scans with128initial seed reconstruct every pixel exactly against authored pixels and independent FFmpeg decoder. Initial row/column, negative wrap residuals and positive residuals pass; wrong seed, truncated entropy, wrong predictor and restart controls detected. Five alternating full cold Python/NumPy startup/read/parse/scans/write171.471ms vs ordinary FFmpegdecode/write34.703ms ratio4.94112 fails0.9. No GPU execution or generic Huffman/restart/precision admission.
 
-Next: Count eligible source usage then compare one real parsed residual grid to the pinned decoder with initial-row/column seeds before GPU passes.
+Stop this CPU Python entropy/two-scan implementation on complete cost. A compiled parser or GPU parallel scan may reopen under the same exact boundary contract and a new end-to-end benchmark. Only the explicit canonical four-bit category Huffman table and one-million-pixel bound are admitted; no JPEG-LS or predictor substitution claim.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T001658Z-jpeg-scan/run.json) · [Analysis](../../shared/runs/20260920T001658Z-jpeg-scan/analysis.md) · [Manifest](../../shared/runs/20260920T001658Z-jpeg-scan/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -47,78 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Exact mechanism and bounded profile distinguished from overlapping item keys.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Smart FLAC cut preserves 12 interior subframe payloads and reencodes only two edges. Variable sample-number headers/CRCs yield exact 63828 samples plus five libFLAC seeks; wrong fixed numbering fails two late seeks. Repeat-concat and boundary seek also match, with unknown rather than stale STREAMINFO MD5.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Exact whole cut/concat PCM, preserved interior subframes, header/frame CRC checks, five sample seeks, boundary-crossing seek and wrong-numbering control passed.",
+      "basis": "Real exact smartcut exports retain the proven63828-sample output and12 copied interior subframes, but whole export median369.428ms versus41.722ms fresh FFmpeg trim/reencode is8.85446x, failing0.90 target. Includes packet scans, Python CRC/header work, two edge decoder/encoder jobs, reads/writes and teardown;14 exports independently decode exact.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No throughput/CPU/retention benchmark; packet reuse counts alone do not establish savings.",
+      "status": "failed",
+      "basis": "Real exact smartcut exports retain the proven63828-sample output and12 copied interior subframes, but whole export median369.428ms versus41.722ms fresh FFmpeg trim/reencode is8.85446x, failing0.90 target. Includes packet scans, Python CRC/header work, two edge decoder/encoder jobs, reads/writes and teardown;14 exports independently decode exact.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "New and reused execution identities, controls, limits, manifests and commands captured.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scoped pursue disposition; integration and release qualification remain separate.",
+      "basis": "stop_current_profile: Stop this short-clip Python/subprocess smartcut cost profile. Reopen with a persistent in-process edge codec/frame index or materially longer export workload; no cost inference from copied-frame count.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "audio-stage-reconciliation",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R270.exact-flac-smart-cut-concat",
-      "recorded_at_utc": "2026-09-19T20:13:17.931463+00:00",
+      "recorded_at_utc": "2026-09-19T20:56:27.118329+00:00",
       "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T201317Z-flac-smart-cut"
+        "20260919T205627Z-flac-cost"
       ],
-      "evidence_level": "component_test",
-      "profile": "Mono16 48kHz FLAC cut 41737:105565 and same-format repeat-concat, host FFmpeg baseline and independent libFLAC seeks",
+      "evidence_level": "actual_component_execution",
       "candidate_executed": true,
       "fallback_observed": false,
-      "reason": "Smart FLAC cut preserves 12 interior subframe payloads and reencodes only two edges. Variable sample-number headers/CRCs yield exact 63828 samples plus five libFLAC seeks; wrong fixed numbering fails two late seeks. Repeat-concat and boundary seek also match, with unknown rather than stale STREAMINFO MD5.",
-      "next_action": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
-      "reopen_condition": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
+      "reason": "Real exact smartcut exports retain the proven63828-sample output and12 copied interior subframes, but whole export median369.428ms versus41.722ms fresh FFmpeg trim/reencode is8.85446x, failing0.90 target. Includes packet scans, Python CRC/header work, two edge decoder/encoder jobs, reads/writes and teardown;14 exports independently decode exact.",
+      "next_action": "Stop this short-clip Python/subprocess smartcut cost profile. Reopen with a persistent in-process edge codec/frame index or materially longer export workload; no cost inference from copied-frame count.",
+      "reopen_condition": "Stop this short-clip Python/subprocess smartcut cost profile. Reopen with a persistent in-process edge codec/frame index or materially longer export workload; no cost inference from copied-frame count.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-flac-smart-cut/run.json"
+        "research/shared/runs/20260919T205627Z-flac-cost/run.json"
       ]
     }
   },
-  "next_action": "Expand channel/bit-depth/block-size/parser controls and browser consumer lifecycle only for a real cut/export consumer; benchmark full edge decode/reencode and authoring cost afterward.",
+  "next_action": "Stop this short-clip Python/subprocess smartcut cost profile. Reopen with a persistent in-process edge codec/frame index or materially longer export workload; no cost inference from copied-frame count.",
   "integration": {
     "status": "not_integrated"
   },

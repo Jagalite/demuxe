@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T230128Z-aac-elements",
+  "item_keys": [
+    "R268.aac-selective-channel-element-reconstruction"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual AAC-LC48k independent-SCE parser traverses ICS/window groups, sections, scale factors, spectral Huffman signs/escapes without reconstructing PCM. Six separately encoded mono streams assembled with explicit six-SCE6.0 PCE; selected631Hz tag4 retained coded bits unchanged apart from mono tag naming. All49152 samples match original mono and selected full-source channel exactly in host FFmpeg and Chrome, with native render/end/closed. CPE, coupling, prediction, SBR, truncation, source identity, invalid intent and cancellation reject. Host selected channel index4 differs from Chrome index5; all-channel diagnostic uniquely identified exact native mapping, initial incorrect index failure retained. Five alternating cold source identity/read/full parser/table-load/write/mono-decode jobs152.561ms vs six-channel decode/slice31.200ms ratio4.88978 fails<=0.9. Selected bytes8712 vs51053 is separate from CPU/latency."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold Python AAC selector cost profile. Compressed-domain independent-SCE capability is real, but transfer-limited use or faster implementation requires new declared measurements. Six SCEs are truthfully6.0 here, not ordinary5.1 requiring an LFE element; do not inherit report layout label or half-CPE/SBR/coupling admission. LGPL tables read from pinned original FFmpeg source retaining notices; no production integration.",
+  "reused_evidence": [
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/libavcodec/aactab.c",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/COPYING.LGPLv2.1"
+  ],
+  "commands_log": "research/shared/runs/20260919T230128Z-aac-elements/commands.log"
+}

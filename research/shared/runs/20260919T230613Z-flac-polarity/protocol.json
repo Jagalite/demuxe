@@ -1,0 +1,5 @@
+{
+  "scope": "Actual signed16 FLAC fixed predictors0..4,21bit escape residuals. Negate warmups/residuals, regenerate frame CRCs. Streaming recurrence validates safe sample headroom with at most4sample history; do not claim avoidance of all sample reconstruction work. Reject -32768 anywhere and residual overflow; general shifted LPC excluded.",
+  "correctness": "Independent host/native integer polarity oracle for all five orders, full-stream double inversion, negative controls minvalue in warmup and predicted body for everyorder, invalid CRC/order/truncation.",
+  "performance": "Five alternating full source read/parse/headroom validation/coded transform/write/destination decode versus ordinary source decode/PCM negate/FLAC encode/destination decode. Standalone lossless FLAC plus exact PCM endpoint, <=0.9cost and <=1.25source bytes."
+}

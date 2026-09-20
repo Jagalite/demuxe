@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Retained typed-array bytes are the source-defined endpoint, not total memory or speed. Authoring transient JavaScript number arrays are not measured physical heap: a naive8B/value payload model already adds roughly2.4MB before the353126B final arrays, so this constructor is not claimed to lower peak memory. Source/oracle arrays and full file read are equal external inputs, excluded from retained index storage. Measured cold build+100000queries is21.79% slower at median. This is a generated100000all-intra seek-map witness, not proof the maintained FFmpeg route owns this map or would benefit.

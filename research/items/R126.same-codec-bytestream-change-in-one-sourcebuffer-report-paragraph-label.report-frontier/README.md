@@ -2,20 +2,18 @@
 
 # Same-codec bytestream change in one SourceBuffer [report paragraph label]
 
-Current decision: **pursue**. Actual same VP9 codec WebM-to-fMP4 changeType keeps SourceBuffer and renders both marked intervals to EOF; invalid type rejected. Video-only component; current combined A/V controller not integrated.
-
-Historical stage reconciliation; no new experiment.
+Current decision: **pursue**. Same VP9 codec changes WebM→MP4 on one SourceBuffer with24 exact full-frame queries and23 subsequent continuous presented frames plus the independently verified first frame. Cross-boundary seeks, stale source publication rejection, real wrong-codec initialization rejection and declared rebuild recovery pass.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | VP9 WebM→fMP4 changeType renders expected interval colors, EOF and invalid MIME rejection; no full-frame/timing/A/V boundary oracle. |
-| performance | not_applicable | Explicit same-codec byte-stream capability; full fidelity remains next gate, no speed claim. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Same VP9 codec changes WebM→MP4 on one SourceBuffer with24 exact full-frame queries and23 subsequent continuous presented frames plus the independently verified first frame. Cross-boundary seeks, stale source publication rejection, real wrong-codec initialization rejection and declared rebuild recovery pass. |
+| correctness | passed | Source-report video-only bytestream capability:12fps one-secondVP9/WebM followed byone-secondVP9/fMP4. All24fullRGBA reference images match; continuousPTS/image sequence, reverse/forward seeks, retainedSB, source-generation replacement andcleanup verified. Adverse actualAVC/fMP4 underVP9 MIME rejects and explicitfullownerrebuild restores oldreference; no transactional retained rollback asserted. No audio orgeneralcodecs. |
+| performance | not_applicable | The exact report card asks whether same-codec bytestream change works, not whether it reduces complete cost. Capability endpoint complete without manufacturing a savings claim or benchmark. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Same VP9 codec changes WebM→MP4 on one SourceBuffer with24 exact full-frame queries and23 subsequent continuous presented frames plus the independently verified first frame. Cross-boundary seeks, stale source publication rejection, real wrong-codec initialization rejection and declared rebuild recovery pass. |
 
-Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
+Next/reopen: Bounded video-only capability stage complete. Reopen for selected A/V, maintained controller ownership or new destination profiles; keep full rebuild recovery explicit after fatal parser failure.
 
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

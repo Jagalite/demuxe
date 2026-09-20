@@ -1,0 +1,429 @@
+{
+  "plan": {
+    "item": "R005.move-mse-ownership-off-the-window-thread",
+    "workload": "Identical existing 2-second red/440Hz fMP4, sequential 8192-byte appends, 45ms busy UI work every 60ms; worker or window owns MSE. No remux.",
+    "sampling": "11 paired trials, alternating order, fresh page and owner each trial, shared browser; no timed warmup discarded",
+    "primary_metric": "wall milliseconds from owner construction through all append updateend completions",
+    "secondary_metrics": [
+      "first rendered frame latency",
+      "full trial including cleanup",
+      "rendered center pixel",
+      "input transfer bytes"
+    ],
+    "acceptance": "All output controls pass; paired median append-time improvement must be positive and paired bootstrap 95 percent interval must exclude zero. Otherwise inconclusive for this workload. No global product admission threshold.",
+    "costs": "Includes worker startup, handle transfer, input transfer/copy, all append completion. Cleanup separately timed. UI stress identical; retained input length recorded. No CPU, hardware, physical energy or production speed claim. Concurrent host load is uncontrolled."
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 9.300000011920929,
+        "firstFrameMs": 409.89999997615814,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 6,
+        "cleanupMs": 0.5999999642372131,
+        "totalMs": 418.69999998807907,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 18.100000023841858,
+        "firstFrameMs": 25.30000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.699999988079071,
+        "totalMs": 32.69999998807907,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 1,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 8.300000011920929,
+        "firstFrameMs": 33.5,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 36.80000001192093,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 6.199999988079071,
+        "firstFrameMs": 20.80000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 24.5,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 2,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5.5,
+        "firstFrameMs": 10.899999976158142,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 17.099999964237213,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 9,
+        "firstFrameMs": 23.600000023841858,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 27.400000035762787,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 3,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 7.599999964237213,
+        "firstFrameMs": 16.899999976158142,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 19.30000001192093,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5.399999976158142,
+        "firstFrameMs": 22.5,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 24.69999998807907,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 4,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5,
+        "firstFrameMs": 25.099999964237213,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 29.899999976158142,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 8.399999976158142,
+        "firstFrameMs": 21.30000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.30000001192092896,
+        "totalMs": 27.5,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 5,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 8.199999988079071,
+        "firstFrameMs": 15.900000035762787,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 21,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 6.100000023841858,
+        "firstFrameMs": 22.200000047683716,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 24.400000035762787,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 6,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 6.300000011920929,
+        "firstFrameMs": 19.19999998807907,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 25.30000001192093,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 7.600000023841858,
+        "firstFrameMs": 12.300000011920929,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 14.800000011920929,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 7,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 7.600000023841858,
+        "firstFrameMs": 12.699999988079071,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.800000011920929,
+        "totalMs": 15.600000023841858,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5.699999988079071,
+        "firstFrameMs": 21.30000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 25,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 8,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5.800000011920929,
+        "firstFrameMs": 19.200000047683716,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.5,
+        "totalMs": 24.30000001192093,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 8.899999976158142,
+        "firstFrameMs": 18,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 20.399999976158142,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 9,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 8,
+        "firstFrameMs": 13.300000011920929,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 19.5,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 6.400000035762787,
+        "firstFrameMs": 21.69999998807907,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 25,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 10,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 5.600000023841858,
+        "firstFrameMs": 27.30000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 29.30000001192093,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 15,
+        "firstFrameMs": 24.899999976158142,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 0,
+        "cleanupMs": 0.30000001192092896,
+        "totalMs": 26.80000001192093,
+        "inputDetached": true
+      }
+    }
+  ],
+  "inputBytes": 28879,
+  "browser": "152.0.7977.83",
+  "analysis": {
+    "pairedAppendSavingsMs": [
+      -8.800000011920929,
+      -2.100000023841858,
+      -3.5,
+      -2.199999988079071,
+      -3.399999976158142,
+      -2.099999964237213,
+      -1.300000011920929,
+      -1.9000000357627869,
+      -3.099999964237213,
+      -1.5999999642372131,
+      -9.399999976158142
+    ],
+    "medianSavingsMs": -2.199999988079071,
+    "bootstrap95": [
+      -3.5,
+      -1.9000000357627869
+    ],
+    "accepted": false,
+    "medianWindowMs": 5.800000011920929,
+    "medianWorkerMs": 8.300000011920929
+  },
+  "passed": true
+}

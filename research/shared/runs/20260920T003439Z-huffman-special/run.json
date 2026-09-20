@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260920T003439Z-huffman-special",
+  "item_keys": [
+    "R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Node WebAssembly engine plus native libjpeg oracle",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual generated specialized Wasm versus ordinary prederived8bit Huffman lookup plus long-code fallback decodes four unchanged128x128 baseline grayscale JPEGs. All65536 quantized coefficients match independent libjpeg, all per-frame consumed bits/symbol counts match, and same-consumer reconstructed grayscale pixels are exact. Actual long-code/tail escapes244\u2013376 and16\u201347 stuffed bytes per frame exercised. Changed optimized codebook rejects specialization then valid generic fallback matches; oversubscribed table/truncation and actual valid restart-JPEG exclusion controls pass. Five alternating first-use four-frame specialization jobs include trusted constant generation, native Wasm compiler, instantiation/table validation/read/decode/transfer:451.663ms vs maintained general3.626ms ratio124.565 fails0.9. Huge cold compiler/OS variance retained (first19seconds), no steady-state throughput claim."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold four-frame codebook-specialization profile on setup cost. Warm repeatedly reused kernels may reopen only with independently charged preparation/amortization and actual throughput evidence. Current implementation targets the entropy/coefficient kernel; no production MJPEG route, full Wasm IDCT integration, restart support or browser-native speed claim.",
+  "reused_evidence": [
+    "/opt/homebrew/opt/jpeg-turbo/lib/libjpeg.a",
+    "/opt/homebrew/opt/jpeg-turbo/LICENSE.md",
+    "/opt/homebrew/opt/jpeg-turbo/bin/cjpeg",
+    "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/bin/clang",
+    "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/bin/wasm-ld"
+  ],
+  "commands_log": "research/shared/runs/20260920T003439Z-huffman-special/commands.log"
+}

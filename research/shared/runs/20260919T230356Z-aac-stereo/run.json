@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260919T230356Z-aac-stereo",
+  "item_keys": [
+    "R196.independent-aac-channel-assembly"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual independent AAC-LC48k mono sources parsed at coded SCE boundaries and assembled into stereo PCE with two front SCEs, channel_configuration0 and only second tag renamed. Source hash/rate/origin/priming/input-length/frame-count certificates validated. All49152 samples per channel match both independent originals exactly in FFmpeg and Chrome; native render/end/closed pass. Priming, origin, hash, frame-count mismatches and cancellation reject; dependency parser controls pinned from actual R268 run. Five alternating cold table-load/source-read/identity/parser/PCE-write/single-stereo-decode jobs74.677ms versus two original mono decodes plus PCM interleave57.193ms ratio1.30570 fails<=0.9."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/aac_sce_parser.py",
+    "research/shared/runs/20260919T230128Z-aac-elements/mono0.aac",
+    "research/shared/runs/20260919T230128Z-aac-elements/mono4.aac",
+    "research/shared/runs/20260919T230128Z-aac-elements/results.json",
+    "research/shared/runs/20260919T230128Z-aac-elements/manifest.json",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/libavcodec/aactab.c",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/COPYING.LGPLv2.1"
+  ],
+  "commands_log": "research/shared/runs/20260919T230356Z-aac-stereo/commands.log"
+}

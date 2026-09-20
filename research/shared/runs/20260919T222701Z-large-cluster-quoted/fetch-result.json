@@ -1,0 +1,121 @@
+{
+  "plan": {
+    "scope": "ActualexistingRangeReader,15msHTTP, bothcoldheader+Cues acquisition. Prefixbaseline parsesfromclusterstart; candidatevalidatesCueRelativePosition andfetcheskey750through779. Bothdecodeall30referenceframes, target760..779with10framespreroll. Ninealternatingpairs includingcopy/parse/read/decode/startup/teardown.",
+    "gate": "lower95pairedcompletecorrecttarget latency saving>10percent, feweractualwirebytes; exactfullhostpixels/PTS; wrongoffset/sourceversion andinflightcancel reject.",
+    "limits": "SingletrackstableVP9 onecluster input; noarbitrarylacing/audio/prerollindex orproductionbrowserdemux integration."
+  },
+  "rows": [
+    {
+      "pair": 0,
+      "prefix": {
+        "ms": 1013.229083,
+        "wireBytes": 3146301,
+        "requests": 49,
+        "reader": {
+          "fetchedBytes": 3146301,
+          "requests": 49,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      },
+      "direct": {
+        "ms": 192.3639169999999,
+        "wireBytes": 197181,
+        "requests": 4,
+        "reader": {
+          "fetchedBytes": 197181,
+          "requests": 4,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      }
+    },
+    {
+      "pair": 1,
+      "direct": {
+        "ms": 191.13462500000014,
+        "wireBytes": 197181,
+        "requests": 4,
+        "reader": {
+          "fetchedBytes": 197181,
+          "requests": 4,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      },
+      "prefix": {
+        "ms": 980.637667,
+        "wireBytes": 3146301,
+        "requests": 49,
+        "reader": {
+          "fetchedBytes": 3146301,
+          "requests": 49,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      }
+    },
+    {
+      "pair": 2,
+      "prefix": {
+        "ms": 1027.3304169999997,
+        "wireBytes": 3146301,
+        "requests": 49,
+        "reader": {
+          "fetchedBytes": 3146301,
+          "requests": 49,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      },
+      "direct": {
+        "ms": 195.39058399999976,
+        "wireBytes": 197181,
+        "requests": 4,
+        "reader": {
+          "fetchedBytes": 197181,
+          "requests": 4,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 131072,
+          "peakCacheBytes": 131072,
+          "activeBytes": 0,
+          "peakActiveBytes": 65536
+        },
+        "framesExact": 30
+      }
+    }
+  ],
+  "oracleSHA256": "a7ad000086e28ccda2185d9071e906bfe6b13007c4fb42a16ed545fdbb996459",
+  "controls": {
+    "malformedOffsetRejected": true,
+    "changedIdentityRejected": true,
+    "inflightCancelled": true
+  },
+  "error": "Error: Command failed: ffmpeg -v error -f ivf -i pipe:0 -pix_fmt yuv420p -fps_mode passthrough -f rawvideo -\n[in#0/ivf @ 0x946804000] Error during demuxing: Immediate exit requested\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:882:11)\n    at execFileSync (node:child_process:918:15)\n    at decode (file:///Volumes/seed2/Projects/demuxe/research/shared/tooling/relative-cue-fetch-quoted.mjs:7:476)\n    at file:///Volumes/seed2/Projects/demuxe/research/shared/tooling/relative-cue-fetch-quoted.mjs:9:189\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+}

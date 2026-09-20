@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual native AC3 decode rejects. Research explicit disabled audio selection copies48H264payloads exactly and emits video-only with zero decoded/encoded audio samples in FFmpeg executed-stream counters; ordinary muted comparator retains96768decoded and96768encoded audio samples. Same element owner rebuild sequence disabled→muted→audio-only→muted seeks1s and reachesEOF; actual MediaElementSource PCM RMS0 when disabled and0.04986 for enabled/muted, audio-only video frame count0. Old MediaSources close; source mismatch and ambiguous automatic selector reject; a genuinely completed obsolete preparation job is refused publication after epoch change. Five alternating cold host preparation pairs27.349ms disabled/33.716ms muted, ratio0.81116 passes0.9; allvideo hashes unchanged.
+
+Pursue explicit disabled-track intent with source-scoped epoch and bounded rebuild-on-reenable at retained RAP. Research muted comparator explicitly permits qualified24bit float quantization; no change to default sample-exact admission. This is executed host mapping/browser owner prototype, not production Native sentinel implementation. No claim ordinary volume mute reduces decode work or browser decoder CPU measured. Native continuous seamless reenable not qualified.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

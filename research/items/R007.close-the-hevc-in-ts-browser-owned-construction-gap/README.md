@@ -2,32 +2,18 @@
 
 # Close the HEVC-in-TS browser-owned construction gap
 
-Full identity: `R007.close-the-hevc-in-ts-browser-owned-construction-gap`. Original rank: 1.
-
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
-
-Actual isolated Wasm gate extension plays HEVC/AAC TS and seeks; current bridge rejects it. Complete output video and PCM match independent host decode with passthrough frame timing; AVC control still passes. Additional codec-aware adverse timestamp/configuration cases remain before integration.
-
-## Accepted scope
-
-HEVC/AAC TS isolated RemuxPlayer bridge; baseline rejects; ordinary runtime unchanged.
-
-Full host pictures/PCM and actual HEVC/AAC playback/seek pass, with AVC control and worker cleanup. Codec-aware adverse timestamp/configuration cases remain before closing correctness.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
+Current decision: **pursue**. Close scoped HEVC/AAC TS capability correctness: isolated candidate already has complete host pixels/PCM and actual browser seek/playback; new real configuration-change and backward-timestamp controls reject with causal engine errors and worker cleanup. No performance superiority claimed.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | pending | Full host pictures/PCM and actual HEVC/AAC playback/seek pass, with AVC control and worker cleanup. Codec-aware adverse timestamp/configuration cases remain before closing correctness. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Close scoped HEVC/AAC TS capability correctness: isolated candidate already has complete host pixels/PCM and actual browser seek/playback; new real configuration-change and backward-timestamp controls reject with causal engine errors and worker cleanup. No performance superiority claimed. |
+| correctness | passed | Historical isolated Wasm remux retained complete decoded picture/PCM equality, actual browser playback and seek, AVC regression. New concatenated HEVC streams with changed160-to320 width and backward timeline trigger selected-configuration/timeline guards; both worker counts zero. Harness assertion mistake preserved separately from correct engine rejection. Scoped static HEVC/AAC only; midstream reconfiguration rejected, no general damage recovery/live discontinuity claim. |
+| performance | not_applicable | Primary contract is additional correct HEVC/TS browser-owned capability; existing unextended bridge rejects the valid source. No efficiency claim or equivalent accepted old-route baseline was part of this capability gate; benchmark is not forced for capability-only work per PROCESS. Hybrid CPU/startup comparison remains separate optional optimization study, not a demonstrated saving. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Close scoped HEVC/AAC TS capability correctness: isolated candidate already has complete host pixels/PCM and actual browser seek/playback; new real configuration-change and backward-timestamp controls reject with causal engine errors and worker cleanup. No performance superiority claimed. |
 
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
+Next/reopen: Scoped prototype worth pursuit. Production integration requires explicit opt-in review and maintained regression coverage; reopen for new HEVC configurations, audio selections, or timeline/discontinuity policy. No default routing changes.
 
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

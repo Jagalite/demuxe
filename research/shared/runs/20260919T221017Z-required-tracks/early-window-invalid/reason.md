@@ -1,0 +1,1 @@
+Original imposed appendWindowEnd6 cut256 nativepresented samples although complete Opus source includes containerend6.021. Original weak counterthreshold did not enforce protocol288000samples. Preserve all initial outputs invalid, remove artificial endwindow equally bothroutes, drain finalworklet messages, require exact observed288000samples before cost.

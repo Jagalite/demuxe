@@ -68,102 +68,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "status": "passed",
+      "basis": "Actual four-process zero-state chunk filtering and affine missing-history correction of96000samples plus4096zero tail. Complete100096outputs match ordinary scalar IIR recurrence within1.943e-16 under1e-12 tolerance; omitted correction changes output. Three/four actual worker PIDs per job captured; source/filter/cancel guards, queued-future cancellation and process-pool shutdown pass. Five alternating complete cold source/hash/process startup/serialization/scheduling/transfer/correction/aggregation/shutdown jobs157.772ms versus serial31.945ms ratio4.93891 fails<=0.9. Numeric source+zero-block payload1601536bytes is explicitly notRSS.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
+      "status": "failed",
+      "basis": "Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "basis": "stop_current_profile: Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state",
-      "rank": 320,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:09:55.373840+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T230955Z-filter-parallel"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "mpv owns user audio filters and one streaming output state; no fixed linear effect recipe or chunk-state transition export exists. Arbitrary existing filters cannot be assumed linear/stable or correction-compatible.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual four-process zero-state chunk filtering and affine missing-history correction of96000samples plus4096zero tail. Complete100096outputs match ordinary scalar IIR recurrence within1.943e-16 under1e-12 tolerance; omitted correction changes output. Three/four actual worker PIDs per job captured; source/filter/cancel guards, queued-future cancellation and process-pool shutdown pass. Five alternating complete cold source/hash/process startup/serialization/scheduling/transfer/correction/aggregation/shutdown jobs157.772ms versus serial31.945ms ratio4.93891 fails<=0.9. Numeric source+zero-block payload1601536bytes is explicitly notRSS.",
+      "next_action": "Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
+      "reopen_condition": "Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state.md"
-      ],
-      "next_test": "Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
-      "reopen_condition": "Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T230955Z-filter-parallel/run.json"
+      ]
     }
   },
-  "next_action": "Select one explicit stable IIR recipe and logical transition representation; compare irregular chunk partitions with full suffix/tails and incorrect zero-history control before scheduling integration.",
+  "next_action": "Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

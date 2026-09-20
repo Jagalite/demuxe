@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T224044Z-exact-endpoints",
+  "item_keys": [
+    "R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts"
+  ],
+  "recorded_at_utc": "2026-09-19T22:43:19.874474+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Implemented actual VideoFrame PTS/duration-driven GPU exposure accumulation for an explicitly requested64x64 opaque black/white linear-color intermediate. Independent Python Fraction oracle verifies10/30ms\u2192exact0.75 atall4096pixels; splitting the30ms hold into3x10ms remains exactly0.75. Partial5/25ms exposure gives5/6 with1.99e-8 maximum float error, within unchanged1e-7bound; endpoint windows produceexact0/1. Framecountaverage0.5 fails, zero-duration/gapped/overlapping timelines reject, oldsource-epoch GPUresult isdiscarded whilefreshresult survives, allframes/buffers/devicesclose. Preserve two diagnosed failed implementations: GPU runtime normalization introduced1ulp above1 atwhiteendpoint; CPU-normalized duration weights alone stillfailedexactsplit invariance becauseGPU byte255/255 conversion also usedapproximate division. Final admittedendpoint conversion usesexact0/1 selection plusnormalized durationweights; no tolerance relaxation or generalcolorspace claim. This qualifies a new duration-aware exposure intermediate, not ordinaryplayback averaging, HDR/generalcolor processing/displaytransfer or a speedimprovement. Performance isnotapplicable for this additionalcapability endpoint."
+}

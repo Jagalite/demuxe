@@ -1,0 +1,1 @@
+Short0.786MB cold CLI ratio-of-medians passes but timing is highly variable and paired median ratio about0.944 does not support a robust10percent gain. Preserve as uncertain, not a general speedup. Followup uses explicitly16x longer workload and predeclares median paired ratio<=0.9 plus at least4/5 pairs faster.

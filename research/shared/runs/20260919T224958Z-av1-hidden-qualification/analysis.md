@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit.

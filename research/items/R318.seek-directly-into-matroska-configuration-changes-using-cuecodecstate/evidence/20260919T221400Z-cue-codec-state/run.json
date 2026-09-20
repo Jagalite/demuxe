@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221400Z-cue-codec-state",
+  "item_keys": [
+    "R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:33:05.486405+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/tests/codec-state.py",
+    "ffmpeg -v error -i research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/two-epochs.mkv -f framemd5 -",
+    "node research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/tests/cue-state-browser.mjs"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "b031aad5615b998383b4de206d144cad881676e5fa46596404a6944de067b2f6",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Two 10-frame, 10 fps AVC epochs share dimensions but differ in baseline CAVLC versus high-profile CABAC configuration. The second BlockGroup contains CodecState and its cue references that actual Segment-relative element; first cue uses the initial TrackEntry. No in-band SPS/PPS masks stale initialization. Four initial seek targets [1,0,1,0] and all 880 timed target pictures match independent host-decoded YUV420 hashes, dimensions and absolute timestamps exactly. Wrong initialization yields zero pictures and EncodingError. Stale source identity, invalid state position and non-RAP entry reject. Every frame and decoder closes. This is a narrow browser component, not maintained Matroska demux integration or arbitrary codec-state support."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared 11 alternating pairs of four fresh seek owners [1,0,1,0]. Both return 40 exact target pictures per job; cue-directed mode submits 40 packets, sequential replay submits 60. Includes source hash/index parsing, state lookup, decoder creation/configure/decode/flush, target plane copies/hashes and cleanup; resident byte transfer and independent oracle preparation excluded equally. Median complete-job saving 29.5472%, bootstrap 95% median [24.0741,42.0798]%; 5% gate passed. No remote-range, physical memory or energy claim."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue this source-bound configuration-seek component. Maintained demux integration must propagate CodecState correctly and preserve explicit RAP dependencies, source identity and owner cleanup; other codec/container profiles require separate admission."
+}

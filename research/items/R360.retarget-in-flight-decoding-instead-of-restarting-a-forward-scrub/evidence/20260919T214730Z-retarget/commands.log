@@ -1,0 +1,7 @@
+ffmpeg -hide_banner -y -f lavfi -i testsrc2=size=1280x720:rate=24 -frames:v 48 -c:v libx264 -pix_fmt yuv420p -preset ultrafast -profile:v baseline -g 48 -keyint_min 48 -sc_threshold 0 -bf 0 -f h264 research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/evidence/20260919T214730Z-retarget/gop.h264
+ffprobe -v error -show_packets -of json research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/evidence/20260919T214730Z-retarget/gop.h264
+ffmpeg -v error -i research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/evidence/20260919T214730Z-retarget/gop.h264 -pix_fmt yuv420p -fps_mode passthrough -f rawvideo -
+ffmpeg -version
+
+node research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/tests/retarget.mjs research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/evidence/20260919T214730Z-retarget
+Bootstrap Python seed360,10000 paired aggregate resamples

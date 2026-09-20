@@ -2,12 +2,12 @@
 
 # Crop or transform MJPEG in the coefficient domain
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-The current native/browser video codec bridge has no MJPEG coefficient transform or JPEG image-decode adapter. Display crop/rotation already occurs in the shader without rewriting media. A required transformed asset needs a coefficient-domain component and iMCU/orientation contract, not another display transform.
+Actual jpegtran aligned256x256 crop from three512x512 grayscale JPEGs preserves all196608 retained quantized coefficients and quantization tables exactly. Independent FFmpeg full decode/crop equals transformed JPEG decode byte-for-byte; browser ImageDecoder full decode/crop matches transformed image fullRGBA hashes for all3. Misaligned origin rejects; wrong crop differs; actual late-epoch decoded frame closes and all decoder/frame owners release. Candidate requires complete entropy parse/recode, not sparse compressed access. Nine alternating whole3-image jobs include fresh jpegtran process/read/write, actual binary HTTP transfer, browser decode/canvas/fullreadback/hash and cleanup: baseline50.091ms versus candidate258.470ms, saving-416.00% CI[-708.5272694675875, -236.62205596308138]; predeclared lower95>=10% fails. Initial byte-array Playwright transport timing looked favorable but was dominated by per-byte automation serialization; retain it as confounded, use corrected real binary transfer for decision. Host concurrent load/warmcache and native subprocess wrapper limit timing generalization. No performance benefit for this runtime-transform tinyimage profile; coefficient-preserving crop capability is valid. No production changes.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Reopen cost gate with a justified in-process coefficient transformer or repeated/prepared crop workload charging its preparation cost; preserve no-requantization capability and exact aligned geometry. No ordinary-playback speed claim.
 
-Next: For a requested transformed MJPEG asset, use a perfect aligned grayscale JPEG crop as one component and compare retained coefficients plus decoded geometry; misaligned/edge transforms must reject rather than expand silently.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T225639Z-binary-transport/analysis.md)
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Fixture provenance metadata amendment](../../shared/runs/20260919T230543Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

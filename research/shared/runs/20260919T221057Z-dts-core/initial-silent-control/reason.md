@@ -1,0 +1,1 @@
+First2seconds of genuine DTSHD sample are silent. Coreextraction discarded extensionbytes but PCM stayedidenticallyzero; cannot assume nonzero distortion. Broaden to3.3seconds, avoidingtruncatedterminalpacket, to test actual nonzeroextension difference.

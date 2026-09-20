@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T220411Z-native-relay",
+  "item_keys": [
+    "R145.native-frame-relay-without-js-pixel-readback.report-continuity"
+  ],
+  "recorded_at_utc": "2026-09-19T22:09:44.304288+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Implemented the exact report-continuity native route: nativevideo captureStream\u2192MediaStreamTrackProcessor\u2192unchanged VideoFrame writes\u2192MediaStreamTrackGenerator\u2192second nativevideo. Destination observer verifies every full-frame RGBA against an independent hostFFmpeg oracle for24 losslesscoded visual IDs0..23 at12fps. All24 distinct IDs arrive in order, including final23; every observed image is exact. Capture emitted60 frames including repeated source images, so framecallback counts are explicitly not the source completeness oracle. A separate negative relay deliberately identifies/drops finalID23 and fails completeness despite otherwise healthy playback. Actual cancellation holds one old capture frame, changes sourceepoch, closes/discards stale output, then forwards a surviving newowner frame; all capture/generator tracks end. Main relay does no application pixel readback; only independent destinationobserver and negativecontrol inspectpixels. This is a new routing capability, not zero-copy/hardware/latency equivalence: destination track has its own capture timestamps and repeatedimages. No independent audiovisual-clock or precise source-PTS preservation claim. No performance cost-reduction hypothesis is present in this exact report key, so performance is not applicable."
+}

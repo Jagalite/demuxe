@@ -1,0 +1,15 @@
+{
+  "items": [
+    "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "R032.use-different-output-containers-for-different-tracks",
+    "R058.change-video-codec-while-retaining-the-audio-presentation"
+  ],
+  "profiles": {
+    "R031": "Raw ADTS AAC or MP3 beside H264fMP4 on single media owner, six-second continuous source with880Hz markers at0.3/2.3/4.3s over continuous440Hz",
+    "R032": "Same mixed owner with WebM Opus audio/H264fMP4 video",
+    "R058": "Same continuous WebM Opus audio owner while videoSourceBuffer changes H264fMP4\u2192VP9WebM\u2192H264fMP4 at2/4s"
+  },
+  "correctness": "Actual AudioWorklet PCM and presented video frames: marker onset within50ms of expected media time, no audio quiet gap>5ms aroundvideo2/4s, red/green/blue expected pictures within5 RGBlevels and correct geometry. Same owner/buffers, partial append abort/reset, backward/forward seek, EOF, cleanup; wrong audio offset+0.2s must fail marker oracle, wrong video MIME must reject. Exact acoustic/sample alignment outside bounded gate.",
+  "performance": "Only after applicable correctness: R0315 alternating MSE preparation pairs rawAAC versus packet-identical fragmentedAACMP4, include cold host wrapping5 measured samples and matched browser owner/buffer creation/appends/cleanup. Candidate coldmedian<=0.9baseline. Prepared-browser timings separately reported. R032 same5pair comparison WebMOpus versus packet-identical fragmentedOpusMP4 plus measured freshhost wrapping, coldmedian<=0.9baseline. R058 original same-owner codec-change capability has no independent speed claim; identity is endpoint.",
+  "license": "CC-BY-4.0"
+}

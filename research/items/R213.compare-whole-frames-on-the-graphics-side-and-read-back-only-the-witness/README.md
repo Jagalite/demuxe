@@ -2,20 +2,10 @@
 
 # Compare whole frames on the graphics side and read back only the witness
 
-Current decision: **pursue**. Actual GPU atomic difference witness scans all 15360 resident RGBA pixels with four-byte readback. Equal frame and first/middle/last changed pixels match CPU oracle. Opportunity restricted to pixels already on GPU; no measured whole-player savings.
+Disposition: **pursue**. Correctness **passed**, performance **passed**; other research gates passed.
 
-Historical stage reconciliation; no new experiment.
+Actual GPU witness checks all1048576 resident RGBA pixels with4byte result versus reading both full buffers and CPU short-circuit comparison. Equal/first/middle/last/allchanged controls each repeatedtwice match independent change metadata. Tenchecks read40bytes candidate versus83886080bytes baseline. Whole task includes fresh GPU device/pipeline/buffers, initialization and percase uploads, generation, readback/verification and resource destruction. No GPU-driven pixel producer integration, CPU utilization, physical memory or energy claim. Complete owner wall-time saving33.40%, bootstrap95[21.580288821819792, 43.80232796379785]; predeclared performance gate passed.
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | passed | Actual GPU all15360resident RGBA pixels checked; equal and first/middle/last changes match CPUoracle; four-byte witness readback and cleanup/errors recorded. Resident-pixel scope only. |
-| performance | pending | No CPU/latency/transfer benchmark; uploading solely for compare could erase benefit. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+Scoped component research gates complete. Production integration requires a separate owner/workload contract and representative media validation.
 
-Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T210010Z-cue-witness/analysis.md)

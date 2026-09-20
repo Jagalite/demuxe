@@ -1,0 +1,6 @@
+python3 research/shared/tooling/audio-stage-probes/flac_mid_extract.py research/shared/runs/20260919T_audio_flac_mid
+ffmpeg -v error -i {source,mono}.flac -f s16le -
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_flac_mid/source.flac", "-f", "s16le", "-"]
+["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_mid/reference.s16", "-c:a", "flac", "research/shared/runs/20260919T_audio_flac_mid/reference.flac"]
+["flac", "-t", "research/shared/runs/20260919T_audio_flac_mid/source.flac", "research/shared/runs/20260919T_audio_flac_mid/mono.flac"]
+node research/shared/tooling/audio-stage-probes/flac_mid_browser.mjs research/shared/runs/20260919T_audio_flac_mid

@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225300Z-explicit-color-certificate",
+  "item_keys": [
+    "R175.tighten-verified-h-264-decoder-requirements"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:55:31.107255+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R175.tighten-verified-h-264-decoder-requirements/tests/certificate-explicit.py research/items/R175.tighten-verified-h-264-decoder-requirements/evidence/20260919T225300Z-explicit-color-certificate",
+    "python3 research/items/R175.tighten-verified-h-264-decoder-requirements/tests/admission.py research/items/R175.tighten-verified-h-264-decoder-requirements/evidence/20260919T225300Z-explicit-color-certificate",
+    "node research/items/R175.tighten-verified-h-264-decoder-requirements/tests/browser-certificate.mjs research/items/R175.tighten-verified-h-264-decoder-requirements/evidence/20260919T225300Z-explicit-color-certificate"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "161b193da4d2505bcf6211d3ad551114bd5bbc735bbc284d028abd3aae296f51",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent FFmpeg full slice/header trace plus whole-source SHA certificate.2IDR/58P, progressive, active/default list0 count1, no reordering/adaptive MMCO/long-term, frame_num modulo16/IDR resets validated.60host frameMD5/timing/type records identical and all non-SPS NALs unchanged. Explicit-color native60queries/59continuous frames exact, backward/forward seeks, EOF/stale append/cleanup. Actual two-reference fixture fails oneDefaultRef and source binding; changed source/generation reject."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source-defined capability is truthful advertised requirements after actual bitstream certificate. Neither allocated decoder surfaces nor latency/RSS is measured; a smaller SPS num_ref_frames is not itself a performance result. No claimed cost win, so benchmark gate N/A."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Consider only source-hash-bound restricted progressive I/P profiles with explicit color. A production validator must reject unsupported reference marking, gaps, B/field pictures and changed SPS/PPS. Qualify any measured decoder allocation/performance claim separately; unresolved unspecified-color native discrepancy must not be generalized away."
+}

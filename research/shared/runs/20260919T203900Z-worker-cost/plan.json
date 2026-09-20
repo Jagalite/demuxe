@@ -1,0 +1,9 @@
+{
+ "item":"R005.move-mse-ownership-off-the-window-thread",
+ "workload":"Identical existing 2-second red/440Hz fMP4, sequential 8192-byte appends, 45ms busy UI work every 60ms; worker or window owns MSE. No remux.",
+ "sampling":"11 paired trials, alternating order, fresh page and owner each trial, shared browser; no timed warmup discarded",
+ "primary_metric":"wall milliseconds from owner construction through all append updateend completions",
+ "secondary_metrics":["first rendered frame latency","full trial including cleanup","rendered center pixel","input transfer bytes"],
+ "acceptance":"All output controls pass; paired median append-time improvement must be positive and paired bootstrap 95 percent interval must exclude zero. Otherwise inconclusive for this workload. No global product admission threshold.",
+ "costs":"Includes worker startup, handle transfer, input transfer/copy, all append completion. Cleanup separately timed. UI stress identical; retained input length recorded. No CPU, hardware, physical energy or production speed claim. Concurrent host load is uncontrolled."
+}

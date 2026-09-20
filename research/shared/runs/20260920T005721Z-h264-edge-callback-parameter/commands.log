@@ -1,0 +1,6 @@
+python3 research/shared/tooling/deblock/build.py research/shared/runs/20260920T005542Z-h264-actual-deblock-trace
+python3 research/shared/tooling/deblock/build-callback.py research/shared/runs/20260920T005721Z-h264-edge-callback-parameter
+ffmpeg -v error -y -f rawvideo -pixel_format yuv420p -video_size 64x64 -i research/shared/runs/20260920T005721Z-h264-edge-callback-parameter/source.yuv -frames:v 1 -c:v libx264 -qp 30 -x264-params keyint=1:threads=1:slices=1:deblock=6,6 -f h264 research/shared/runs/20260920T005721Z-h264-edge-callback-parameter/one.h264
+ffmpeg -v error -y -i research/shared/runs/20260920T005721Z-h264-edge-callback-parameter/one.h264 -f rawvideo -pix_fmt yuv420p research/shared/runs/20260920T005721Z-h264-edge-callback-parameter/host.yuv
+node research/shared/tooling/deblock/trace.mjs research/shared/runs/20260920T005721Z-h264-edge-callback-parameter
+node research/shared/tooling/deblock/gpu-fresh-adapter.mjs research/shared/runs/20260920T005721Z-h264-edge-callback-parameter

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T213200Z-rap-pts-cost",
+  "item_keys": [
+    "R296.generate-seek-fragments-without-replaying-a-mux-session"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:17:52.775932+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/tests/gop.py",
+    "cc -O2 research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/tests/mux-cost.c <pkg-config flags> # exactargv native-mux-cost/build-command.json",
+    "python3 research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/tests/cost.py # preflightfailed, no timings",
+    "python3 research/items/R296.generate-seek-fragments-without-replaying-a-mux-session/tests/rap-pts-cost.py # correctness and declared hostpipeline costpass"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "d2daf62c4d6615ef1dc06edfe77487eccafe3174f6ccb1ef8d23aeeba982385b",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "96sample video-only AVC source,92non-RAP; out-of-order73,4,74,4 requests include precedingRAP and required codedprefix,2/5/3/5 packets. All packetpayload,PTS,DTS,duration equal independentFFprobe and all decodedpictures equal fullsource-selected frameoracle. Repeatrequest byteidentical; staleidentity/outsideordinal reject; actualomittedRAP decodeszero. Benchmark relative decodeorigin0 adapter independently matches nativeFFmpeg muxbaseline complete pixels/timing. Bframes exercised; generatedCTO values nonnegative despite signedfield representation, so no negativeCTO claim. No audio,asyncowner/browser or arbitrary codec admission."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared11alternating batches of4requests. Candidate fullcoldsource read/hash+FFprobe index onceperbatch, parse/copies/writes/outputhash charged; baseline freshly invokes native libavformat demux/mux for eachsameRAP-prefix request. Callerelapsed includes subprocessload/start/teardown forbothactual pipelines; baselineinternalnative microseconds separately exposed. Median savings68.5652%, bootstrap95 median[64.2587%,73.3569%],5%gate passed. Warm filesystemcache, fixturegeneration/common oracleexcluded. This measures hostprocess orchestration: no inference of nativeWasm muxCPU, memory/network/energy improvement."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue source-bound AVC stateless constructor; before browser integration test selectedaudio, negativeCTO, changingconfig and asynchronous cancellation, then benchmark the actual browser worker owner with coldindexes charged. Preserve explicit RAPpresentation mapping in nativebaseline."
+}

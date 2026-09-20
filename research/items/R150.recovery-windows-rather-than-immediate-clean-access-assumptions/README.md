@@ -2,28 +2,24 @@
 
 # Recovery windows rather than immediate clean-access assumptions
 
-Full identity: `R150.recovery-windows-rather-than-immediate-clean-access-assumptions`. Original rank: 208.
+Full identity: `R150.recovery-windows-rather-than-immediate-clean-access-assumptions`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **inconclusive** (component test).
 
-The current packet route requires IDR start and buffered seeking requires a retained RAP. Recovery-point SEI could widen admission only with a separately represented verified recovery boundary; no such owner exists.
+Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim.
 
-No matching candidate/reference/control execution for this exact gate. Intra-refresh stream with parsed recovery count and continuous-picture oracle before extending admitted access points.
-
-Next action: Add research metadata for access offset plus signaled recovery count on one intra-refresh fixture, compare every admitted frame to continuous decode and corrupt the count. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Research profile complete at software component boundary. Reopen performance only for an applicable larger target window with a demonstrated full-job benefit; browser support is not implied.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Intra-refresh stream with parsed recovery count and continuous-picture oracle before extending admitted access points. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Intra-refresh stream with parsed recovery count and continuous-picture oracle before extending admitted access points. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
+| screen | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
+| correctness | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
+| performance | failed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
+| results | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
+| decision | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260919T225103Z-recovery-window-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

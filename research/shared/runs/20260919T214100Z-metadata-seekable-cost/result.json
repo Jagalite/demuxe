@@ -1,0 +1,198 @@
+{
+  "plan": {
+    "scope": "Ninealternating fresh-output jobs including inputread, actualadapter, FFmpeg startup and full decodedvideo+PCM. Trackview comparesmetadata edit+directdecode vsFFmpeg selected-trackcopy+decode; TSfilter comparesfilter+remux+decode vsdirectprogram-selectremux+decode. Existing independent payload/timing/browser correctness retained.",
+    "gate": "lower95pairedmedian completecostsaving>5percent",
+    "limits": "HostCLI pipeline only; no pinnedWasm browserCPU claim. Trackview keeps unselectedpayload and not redaction. Static singlepacketPSI TS only.",
+    "correction": "Track baseline writes regularMP4 to preserve same edit/trim semantics as native metadata-view and known selected-reference; tempwrite/read/unlink charged."
+  },
+  "profiles": {
+    "track-view": {
+      "rows": [
+        {
+          "pair": 0,
+          "baseline": {
+            "ms": 90.05741699365899,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "candidate": {
+            "ms": 61.30808300804347,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 1,
+          "candidate": {
+            "ms": 62.37466697348282,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "baseline": {
+            "ms": 91.35829197475687,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 2,
+          "baseline": {
+            "ms": 92.31879201252013,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "candidate": {
+            "ms": 67.15304200770333,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 3,
+          "candidate": {
+            "ms": 62.708624987863004,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "baseline": {
+            "ms": 89.51420796802267,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 4,
+          "baseline": {
+            "ms": 91.3726250291802,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "candidate": {
+            "ms": 61.535082990303636,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 5,
+          "candidate": {
+            "ms": 63.78795899217948,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "baseline": {
+            "ms": 92.12991601089016,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 6,
+          "baseline": {
+            "ms": 95.06612503901124,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "candidate": {
+            "ms": 68.0556669831276,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 7,
+          "candidate": {
+            "ms": 61.874041974078864,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "baseline": {
+            "ms": 93.85399997700006,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        },
+        {
+          "pair": 8,
+          "baseline": {
+            "ms": 90.15083295525983,
+            "inputBytes": 80296,
+            "preparedBytes": 41906,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          },
+          "candidate": {
+            "ms": 63.742458005435765,
+            "inputBytes": 80296,
+            "preparedBytes": 80296,
+            "videoBytes": 1658880,
+            "pcmBytes": 577536,
+            "exact": true
+          }
+        }
+      ],
+      "analysis": {
+        "medianSaving": 0.30763033600682466,
+        "bootstrap95": [
+          0.28412284654286335,
+          0.3265479352196331
+        ],
+        "accepted": true
+      },
+      "sourceSHA256": "f9840b85a75912c70ef8c6a4a3620d7328f84310e7ce5d0c859c4988e9e7b489",
+      "oracleHashes": [
+        "8cc821919ec49b56b426cb9c76b907bfa5e1dbf469a20786a38b23be730910e9",
+        "8401ff9b3ab397fcf4a9fdc927222fd3ab23b6ae022e096bcc67501558afbac1"
+      ]
+    }
+  }
+}

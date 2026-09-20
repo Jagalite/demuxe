@@ -2,12 +2,24 @@
 
 # Derive audio-effect preroll from a guaranteed error budget
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget`
 
-Current output delegates processing/synchronization to mpv and exposes no controlled first-order filter state bound. The source certificate is valid only for declared bounded approximation; this must not be substituted for exact effect-seek semantics or decoder history.
+Current decision: **pursue** (2026-09-19T22:50:00.842340+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Executed opt-in Q24 integer first-order lowpass y=floor((255*y+x)/256) under explicit |input|,|state|<=1 and normalized absolute error budget1e-4. Derived state difference plus two implemented-arithmetic rounding bounds:2*(255/256)^N+512/2^24; exact rational comparison certifies N2624 and bound9.9827351e-5. Continuous-reference comparisons across seeded noise and positive/negative DC, targets20000/80000/160000, all2048 output samples each: maximum observed error2.7298927e-5. Zero-preroll errors up to0.996; rounding-floor, near-unit excessive preroll, unknown bounds, source identity and cancellation controls reject. Five alternating complete source-read/hash/bounds/certificate/three-seek jobs:19.022ms candidate versus33.121ms full-prefix replay, ratio0.57431 passes<=0.9. Baseline does not compute candidate certificate.
 
-Next: Define one opt-in first-order DSP instance and compare calculated preroll with continuous reference; inspect the near-unit-pole fallback.
+Pursue only explicit bounded-error Q24 controlled-filter seeking with this admitted source/state bound. This changes numerical semantics and cannot replace exact checkpoints, arbitrary effects, decoder preroll or production routing. Near-unit poles and budgets below arithmetic floor remain rejected with full-prefix replay as separate baseline. Generic floating-point filters require their own implemented-arithmetic proof; no general DSP qualification.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T225000Z-effect-preroll/run.json) · [Analysis](../../shared/runs/20260919T225000Z-effect-preroll/analysis.md) · [Manifest](../../shared/runs/20260919T225000Z-effect-preroll/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

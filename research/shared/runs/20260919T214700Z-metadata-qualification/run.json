@@ -1,0 +1,64 @@
+{
+  "stage": "performance",
+  "status": "passed",
+  "commands": [
+    "python3 research/shared/tooling/metadata-cost.py research/shared/runs/20260919T213900Z-metadata-cost",
+    "python3 research/shared/tooling/metadata-matched-cost.py research/shared/runs/20260919T214000Z-metadata-matched-cost",
+    "python3 research/shared/tooling/metadata-seekable-cost.py research/shared/runs/20260919T214100Z-metadata-seekable-cost",
+    "python3 research/shared/tooling/program-filter-cost.py research/shared/runs/20260919T214300Z-program-filter-cost"
+  ],
+  "analysis": "Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures.\n\nNinepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim.",
+  "decisions": [
+    {
+      "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+      "disposition": "pursue",
+      "evidence_level": "actual-matched-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures.",
+      "next_action": "Scopedcostdecision complete. Reopenfor materiallydifferent actualownership/transportworkload; no repeatedsamples toforcegate.",
+      "stages": {
+        "performance": {
+          "status": "passed",
+          "basis": "Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures."
+        }
+      }
+    },
+    {
+      "key": "R065.isolate-a-selected-program-from-multi-program-transport-streams",
+      "disposition": "inconclusive",
+      "evidence_level": "actual-matched-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "Ninepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim.",
+      "next_action": "Scopedcostdecision complete. Reopenfor materiallydifferent actualownership/transportworkload; no repeatedsamples toforcegate.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "Ninepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim."
+        }
+      }
+    },
+    {
+      "key": "R229.mpeg-ts-track-elimination-with-payload-preservation.report-continuity",
+      "disposition": "inconclusive",
+      "evidence_level": "actual-matched-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "Ninepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim.",
+      "next_action": "Scopedcostdecision complete. Reopenfor materiallydifferent actualownership/transportworkload; no repeatedsamples toforcegate.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "Ninepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T214700Z-metadata-qualification",
+  "recorded_at_utc": "2026-09-19T21:41:59.166011+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "a40ad83bcdbb91dfbfa01084817a2fcff59e71c4c9d03419e3497b5bac19d81d",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -1,0 +1,9 @@
+git clone --depth 1 https://github.com/google/libultrahdr.git build/catalogue-tools/libultrahdr
+cmake -S build/catalogue-tools/libultrahdr -B build/catalogue-tools/ultrahdr-build -DCMAKE_BUILD_TYPE=Release -DUHDR_BUILD_TESTS=OFF -DUHDR_BUILD_EXAMPLES=ON -DUHDR_BUILD_DEPS=OFF -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/jpeg-turbo
+cmake --build build/catalogue-tools/ultrahdr-build -j 4
+# Fixture initially generated inline; exact generator retained in research/shared/tooling/presentation/ultrahdr/prepare.py
+c++ -std=c++17 research/shared/tooling/presentation/ultrahdr/reference-config.cpp -Ibuild/catalogue-tools/libultrahdr -Lbuild/catalogue-tools/ultrahdr-build -Wl,-rpath,$PWD/build/catalogue-tools/ultrahdr-build -luhdr -o build/catalogue-tools/uhdr-reference-config
+build/catalogue-tools/uhdr-reference-config research/shared/runs/20260919T225928Z-ultrahdr-config-before-probe/source-uhdr.jpg research/shared/runs/20260919T225928Z-ultrahdr-config-before-probe
+node research/shared/tooling/presentation/ultrahdr/browser.mjs research/shared/runs/20260919T225928Z-ultrahdr-config-before-probe
+python3 research/shared/tooling/presentation/ultrahdr/diagnose-lut.py research/shared/runs/20260919T225928Z-ultrahdr-config-before-probe research/shared/runs/20260919T230156Z-ultrahdr-lut-contract
+node research/shared/tooling/presentation/ultrahdr/browser-lut.mjs research/shared/runs/20260919T230156Z-ultrahdr-lut-contract

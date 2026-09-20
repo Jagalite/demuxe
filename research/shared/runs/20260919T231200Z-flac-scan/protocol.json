@@ -1,0 +1,6 @@
+{
+  "scope": "Actual fixed-order1 FLAC entropy traversal of escape17bit residuals,24blocks257samples, followed by4-thread local prefix scans, block carry computation and4-thread correction. All source read/identity/entropy parse/intermediate serialization/execution/output read included.",
+  "baseline": "Same real entropy parser and transfer with compiled serial first-order recurrence, not Python-loop straw baseline. Independent FFmpegPCM oracle.",
+  "performance": "Five alternating cold complete jobs after one warmup; candidate<=0.9baseline. Compile setup excluded and recorded. Thread creation/join included; no pool amortization claims.",
+  "guards": "Invalid source identity/CRC/truncation and wrong predictor reject. Signed16 extrema exact, omitted carry produces wrong output."
+}

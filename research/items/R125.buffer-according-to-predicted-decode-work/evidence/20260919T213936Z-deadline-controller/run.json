@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T213936Z-deadline-controller",
+  "item_keys": [
+    "R125.buffer-according-to-predicted-decode-work"
+  ],
+  "recorded_at_utc": "2026-09-19T21:48:23.872653+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "The actual browser predictive scheduler preserves all72 independent host I420 frame hashes and PTS under a fixed one-held-frame23040-byte budget. A real held-output cancellation closes the old frame/decoder, clears the scheduled decode, rejects delayed stale publication, and allows an exact surviving generation. Software packet-byte prediction improved held-out MAE28.10% (95%22.27\u201333.95); platform prediction worsened17.79%. Those trace statistics are prerequisite evidence, not buffering value. In three alternating real24fps whole-task pairs, both immediate one-frame-lookahead baseline and candidate recorded zero deadlines more than8ms late. Therefore the predeclared opportunity/value gate (baseline at least3 misses, candidate at least20% fewer, no added misses) fails. Candidate additionally calibrates48 frames (47 fit samples after first startup frame) before72 output frames, and calibration/model/copy/hash/presentation/close are charged. Output/owner correctness passes for this isolated profile; stop this tiny easy-workload scheduler variant rather than infer value from prediction accuracy. No production scheduling, hard-region generalization, energy, or physical memory claim."
+}

@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+      "status": "passed",
+      "basis": "Authored real AV1 intra-only and inter-reference relocation preserving entropy tiles.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+      "basis": "One actual decoder retains both independent reference banks.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+      "status": "passed",
+      "basis": "All54 full pictures and PTS exact; unrelocated keyframe destroys bank oracle; all frames and decoder owners closed.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
+      "status": "failed",
+      "basis": "Candidate cold-cost lower bound median34.69x baseline over7 alternating pairs.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+      "basis": "Two independently encoded prepared AV1 videos were relocated into disjoint reference banks in one actual decoder; all 54 pictures and timestamps match independent host and Chrome references. Seven alternating cold comparisons show certificate acquisition plus decode alone costs a median 34.69 times two ordinary decoders. This lower bound already fails the cost gate; header serialization would add cost. Stop this cold prepared-video profile; no physical-memory or general-stream claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
+      "basis": "Two independently encoded prepared AV1 videos were relocated into disjoint reference banks in one actual decoder; all 54 pictures and timestamps match independent host and Chrome references. Seven alternating cold comparisons show certificate acquisition plus decode alone costs a median 34.69 times two ordinary decoders. This lower bound already fails the cost gate; header serialization would add cost. Stop this cold prepared-video profile; no physical-memory or general-stream claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
+        "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder",
-      "rank": 312,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "WebCodecs accepts conventional full AV1 chunks and owns references opaquely; no prepared alternating-stream encoder/reference-slot contract exists. Two unrelated videos cannot be interleaved safely by changing timestamps.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder.md"
-      ],
-      "next_test": "Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
-      "reopen_condition": "Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R136.give-two-independent-videos-separate-reference-banks-inside-one-decoder",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual_host_and_browser_component",
+    "new_media_execution": true,
+    "reason": "Two independently encoded prepared AV1 videos were relocated into disjoint reference banks in one actual decoder; all 54 pictures and timestamps match independent host and Chrome references. Seven alternating cold comparisons show certificate acquisition plus decode alone costs a median 34.69 times two ordinary decoders. This lower bound already fails the cost gate; header serialization would add cost. Stop this cold prepared-video profile; no physical-memory or general-stream claim.",
+    "next_action": "Reopen for a materially cheaper certificate provider or a measured memory-constrained workload; keep separate source authorization and joint-epoch limits.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Authored real AV1 intra-only and inter-reference relocation preserving entropy tiles."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "One actual decoder retains both independent reference banks."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "All54 full pictures and PTS exact; unrelocated keyframe destroys bank oracle; all frames and decoder owners closed."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Candidate cold-cost lower bound median34.69x baseline over7 alternating pairs."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T23:26:57.602488+00:00",
+    "run_ids": [
+      "20260919T231631Z-av1-reference-banks"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T231631Z-av1-reference-banks/run.json"
+    ]
   },
-  "next_action": "Provide a tiny authored AV1 reserved-slot pair and bitstream reference-state oracle before using one decoder; cross-bank reference or changed shared sequence state must fail.",
+  "next_action": "Reopen for a materially cheaper certificate provider or a measured memory-constrained workload; keep separate source authorization and joint-epoch limits.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

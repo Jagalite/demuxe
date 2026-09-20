@@ -72,92 +72,60 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "Actual non-pthread JSPI read suspension runs without cross-origin isolation or SAB, complete generated output matches host pixels/PCM, delayed reads permit event-loop ticks, cancellation rejects, browser output reaches EOF.",
+      "basis": "Prior independent host pixels/PCM and browser destination retained; new trials byte-identical, two concurrent workers exact, one-owner reentry rejected, instances closed and workers terminated. MP4 priming profile excluded.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/jspi/result.json",
-        "results/top100/destinations/result.json"
+        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "status": "passed",
+      "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/jspi/result.json",
-        "results/top100/destinations/result.json"
+        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
+      "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/jspi/result.json",
-        "results/top100/destinations/result.json"
+        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
+      "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/jspi/result.json",
-        "results/top100/destinations/result.json"
+        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top30-stage-reconciliation",
-    "record": {
-      "key": "R176.jspi-backed-synchronous-wasm-i-o",
-      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
-      "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
-      "previous_state": "PURSUE",
-      "initial_rank": 19,
-      "run_ids": [
-        "20260919T201843Z-top30-stage-reconciliation"
-      ],
-      "evidence_level": "reconciled_component_test",
-      "new_media_execution": false,
-      "reason": "Actual isolated JSPI build produced browser-playable A/V with host decoded-output oracle. Nonisolated delayed reads and cancellation passed; Matroska zlib profile passed. Ordinary AAC MP4 priming/trim negative retained separately; not general route qualification.",
-      "scope": "Restricted TS and zlib-Matroska profile; ordinary AAC MP4 priming/trim failure remains excluded and recorded.",
-      "correctness_acceptance": "Actual non-pthread JSPI read suspension runs without cross-origin isolation or SAB, complete generated output matches host pixels/PCM, delayed reads permit event-loop ticks, cancellation rejects, browser output reaches EOF.",
-      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
-      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
-      "prior_decision": {
-        "campaign": "top100",
-        "ledger": "results/top100/decisions.jsonl",
-        "line": 47,
-        "record": {
-          "key": "R176.jspi-backed-synchronous-wasm-i-o",
-          "rank": 19,
-          "state": "PURSUE",
-          "reason": "Actual isolated JSPI build produced browser-playable A/V with host decoded-output oracle. Nonisolated delayed reads and cancellation passed; Matroska zlib profile passed. Ordinary AAC MP4 priming/trim negative retained separately; not general route qualification.",
-          "evidence_level": "COMPONENT_TEST",
-          "evidence": [
-            {
-              "path": "jspi/result.json",
-              "sha256": "ced37d5f7a3b0040906bfe68419cef3faeebb5175c3b8c056caf240fc6abac08"
-            },
-            {
-              "path": "destinations/result.json",
-              "sha256": "7c752739b3138a294419b664d2ae8d1a7cef4590dbff34f3ddbeac31de9eca4c"
-            }
-          ],
-          "recorded_at_utc": "2026-09-19T18:23:18.405019+00:00"
-        }
+    "key": "R176.jspi-backed-synchronous-wasm-i-o",
+    "disposition": "pursue",
+    "evidence_level": "actual_component_cost_and_lifecycle",
+    "new_media_execution": true,
+    "reason": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
+    "next_action": "Research gates complete for finite AVC/AAC TS nonisolated JSPI remux. Integration remains separate; expand only with exact timing/priming oracles for other source profiles.",
+    "stages": {
+      "performance": {
+        "status": "passed",
+        "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry."
       },
-      "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/jspi/result.json",
-        "results/top100/destinations/result.json"
-      ]
-    }
+      "correctness": {
+        "status": "passed",
+        "basis": "Prior independent host pixels/PCM and browser destination retained; new trials byte-identical, two concurrent workers exact, one-owner reentry rejected, instances closed and workers terminated. MP4 priming profile excluded."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T20:43:49.809601+00:00",
+    "run_ids": [
+      "20260919T204200Z-jspi-cost"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
+    ]
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Research gates complete for finite AVC/AAC TS nonisolated JSPI remux. Integration remains separate; expand only with exact timing/priming oracles for other source profiles.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

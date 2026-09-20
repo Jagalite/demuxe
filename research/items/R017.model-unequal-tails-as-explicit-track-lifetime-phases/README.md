@@ -2,28 +2,24 @@
 
 # Model unequal tails as explicit track-lifetime phases
 
-Full identity: `R017.model-unequal-tails-as-explicit-track-lifetime-phases`. Original rank: 144.
+Full key: `R017.model-unequal-tails-as-explicit-track-lifetime-phases`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T21:54:39.329336+00:00).
 
-Current implementation already supports a bounded unequal-tail window with known ends and EOS/resume logic; it does not retire an ended SourceBuffer as proposed. The existing working approach must be baseline, not historical bounded rejection.
+Actual Chrome EOS baseline and explicit ended SourceBuffer retirement both play6s with either2svideo/6saudio or6svideo/2saudio. Last red frame freezes correctly for audio-long tail; blue/red frames continue for video-long tail. Candidate backward restoration rebuilds same element MediaSource, closes old owner, restores both buffers and red frame at0.6s. Actual interior2..4video gap with declaredend6 refuses retirement and plays future4.5s frame. Five alternating first-restored-frame plus play-ready latency pairs:audio-long16.370/12.105ms ratio1.35233 fails1.10; video-long12.365/18.520ms ratio0.66766 passes. Earlier fixed100ms observation costs invalidated, raw outputs preserved; no decoder-memory claim from buffer counts. Initial playback runner required exact owned process cleanup after outputs; followup renderer exits cleanly.
 
-No matching candidate/reference/control execution for this exact gate. Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists.
+Stop current general retirement/rebuild cost profile: no additional tail capability over current EOS baseline and audio-long restore violates no-regression gate. Correctness is bounded presented-picture/clock/ownership, not new acoustic PCM proof. Video-long timing alone does not establish general benefit; reopen only with independent actual resource savings or improved restoration owner and repeated matched latency.
 
-Next action: Identify measured residual cost in current windowed tails before a retirement variant; if justified, test one audio-long tail and backward restoration, with a midstream gap forbidden from being treated as finality. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Measured residual tail cost and reversible retirement policy preserving backward restoration; baseline tail handling already exists. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T215439Z-tail-retirement/run.json) · [Analysis](../../shared/runs/20260919T215439Z-tail-retirement/analysis.md) · [Manifest](../../shared/runs/20260919T215439Z-tail-retirement/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

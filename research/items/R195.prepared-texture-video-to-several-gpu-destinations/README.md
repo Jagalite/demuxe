@@ -2,12 +2,10 @@
 
 # prepared texture video to several GPU destinations
 
-Current disposition: **pursue**. Setup blocker resolved. Correctness and performance **pending**; define, prepare, screen, results and decision passed.
+Disposition: **stop_current_profile**. correctness: **failed**, performance: **not_applicable**.
 
-Pinned Basis encoder/transcoder built; genuine two-frame ETC1S texture video transcoded to BC1 and BC3 and rendered through actual WebGPU. Both destinations preserve frames/order through forward, reverse and repeat probes. Native PNG exact gate differs by one channel code at interpolation; independent normalized-endpoint/nearest-rounding math matches every GPU byte. Original failure retained; absent-tool blocker resolved.
+The genuine ETC1S-to-BC1/BC3 WebGPU execution remains feasible, but its declared exact native-PNG reconstruction contract fails by one channel code. Independent normalized interpolation math explains GPU nearest rounding versus native integer floor, but explanation does not make strict byte fidelity pass. Preserve the failed experiment and stop this strict variant; no performance run is warranted before correctness. The former pending precision question is resolved by retaining the original threshold rather than relaxing it. This is a fidelity failure, not an unavailable-tool or GPU capability block.
 
-Two 16x16 opaque prepared frames only. Host native transcoding, not browser Wasm. Native reference is floor-rounded, GPU is nearest-rounded on observed blocks. No general alpha, long-video temporal state, source-cancel, upload backpressure, CPU/memory/latency or shipping route qualification.
+Next: Reopen only with an implementation that satisfies exact reference pixels, or a separately requested application precision contract declared before a new experiment. Do not reclassify this failed strict variant as a pass.
 
-Next: Declare explicit compressed-codec reconstruction precision contract, preserving original exact-native-PNG negative, then test alpha and temporal dependencies/cancellation with browser transcoder before any performance comparison.
-
-[Current record](item.json) · [History](history.jsonl) · [Analysis](evidence/20260919T200653Z-basis/analysis.md) · [Results](evidence/20260919T200653Z-basis/results.json)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T204852Z-strict-contract/analysis.md)

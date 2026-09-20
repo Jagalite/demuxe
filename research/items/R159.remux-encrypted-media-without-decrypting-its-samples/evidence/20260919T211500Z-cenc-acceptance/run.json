@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "run_id": "20260919T211500Z-cenc-acceptance",
+  "item_keys": [
+    "R159.remux-encrypted-media-without-decrypting-its-samples"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:54:53.481451+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/fragment-cenc.py",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/visible-cenc.mjs",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/diagnostic-cenc.mjs",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/fragmented-cenc.mjs",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/software-cenc.mjs",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/visible-oracle.mjs",
+    "node research/items/R159.remux-encrypted-media-without-decrypting-its-samples/tests/snapshots/wrong-key.mjs",
+    "ffmpeg -v error -i research/items/R159.remux-encrypted-media-without-decrypting-its-samples/evidence/20260919T211100Z-visible-oracle/frame.png -f rawvideo -pix_fmt rgba - # check160x96 video center within1280px screenshot"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "662cb8205467229941eb55d2263072842a30c1954d18272bb29aed9a138844ff",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Owned generated24-frame AVC video only, one key/KID, CENC with explicit IV/subsample records, one fragment. All ciphertext/senc bytes preserved; reconstructed moof-relative saio offsets. Full host independent decrypted pixels equal clear baseline; wrong IV changes output. Normal Chrome MSE CENC pipeline gives visible red screenshot pixel[248,36,0,255],seek0.8,EOF,34reported frames including seek replays; wrong key produces PIPELINE_ERROR_DECODE and no observed frames. Session/MediaKeys/URL/browser cleanup. Canvas readback remains black; no exact browser compositor-pixel proof, arbitrary multitrack/cbcs/key rotation/third-party licenses claim."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Capability-only encrypted-container construction without decrypting samples; no efficiency claim. Correct old direct-file destination does not exist in this test profile, so no forced savings benchmark. All host decryption here is independent owned-key oracle, never candidate remux operation."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue restricted owned one-track CENC fragment construction. Before broader admission, add multiple fragments, audio, key rotation and cbcs controls and source/lifecycle tests; retain exact container offsets and ciphertext identity. No DRM bypass or production route changes."
+}

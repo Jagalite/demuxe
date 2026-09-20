@@ -1,0 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+#include <libavformat/avformat.h>
+#include <math.h>
+#include <stdio.h>
+static double warp(double t){if(t<=1)return t;if(t<=2)return 1+(t-1)/2;return 1.5+(t-2)*2;}
+int main(int argc,char**argv){if(argc!=3)return 2;AVFormatContext*in=0,*out=0;if(avformat_open_input(&in,argv[1],0,0)<0)return 3;avformat_find_stream_info(in,0);int idx=av_find_best_stream(in,AVMEDIA_TYPE_VIDEO,-1,-1,0,0);AVStream*s=in->streams[idx];avformat_alloc_output_context2(&out,0,0,argv[2]);AVStream*d=avformat_new_stream(out,0);avcodec_parameters_copy(d->codecpar,s->codecpar);d->codecpar->codec_tag=0;d->time_base=s->time_base;avio_open(&out->pb,argv[2],AVIO_FLAG_WRITE);if(avformat_write_header(out,0)<0)return 4;AVPacket*p=av_packet_alloc();int count=0;int64_t last=-1;while(av_read_frame(in,p)>=0){if(p->stream_index==idx){double tb=av_q2d(s->time_base),ot=av_q2d(d->time_base);int64_t dt=llround(warp(p->dts*tb)/ot),pt=llround(warp(p->pts*tb)/ot),end=llround(warp((p->dts+p->duration)*tb)/ot);if(dt<=last||pt<dt||end<=dt)return 5;p->pts=pt;p->dts=dt;p->duration=end-dt;p->stream_index=0;p->pos=-1;last=dt;if(av_interleaved_write_frame(out,p)<0)return 6;count++;}av_packet_unref(p);}av_write_trailer(out);av_packet_free(&p);avformat_close_input(&in);avio_closep(&out->pb);avformat_free_context(out);printf("%d packets mapped\n",count);return 0;}

@@ -2,25 +2,18 @@
 
 # continuous playback through H.264/fMP4 → VP9/WebM
 
-`R139.continuous-playback-through-h-264-fmp4-vp9-webm.report-continuity`
-
-Current decision: **pursue**. Actual Chrome H264/fMP4 to VP9/WebM video-only transition reaches EOF, renders both expected colors, seeks backward and forward across codec boundary and cleans up. Invalid MIME rejects. Preserved extra-audio-track variant fails append as expected for track contract mismatch. Existing exact A/V transition evidence reconciled, not rerun.
+Current decision: **pursue**. Shared actual R138 prototype closes this exact continuous-playback mechanism: all24 frame identities queried exactly,23subsequent continuously presented fullframes exact after initialframe established, EOF and boundary seeks; generation/rebuild controls and equivalent transition cost evidence apply to this same video-only stream pair.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Generated or reused hashed synthetic fixtures, executable harness and independent FFprobe/reference evidence for the bounded component. |
-| screen | passed | Actual Chrome H264/fMP4 to VP9/WebM video-only transition reaches EOF, renders both expected colors, seeks backward and forward across codec boundary and cleans up. Invalid MIME rejects. Preserved extra-audio-track variant fails append as expected for track contract mismatch. Existing exact A/V transition evidence reconciled, not rerun. |
-| correctness | pending | Color observation and cross-boundary seek pass, but numbered-frame exactness and failed-append rollback ownership are not yet established. |
-| performance | pending | Equivalent-work performance not measured; relevant complete correctness and real owner workload remain prerequisites. |
-| results | passed | Positive and negative variants preserved in immutable runs with manifests. |
-| decision | passed | Scoped pursue decision; integration and production qualification separate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Shared actual R138 prototype closes this exact continuous-playback mechanism: all24 frame identities queried exactly,23subsequent continuously presented fullframes exact after initialframe established, EOF and boundary seeks; generation/rebuild controls and equivalent transition cost evidence apply to this same video-only stream pair. |
+| correctness | passed | Exact original report video-only scope: two1s160x96@12fps changing-picture streams,24 complete RGBA frame hashes equal isolated baseline at frame centers, reverse/forward queries, one retained SourceBuffer. Continuous playback23subsequent frames exact plus independently queried initialframe, timestamps0.083333..1.917,EOF. Stale callback after replacement rejected; actual wrong-container second init errors, declared full rebuild restores old frame. No claim old SourceBuffer can roll back fatal parse errors; URLs/elements released. Audio,gapless A/V and production queue ownership excluded. |
+| performance | passed | Predeclared11 alternating fresh-owner pairs after correctness; old source opened and firstframe established before measured transition. Candidate changeType+append versus restart/reappend, through full-frame capture/hash and cleanup. Resident identical encoded bytes common; no network/browser startup saving claimed. Median saving22.5457%, deterministic bootstrap95 median[15.6185%,41.2366%],5% gate passed. Prior rAF-quantized run retained/excluded with explicit measurement correction. No CPU, physical memory or energy claim. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Shared actual R138 prototype closes this exact continuous-playback mechanism: all24 frame identities queried exactly,23subsequent continuously presented fullframes exact after initialframe established, EOF and boundary seeks; generation/rebuild controls and equivalent transition cost evidence apply to this same video-only stream pair. |
 
-Next: Run numbered/full-frame independent image oracle, failed second-init recovery with old ownership preserved, and integrated queue cancellation.
+Next/reopen: Pursue bounded video-only component. Production adoption needs actual queue/generation owner integration and selected-audio sample-boundary tests; preserve mandatory rebuild on fatal parser errors. No routing changes.
 
-Original contract and definition: [item.json](item.json). [History](history.jsonl). [Evidence index](evidence/index.json).
-
-- [Run 20260919T200000Z-codec-transition](evidence/20260919T200000Z-codec-transition/run.json)
-- [Run 20260919T200000Z-video-only-transition](evidence/20260919T200000Z-video-only-transition/run.json)
-
-Research decision only; production integration and release qualification remain unassessed.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

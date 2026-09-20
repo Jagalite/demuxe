@@ -2,12 +2,24 @@
 
 # seekable fixed linear effects via block state transforms
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R191.seekable-fixed-linear-effects-via-block-state-transforms`
 
-Effects are delegated to mpv; the app does not own fixed biquad block-state transforms or an edit timeline. Report double-precision model cannot serialize arbitrary Web Audio/mpv internal state, and no new effect subsystem is warranted in first pass.
+Current decision: **pursue** (2026-09-19T23:09:55.373840+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Executed scalar controlled binary64 IIR a0.98 with128sample affine block transforms,96000sample source,35reordered100-block edit plans and300seek queries. Each query renders128actual continuation samples:42880outputs differ from independent ordinary recurrence by at most7.3726e-17 under explicit1e-12 tolerance. Wrong composition causes0.08593error; source/filter/offset/cancel controls reject. Baseline uses real cold exact recurrence checkpoints for ordinary seeks and actual sample replay for reordered plans. Five alternating source read/hash/cache construction plus all plans/seeks/output jobs30.584ms versus54.054ms ratio0.56580 passes<=0.9. Candidate numeric cache18008bytes versus6008checkpoint payload; not processRSS.
 
-Next: Identify one controlled fixed biquad owner and compare one prefix transform-derived seek state against continuous replay before integration.
+Pursue this explicit mixed reordered-plan/seek workload and controlled stable scalar filter. Numerical agreement is bounded tolerance, not bitwise identity; no general nonlinear/time-varying graph, decoder state or production integration claim. Pure canonical seeking already has exact checkpoints, and this experiment does not show superiority there in isolation.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T230955Z-filter-affine/run.json) · [Analysis](../../shared/runs/20260919T230955Z-filter-affine/analysis.md) · [Manifest](../../shared/runs/20260919T230955Z-filter-affine/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T223355Z-rtp-eoi-boundary",
+  "item_keys": [
+    "R140.turn-abbreviated-jpeg-transport-frames-into-browser-decodable-images"
+  ],
+  "recorded_at_utc": "2026-09-19T22:35:38.986056+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Implemented truthful header reconstruction from18 actual RFC2435 RTP/JPEG packets emitted by installed FFmpeg from the genuineAVI1 camera frame. The bounded adapter requires one source/timestamp, type0/1 progressive geometry, explicit128-byte8bit quantization tables, contiguous fragment offsets andonefinalmarker; missingfragment/tables andchangedgeometry reject. It reconstructs SOF/DQT/defaultHuffman/SOS while preserving compressed entropy SHA exactly. Original camera packet had one zero wrapperpadding byte afterEOI; an initial comparison wronglycounted itasentropy, preserved failure, then onecorrection bounds scan attrueEOI and verifieszero padding. Independent FFmpeg original/reconstructed fullRGBA are identical; actualbrowser reconstructed JPEG pixels exactlymatch the separately normalized original JPEG. Browser-versus-FFmpeg color differences remain present and the R063 strictdecoderreplacement failure remainsunchanged: this gate verifies header equivalence within each decoder, not a new crossdecoder fidelityclaim. Actual oldepoch imagepromise closeslatebitmap, malformedimage rejects, allthreecreatedbitmapsclose; transporttimestampmetadata preserved, no independentAVclock. This is additional admitted-input capability, no performance cost-reduction hypothesis."
+}

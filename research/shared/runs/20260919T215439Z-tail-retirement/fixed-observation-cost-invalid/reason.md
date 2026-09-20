@@ -1,0 +1,1 @@
+Fixed100ms observation interval dominates ratio and hides restoration delay. Correctness retained; new timing endpoint is first presented restored frame plus play readiness, with progress observation outside timing.

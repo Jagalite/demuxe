@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222600Z-tink-reference",
+  "item_keys": [
+    "R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:59:03.296183+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 -m venv /tmp/demuxe-tink-r293-env",
+    "/tmp/demuxe-tink-r293-env/bin/pip install tink==1.16.1",
+    "/tmp/demuxe-tink-r293-env/bin/python research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/tests/prepare.py research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/evidence/20260919T222600Z-tink-reference",
+    "node research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/tests/tink-browser.mjs research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/evidence/20260919T222600Z-tink-reference",
+    "/tmp/demuxe-tink-r293-env/bin/python research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/tests/reference-controls.py research/items/R293.seek-inside-authenticated-encrypted-media-without-decrypting-the-whole-file/evidence/20260919T222600Z-tink-reference"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "d59e37551253d85bffaaf8b341bccd9b65b63f59b8a72b86f12f0712fb28b803",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Official pinned Tink Python reference encrypt/decrypt is independent from browser AES-GCM/HKDF adapter. Full plaintext and16 correctness ranges plus99 timed ranges exact. Whole requested range publishes only after all affected segments authenticate. Wrong key/AAD/cipher/nonce-position/final flag/truncation/ETag and pending cancelled owner reject; official header/salt/nonce/reorder controls reject. No maintained demux integration or key-service qualification."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "11 alternating cold owner jobs of3 equivalent ranges, modeled256KiB/s+5msHTTP. Includes header,HKDF/import,auth,copies,cancel; sequential baseline reads/decrypts whole object once then serves3ranges.97.03% fewer ciphertext bytes exceeds80%; median latency ratio.0514 below1.25, bootstrap retained. Plaintext median21.5ms versus encrypted62.9ms exposes overhead. Trusted identity/key acquisition and browser launch common/excluded."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Consider integrating the authorized immutable range adapter only where reviewed Tink-format storage and trusted key/context/object metadata are available. Independently review crypto boundary and real network workload before production; no automatic routing or user key handling changed."
+}

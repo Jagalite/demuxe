@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+import pathlib,subprocess,json,sys
+p=pathlib.Path(sys.argv[1]);commands=[]
+for n,filt,qp in [('a','testsrc2=s=64x64:r=4:d=1.5',24),('b','smptebars=s=64x64:r=4:d=1.5',24),('bad','smptebars=s=64x64:r=4:d=1.5',30)]:
+ c=['ffmpeg','-v','error','-f','lavfi','-i',filt,'-an','-c:v','libx265','-profile:v','main','-pix_fmt','yuv420p','-x265-params','keyint=6:min-keyint=1:scenecut=0:bframes=0:ref=1:repeat-headers=1:ctu=64:qp='+str(qp)+':aq-mode=0:sao=0:deblock=0,0:pools=none:frame-threads=1','-color_primaries','bt709','-color_trc','bt709','-colorspace','bt709','-color_range','tv','-force_key_frames','expr:gte(t,n_forced/4)','-tag:v','hvc1',str(p/(n+'.mp4'))];r=subprocess.run(c,capture_output=True);(p/(n+'-encode.log')).write_bytes(r.stderr);assert r.returncode==0,r.stderr;commands.append(c)
+(p/'commands.json').write_text(json.dumps(commands,indent=2))
+(p/'contract.json').write_text(json.dumps({'profile':'Two independently encoded64x64 CTU-aligned all-intra HEVC sources. No inter-picture motion exists; original stream boundaries constrain intra references.6synchronized frames4fps.','gate':'GPAChevcmerge strict SPS/PPS validation; every complete mergedYUV plane equals horizontal concatenation of independent sources; wrong config rejects. Preserve actual coded tile data except necessary parameter/slice geometry. Native browser fullcanvas comparison if supported.','performance':'Capability endpoint, no host speed or native power claim. Source preparation cost disclosed, not hidden.'},indent=2))

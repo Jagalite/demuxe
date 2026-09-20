@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222300Z-real-dense-map",
+  "item_keys": [
+    "R075.compact-large-seek-maps-with-checkpoints"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:53:46.911508+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -f lavfi -i testsrc2=size=16x16:rate=30 -frames:v 100000 -an -c:v libx264 -preset ultrafast -threads 2 -g 1 -crf 28 -movflags +faststart research/items/R075.compact-large-seek-maps-with-checkpoints/evidence/20260919T222300Z-real-dense-map/source.mp4",
+    "node research/items/R075.compact-large-seek-maps-with-checkpoints/tests/checkpoint-map.mjs research/items/R075.compact-large-seek-maps-with-checkpoints/evidence/20260919T222300Z-real-dense-map"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "7798a9048981ac8cfadcda2c35169b7eff1e2bf3acc575925cb6f8ecb3ac5661",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent FFprobe supplies actual all-keyframe PTS/byte positions. All100000 scalar entries and100000 queries exact under separate baseline binary search; malformed stream/source identity rejects; wide-offset controls exact. Index-only component, no media transformation."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Source-defined array storage gate<=50% baseline passes at22.07%.11 alternating cold constructors+100000queries retain raw timings; median complete latency21.79% worse. Transient author arrays make peak memory higher than final retention and are not physical-heap qualified. No latency or total-resource benefit asserted."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Use only if a concrete large retained map owner values the77.93% array reduction enough to accept construction/query cost. Maintained native FFmpeg seeks remain unchanged; audit real exposure before integration."
+}

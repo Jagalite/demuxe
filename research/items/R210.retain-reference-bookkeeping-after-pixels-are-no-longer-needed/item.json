@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "status": "passed",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "status": "passed",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
+      "status": "failed",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
+      "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
+        "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed",
-      "rank": 273,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current app holds returned frames and replay packets; opaque decoder references remain FFmpeg/browser-owned. Closing displayed VideoFrames is not evidence that decoder bookkeeping can survive freed reference pixels. The source is only a dependency-DAG model.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed.md"
-      ],
-      "next_test": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
-      "reopen_condition": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R210.retain-reference-bookkeeping-after-pixels-are-no-longer-needed",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual-route screen",
+    "new_media_execution": true,
+    "reason": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification.",
+    "next_action": "Research profile complete. Reopen when required bookkeeping cannot be removed by a cheaper valid header constraint, with complete future pixel-consumer certificate and all-plane allocation metrics.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Actual FFmpeg/Wasm DPB frees uniquely owned inactive reference pixel buffers while retaining8bookkeeping entries and one-byte slot markers. All60pictures/PTS exact through2IDRs/frame-numberwrap across7pairs; stale pixel mappings never read in source-hash-bound one-active-reference/no-reorder/no-MMCO profile. Unsafe current-reference release changes output; owner resets exact. First-plane owned-buffer peak125624\u219215710B, but cheaper certified SPSmax_refs1 baseline uses15703B. Median prepared-runtime cost ratio0.9756,95bootstrap[0.9036,1.0367], no added storage/cost win. Stop this profile; metadata/pixel lifetime mechanism demonstrated, not arbitrary reference liveness qualification."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T00:49:52.269018+00:00",
+    "run_ids": [
+      "20260920T004952Z-reference-lifetime-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T004952Z-reference-lifetime-qualification/run.json"
+    ]
   },
-  "next_action": "Inspect one pinned software decoder reference structure and prove separate metadata/pixel lifetime on one independent boundary before modifying allocation.",
+  "next_action": "Research profile complete. Reopen when required bookkeeping cannot be removed by a cheaper valid header constraint, with complete future pixel-consumer certificate and all-plane allocation metrics.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

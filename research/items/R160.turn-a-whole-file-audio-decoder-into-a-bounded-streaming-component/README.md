@@ -2,32 +2,24 @@
 
 # Turn a whole-file audio decoder into a bounded streaming component
 
-Full identity: `R160.turn-a-whole-file-audio-decoder-into-a-bounded-streaming-component`. Original rank: 24.
+Full key: `R160.turn-a-whole-file-audio-decoder-into-a-bounded-streaming-component`
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T20:50:39.914275+00:00).
 
-Two prepared independently decodable FLAC regions decoded through browser whole-file API concatenate sample-exactly to full-file decode. One-sample seam error detected. Generic arbitrary-file segmentation and streaming scheduler remain later work.
+All15 independent2s stereo FLAC chunks match continuous30s browser PCM exactly. Retained decoded PCM payload falls15-fold (11,520,000 to768,000 bytes), but prepared wall median62.3ms versus34.8ms (1.79023 ratio) fails1.25 ceiling;625.041ms cold preparation further loses. Naive stale-STREAMINFO segmenter failure preserved.
 
-## Accepted scope
+Stop this sequential prepared-chunk speed profile. Reopen for an actual memory-bound workload or a materially different batched/prefetched implementation; explicit PCM ownership is measured, total browser memory and physical energy are not.
 
-Prepared independent chunks only; arbitrary compressed-file segmentation and streaming scheduler excluded.
+Only this declared component/profile is decided. All failed variants retained. Run directory renamed after capture. Replay into a fresh output directory. No production integration or release qualification.
 
-Two prepared independently decodable48000-frame FLAC regions concatenate to96000 samples with maximum error0 versus full browser decode; one-sample shift produces nonzero seam error and context closes.
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | Two prepared independently decodable48000-frame FLAC regions concatenate to96000 samples with maximum error0 versus full browser decode; one-sample shift produces nonzero seam error and context closes. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
-
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Run](../../shared/runs/20260919T205039Z-chunk-performance/run.json) · [Analysis](../../shared/runs/20260919T205039Z-chunk-performance/analysis.md) · [Manifest](../../shared/runs/20260919T205039Z-chunk-performance/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

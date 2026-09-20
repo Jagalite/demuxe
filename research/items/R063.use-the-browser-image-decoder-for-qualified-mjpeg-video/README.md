@@ -2,12 +2,10 @@
 
 # Use the browser image decoder for qualified MJPEG video
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **stop_current_profile**. correctness: **failed**, performance: **not_applicable**.
 
-The maintained bridge supports AVC/HEVC/VP8/VP9/AV1 WebCodecs configurations, not an MJPEG image-decoder promise adapter with mpv timing. createImageBitmap availability alone would repeat a known primitive. Genuine AVI1 table normalization, color/field/orientation and stale-result ownership are not implemented.
+Resolved setup with a real camera AVI1/default-Huffman-table packet from official FFmpeg samples MVI_3774.AVI (source URL/hash/NOASSERTION notice retained), plus an encoded self-contained baseline JPEG. The guarded browser adapter verifies AVI1 progressive field, baseline8bit three-component scan/default selectors and missing DHT before inserting known default tables; truncated, already-self-contained, and nonprogressive-field controls reject. Entropy-coded bytes are SHA-identical before/after normalization. Host FFmpeg original-AVI1 and mjpeg2jpeg-normalized RGBA are exact matches, and both browser normalization routes match each other. Nevertheless browser ImageBitmap differs from independent FFmpeg display RGBA: self-contained image1389 channel mismatches/max3; genuine AVI1 image102935/max14 (45.56dB RGBA PSNR). The declared exact route-substitution color contract therefore fails without tolerance relaxation. Geometry320x192/320x240 and ownership pass; four created bitmaps close including one canceled late promise. Stop before original-cadence qualification or performance, as source card requires on color differences. This is real fidelity failure, not a missing fixture/API blocker. No hardware, A/V clock or unavailable Wasm comparison claim.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Reopen with a color/IDCT-compatible implementation meeting exact reference output, or a separately requested approximate image-decoding contract declared before new experiments. Preserve default-table/field admission and entropy identity; no independent unsynchronized audio clock.
 
-Next: Scope self-contained JPEG followed by one genuine AVI1/default-table frame through a bounded image promise adapter; compare decoded geometry/color to a fixed oracle and close stale results after source replacement, without adding an independent audio clock.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T215638Z-image-adapter/analysis.md)

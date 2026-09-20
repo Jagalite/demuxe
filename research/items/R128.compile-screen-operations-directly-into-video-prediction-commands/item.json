@@ -53,103 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+      "status": "passed",
+      "basis": "Actual producer trace, reference raster renderer, legal AVC I_PCM/skip-run writer and in-process ordinaryencoder baseline.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+      "basis": "Knownscreencommands directly encode prediction syntax; no motion search or reencode proxy.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+      "status": "passed",
+      "basis": "30host/native fullframes+PTS exact, frame_num wrap and stale/legalwrongcopy falsifier; operationbounds reject and allframesclose.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
+      "status": "failed",
+      "basis": "Reliable gain not established against incrementalbaseline:median0.8643ratio,bootstrap95 .6080\u20131.0096;3.45xencodedbytes, local-only costprofile.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+      "basis": "Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
+      "basis": "Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R128.compile-screen-operations-directly-into-video-prediction-commands",
-      "rank": 353,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Demuxe consumes compressed media or decoded frames; it has no producer screen-operation log or encoder interface accepting copy/scroll decisions. Motion commands cannot be recovered merely from current presentation damage.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R128.compile-screen-operations-directly-into-video-prediction-commands.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
-      ],
-      "next_test": "Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
-      "reopen_condition": "Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R128.compile-screen-operations-directly-into-video-prediction-commands",
+    "disposition": "inconclusive",
+    "evidence_level": "actual_producer_authored_avc_and_native_decoder",
+    "new_media_execution": true,
+    "reason": "Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive.",
+    "next_action": "Keep producer-assisted scope and bounds; pursue only with a realistic local transport/bitrate budget or a cheaper exact replacement code before product integration.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual producer trace, reference raster renderer, legal AVC I_PCM/skip-run writer and in-process ordinaryencoder baseline."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Knownscreencommands directly encode prediction syntax; no motion search or reencode proxy."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "30host/native fullframes+PTS exact, frame_num wrap and stale/legalwrongcopy falsifier; operationbounds reject and allframesclose."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Reliable gain not established against incrementalbaseline:median0.8643ratio,bootstrap95 .6080\u20131.0096;3.45xencodedbytes, local-only costprofile."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T00:21:06.053455+00:00",
+    "run_ids": [
+      "20260920T002106Z-screen-command-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T002106Z-screen-command-qualification/run.json"
+    ]
   },
-  "next_action": "Define a producer-assisted block-aligned scene operation trace and reference renderer, then encode one legal constrained prediction sequence with exact target frames.",
+  "next_action": "Keep producer-assisted scope and bounds; pursue only with a realistic local transport/bitrate budget or a cheaper exact replacement code before product integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

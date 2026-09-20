@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221504Z-limited-y-oracle",
+  "item_keys": [
+    "R198.bitmap-subtitles-directly-from-rle-runs"
+  ],
+  "recorded_at_utc": "2026-09-19T22:15:53.293526+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Implemented real binaryPGS display/palette-only-update/clear packets with complete64x16 short colored/transparent RLE runs, rather than only a packet model. Bounded parser validates segment/object/row bounds and retains32 spans; oversized/truncated runs reject, independent FFmpeg subtitle timestamps confirm0.5/0.75/1.5second events. However exact fullRGBA compositing fails before GPU qualification: the proposed RGB integer-over rule yields128 at semitransparent white while actual FFmpeg overlay gives129, affecting768 channels in both active palette states. Clear is exact. One attempted limited-Y-domain correction hypothesized127; it instead increased mismatch to2 and is explicitly falsified, not an explanation accepted as proof. Preserve both failed outputs/plans and stop this strict compositor variant. No GPU runtime or performance claim follows an unresolved output-domain mismatch. The realPGS parser/setup is available; blocker is now experimental fidelity, not missingGPUAPI or absentproductionadapter. Multiple/fragmentedobjects and generalchroma are outside this bounded fixture."
+}

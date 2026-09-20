@@ -2,24 +2,18 @@
 
 # Generate seek fragments without replaying a mux session
 
-`R296.generate-seek-fragments-without-replaying-a-mux-session`
-
-Current decision: **pursue**. Qualified immutable one-sample AVC fragment constructor executes requests 20,3,21,3 without previous mux replay; repeated request byte-identical, independent packet payload/timing oracle passes, every output decodes one frame. Stale identity, outside ordinal and declared non-RAP reject.
+Current decision: **pursue**. Stateless dependent-GOP fragments now preserve complete pixels and exact copied packet/timing on realB/P dependencies; actual missingRAP control produces no pictures. A predeclared host orchestration comparison including cold fullindex and fresh muxbaseline yields68.57% median batch saving. This is a source-bound host constructor result, not browser/Wasm muxCPU qualification.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Generated or reused hashed synthetic fixtures, executable harness and independent FFprobe/reference evidence for the bounded component. |
-| screen | passed | Qualified immutable one-sample AVC fragment constructor executes requests 20,3,21,3 without previous mux replay; repeated request byte-identical, independent packet payload/timing oracle passes, every output decodes one frame. Stale identity, outside ordinal and declared non-RAP reject. |
-| correctness | pending | Component packet/timing and decodability pass; all-intra source and declared non-RAP control do not qualify real GOP dependencies or lifecycle. |
-| performance | pending | Equivalent-work performance not measured; relevant complete correctness and real owner workload remain prerequisites. |
-| results | passed | Positive and negative variants preserved in immutable runs with manifests. |
-| decision | passed | Scoped pursue decision; integration and production qualification separate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Stateless dependent-GOP fragments now preserve complete pixels and exact copied packet/timing on realB/P dependencies; actual missingRAP control produces no pictures. A predeclared host orchestration comparison including cold fullindex and fresh muxbaseline yields68.57% median batch saving. This is a source-bound host constructor result, not browser/Wasm muxCPU qualification. |
+| correctness | passed | 96sample video-only AVC source,92non-RAP; out-of-order73,4,74,4 requests include precedingRAP and required codedprefix,2/5/3/5 packets. All packetpayload,PTS,DTS,duration equal independentFFprobe and all decodedpictures equal fullsource-selected frameoracle. Repeatrequest byteidentical; staleidentity/outsideordinal reject; actualomittedRAP decodeszero. Benchmark relative decodeorigin0 adapter independently matches nativeFFmpeg muxbaseline complete pixels/timing. Bframes exercised; generatedCTO values nonnegative despite signedfield representation, so no negativeCTO claim. No audio,asyncowner/browser or arbitrary codec admission. |
+| performance | passed | Predeclared11alternating batches of4requests. Candidate fullcoldsource read/hash+FFprobe index onceperbatch, parse/copies/writes/outputhash charged; baseline freshly invokes native libavformat demux/mux for eachsameRAP-prefix request. Callerelapsed includes subprocessload/start/teardown forbothactual pipelines; baselineinternalnative microseconds separately exposed. Median savings68.5652%, bootstrap95 median[64.2587%,73.3569%],5%gate passed. Warm filesystemcache, fixturegeneration/common oracleexcluded. This measures hostprocess orchestration: no inference of nativeWasm muxCPU, memory/network/energy improvement. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Stateless dependent-GOP fragments now preserve complete pixels and exact copied packet/timing on realB/P dependencies; actual missingRAP control produces no pictures. A predeclared host orchestration comparison including cold fullindex and fresh muxbaseline yields68.57% median batch saving. This is a source-bound host constructor result, not browser/Wasm muxCPU qualification. |
 
-Next: Trace real repeated distant seeks including cold source/index cost; test dependent GOP rejection, configuration changes and cancel generation before player adoption.
+Next/reopen: Pursue source-bound AVC stateless constructor; before browser integration test selectedaudio, negativeCTO, changingconfig and asynchronous cancellation, then benchmark the actual browser worker owner with coldindexes charged. Preserve explicit RAPpresentation mapping in nativebaseline.
 
-Original contract and definition: [item.json](item.json). [History](history.jsonl). [Evidence index](evidence/index.json).
-
-- [Run 20260919T200000Z-stateless-seek](evidence/20260919T200000Z-stateless-seek/run.json)
-
-Research decision only; production integration and release qualification remain unassessed.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

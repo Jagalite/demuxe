@@ -2,14 +2,24 @@
 
 # Use different output containers for different tracks
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Full key: `R032.use-different-output-containers-for-different-tracks`
 
-Independent MP4 AVC video and WebM Opus audio SourceBuffers play both video geometry intervals with880Hz audio to EOF. Technically viable mixed-container lane destination; not an automatic routing change.
+Current decision: **pursue** (2026-09-19T21:45:10.321305+00:00).
 
-Correctness: **pending**. Performance: **pending**.
+Actual Chrome same-owner raw AAC/MP3 and WebM Opus audio with H264 fragmented video passes digital marker timing within50ms, no audio gaps above5ms (zero measured), presented pictures/geometry against independent standalone destination, parser partial-append abort/reset, unsupported changeType rejection, forward/backward seek, EOF and cleanup. H264160x96 to VP9WebM240x136 to H264 preserves continuous Opus owner and passes same checks. AAC283 and Opus301 payload hashes match wrapped comparators. After correctness,5alternating preparation pairs plus fresh host wrapping show cold candidate/baseline ratios0.19485 AAC and0.16322 Opus against0.9 threshold; prepared browser alone16.945/19.755ms and13.3/13.87ms. Preserved rejected missing-bsf and empty_moov variants; independent reference corrects prior unsupported VP9 RGB expectation.
 
-Separate MP4 AVC and WebM Opus lanes produce marked output in both geometry intervals to EOF with cleanup. Exact cross-container timeline/sample alignment and adverse source/seek transitions are not recorded.
+Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.
 
-Next: Add independent A/V timeline and wrong-offset/cancel controls before whole split-lane correctness acceptance.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T214510Z-mixed-tracks/run.json) · [Analysis](../../shared/runs/20260919T214510Z-mixed-tracks/analysis.md) · [Manifest](../../shared/runs/20260919T214510Z-mixed-tracks/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

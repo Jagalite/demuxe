@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222100Z-whole-root-baseline",
+  "item_keys": [
+    "R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:49:31.026440+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/tests/verified-leaves.mjs research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/evidence/20260919T222000Z-verified-merkle-leaves",
+    "node research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/tests/verified-leaves-cheapest-baseline.mjs research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/evidence/20260919T222100Z-whole-root-baseline",
+    "python3 research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/tests/independent-root.py research/items/R207.verify-useful-bittorrent-v2-blocks-before-a-whole-piece-completes/evidence/20260919T222100Z-whole-root-baseline"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "70ff1b2b6eb8fed7849f673acbc34f6a6be4cc50d16e68757ccd2823cbc82082",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent Python recursive root matches node-authored balanced tree and pinned bencoded metainfo. Browser WebCrypto validates five leaves, including short final and zero-hash padding. All48 source pictures and every timed presented picture exact; four hostile proof/data controls and cancelled source-generation publication reject; owners close."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "11 alternating pairs with first2leaves/proofs available at start and remaining3 at450ms. Candidate verifies partial leaves; cheaper baseline computes complete tree once. Median first-correct-picture improvement448.56ms, range438.41\u2013467.52ms; bootstrap retained. Includes cryptography, copies, fresh media owners, capture and teardown; common trusted-root discovery and runtime excluded. Not physical network or CPU benefit."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue the verified-prefix provider where authenticated BEP52 roots and useful leaves already exist. Peer handshake/hash-request framing, real swarm scheduling and maintained reader integration remain separate."
+}

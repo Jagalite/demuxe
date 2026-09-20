@@ -2,28 +2,24 @@
 
 # Random access inside an ordinary ZIP DEFLATE entry
 
-Full identity: `R147.random-access-inside-an-ordinary-zip-deflate-entry`. Original rank: 221.
+Full identity: `R147.random-access-inside-an-ordinary-zip-deflate-entry`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (component test).
 
-Source readers expose literal file/range bytes with no archive coordinate mapping. Historical zlib snapshots are opaque process-local state and require a full initial inflate/CRC pass; browser DecompressionStream presence supplies no snapshot API.
+Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim.
 
-No matching candidate/reference/control execution for this exact gate. Owned zlib snapshot index and archive-to-output coordinate map, including complete initial inflate/CRC cost.
-
-Next action: Specify one owned inflate-state index for a bounded ZIP entry and compare random output ranges byte-for-byte, with bare compressed-cursor restart rejected. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Reopen only for an actual archive workload that cannot retain the inflated entry and amortizes complete verified index construction.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Owned zlib snapshot index and archive-to-output coordinate map, including complete initial inflate/CRC cost. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Owned zlib snapshot index and archive-to-output coordinate map, including complete initial inflate/CRC cost. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
+| screen | passed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
+| correctness | passed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
+| performance | failed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
+| results | passed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
+| decision | passed | Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260919T223329Z-zip-state-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

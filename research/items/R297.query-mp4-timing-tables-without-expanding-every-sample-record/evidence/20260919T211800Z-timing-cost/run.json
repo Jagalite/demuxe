@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T211800Z-timing-cost",
+  "item_keys": [
+    "R297.query-mp4-timing-tables-without-expanding-every-sample-record"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:59:42.189165+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R297.query-mp4-timing-tables-without-expanding-every-sample-record/tests/cost.py # exit0; performance passed=false, correctness true"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "65fdd1004fa1dcdc73d6f3150e2fc871fad151f27e47308397b3f1b58cae83a7",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Both direct compressed candidate and sequentially expanded baseline independently match all96 FFprobe DTS/PTS/duration values with explicit timeline origins; signed negative CTTS retained; invalid ordinals reject. Full byte input parsed each new job. Pure immutable timing-table query component; not sample offsets, media decode, AVIO or FFmpeg owner integration."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Predeclared11 alternating pairs,200 fresh jobs per observation, each full table parse+prepare+eight fixed sparse queries; resident sourcebytes shared/excluded, no retained index acrossjobs. Median latency saving22.9436%, bootstrap95 median[6.8133%,24.5345%], passing5%. Measured recursive retained Python object graph baseline12,228bytes vs candidate11,700bytes:4.31796%, below10% required allocation saving. Timing table-only bounded local CPython results; no physical/Wasm/native memory or player startup claim."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen allocation optimization with compact packed run records or a representative source with long timing runs; predeclare new profile and gate, retain this negative. Native FFmpeg still expands indexes and requires an actual integration to claim savings."
+}

@@ -1,0 +1,6 @@
+clang -O2 -I build/catalogue-tools/aom research/items/R137.prepared-non-keyframe-representation-switches-using-av1-s-frames/tests/encode.c build/catalogue-tools/aom-build/libaom.a -lc++ -lm -lpthread -o /tmp/demuxe-sframe-encoder
+/tmp/demuxe-sframe-encoder <input.yuv> <modeN.ivf> N # modes0..3
+ffmpeg -v verbose -i <modeN.ivf> -c copy -bsf:v trace_headers -f null -
+python3 research/shared/tooling/av1-sframe-check.py research/shared/runs/20260919T232812Z-av1-sframe
+node research/shared/tooling/av1-sframe-browser.mjs research/shared/runs/20260919T232812Z-av1-sframe
+node research/shared/tooling/av1-sframe-controls.mjs research/shared/runs/20260919T232812Z-av1-sframe

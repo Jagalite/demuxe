@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "run_id": "20260919T210010Z-cue-witness",
+  "item_keys": [
+    "R048.keep-only-the-relevant-native-caption-cues-instantiated",
+    "R213.compare-whole-frames-on-the-graphics-side-and-read-back-only-the-witness"
+  ],
+  "recorded_at_utc": "2026-09-19T21:02:26.628082+00:00",
+  "stage": "performance",
+  "commands": [
+    "node research/shared/tooling/presentation-stage7/cue-witness.mjs research/shared/runs/20260919T210010Z-cue-witness R048",
+    "node research/shared/tooling/presentation-stage7/cue-witness.mjs research/shared/runs/20260919T210010Z-cue-witness R213"
+  ],
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64",
+    "browser": "152.0.7977.83"
+  },
+  "statistics": {
+    "R048": {
+      "baseline_mean_ms": 139.18888889418707,
+      "candidate_mean_ms": 101.57777776983049,
+      "saving_percent": 27.021633280619806,
+      "bootstrap95": [
+        21.6645649461766,
+        31.765502716631055
+      ],
+      "gate_passed": true,
+      "pairs": 9,
+      "seed": 481,
+      "resamples": 10000
+    },
+    "R213": {
+      "baseline_mean_ms": 46.69999999470181,
+      "candidate_mean_ms": 31.100000003973644,
+      "saving_percent": 33.40471090470666,
+      "bootstrap95": [
+        21.580288821819792,
+        43.80232796379785
+      ],
+      "gate_passed": true,
+      "pairs": 9,
+      "seed": 2131,
+      "resamples": 10000
+    }
+  },
+  "limits": [
+    "Restricted native cue and GPU-resident comparison components",
+    "Specified10000cue timeline and1024x1024GPU buffers; not general production qualification",
+    "No production admission changes"
+  ]
+}

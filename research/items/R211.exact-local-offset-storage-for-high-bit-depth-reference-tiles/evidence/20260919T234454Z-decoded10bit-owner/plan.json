@@ -1,0 +1,5 @@
+{
+  "profile": "31actual128\u00b2Main10lossless HEVC decoded frames. First30smooth10bit Yplanes, last0/1023checkerboard.16\u00b2tiles stored16bitbase+8bitoffset iff range<=255; widetiles preserve16bitvalues. Globalnative fallback avoids representationgrowth.",
+  "correctness": "Allactual decodedYsamples and independent Pythoninteger3x3filter exact; retain3owners/evict/sourceclear; checkerboardall64tileswide/globalrawfallback, badindex/depth rejects.",
+  "performance": "9alternating coldnativeprocess jobs over30planes: readinput/oracle, allocate/copyorencode, retain3, directsample integerfilter+comparison+cleanup. Record active allocatedbuffer capacity plus owner structures. Gate\u226525%representationreduction and upper95wholecostregression<=25%; no decoderinternalcompression or avoidedplane-materialization claim."
+}

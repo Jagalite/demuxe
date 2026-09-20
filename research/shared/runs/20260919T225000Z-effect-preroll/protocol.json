@@ -1,0 +1,6 @@
+{
+  "scope": "Opt-in Q24 integer first-order controlled lowpass y=floor((255*y+x)/256), source |x|<=1 and state |y|<=1. Explicit permitted normalized absolute output error1e-4, not exact seek semantics.",
+  "proof": "Ideal recurrence pole a=(D-1)/D, state uncertainty E=2. Each fixed-point step adds signed error magnitude<1/Q. One implemented trajectory differs from ideal <=D/Q; two trajectories <=2D/Q. Thus every post-preroll output differs <=2*a**N+2D/Q. Choose sufficient N using upward verification; reject if arithmetic floor already consumes tolerance or N exceeds100000.",
+  "correctness": "Compare all2048 samples after targets20000/80000/160000 across bounded seeded noise, negative DC and worst positive DC. Analytic rounding and input/state bounds mandatory; near-unit pole/unknown source bound/wrong identity/cancel reject. Zero-preroll negative control.",
+  "performance": "Five alternating full cold source read/identity/bounds/certificate and three repeated seeks versus full-prefix replay same fixed-point filter. Candidate<=0.9baseline. Source generation and immutable reference excluded, all candidate setup included."
+}

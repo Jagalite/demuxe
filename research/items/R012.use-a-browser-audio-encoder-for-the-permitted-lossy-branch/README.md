@@ -2,28 +2,24 @@
 
 # Use a browser audio encoder for the permitted lossy branch
 
-Full identity: `R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch`. Original rank: 230.
+Full key: `R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch`
 
-Current decision: **pursue** (reconciled from **PURSUE**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T21:16:53.043044+00:00).
 
-Browser Opus encodes/decodes marked stereo PCM with independently correct tones and51 packets.48648 decoded samples for48000 input exposes648-sample padding that adapter must trim. Capability warrants scoped cost comparison against existing Wasm Opus; no speedup claimed.
+Actual browser Opus+copied-H264 prototype and archived192kbps Wasm baseline preserve all24 video packet hashes. Corrected Ogg/Matroska pre-skip312 and terminal discard648 yield48000 decoded samples; encoder reset discards an old queued block. But MP4 remux destination yields48648 candidate samples and48840 baseline samples in both host/browser decoding, violating48000-sample gate. Ogg cross-decoder floats differ at max9.5144e-5; no bit-identical or universal lossy quality claim.
 
-Browser Opus produces51 packets and correct stereo tones but48648 decoded samples for48000 input leave648-sample trimming unresolved; support probe alone is not adapter correctness.
+Stop this untrimmed MP4 destination profile; do not benchmark invalid output. Reopen with destination-consumed end trimming or an explicit sample-count adapter, then repeat full copied-video/audio lifecycle and quality gates. Audio-only Ogg encoder remains feasible.
 
-Next action: Implement explicit Opus delay/end-padding handling and compare complete independent PCM count/boundaries before cost measurement.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | failed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Read and pinned historical fixture/output/control evidence; no rerun. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | pending | Browser Opus produces51 packets and correct stereo tones but48648 decoded samples for48000 input leave648-sample trimming unresolved; support probe alone is not adapter correctness. |
-| performance | pending | No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T211653Z-browser-encoder/run.json) · [Analysis](../../shared/runs/20260919T211653Z-browser-encoder/analysis.md) · [Manifest](../../shared/runs/20260919T211653Z-browser-encoder/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

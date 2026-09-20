@@ -1,0 +1,48 @@
+{
+  "plan": {
+    "scope": "Bounded offline search, two vetted packet-copy MP4 recipes (faststart and fragmented); explicit AVC/AAC finite source. Full host video/audio and packet timestamps/side-data plus configuration must remain exact. Wrong missing-audio recipe must reject. Actual native destination tested for admitted recipe. Original playback remains fallback.",
+    "gate": "Select only output-equivalent recipe within 2-candidate search budget. Complete cold search+chosen native startup/seek compared with direct source owner,5 alternating pairs; pursue cost only if median complete task improves5percent. Repeated-use preparation amortization not assumed."
+  },
+  "rows": [
+    {
+      "name": "faststart",
+      "bytes": 184867,
+      "ms": 153.30729202833027,
+      "videoExact": true,
+      "audioExact": true,
+      "configurationExact": true,
+      "packetsExact": true,
+      "decodedBytes": {
+        "v": 3317760,
+        "a": 1155072
+      },
+      "admitted": true
+    },
+    {
+      "name": "fragmented",
+      "bytes": 184909,
+      "ms": 144.14704201044515,
+      "videoExact": true,
+      "audioExact": false,
+      "configurationExact": true,
+      "packetsExact": false,
+      "decodedBytes": {
+        "v": 3317760,
+        "a": 1159168
+      },
+      "admitted": false
+    }
+  ],
+  "chosen": "faststart",
+  "searchMs": 435.0278329802677,
+  "wrongMissingAudioRejected": true,
+  "oracleBytes": {
+    "v": 3317760,
+    "a": 1155072
+  },
+  "oracleSHA256": {
+    "v": "068fad2b672074635080c23c299f9051d3a54e508f6e45ffdb9aeb2cbefbd4fd",
+    "a": "ca2cfbdb936d7f410440891402e8c984c84bd39250121455f158331d3e6ad5c8"
+  },
+  "passed": true
+}

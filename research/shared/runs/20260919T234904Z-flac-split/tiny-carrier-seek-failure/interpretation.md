@@ -1,0 +1,1 @@
+4096sample candidate and ordinary encoder baseline both failed Chrome encoded seek with FFmpegDemuxer seek failed, including paddedcandidate. Host/libFLAC candidate exact seek already passed. Extend authored workload to48original frames (4.096s) and use established1.2/.3second forward/back targets, preserving tiny common-destination limitation. No failed media bytes deleted.

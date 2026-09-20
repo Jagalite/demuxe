@@ -1,0 +1,5 @@
+{
+  "scope": "Four actual128x128 baseline sequential grayscale JPEGs sharing standard validated Huffman tables. Original bounded C Wasm coefficient parser uses ordinary prederived8bit lookup+long-code fallback; specialization embeds validated immutable short-code lookup constants and retains generic long-code path. Source JPEG unchanged.",
+  "correctness": "Compare every quantized coefficient, entropy bits consumed and symbols across actual Wasm routes and independent libjpeg coefficients. Feed candidate coefficients through libjpeg same reconstruction to exact grayscale output. Stuffing/long codes/truncation/invalid tables/table change/restart rejection.",
+  "cost": "Five alternating four-frame jobs: candidate regenerate trusted constant header and compile specialized Wasm, then instantiate/setup/read/decode/return coefficients versus instantiate maintained general Wasm and derive lookup/setup/read/decode. Include first-use specialization cost;<=0.9 median. Warm throughput separate."
+}

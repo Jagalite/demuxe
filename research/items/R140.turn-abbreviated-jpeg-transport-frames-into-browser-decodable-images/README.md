@@ -2,28 +2,10 @@
 
 # Turn abbreviated JPEG transport frames into browser-decodable images
 
-Full identity: `R140.turn-abbreviated-jpeg-transport-frames-into-browser-decodable-images`. Original rank: 220.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Implemented truthful header reconstruction from18 actual RFC2435 RTP/JPEG packets emitted by installed FFmpeg from the genuineAVI1 camera frame. The bounded adapter requires one source/timestamp, type0/1 progressive geometry, explicit128-byte8bit quantization tables, contiguous fragment offsets andonefinalmarker; missingfragment/tables andchangedgeometry reject. It reconstructs SOF/DQT/defaultHuffman/SOS while preserving compressed entropy SHA exactly. Original camera packet had one zero wrapperpadding byte afterEOI; an initial comparison wronglycounted itasentropy, preserved failure, then onecorrection bounds scan attrueEOI and verifieszero padding. Independent FFmpeg original/reconstructed fullRGBA are identical; actualbrowser reconstructed JPEG pixels exactlymatch the separately normalized original JPEG. Browser-versus-FFmpeg color differences remain present and the R063 strictdecoderreplacement failure remainsunchanged: this gate verifies header equivalence within each decoder, not a new crossdecoder fidelityclaim. Actual oldepoch imagepromise closeslatebitmap, malformedimage rejects, allthreecreatedbitmapsclose; transporttimestampmetadata preserved, no independentAVclock. This is additional admitted-input capability, no performance cost-reduction hypothesis.
 
-Current source worker consumes finite files/ranges and video adapter describes supported codecs; neither owns RTP/JPEG transport table parameters or missing-header reconstruction. Correct scan bytes alone cannot supply truthful JPEG tables.
+Next: Scoped truthful RTP/JPEG header capability verified. Preserve explicit quantization/completeness/source identity, unchangedentropy and existingdecodercolor limits. Restartmarkers/implicitquantization/othergeometry/streamtiming require separate contracts before admission.
 
-No matching candidate/reference/control execution for this exact gate. Complete RTP/JPEG frame with explicit quantization/restart/geometry and independent decoded reference.
-
-Next action: Obtain one complete RTP/JPEG frame with explicit quantization/restart/geometry metadata, reconstruct its header and compare decoded pixels with an independent source, rejecting missing tables. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Complete RTP/JPEG frame with explicit quantization/restart/geometry and independent decoded reference. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Complete RTP/JPEG frame with explicit quantization/restart/geometry and independent decoded reference. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T223355Z-rtp-eoi-boundary/analysis.md)

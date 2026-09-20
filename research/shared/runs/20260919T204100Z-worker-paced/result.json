@@ -1,0 +1,451 @@
+{
+  "plan": {
+    "item": "R005.move-mse-ownership-off-the-window-thread",
+    "workload": "Same red/440Hz fMP4, sequential 512-byte chunks with an 8ms delivery tick per chunk, while main thread runs45ms work every60ms. This ensures append overlap with UI stress; first unpaced run completed appends before stress began and cannot answer contention hypothesis.",
+    "sampling": "11 paired trials, alternating order, fresh page and owner each trial, shared browser; no timed warmup discarded",
+    "primary_metric": "wall milliseconds from owner construction through all append updateend completions",
+    "secondary_metrics": [
+      "first rendered frame latency",
+      "full trial including cleanup",
+      "rendered center pixel",
+      "input transfer bytes"
+    ],
+    "acceptance": "All output controls pass; paired median append-time improvement must be positive and paired bootstrap 95 percent interval must exclude zero. Otherwise inconclusive for this workload. No global product admission threshold. Each trial must execute at least three stress callbacks before append completion.",
+    "costs": "Includes worker startup, handle transfer, input transfer/copy, all append completion. Cleanup separately timed. UI stress identical; retained input length recorded. No CPU, hardware, physical energy or production speed claim. Concurrent host load is uncontrolled."
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1735.8999999761581,
+        "appendStressCalls": 28,
+        "firstFrameMs": 1008.3999999761581,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 28,
+        "cleanupMs": 2.400000035762787,
+        "totalMs": 1738.800000011921,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 651.1999999880791,
+        "appendStressCalls": 10,
+        "firstFrameMs": 407.80000001192093,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 1.4000000357627869,
+        "totalMs": 652.6000000238419,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 1,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 646.0999999642372,
+        "appendStressCalls": 10,
+        "firstFrameMs": 348.69999998807907,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 1.699999988079071,
+        "totalMs": 647.7999999523163,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1618.5,
+        "appendStressCalls": 26,
+        "firstFrameMs": 832.0999999642372,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 26,
+        "cleanupMs": 0.5999999642372131,
+        "totalMs": 1619.0999999642372,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 2,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1615.9000000357628,
+        "appendStressCalls": 26,
+        "firstFrameMs": 829.6000000238419,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 26,
+        "cleanupMs": 0.30000001192092896,
+        "totalMs": 1616.2000000476837,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 647.8999999761581,
+        "appendStressCalls": 10,
+        "firstFrameMs": 347.69999998807907,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 648.3999999761581,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 3,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 649.8000000119209,
+        "appendStressCalls": 10,
+        "firstFrameMs": 348,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.5,
+        "totalMs": 650.3000000119209,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1677.800000011921,
+        "appendStressCalls": 27,
+        "firstFrameMs": 839,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 1678.199999988079,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 4,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1673.2000000476837,
+        "appendStressCalls": 27,
+        "firstFrameMs": 832.5,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.2999999523162842,
+        "totalMs": 1673.5,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 647.9000000357628,
+        "appendStressCalls": 10,
+        "firstFrameMs": 347,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 648.3000000119209,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 5,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 648.8999999761581,
+        "appendStressCalls": 10,
+        "firstFrameMs": 348.60000002384186,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 649.3000000119209,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1670.1000000238419,
+        "appendStressCalls": 27,
+        "firstFrameMs": 830.8000000119209,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 1670.5,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 6,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1614.6000000238419,
+        "appendStressCalls": 26,
+        "firstFrameMs": 833,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 26,
+        "cleanupMs": 0.3999999761581421,
+        "totalMs": 1615,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 645.5,
+        "appendStressCalls": 10,
+        "firstFrameMs": 349.10000002384186,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.30000001192092896,
+        "totalMs": 645.8000000119209,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 7,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 647.8999999761581,
+        "appendStressCalls": 10,
+        "firstFrameMs": 349.2999999523163,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.5,
+        "totalMs": 648.3999999761581,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1671.5999999642372,
+        "appendStressCalls": 27,
+        "firstFrameMs": 830.8999999761581,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.30000001192092896,
+        "totalMs": 1671.8999999761581,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 8,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1672.3999999761581,
+        "appendStressCalls": 27,
+        "firstFrameMs": 830.1000000238419,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 1672.800000011921,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 647.2999999523163,
+        "appendStressCalls": 10,
+        "firstFrameMs": 347.0999999642372,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 647.6999999880791,
+        "inputDetached": true
+      }
+    },
+    {
+      "pair": 9,
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 649.6000000238419,
+        "appendStressCalls": 10,
+        "firstFrameMs": 347.9000000357628,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.5,
+        "totalMs": 650.1000000238419,
+        "inputDetached": true
+      },
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1674.5,
+        "appendStressCalls": 27,
+        "firstFrameMs": 832.2000000476837,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 0.40000003576278687,
+        "totalMs": 1674.9000000357628,
+        "inputDetached": null
+      }
+    },
+    {
+      "pair": 10,
+      "window": {
+        "done": true,
+        "error": null,
+        "appendedMs": 1673.199999988079,
+        "appendStressCalls": 27,
+        "firstFrameMs": 828.5,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 27,
+        "cleanupMs": 6.199999988079071,
+        "totalMs": 1679.3999999761581,
+        "inputDetached": null
+      },
+      "worker": {
+        "done": true,
+        "error": null,
+        "appendedMs": 662.1000000238419,
+        "appendStressCalls": 10,
+        "firstFrameMs": 406.60000002384186,
+        "pixel": [
+          254,
+          0,
+          0,
+          255
+        ],
+        "stressCalls": 10,
+        "cleanupMs": 0.699999988079071,
+        "totalMs": 662.8000000119209,
+        "inputDetached": true
+      }
+    }
+  ],
+  "inputBytes": 28879,
+  "browser": "152.0.7977.83",
+  "analysis": {
+    "pairedAppendSavingsMs": [
+      1084.699999988079,
+      972.4000000357628,
+      968.0000000596046,
+      1028,
+      1025.300000011921,
+      1021.2000000476837,
+      969.1000000238419,
+      1023.6999999880791,
+      1025.1000000238419,
+      1024.8999999761581,
+      1011.0999999642372
+    ],
+    "medianSavingsMs": 1023.6999999880791,
+    "bootstrap95": [
+      972.4000000357628,
+      1025.300000011921
+    ],
+    "accepted": true,
+    "medianWindowMs": 1672.3999999761581,
+    "medianWorkerMs": 647.9000000357628
+  },
+  "passed": true
+}

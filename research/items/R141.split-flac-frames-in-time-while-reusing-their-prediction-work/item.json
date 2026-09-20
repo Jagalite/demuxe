@@ -47,109 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "status": "passed",
+      "basis": "Actual fixed-order3/Rice1 FLAC temporal split:48original4096sample frames become96frames2048, predictor/residual values reused, second warmups derived with rolling3sample history, Rice partitions/numbering/STREAMINFO/CRCs rebuilt. All196608samples exactly match original host/native PCM; actual libFLAC --skip2048 suffix and Chrome encoded forward1.2s/back0.3s seek, EOF/cleanup pass. Wrong frame numbering passes sequential libFLAC validation but fails actual seek, demonstrating separate seek gate. CRC/truncation/unsafe cut reject. Initial tiny4096sample candidate and ordinary baseline both failed Chrome encoded seek, including padding variant; all preserved and longer4.096s workload resolves consumer gate. Five full cold read/parse/warmup/Ricewrite/destination-decode jobs496.581ms versus ordinary2048frame reencode/decode89.667ms ratio5.53808 fails<=0.9.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
+      "status": "failed",
+      "basis": "Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "basis": "stop_current_profile: Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R141.split-flac-frames-in-time-while-reusing-their-prediction-work",
-      "rank": 343,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:49:04.820774+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T234904Z-flac-split"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "The encoder generates complete frames and packet-copy mux preserves packet boundaries. Splitting a FLAC frame in time needs reconstructed boundary warmups plus residual partition/framing rewrite, none exposed by the maintained packet interface.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual fixed-order3/Rice1 FLAC temporal split:48original4096sample frames become96frames2048, predictor/residual values reused, second warmups derived with rolling3sample history, Rice partitions/numbering/STREAMINFO/CRCs rebuilt. All196608samples exactly match original host/native PCM; actual libFLAC --skip2048 suffix and Chrome encoded forward1.2s/back0.3s seek, EOF/cleanup pass. Wrong frame numbering passes sequential libFLAC validation but fails actual seek, demonstrating separate seek gate. CRC/truncation/unsafe cut reject. Initial tiny4096sample candidate and ordinary baseline both failed Chrome encoded seek, including padding variant; all preserved and longer4.096s workload resolves consumer gate. Five full cold read/parse/warmup/Ricewrite/destination-decode jobs496.581ms versus ordinary2048frame reencode/decode89.667ms ratio5.53808 fails<=0.9.",
+      "next_action": "Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.",
+      "reopen_condition": "Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R141.split-flac-frames-in-time-while-reusing-their-prediction-work.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
-      ],
-      "next_test": "For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
-      "reopen_condition": "For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T234904Z-flac-split/run.json"
+      ]
     }
   },
-  "next_action": "For one restricted predictor/frame, derive split warmups and reframe two outputs; compare concatenated PCM exactly and reject invalid split/residual partition cases.",
+  "next_action": "Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

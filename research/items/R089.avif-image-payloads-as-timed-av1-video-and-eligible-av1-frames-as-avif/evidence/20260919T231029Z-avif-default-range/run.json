@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T231029Z-avif-default-range",
+  "item_keys": [
+    "R089.avif-image-payloads-as-timed-av1-video-and-eligible-av1-frames-as-avif"
+  ],
+  "recorded_at_utc": "2026-09-19T23:13:17.799152+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Prepared3 real64x64 single-item AVIFs with matching8bit420 limited-range BT709 sequence configuration; audited sequence profile0/still_picture1/reduced_still_picture_header1. Retained AV1 payload bytes survive AVIF\u2192timed MP4 and3independent reverse MP4\u2192AVIF samples exactly, with identical full hostdecoded I420. Actual Chrome native MP4 and MSE each render all3 requested0/.5/1s pictures; reverse AVIF browser outputs equal original AVIF outputs exactly. Strict image-versus-video fullRGBA contract nevertheless fails on both native/MSE with435/633/651 channel differences, max1; eachroute gives same video hashes, so containers and coded bytes are preserved but decoded display-rounding isnotstrictly identical. Preserve strictfailure, do not silently permitonecodeerror. Actual AVIF decode sourceepoch invalidation closes stale bitmap/freshsurvivor exact;8created/8closed, actual distinctimage order falsifier works. Extracted sequence-profile mutation rejects compatibilityguard beforeauthoring; this isconfigguard control, notclaimofvalidmutantmedia. Preserve unsupported aomenc --color-range setup option and syntax-only browserharness correction; encoded ffprobe verifies actualrange/color instead. Correctnessfailed, performanceN/A. Restrictedrepresentation reuse feasible; exact browser presentation profile rejected, no allAVIF/grids/auxiliary/intersample-dependency claim."
+}

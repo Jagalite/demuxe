@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T235348Z-aac-closure",
+  "item_keys": [
+    "R166.prove-where-an-audio-edit-stops-affecting-subsequent-output"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual restricted mono AAC-LC coded packet substitutions at 10/20/30 change exactly 2048 decoded samples each; unchanged suffix begins at edit+2, with every suffix and prefix sample exact in FFmpeg8.1.2 and Chrome152. Each full output has49152 samples, native render/EOF/cleanup passes. Claiming closure one packet earlier differs by1024 samples. Strict ICS/Huffman traversal rejects persistent/unknown tools and DRC fill; source identity, boundary and changed window-state guards reject. Five alternating cold read/hash/table-load/strict-parse/three-edit/certificate jobs median57.340ms versus same coded outputs plus independent full source and three modified decodes159.027ms, ratio0.36057 passes0.9. This proves a controlled overlap-only consumer profile, not arbitrary AAC edit closure."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue the controlled long-window mono AAC-LC certificate. General AAC tools, changed consumer implementations, subsequent DSP state, production timeline integration and Wasm cost require new evidence; reject those profiles rather than extending this certificate.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/aac_sce_parser.py",
+    "research/shared/runs/20260919T230128Z-aac-elements/mono0.aac",
+    "research/shared/runs/20260919T230128Z-aac-elements/mono4.aac",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/libavcodec/aactab.c",
+    "build/local-screening/adaptation-reference/source/FFmpeg-n7.1.1/COPYING.LGPLv2.1"
+  ],
+  "commands_log": "research/shared/runs/20260919T235348Z-aac-closure/commands.log"
+}

@@ -53,96 +53,84 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "status": "passed",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "status": "failed",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
+      "status": "not_applicable",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "basis": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "research-presentation-stage-completion",
     "record": {
       "key": "R083.decode-graphics-processing-encode",
-      "rank": 262,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-20T00:33:01.752550+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260920T003140Z-external-texture-source"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.",
+      "new_execution": true,
+      "evidence_level": "component_test",
+      "reason": "Actual3-frame128x96 VP9 decode\u2192WebGPU RGBinversion\u2192timestamp-ownedcanvasVideoFrame\u2192nativeVP9 VideoEncoder\u2192independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R083.decode-graphics-processing-encode.md"
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/results.json",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/analysis.md",
+        "research/items/R083.decode-graphics-processing-encode/evidence/20260920T003140Z-external-texture-source/manifest.json"
       ],
-      "next_test": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
-      "reopen_condition": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+      "next_test": "ReopenonlyafterfirstGPUcolor/canvascapturedivergence isfixed underexactsame3-frame independentCPU/hostoracle; preserve allPTS/lastframe/stalehandoffcontrols. Do notbenchmark or routeproduction on APIavailability/completeframecount alone.",
+      "reopen_condition": "ReopenonlyafterfirstGPUcolor/canvascapturedivergence isfixed underexactsame3-frame independentCPU/hostoracle; preserve allPTS/lastframe/stalehandoffcontrols. Do notbenchmark or routeproduction on APIavailability/completeframecount alone."
     }
   },
-  "next_action": "Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.",
+  "next_action": "ReopenonlyafterfirstGPUcolor/canvascapturedivergence isfixed underexactsame3-frame independentCPU/hostoracle; preserve allPTS/lastframe/stalehandoffcontrols. Do notbenchmark or routeproduction on APIavailability/completeframecount alone.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

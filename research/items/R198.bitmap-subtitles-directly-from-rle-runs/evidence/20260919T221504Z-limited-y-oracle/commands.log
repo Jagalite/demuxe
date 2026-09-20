@@ -1,0 +1,2 @@
+ffmpeg -v error -copyts -f lavfi -i color=black:s=160x96:r=4:d=2 -i research/items/R198.bitmap-subtitles-directly-from-rle-runs/evidence/20260919T221504Z-limited-y-oracle/runs.sup -filter_complex [0:v]settb=1/1000,setpts=PTS+125[v];[v][1:s]overlay -t 2.1 -fps_mode passthrough -enc_time_base 1/1000 -pix_fmt rgba -f rawvideo research/items/R198.bitmap-subtitles-directly-from-rle-runs/evidence/20260919T221504Z-limited-y-oracle/reference.rgba
+ffprobe -show_frames runs.sup

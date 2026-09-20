@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "20260919T215152Z-quantized-flac",
+  "item_keys": [
+    "R011.test-an-explicit-quantized-flac-policy-using-the-normal-decoder"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Explicit research-only nearest signed24/32 no-dither policy keeps ordinary AC3float decoder and rejects nonfinite/out-of-range instead of clipping. All96768stereo normal-decoder frames retained, including AC3padding; FLACinteger roundtrips exact. Native Chrome complete render max/RMS errors24bit5.96046e-8/3.44907e-8 and32bit2.32831e-10/2.68456e-11. Chrome actually admits experimental32bitFLAC; ordinary encoder silently chooses24bit, preserved diagnostic.24bit223872bytes versus774144float bytes. Five alternating full decode/quantize/encode/binary-delivery/render/cleanup pairs:24bit208.773/150.581ms ratio1.38645,32bit218.601/150.686ms ratio1.45071; both fail1.25. Truncated destination and closed-render ownership controls pass."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop current cold Python/subprocess quantization bridge cost profile, not explicit fidelity-policy feasibility. Both precisions obey declared error bound;32bit encoder is explicitly experimental. No automatic source admission or lossless-float claim; no dither/headroom/clipping changes. Reopen on optimized implementation or explicitly valued compressed delivery/storage workload with complete cost and same precision oracle.",
+  "reused_evidence": [
+    "results/top100/audio/lossless.wav"
+  ],
+  "commands_log": "research/shared/runs/20260919T215152Z-quantized-flac/commands.log"
+}

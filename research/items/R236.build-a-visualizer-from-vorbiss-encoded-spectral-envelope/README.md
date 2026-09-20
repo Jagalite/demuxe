@@ -2,12 +2,24 @@
 
 # Build a visualizer from Vorbis’s encoded spectral envelope
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R236.build-a-visualizer-from-vorbiss-encoded-spectral-envelope`
 
-Pinned Vorbis decoder contains the Floor1 render boundary, but current diagnostics are PCM RMS and no encoded-envelope visualizer exists. Historical floor interception gives a useful oracle; it does not justify labeling the curve final spectrum or waveform.
+Current decision: **pursue** (2026-09-20T00:11:53.887295+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual isolated instrumented libvorbis1.3.7 decodes coded floors before residue/coupling/MDCT; floor-only candidate skips those later stages. All378 stereo packet/channel curves,1024bins each, are byte-identical to full decoder instrumentation. Exact packet identity/PTS/duration association includes initial negative overlap timestamp; one-packet misassociation differs and malformed Ogg header rejects. Encoded-envelope SVG is explicitly not waveform, loudness or final spectrum. Five alternating complete cold process/file/header/setup/floor capture/common block handling/teardown medians13.098vs18.172ms ratio0.72081 passes0.9; raw wall-time variance retained. Both paths share libvorbis floor math; oracle is actual instrumented complete decoding, not an independent floor algorithm.
 
-Next: Expose one bounded Floor1 memo observation and compare an encoded-envelope display with independent floor curves before any PCM-free route.
+Pursue this encoded-floor visualization capability and bounded cost profile. No final spectrum, true-peak, loudness or PCM claim; short/long transitions and production/browser/Wasm integration need separate admission. Original Xiph BSD source and modified snapshot retained; legacy obsolete test-linker failure preserved, required static decoder target built successfully.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T001153Z-vorbis-floor/run.json) · [Analysis](../../shared/runs/20260920T001153Z-vorbis-floor/analysis.md) · [Manifest](../../shared/runs/20260920T001153Z-vorbis-floor/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

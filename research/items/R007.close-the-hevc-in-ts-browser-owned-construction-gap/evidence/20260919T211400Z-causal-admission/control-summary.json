@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "fixture": "config-change.ts",
+      "expected": "configuration changed",
+      "recorded_engine_errors": [
+        "FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required\nError: FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required\n    at check (http://127.0.0.1:56517/web/native-remux-worker.js:8:30)\n    at self.onmessage (http://127.0.0.1:56517/web/native-remux-worker.js:41:15)"
+      ],
+      "workers_after": 0,
+      "rejected": true
+    },
+    {
+      "fixture": "timestamp-back.ts",
+      "expected": "timeline discontinuity",
+      "recorded_engine_errors": [
+        "FFmpeg error -1094995529: Selected timeline discontinuity\nError: FFmpeg error -1094995529: Selected timeline discontinuity\n    at check (http://127.0.0.1:56517/web/native-remux-worker.js:8:30)\n    at self.onmessage (http://127.0.0.1:56517/web/native-remux-worker.js:41:15)"
+      ],
+      "workers_after": 0,
+      "rejected": true
+    }
+  ],
+  "raw_harness_exit": 1,
+  "reason": "Both actual engine errors correct. Original final assertion incorrectly required asynchronous callback errors for synchronous open rejection; raw failed assertion preserved, analysis uses recorded engine causal errors."
+}

@@ -1,0 +1,7 @@
+{
+  "scope": "Correctness first: one-second stereo48k signed16,192kbps Opus plus24 copied H264 packets to MP4; archived Wasm encoder baseline and WebCodecs candidate through same copy remux. Ogg/Matroska trim mappings tested separately.",
+  "gate": "Known48000 valid audio samples, exact copied video packets, independent host/browser channel and delay/padding checks, encoder reset releases old queued samples. No performance benchmark unless complete output boundary passes.",
+  "outcome": "MP4 output-count gate fails for baseline and candidate; incidental construction times are diagnostics only. Ogg/Matroska source trim count is corrected. Cross-decoder float differences separately recorded, no exact-float claim.",
+  "variants": "Audio-only archived baseline rejected by existing admission; all-intra AVC fixture lacks required explicit reorder bound; use existing admitted video fixture. Initial Matroska signed padding/timestamp bugs preserved and corrected.",
+  "license": "CC-BY-4.0"
+}

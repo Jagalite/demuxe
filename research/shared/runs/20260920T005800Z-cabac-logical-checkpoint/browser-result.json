@@ -1,0 +1,179 @@
+{
+  "contract": {
+    "scope": "Actual 4x4 non-DC CABAC residual parsing after coded-block flag; NOT full mid-slice picture restart",
+    "workload": "Five alternating cold module pairs; ten requests of eight residual blocks. Candidate includes prefix decode, sidecar creation and source retention, serialization, fresh-module restoration, ten replay sets and cleanup; baseline repeats prefix decode to same eight blocks ten times. Both execute the same instrumentation and export result records. Browser startup excluded equally.",
+    "threshold": "median paired candidate/baseline complete component wall time <=0.9 after full independent picture and replay-state correctness"
+  },
+  "rows": [
+    {
+      "mode": "baseline",
+      "ms": 76.50999999046326,
+      "packets": 10,
+      "exportBytes": 2716800,
+      "pair": 0
+    },
+    {
+      "mode": "candidate",
+      "ms": 93.16499996185303,
+      "packets": 1,
+      "exportBytes": 2716800,
+      "pair": 0
+    },
+    {
+      "mode": "candidate",
+      "ms": 124.78500002622604,
+      "packets": 1,
+      "exportBytes": 2716800,
+      "pair": 1
+    },
+    {
+      "mode": "baseline",
+      "ms": 56.83499997854233,
+      "packets": 10,
+      "exportBytes": 2716800,
+      "pair": 1
+    },
+    {
+      "mode": "baseline",
+      "ms": 68.0799999833107,
+      "packets": 10,
+      "exportBytes": 2716800,
+      "pair": 2
+    },
+    {
+      "mode": "candidate",
+      "ms": 95.99000000953674,
+      "packets": 1,
+      "exportBytes": 2716800,
+      "pair": 2
+    },
+    {
+      "mode": "candidate",
+      "ms": 88.2950000166893,
+      "packets": 1,
+      "exportBytes": 2716800,
+      "pair": 3
+    },
+    {
+      "mode": "baseline",
+      "ms": 67.01499998569489,
+      "packets": 10,
+      "exportBytes": 2716800,
+      "pair": 3
+    },
+    {
+      "mode": "baseline",
+      "ms": 61.7950000166893,
+      "packets": 10,
+      "exportBytes": 2716800,
+      "pair": 4
+    },
+    {
+      "mode": "candidate",
+      "ms": 91.28000003099442,
+      "packets": 1,
+      "exportBytes": 2716800,
+      "pair": 4
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "correctness": {
+    "fullExact": true,
+    "frames": 30,
+    "recordBytes": 1604,
+    "resultBytes": 33960,
+    "wrongSource": -3,
+    "checks": [
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 66,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 113,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 97,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 97,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 5,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 26,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 82,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      },
+      {
+        "imported": 0,
+        "rc": 0,
+        "exact": true,
+        "traceEvents": 25,
+        "corruptContext": -2,
+        "corruptNeighbor": -2,
+        "zeroNeighbor": 0,
+        "missingNeighborChangesState": true
+      }
+    ]
+  },
+  "analysis": {
+    "medianPairedRatio": 1.4099588724011158,
+    "range": [
+      1.2176839625338618,
+      2.1955661137210836
+    ],
+    "costPassed": false,
+    "fullMidSliceRestartImplemented": false
+  },
+  "passed": true
+}

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T232407Z-retained-tile-owner",
+  "item_keys": [
+    "R152.copy-on-write-tiled-retained-pictures"
+  ],
+  "recorded_at_utc": "2026-09-19T23:25:03.072619+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Implemented real postdecode immutable tile owner using60 actual256x144 MPEG2 I/P/B decoded pictures,16x16Y/8x8UV tiles and exact tile byte comparisons. Everyflattened I420 frame matches hostdecoder oracle; copying/altering one tile leaves earlier owner byteexact. Retentionevicts to3frames; sourceclear/randomadverseframe stays exact; allcache owners clear. Ownedunique bytes and actualPython tuple/listtable sizes 166067\u219281589B (50.87% reduction); this accounts namedcontainers/payloads, notwholeprocessRSS ordecoderinternalmemory. However9alternating60-frame pipeline pairs including comparison/allocation/retention/flatten/fullSHA256/teardown cost 1.632\u219289.063ms, regression5356.6% CI[5115.135412556034, 5616.622340870214]; failspredeclared joint25%heapreduction plus<=10%costregressiongate. This ispositive sharingcorrectness but negative Python postdecode representation cost, notcodec-internal skipped reconstruction/write proof. Stop measuredvariant; no inferential unchangedtiles orproductionframeformat changes."
+}

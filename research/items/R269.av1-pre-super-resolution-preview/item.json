@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "status": "passed",
+      "basis": "Real decoder-internal pre-upscale surface exposed by isolatedlibaom rebuild; ownpixels copied before cancellation/destruction.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "basis": "427x360 actual pre-upscale reconstruction versus640x360publicoutput; no reencode proxy.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "status": "passed",
+      "basis": "Continuing/cancelled taps byteexact, fulloutput independentdav1dexact;43.663dBpreview exceeds20dBbudget, malformed/no-tap controls reject.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+      "status": "passed",
+      "basis": "Completecold process+decode+requestedpreview copy/write median22.88% saving, bootstrap95saving19.12\u201337.80%,11pairs versusdirect-plane area baseline.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "basis": "Actual libaom decoder-internal tap copies427x360 pre-super-resolution420 samples before upscaling, then intentionally cancels the one-shot decode after the owned copy. Copy survives decoder destruction; continuing tap yields identical preview and ordinary full640x360 output equals independent dav1d. Preview luma43.663dB versus full decode+area-downscale passes predeclared20dB altered-output budget. No-superres and truncated input reject. Eleven complete process/decode/copy/output jobs versus direct strided full-output area-downscale: median0.7712x cost, bootstrap95[0.6220,0.8088]. Pursue this pinned one-keyframe preview, not later-reference decoding or browser integration.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
+      "basis": "Actual libaom decoder-internal tap copies427x360 pre-super-resolution420 samples before upscaling, then intentionally cancels the one-shot decode after the owned copy. Copy survives decoder destruction; continuing tap yields identical preview and ordinary full640x360 output equals independent dav1d. Preview luma43.663dB versus full decode+area-downscale passes predeclared20dB altered-output budget. No-superres and truncated input reject. Eleven complete process/decode/copy/output jobs versus direct strided full-output area-downscale: median0.7712x cost, bootstrap95[0.6220,0.8088]. Pursue this pinned one-keyframe preview, not later-reference decoding or browser integration.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
+        "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R269.av1-pre-super-resolution-preview",
-      "rank": 264,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current bridge receives public reconstructed VideoFrames and AVFrames, not pre-super-resolution AV1 pixels. The report explicitly could not access those pixels; adding a custom decoder tap is substantial setup, whereas lower-resolution re-encode is a different mechanism.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R269.av1-pre-super-resolution-preview.md"
-      ],
-      "next_test": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
-      "reopen_condition": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R269.av1-pre-super-resolution-preview",
+    "disposition": "pursue",
+    "evidence_level": "actual_decoder_internal_surface_and_bounded_cancellation",
+    "new_media_execution": true,
+    "reason": "Actual libaom decoder-internal tap copies427x360 pre-super-resolution420 samples before upscaling, then intentionally cancels the one-shot decode after the owned copy. Copy survives decoder destruction; continuing tap yields identical preview and ordinary full640x360 output equals independent dav1d. Preview luma43.663dB versus full decode+area-downscale passes predeclared20dB altered-output budget. No-superres and truncated input reject. Eleven complete process/decode/copy/output jobs versus direct strided full-output area-downscale: median0.7712x cost, bootstrap95[0.6220,0.8088]. Pursue this pinned one-keyframe preview, not later-reference decoding or browser integration.",
+    "next_action": "Keep pinned internal-surface lifetime, profile and explicit altered-output guard; browser deployment, future references and other restoration/depth profiles require separate qualification.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Real decoder-internal pre-upscale surface exposed by isolatedlibaom rebuild; ownpixels copied before cancellation/destruction."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "427x360 actual pre-upscale reconstruction versus640x360publicoutput; no reencode proxy."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Continuing/cancelled taps byteexact, fulloutput independentdav1dexact;43.663dBpreview exceeds20dBbudget, malformed/no-tap controls reject."
+      },
+      "performance": {
+        "status": "passed",
+        "basis": "Completecold process+decode+requestedpreview copy/write median22.88% saving, bootstrap95saving19.12\u201337.80%,11pairs versusdirect-plane area baseline."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T00:13:43.845156+00:00",
+    "run_ids": [
+      "20260920T001343Z-superres-preview-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T001343Z-superres-preview-qualification/run.json"
+    ]
   },
-  "next_action": "Locate a pinned decoder-internal pre-super-resolution surface and its ownership/lifetime contract before any preview comparison.",
+  "next_action": "Keep pinned internal-surface lifetime, profile and explicit altered-output guard; browser deployment, future references and other restoration/depth profiles require separate qualification.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -2,12 +2,10 @@
 
 # Develop Ultra HDR gain maps after native image decoding
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current YUV branch excludes PQ/HLG and supplies no Ultra HDR component parser or gain-map reconstruction oracle. Historical lack of WebGPU is obsolete in the shared probe; pinned libultrahdr and component-value fidelity still need a real setup inventory. No current missing-install claim is inferred from the old host.
+Built official libultrahdr pinned f3e36226914289cfefcf0d81a6471cf6266c79fb and generated a genuine conforming64x64 UltraHDR JPEG with neutral sRGB base/same-size grayscale gainmap, gamma1.5, nonzero SDR/HDR offsets and explicit output capacities1/2/4. Official probe extracts compressed components/metadata; independent CPU decoder gives complete linear RGBA16float references. Actual browser ImageDecoder component pixels match independent djpeg component arrays exactly. Actual WebGPU metadata reconstruction reuses exactly2 decoded component owners for all3 paused capacity choices. Same-array independent Python math maximumerror3.975e-7; complete browser route vs pinned decoder maximumabsolute0.000488639/relative0.000484142 across all4096pixels/capacity, within predeclared absolute0.002 and relative0.005 whenreference>=0.01; alphaexact1. Wrong gamma fails12285channels; invalid capacity/orientation/missing gain/zero gamma reject; old GPU epoch result discarded and fresh survives;frames/buffers/devicesclosed. Preserve failed API configuration-after-probe and initial continuous-formula reconstruction (capacity4 maximum0.00271535 exceeds original0.002bound), plus FFmpeg component6 one-code differences. Diagnosed correction matches pinned1024-entry inverse-sRGB/gain lookup sampling; no tolerance relaxation. Scoped real UltraHDR component-route capability passes. Host native probe supplies metadata/components; no all-browser parser/build deployment, unequal-size gainmap reconstruction, colored wide-gamut base/RGB gainmaps, arbitrary orientation, physical HDR display or timed video qualification. No speed claim; capability performance N/A.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Scoped component research gates complete. General browser-only parsing/deployment, smaller gainmaps, wide-gamut colored bases, RGB gainmaps, physical HDR display and timed media require separate contracts; no production route changed.
 
-Next: Provision/identify one pinned libultrahdr reference and compare identical arrays for one grayscale map before browser decode/shader integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T230156Z-ultrahdr-lut-contract/analysis.md)

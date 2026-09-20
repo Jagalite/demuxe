@@ -2,12 +2,24 @@
 
 # Decode one Vorbis stream in parallel using small overlapping boundaries
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries`
 
-Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.
+Current decision: **stop_current_profile** (2026-09-20T00:08:53.289619+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual four concurrently launched host Vorbis packet-range decoders each retain identification/comment/setup and one preceding overlap packet; regenerated Ogg page granules preserve final512sample trim. All192000stereo frames including every seam equal continuous host decode exactly; each omitted-preroll control differs. Four workers complete and are reaped. Five alternating complete cold source/hash/CRC/repage/write/decode/transfer/join81.536ms versus continuous33.130ms ratio2.46110 fails0.9. Fixture uses long blocks; short/long transition generality is excluded.
 
-Next: Inspect one pinned Vorbis packet stream and compare two jobs with a preceding packet, varying short/long window transition and EOF trim.
+Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T000853Z-vorbis-parallel/run.json) · [Analysis](../../shared/runs/20260920T000853Z-vorbis-parallel/analysis.md) · [Manifest](../../shared/runs/20260920T000853Z-vorbis-parallel/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

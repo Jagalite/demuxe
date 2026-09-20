@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms. Existing wrong-mask and missing-key controls retained; packet timestamps preserved. Scope is host software decoding480160x96pictures built from20closed copies of the original24-picture GOP. No arbitrary AV1, physical energy, browser CPU or hardware-admission claim.

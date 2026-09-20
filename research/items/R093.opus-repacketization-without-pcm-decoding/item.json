@@ -64,70 +64,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Fixed-mode mono Opus grouping with exact decoded content, compatible split-back, native playback and seek lifecycle.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Pinned inputs, actual commands, tool identities and independent references captured in run manifest.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Actual libopus 20/40/60ms regrouping reduces codec packets from 101 to 51/34 and splits back to byte-identical constituent packets. Complete host and Chrome PCM preserve all 96000 samples and trim; incompatible TOC rejected. One-packet-per-page candidate files (21770/21355 bytes) remain larger than the original multipacket-page Ogg (20487 bytes). Aggregation adds 20/40ms availability wait. Viable submission-count tradeoff, not a bandwidth or CPU win. Additional actual media-element lifecycle now starts, seeks to0.8s, observes880Hz, reaches EOF and releases resources for original/40ms/60ms groupings.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Combined immutable complete host/browser PCM, exact split-back frames, incompatible TOC rejection, actual three-file playback/seek/tone/EOF and cleanup. Restricted mono fixed-configuration profile only.",
+      "basis": "Matched20ms versus40ms codec packets with one packet per Ogg page preserve pinned full host/browser PCM and split-back frames. Real paced HTTP delivery reduces audio packet/page submissions101\u219251 (0.50495 ratio) and bytes5.8920%; median browser first audio2036.1\u21922040.8ms (+4.7ms) passes80ms budget. Measured complete adapter setup23.705\u219227.470ms yields cold first-output totals2060.440\u21922068.904ms, still within budget. Actual trials reach EOF with full response and cleanup.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "performance": {
-      "status": "not_applicable",
-      "basis": "Current endpoint is scoped feasibility, not a measured performance claim; reopen for a predeclared equivalent-work benchmark after complete relevant correctness.",
+      "status": "passed",
+      "basis": "Matched20ms versus40ms codec packets with one packet per Ogg page preserve pinned full host/browser PCM and split-back frames. Real paced HTTP delivery reduces audio packet/page submissions101\u219251 (0.50495 ratio) and bytes5.8920%; median browser first audio2036.1\u21922040.8ms (+4.7ms) passes80ms budget. Measured complete adapter setup23.705\u219227.470ms yields cold first-output totals2060.440\u21922068.904ms, still within budget. Actual trials reach EOF with full response and cleanup.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Positive/negative evidence and limitations captured in immutable run.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "pursue: Actual libopus 20/40/60ms regrouping reduces codec packets from 101 to 51/34 and splits back to byte-identical constituent packets. Complete host and Chrome PCM preserve all 96000 samples and trim; incompatible TOC rejected. One-packet-per-page candidate files (21770/21355 bytes) remain larger than the original multipacket-page Ogg (20487 bytes). Aggregation adds 20/40ms availability wait. Viable submission-count tradeoff, not a bandwidth or CPU win. Additional actual media-element lifecycle now starts, seeks to0.8s, observes880Hz, reaches EOF and releases resources for original/40ms/60ms groupings.",
+      "basis": "pursue: Pursue restricted40ms grouping when packet/page submission reduction is valuable. This is a submission/byte/availability tradeoff versus one-packet-page20ms baseline, not a CPU or earlier-start claim; original FFmpeg Ogg mux remains smaller. Production routing, multistream and universal page policies are outside this profile.",
       "evidence": [
-        "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
       ]
     }
   },
   "current_decision": {
-    "key": "R093.opus-repacketization-without-pcm-decoding",
-    "disposition": "pursue",
-    "evidence_level": "component_test",
-    "reason": "Actual libopus 20/40/60ms regrouping reduces codec packets from 101 to 51/34 and splits back to byte-identical constituent packets. Complete host and Chrome PCM preserve all 96000 samples and trim; incompatible TOC rejected. One-packet-per-page candidate files (21770/21355 bytes) remain larger than the original multipacket-page Ogg (20487 bytes). Aggregation adds 20/40ms availability wait. Viable submission-count tradeoff, not a bandwidth or CPU win. Additional actual media-element lifecycle now starts, seeks to0.8s, observes880Hz, reaches EOF and releases resources for original/40ms/60ms groupings.",
-    "next_action": "Measure equivalent live submission overhead against the explicit20/40ms availability tradeoff; keep cross-mode sources rejected.",
-    "correctness": "passed",
-    "correctness_basis": "Combined immutable complete host/browser PCM, exact split-back frames, incompatible TOC rejection, actual three-file playback/seek/tone/EOF and cleanup. Restricted mono fixed-configuration profile only.",
-    "run_id": "20260919T201000Z-opus-lifecycle",
-    "recorded_at_utc": "2026-09-19T20:12:29.952971+00:00",
-    "evidence": [
-      "research/shared/runs/20260919T201000Z-opus-lifecycle/run.json"
-    ],
-    "stage": "decision"
+    "campaign": "audio-executed-stage-closure",
+    "record": {
+      "key": "R093.opus-repacketization-without-pcm-decoding",
+      "recorded_at_utc": "2026-09-19T20:56:27.118329+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T205627Z-opus-group-delivery"
+      ],
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Matched20ms versus40ms codec packets with one packet per Ogg page preserve pinned full host/browser PCM and split-back frames. Real paced HTTP delivery reduces audio packet/page submissions101\u219251 (0.50495 ratio) and bytes5.8920%; median browser first audio2036.1\u21922040.8ms (+4.7ms) passes80ms budget. Measured complete adapter setup23.705\u219227.470ms yields cold first-output totals2060.440\u21922068.904ms, still within budget. Actual trials reach EOF with full response and cleanup.",
+      "next_action": "Pursue restricted40ms grouping when packet/page submission reduction is valuable. This is a submission/byte/availability tradeoff versus one-packet-page20ms baseline, not a CPU or earlier-start claim; original FFmpeg Ogg mux remains smaller. Production routing, multistream and universal page policies are outside this profile.",
+      "reopen_condition": "Pursue restricted40ms grouping when packet/page submission reduction is valuable. This is a submission/byte/availability tradeoff versus one-packet-page20ms baseline, not a CPU or earlier-start claim; original FFmpeg Ogg mux remains smaller. Production routing, multistream and universal page policies are outside this profile.",
+      "evidence": [
+        "research/shared/runs/20260919T205627Z-opus-group-delivery/run.json"
+      ]
+    }
   },
-  "next_action": "Measure equivalent live submission overhead against the explicit20/40ms availability tradeoff; keep cross-mode sources rejected.",
+  "next_action": "Pursue restricted40ms grouping when packet/page submission reduction is valuable. This is a submission/byte/availability tradeoff versus one-packet-page20ms baseline, not a CPU or earlier-start claim; original FFmpeg Ogg mux remains smaller. Production routing, multistream and universal page policies are outside this profile.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

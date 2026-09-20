@@ -2,14 +2,10 @@
 
 # Cache subtitle tiles and schedule only useful redraws
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Disposition: **inconclusive**. Correctness **passed**, performance **failed**; other research gates passed.
 
-Built isolated pinned libass runtime, then real static/karaoke tiles rendered exactly with bounded cache through time changes, rewind and resize:28 cache hits/20 misses,145496 peak retained bytes. Value is repeated-tile allocation avoidance, not proven CPU saving.
+Actual libass worker static/karaoke96renderrequests with repeat/rewind, track change and320/640layout changes. Exact glyph bytes/color/geometry/epoch cache bounded1MiB versus rasterize everytile. All composed RGBA hashes match untimed real libass baseline; native rendering still executes everyrequest, no next-change predictor. Complete worker/font/load/raster/key/cache/outputcheck/terminate costs included, retention zero at cleanup. Complete owner wall-time saving4.91%, bootstrap95[-0.7855216812002519, 10.038672730909337]; predeclared performance gate failed.
 
-Correctness: **passed**. Performance: **pending**.
+Research experiment complete without demonstrated cold-owner latency value. Reopen only for a specified persistent-worker or longer subtitle schedule where avoided work matters; declare new costs and threshold before measuring.
 
-Real libass static/karaoke tiles compare cached versus uncached raster exactly through repeat times, rewind and 320→640 resize with track/layout epoch invalidation. 28 hits/20 misses and 145496 retained bytes below 1 MiB; worker terminates. No next-change prediction claim.
-
-Next: Measure complete render/raster/retention workload and invalidation costs; avoid equating tile hits with CPU savings.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T210256Z-ass-owners/analysis.md)

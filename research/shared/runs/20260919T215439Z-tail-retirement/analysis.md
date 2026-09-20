@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual Chrome EOS baseline and explicit ended SourceBuffer retirement both play6s with either2svideo/6saudio or6svideo/2saudio. Last red frame freezes correctly for audio-long tail; blue/red frames continue for video-long tail. Candidate backward restoration rebuilds same element MediaSource, closes old owner, restores both buffers and red frame at0.6s. Actual interior2..4video gap with declaredend6 refuses retirement and plays future4.5s frame. Five alternating first-restored-frame plus play-ready latency pairs:audio-long16.370/12.105ms ratio1.35233 fails1.10; video-long12.365/18.520ms ratio0.66766 passes. Earlier fixed100ms observation costs invalidated, raw outputs preserved; no decoder-memory claim from buffer counts. Initial playback runner required exact owned process cleanup after outputs; followup renderer exits cleanly.
+
+Stop current general retirement/rebuild cost profile: no additional tail capability over current EOS baseline and audio-long restore violates no-regression gate. Correctness is bounded presented-picture/clock/ownership, not new acoustic PCM proof. Video-long timing alone does not establish general benefit; reopen only with independent actual resource savings or improved restoration owner and repeated matched latency.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

@@ -1,0 +1,46 @@
+{
+  "stage": "decision",
+  "status": "passed",
+  "commands": [
+    "python3 research/shared/tooling/av1-hidden-preroll.py research/shared/runs/20260919T224701Z-av1-hidden-preroll research/shared/runs/20260919T224410Z-av1-dictionary-controls",
+    "node research/shared/tooling/av1-hidden-browser.mjs research/shared/runs/20260919T224701Z-av1-hidden-preroll"
+  ],
+  "analysis": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit.",
+  "decisions": [
+    {
+      "key": "R135.decode-seek-preroll-without-producing-unwanted-presentation-frames",
+      "disposition": "inconclusive",
+      "evidence_level": "actual-route screen",
+      "new_media_execution": true,
+      "reason": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit.",
+      "next_action": "Research profile complete; reopen only with a representative longer-preroll workload and a stable cost benefit. Constrained syntax author is not a general AV1 rewriter.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed\u2212140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T224958Z-av1-hidden-qualification",
+  "recorded_at_utc": "2026-09-19T22:49:58.725802+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256": "2bfec3ba32d2fa2d3a213c18213f9ca2bd74e31dbae0ae0ce3b3849854b234c0",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

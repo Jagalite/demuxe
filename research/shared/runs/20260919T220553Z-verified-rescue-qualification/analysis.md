@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+ExistingRangeReader repairs exactly damaged65536byteunits[2,7] overactualloopbackHTTP, whole-fileSHA/bytes exact and fullH264AACdecodedoutput produced. Tampered response, changedETag/If-Range version, andactualinflightcancel rejectwithoutmodifyingunverifiedlocalfile. Ninepairedcompletejobs include localinputread/allchunkhashes,trustedmanifestread, boundedreaderallocation, repairandwhole-filevalidation. Transfers131072instead832470bytes (84.255percentless); medianadditionalcorrect-file latency16.431ms95[16.017,16.870] underpredeclared50mslimitwith15msperrequest. Thispassesdeclaredbandwidth/latencytradeoff, notspeedup. Trustedmanifestcreation/distribution, WAN/CORS/credentials remainoutofscope.

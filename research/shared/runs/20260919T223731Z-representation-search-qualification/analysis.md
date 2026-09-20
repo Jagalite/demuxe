@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred.

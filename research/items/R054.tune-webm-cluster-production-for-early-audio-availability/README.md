@@ -2,28 +2,24 @@
 
 # Tune WebM cluster production for early audio availability
 
-Full identity: `R054.tune-webm-cluster-production-for-early-audio-availability`. Original rank: 153.
+Full key: `R054.tune-webm-cluster-production-for-early-audio-availability`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (2026-09-19T22:04:30.568845+00:00).
 
-Actual two-second VP9/Opus output releases two roughly one-second clusters and retains all packets/trim. It does not expose an expensive long-GOP withholding case. A cluster-policy rebuild and representative long-GOP trace are needed before choosing smaller clusters; no negative policy experiment was run.
+Genuine real-time FFmpeg Opus-copy producer stdout feeds actual same-owner nativeMSE alongside identical H264video. Bounded40ms clusters plus flush_packets1 preserve301coded payloads, every288000stereo PCMframes, allPTS/durations,312preskip and648enddiscard in every complete output versus source/default.500ms real producer SIGSTOP/CONT resumes toEOF; actualfetchabort terminates producer255, newownedproducer restarts. Three alternating coldrequest→firstnonzeroAudioWorklet pairs:102.5ms candidate versus598ms default, ratio0.17140 passes0.9;119977/118549bytes ratio1.01205 passes1.20. Actualstdout release traces captured, not artificially paced prebuiltbytes. Everybrowser run produces288000nonzero samples and identical6.021sMSEend; no sample-exact wall-clock/acoustic alignment claim. Two initial unsolicitedfavicon producers retained and finished before performance, excluded by actualjobidentity.
 
-No matching candidate/reference/control execution for this exact gate. Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity.
+Pursue bounded small-cluster/flush policy for separate OpusWebM audio producer in working mixed route. No broad long-GOP multiplexedvideo or lossy-codec claim. Browserpreparedvideo and preencodedinput shared; measured coldproducer/output delivery and actualfirstPCM. Higher emit/append count139versus9 and1.205percentbytes tradeoff explicit; no CPUwin inferred. Source/endtrimexact; currentMSEcontainer end6.021s distinguished from6sdecodedPCM.
 
-Next action: Next missing gate: Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Representative long-GOP withholding trace before a matched cluster-policy candidate; two small existing clusters do not establish opportunity. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T220430Z-webm-live/run.json) · [Analysis](../../shared/runs/20260919T220430Z-webm-live/analysis.md) · [Manifest](../../shared/runs/20260919T220430Z-webm-live/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

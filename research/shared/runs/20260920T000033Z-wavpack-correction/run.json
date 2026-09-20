@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260920T000033Z-wavpack-correction",
+  "item_keys": [
+    "R209.fetch-wavpack-correction-data-only-when-exact-output-is-required"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used, libwavpack5.9 component",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual libwavpack5.9 hybrid stereo48k source384000frames; base-only intentionally differs, full correction exact, explicit lossy prefix then exact suffix from192000 tested. Hash-bound correction block map supports local range reads and rejects wrong source/manifest, cancellation, unaligned switch and truncation. Initial suffix-only correction yields exact suffix but decoder error for missing first block; preserved failed variant. Fetching first correction block plus suffix resolves actual decoder error. Five paired ten-playback jobs include complete correction-map setup:1680110 correction bytes vs2219900 baseline ratio0.75684 fails predeclared<=0.7; total base+correction ratio0.89834. Wall medians663.312vs867.815ms are noisy secondary observations, not CPU or network measurements."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this ten-playback first-block-plus-suffix profile at its declared30% correction-byte saving gate; observed24.3% remains a real lesser saving. Reopen with different workload or a decoder API that does not require the first correction block. No silent lossless admission when correction is missing; no native browser/network/Wasm or production integration claim.",
+  "reused_evidence": [
+    "/opt/homebrew/Cellar/wavpack/5.9.0/bin/wavpack",
+    "/opt/homebrew/Cellar/wavpack/5.9.0/bin/wvunpack",
+    "/opt/homebrew/Cellar/wavpack/5.9.0/COPYING"
+  ],
+  "commands_log": "research/shared/runs/20260920T000033Z-wavpack-correction/commands.log"
+}

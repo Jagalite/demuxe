@@ -1,0 +1,12 @@
+curl --fail --max-time30 https://samples.ffmpeg.org/V-codecs/MJPEGs/MVI_3774.AVI (stored source; retrieval success)
+ffprobe -v error -select_streams v:0 -show_packets -show_streams -of json research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/MVI_3774.AVI
+ffmpeg -v error -i research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/MVI_3774.AVI -frames:v 1 -c:v copy -bsf:v mjpeg2jpeg research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/normalized.jpg
+ffmpeg -v error -f lavfi -i testsrc2=size=320x192:rate=12 -frames:v 1 -c:v mjpeg -q:v 2 -pix_fmt yuvj444p research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/baseline.jpg
+ffmpeg -v error -i research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/baseline.jpg -frames:v 1 -pix_fmt rgba -f rawvideo -
+ffprobe -v error -show_streams -of json research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/baseline.jpg
+ffmpeg -v error -i research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/avi1.jpg -frames:v 1 -pix_fmt rgba -f rawvideo -
+ffprobe -v error -show_streams -of json research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/avi1.jpg
+ffmpeg -v error -i research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/normalized.jpg -frames:v 1 -pix_fmt rgba -f rawvideo -
+ffprobe -v error -show_streams -of json research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter/normalized.jpg
+
+node research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/tests/image-adapter.mjs research/items/R063.use-the-browser-image-decoder-for-qualified-mjpeg-video/evidence/20260919T215638Z-image-adapter

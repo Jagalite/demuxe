@@ -1,0 +1,11 @@
+git clone --depth 1 --branch v0.11.2 https://github.com/libjxl/libjxl.git build/catalogue-tools/libjxl
+git -C build/catalogue-tools/libjxl submodule update --init --depth 1 third_party/highway third_party/brotli third_party/lcms
+cmake -S build/catalogue-tools/libjxl -B build/catalogue-tools/libjxl-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DJPEGXL_ENABLE_TOOLS=ON -DJPEGXL_ENABLE_DEVTOOLS=OFF -DJPEGXL_ENABLE_JPEGLI=OFF -DJPEGXL_ENABLE_DOXYGEN=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_JNI=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_OPENEXR=OFF -DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DCMAKE_PREFIX_PATH=/opt/homebrew
+cmake --build build/catalogue-tools/libjxl-build --target cjxl djxl -j 4
+c++ -std=c++17 -O2 research/items/R273.jpeg-xl-dc-preview/tests/progressive.cpp -Ibuild/catalogue-tools/libjxl/lib/include -Ibuild/catalogue-tools/libjxl-build/lib/include -Lbuild/catalogue-tools/libjxl-build/lib -Wl,-rpath,$PWD/build/catalogue-tools/libjxl-build/lib -ljxl -o build/catalogue-tools/jxl-progressive
+# Original procedural generator initially executed inline; exact source now tests/generate.py
+build/catalogue-tools/libjxl-build/tools/cjxl research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/input.ppm research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/source.jxl -d 1 -e 3 -p --progressive_dc=1
+build/catalogue-tools/libjxl-build/tools/djxl research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/source.jxl research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/reference.ppm
+build/catalogue-tools/jxl-progressive research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/source.jxl research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/full full
+build/catalogue-tools/jxl-progressive research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/source.jxl research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive/cancel cancel
+python3 research/items/R273.jpeg-xl-dc-preview/tests/check-progressive.py research/items/R273.jpeg-xl-dc-preview/evidence/20260919T231357Z-libjxl-progressive

@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual already-available Wasm H264 decoder supplies a bounded four-packet startup prefix while browser decoder independently reconstructs complete dependencies. Seven alternating fresh-browser jobs present all24exact pictures under one canvas clock, switch once after one/two software pictures, and retire software. Median first-correct-draw gain59.43ms (all pairs53.59–95.69ms); warm software-module prerequisite is explicit/common, cold decoder contexts and copy/presentation costs included. Actual replacement after first software output reconstructs48different-resolution pictures, no late old-owner publication and zero workers. Video-only controlled presenter; no audio, physical hardware/energy or automatic route claim.

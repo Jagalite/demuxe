@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: Apache-2.0
+#include "ultrahdr_api.h"
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <cstdlib>
+static void check(uhdr_error_info_t e){if(e.error_code){std::cerr<<e.error_code<<":"<<e.detail<<"\n";exit(3);}}
+static void put(std::string f,void*d,size_t n){std::ofstream o(f,std::ios::binary);o.write((char*)d,n);}
+int main(int argc,char**argv){if(argc!=3)return 2;std::ifstream f(argv[1],std::ios::binary);std::vector<char>b((std::istreambuf_iterator<char>(f)),{});uhdr_compressed_image_t img={b.data(),b.size(),b.size(),UHDR_CG_UNSPECIFIED,UHDR_CT_UNSPECIFIED,UHDR_CR_UNSPECIFIED};std::string out=argv[2];for(int cap:{1,2,4}){auto*d=uhdr_create_decoder();check(uhdr_dec_set_image(d,&img));check(uhdr_dec_set_out_img_format(d,UHDR_IMG_FMT_64bppRGBAHalfFloat));check(uhdr_dec_set_out_color_transfer(d,UHDR_CT_LINEAR));check(uhdr_dec_set_out_max_display_boost(d,cap));check(uhdr_dec_probe(d));auto*m=uhdr_dec_get_gainmap_metadata(d);if(cap==1){auto*base=uhdr_dec_get_base_image(d);auto*gain=uhdr_dec_get_gainmap_image(d);put(out+"/base.jpg",base->data,base->data_sz);put(out+"/gain.jpg",gain->data,gain->data_sz);std::ofstream j(out+"/metadata.json");j<<"{\"width\":"<<uhdr_dec_get_image_width(d)<<",\"height\":"<<uhdr_dec_get_image_height(d)<<",\"gain_width\":"<<uhdr_dec_get_gainmap_width(d)<<",\"gain_height\":"<<uhdr_dec_get_gainmap_height(d)<<",\"min_boost\":"<<m->min_content_boost[0]<<",\"max_boost\":"<<m->max_content_boost[0]<<",\"gamma\":"<<m->gamma[0]<<",\"offset_sdr\":"<<m->offset_sdr[0]<<",\"offset_hdr\":"<<m->offset_hdr[0]<<",\"capacity_min\":"<<m->hdr_capacity_min<<",\"capacity_max\":"<<m->hdr_capacity_max<<",\"use_base_cg\":"<<m->use_base_cg<<"}\n";}check(uhdr_decode(d));auto*r=uhdr_get_decoded_image(d);std::ofstream o(out+"/reference-"+std::to_string(cap)+".rgba16f",std::ios::binary);for(unsigned y=0;y<r->h;y++)o.write((char*)r->planes[0]+y*r->stride[0]*8,r->w*8);std::cerr<<"capacity "<<cap<<" gamut "<<r->cg<<" transfer "<<r->ct<<" dimensions "<<r->w<<"x"<<r->h<<"\n";uhdr_release_decoder(d);}return 0;}

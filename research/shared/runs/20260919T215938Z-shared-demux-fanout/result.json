@@ -1,0 +1,253 @@
+{
+  "plan": {
+    "scope": "ActualPyAV ordinarydemux commonqualifiedstart stableH264/AAC, two independent persistentMP4muxers with0s/2s timestampmapping andpacketwrappers pluscopiedside data. Independenttwo-demux references fullpacket/config/timing/decodedAV; canceled/slowconsumer explicitlyfails without damaging survivor.",
+    "gate": "Correctness first then11alternatingfreshsource/muxownerpairs lower95completecostsaving>5percent; alloutputbytesmatchreferences.",
+    "limits": "HostcomponentnotWasm/browserproductionAPI. Twoauthorizedsamefiniteinterval consumers; nopreroll/newclipstartclaims;8packet boundedslowqueuefailsclosed."
+  },
+  "runtime": {
+    "pyav": "17.1.0",
+    "libraries": {
+      "libavutil": [
+        60,
+        26,
+        101
+      ],
+      "libavcodec": [
+        62,
+        28,
+        101
+      ],
+      "libavformat": [
+        62,
+        12,
+        101
+      ],
+      "libavdevice": [
+        62,
+        3,
+        101
+      ],
+      "libavfilter": [
+        11,
+        14,
+        101
+      ],
+      "libswscale": [
+        9,
+        5,
+        101
+      ],
+      "libswresample": [
+        6,
+        3,
+        101
+      ]
+    }
+  },
+  "controls": {
+    "cancel": {
+      "cancelledAtPacket": 10,
+      "staleRejected": true
+    },
+    "slow": {
+      "explicitSlowConsumerFailure": true,
+      "staleRejected": true
+    }
+  },
+  "rows": [
+    {
+      "pair": 0,
+      "baseline": {
+        "ms": 10.334499995224178,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 5.526208027731627,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 1,
+      "candidate": {
+        "ms": 5.385999975260347,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      },
+      "baseline": {
+        "ms": 4.912208009045571,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 2,
+      "baseline": {
+        "ms": 4.120750003494322,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 3.365374985150993,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 3,
+      "candidate": {
+        "ms": 3.389791992958635,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      },
+      "baseline": {
+        "ms": 4.1009999695234,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 4,
+      "baseline": {
+        "ms": 5.31504099490121,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 3.8964159903116524,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 5,
+      "candidate": {
+        "ms": 7.564416970126331,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      },
+      "baseline": {
+        "ms": 16.89304201863706,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 6,
+      "baseline": {
+        "ms": 13.28191696666181,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 10.772125038783997,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 7,
+      "candidate": {
+        "ms": 6.0566249885596335,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      },
+      "baseline": {
+        "ms": 11.619958968367428,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 8,
+      "baseline": {
+        "ms": 10.397458041552454,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 11.159582994878292,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 9,
+      "candidate": {
+        "ms": 5.167124967556447,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      },
+      "baseline": {
+        "ms": 8.004583010915667,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      }
+    },
+    {
+      "pair": 10,
+      "baseline": {
+        "ms": 18.76391697442159,
+        "demuxPackets": 428,
+        "outputBytes": 83492
+      },
+      "candidate": {
+        "ms": 12.677708989940584,
+        "demuxPackets": 214,
+        "outputBytes": 83492
+      }
+    }
+  ],
+  "correctness": [
+    {
+      "consumer": 0,
+      "offsetSeconds": 0,
+      "packets": 214,
+      "oracle": [
+        {
+          "kind": "v",
+          "bytes": 1658880,
+          "sha256": "8cc821919ec49b56b426cb9c76b907bfa5e1dbf469a20786a38b23be730910e9"
+        },
+        {
+          "kind": "a",
+          "bytes": 577536,
+          "sha256": "8401ff9b3ab397fcf4a9fdc927222fd3ab23b6ae022e096bcc67501558afbac1"
+        }
+      ],
+      "packetConfigTimingExact": true
+    },
+    {
+      "consumer": 1,
+      "offsetSeconds": 2,
+      "packets": 214,
+      "oracle": [
+        {
+          "kind": "v",
+          "bytes": 1658880,
+          "sha256": "8cc821919ec49b56b426cb9c76b907bfa5e1dbf469a20786a38b23be730910e9"
+        },
+        {
+          "kind": "a",
+          "bytes": 581632,
+          "sha256": "5cf6a009580268edb304a246dd539e703888ace85232b1688fe67a804ced0e53"
+        }
+      ],
+      "packetConfigTimingExact": true
+    }
+  ],
+  "demuxPackets": {
+    "baseline": 428,
+    "candidate": 214
+  },
+  "analysis": {
+    "medianSaving": 0.2669076317474246,
+    "bootstrap95": [
+      0.17342306311877842,
+      0.4652660476766731
+    ],
+    "accepted": true
+  },
+  "passed": true
+}

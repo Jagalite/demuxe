@@ -2,28 +2,10 @@
 
 # Cache bounded decoded previews for scrub revisits
 
-Full identity: `R055.cache-bounded-decoded-previews-for-scrub-revisits`. Original rank: 154.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Implemented an explicit requested-preview native video producer and eight-image460800logical-RGBA-byte LRU cache, keyed by source epoch/selection/geometry/time. Every requested160x90 preview exactly matches a separately captured no-cache native/canvas image; this verifies cache identity, not independent JPEG/video decoder fidelity. Actual source replacement clears/closes old entries, rejects a late ImageBitmap promise, and produces distinct new-source pixels; geometry/time keys miss. All bitmaps/URLs/video owners close. Initial trial exposed a transient ninth image because eviction followed capture; preserved results and one correction evicts before capture, checks total created-minus-closed ownership, then reruns unchanged gates. Nine alternating cold-owner pairs include load/seek/capture/cache/readback/hash/cleanup. Revisit24-request workload saves42.93% (95%[38.07462380915495, 46.40375587902117]),56.811→32.422ms, passing10% lower-bound gate; one-way12-unique saves-4.20% (95%[-8.030350924818475, -1.0383888709079248]), so cache is not justified for nonrevisiting traversal. Approximate preview-only route; no readback of every playback frame, total resident memory/physical GPU sharing or production admission claim.
 
-UI seek-preview means visibility of controls, not generated image previews. No requested thumbnail producer/cache exists; adding a second decoder merely to measure cache hits exceeds first-pass scope.
+Next: Scoped revisit-preview research gates complete. Keep cache disabled when no preview intent, preserve exact source/selection/geometry/time keys and eight-image cap; assess any future larger image, concurrency or integration contract separately.
 
-No matching candidate/reference/control execution for this exact gate. Bounded approximate preview producer/cache contract with source-time keys and stale-capture rejection.
-
-Next action: Specify eight-image/byte-capped approximate preview API and source/time key; evaluate one reverse gesture only after producer exists, rejecting late old-source capture. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Bounded approximate preview producer/cache contract with source-time keys and stale-capture rejection. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Bounded approximate preview producer/cache contract with source-time keys and stale-capture rejection. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T215328Z-strict-cap/analysis.md)

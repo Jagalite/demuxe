@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T233358Z-restart-regional-cost",
+  "item_keys": [
+    "R240.add-useful-jpeg-restart-boundaries-without-another-image-generation-loss"
+  ],
+  "recorded_at_utc": "2026-09-19T23:36:33.468645+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Actual jpegtran entropy reserialization adds a restart boundary every MCU row to a 512\u00d7512 grayscale JPEG while preserving all 262144 quantized coefficients and quantization tables. A validated row-interval adapter then creates four 512\u00d764 regional JPEGs by reusing their compressed entropy segments and changing height/restart numbering. Independent host regional pixels equal full-source crops exactly; browser complete RGBA output is exact for all 16 requested regions. Missing and mismatched restart geometry reject; a stale decoded bitmap closes, and all 171 ImageBitmaps close. The correct cheap baseline decodes once and retains the whole image for all requests. Nine alternating whole tasks charge candidate restart authoring, binary input transfer, parsing, regional construction, every decode/draw/readback/hash and teardown: baseline 17.893 ms, candidate 130.348 ms, saving -628.47% with bootstrap95 [-991.37, -376.97], failing the declared 10% lower-bound gate. Original/restart file sizes are 147894/148061 bytes. Correctness passes but this repeated regional workload does not repay authoring and repeated small decodes against a retained full-image baseline. Both paths read the full compressed source; no sparse network, browser parallelism or physical memory claim. Stop this measured variant, preserving the useful coefficient-preserving authoring capability."
+}

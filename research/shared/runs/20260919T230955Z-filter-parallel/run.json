@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "run_id": "20260919T230955Z-filter-parallel",
+  "item_keys": [
+    "R245.parallelize-recursive-audio-effects-by-correcting-each-chunks-initial-state"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Not used; actual host controlled DSP execution",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual four-process zero-state chunk filtering and affine missing-history correction of96000samples plus4096zero tail. Complete100096outputs match ordinary scalar IIR recurrence within1.943e-16 under1e-12 tolerance; omitted correction changes output. Three/four actual worker PIDs per job captured; source/filter/cancel guards, queued-future cancellation and process-pool shutdown pass. Five alternating complete cold source/hash/process startup/serialization/scheduling/transfer/correction/aggregation/shutdown jobs157.772ms versus serial31.945ms ratio4.93891 fails<=0.9. Numeric source+zero-block payload1601536bytes is explicitly notRSS."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold Python process-pool chunk-correction profile. The mathematical correction works at declared tolerance and full requested tail, but scheduling/transfer/startup dominate this workload. Persistent workers, another runtime or larger workload require a new matched predeclared experiment; no automatic route or general exact floating-point parallelization claim.",
+  "reused_evidence": [],
+  "commands_log": "research/shared/runs/20260919T230955Z-filter-parallel/commands.log"
+}

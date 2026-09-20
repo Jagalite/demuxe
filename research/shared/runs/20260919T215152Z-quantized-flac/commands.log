@@ -1,0 +1,7 @@
+["ffmpeg", "-v", "error", "-y", "-i", "results/top100/audio/lossless.wav", "-c:a", "ac3", "-b:a", "192k", "research/shared/runs/20260919T_audio_quantized_flac/source.ac3"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_quantized_flac/source.ac3", "-f", "f32le", "-"]
+["ffmpeg", "-v", "error", "-y", "-f", "s32le", "-ar", "48000", "-ac", "2", "-i", "research/shared/runs/20260919T_audio_quantized_flac/quant.s32", "-c:a", "flac", "-sample_fmt", "s32", "-bits_per_raw_sample", "24", "research/shared/runs/20260919T_audio_quantized_flac/quant.flac"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_quantized_flac/quant.flac", "-f", "s32le", "-"]
+node research/shared/tooling/audio-stage-probes/quantized_flac_cost.mjs research/shared/runs/20260919T_audio_quantized_flac
+node research/shared/tooling/audio-stage-probes/flac32_destination.mjs research/shared/runs/20260919T_audio_quantized_flac
+node research/shared/tooling/audio-stage-probes/quantized_flac32_cost.mjs research/shared/runs/20260919T_audio_quantized_flac

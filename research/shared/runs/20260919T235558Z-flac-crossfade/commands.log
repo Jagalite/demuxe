@@ -1,0 +1,88 @@
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "aevalsrc=0.7*sin(2*PI*431*t):s=48000:d=2", "-sample_fmt", "s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "aevalsrc=0.7*sin(2*PI*631*t):s=48000:d=2", "-sample_fmt", "s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=81919", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=83999", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=84000", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=95999", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=96288", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["flac", "--silent", "--force", "--decode", "--force-raw-format", "--endian=little", "--sign=signed", "--skip=179400", "--until=+512", "-o", "research/shared/runs/20260919T_audio_flac_crossfade/seek.s16", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac"], "exit": 0, "stderr": "output.flac: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n"}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/baseline.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/a.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/b.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-a.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/edge-b.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", "48000", "-ac", "1", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.s16", "-c:a", "flac", "-frame_size", "4096", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffprobe", "-v", "error", "-show_packets", "-of", "json", "research/shared/runs/20260919T_audio_flac_crossfade/bridge.flac"], "exit": 0, "stderr": ""}
+{"args": ["ffmpeg", "-v", "error", "-y", "-i", "research/shared/runs/20260919T_audio_flac_crossfade/output.flac", "-f", "s16le", "-"], "exit": 0, "stderr": ""}
+python3 research/shared/tooling/audio-stage-probes/flac_crossfade.py research/shared/runs/20260919T_audio_flac_crossfade
+node research/shared/tooling/audio-stage-probes/flac_crossfade_browser.mjs research/shared/runs/20260919T_audio_flac_crossfade

@@ -2,28 +2,18 @@
 
 # MSE timestampOffset concatenation [report paragraph label]
 
-Full identity: `R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier`. Original rank: 140.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-Current SourceBuffers use segments mode and zero offset for one already biased source timeline. Explicit 0/2/4 concatenation needs asset/source mapping and boundary priming, not just timestampOffset changes.
-
-No matching candidate/reference/control execution for this exact gate. Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation.
-
-Next action: Define one two-clip source-to-presentation map and compare explicit offset join to reference; a B-frame/nonzero-origin clip must retain internal timing and not double-apply bias. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. Explicit segment offsets-3/-5 map sourceDTSepochs3/7 into outputDTS0/2 while retaining83.333ms composition lead, yielding[.083333,4.083332]. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two-asset timeline and priming map; existing offset primitives do not prove nonzero-origin/B-frame concatenation. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Explicit segment offsets-3/-5 map sourceDTSepochs3/7 into outputDTS0/2 while retaining83.333ms composition lead, yielding[.083333,4.083332]. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden. |
+| correctness | passed | Explicit segment offsets-3/-5 map sourceDTSepochs3/7 into outputDTS0/2 while retaining83.333ms composition lead, yielding[.083333,4.083332]. Actual two-sourceB-frame24fps160x96AVC,48codedpacketseach, allcompositionreordered; exactindependentRGBA/ordinal mapping, crossboundary reverse/forward seeks, EOF andcleanup. A delayedactualReadableStream read fromoldgeneration isrejected beforeappend withrangesunchanged. Deliberatedoublebias produces onlyfirst2.083332s andcontrol detects missingsecondinterval. Video-only reportcapability; noselectedaudio/gaplessAAC, arbitrarycontainer orproductionqueueclaim. |
+| performance | not_applicable | Literal report investigates whether requested timeline mapping works; no completecost orresource-saving hypothesis. Capabilityendpoint doesnot require manufacturing a benchmark. All outputtiming distinctions areexplicit. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Explicit segment offsets-3/-5 map sourceDTSepochs3/7 into outputDTS0/2 while retaining83.333ms composition lead, yielding[.083333,4.083332]. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Bounded timeline report stage complete. Reopen for selectedaudio andencoderpriming, maintainedsessionplan integration ornewsourceepochs; preservemode-specific source-to-presentation map andsingleapplication ofbias.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

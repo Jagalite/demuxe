@@ -2,14 +2,20 @@
 
 # Play an ongoing fMP4 response through one native URL
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Current decision: **stop_current_profile**. The current finite native URL construction cannot combine the already-requested early-output and seek-fidelity gates. Without HTTP ranges, all96 pictures arrive before responseEOF but seeking clamps0 and one buffering-silence interval interrupts PCM. With correct ranges, all pictures,385024 active PCM samples and seeks match, but output waits until responseEOF. Preserve the narrower sequential nonseekable capability as positive; stop this combined recipe, not native progressive media universally.
 
-Reconciled completed prior evidence: Native URL produces marked audio/video before response EOF with a four-second initial fragment; one-second initial fragment waited for EOF with either known or unknown total length, whereas MSE produced output early. Pursue only for an explicit buffering/latency contract, not assumed low-latency equivalence.
+| Stage | Status | Basis |
+| --- | --- | --- |
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | The current finite native URL construction cannot combine the already-requested early-output and seek-fidelity gates. Without HTTP ranges, all96 pictures arrive before responseEOF but seeking clamps0 and one buffering-silence interval interrupts PCM. With correct ranges, all pictures,385024 active PCM samples and seeks match, but output waits until responseEOF. Preserve the narrower sequential nonseekable capability as positive; stop this combined recipe, not native progressive media universally. |
+| correctness | failed | Independent full-response native playback yields96distinct complete160x96 RGBA pictures; both progressive variants match all96. Non-Range variant has exact decoded PCM order after explicitly removing a measured buffering-silence interval, but three requested seeks(.3,6.3,1.3s) clamp0; cancellation closes pendingresponse and actual truncation/refused resume errors withoutfalseEOF. Range-capable variant preserves all385024activePCM samples exactly and allthree exact seek images, but firstoutput occurs afterresponseEOF. This fails the current combined capability contract; no gapless, endless-live, reconnection or production claim. |
+| performance | not_applicable | No timing benefit benchmark after combined route contract fails. Observed first-output/EOF ordering and buffering silence are feasibility diagnostics, not CPU/latency savings. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: The current finite native URL construction cannot combine the already-requested early-output and seek-fidelity gates. Without HTTP ranges, all96 pictures arrive before responseEOF but seeking clamps0 and one buffering-silence interval interrupts PCM. With correct ranges, all pictures,385024 active PCM samples and seeks match, but output waits until responseEOF. Preserve the narrower sequential nonseekable capability as positive; stop this combined recipe, not native progressive media universally. |
 
-Correctness: **pending**. Performance: **pending**.
+Next/reopen: Reopen with a source/delivery profile that demonstrates correct early output and declared seek behavior together, or explicitly choose a sequential nonseekable endpoint accepting measured buffering. Preserve separate transport/cancellation semantics; do not infer low latency from early color/tone alone.
 
-With four-second initial fragment, native known/unknown-length URL produces marked A/V before response EOF; original one-second-first-fragment variant waited. MSE control output early. No exact full output or source cancellation/seek fidelity is established by delivery observation.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
 
-Next: Declare buffering/latency and cancellation/seek contract, then compare independent full output and adverse truncated response.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+Provenance correction: [late console flush](evidence/20260919T220100Z-late-console-provenance/analysis.md) preserves the final console bytes separately after premature registration of an empty stream. Scientific results and decision are unchanged.

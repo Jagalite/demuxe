@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222800Z-integrity-unit-priority",
+  "item_keys": [
+    "R130.protect-reference-critical-bytes-more-heavily-than-disposable-bytes"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:02:41.715062+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R130.protect-reference-critical-bytes-more-heavily-than-disposable-bytes/tests/priority-units.py research/items/R130.protect-reference-critical-bytes-more-heavily-than-disposable-bytes/evidence/20260919T222800Z-integrity-unit-priority"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "72607f612f20a9a3d1a1db1c0425b17c9e75baa52415950e9ae142e76ede1ed8",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "not_applicable",
+      "basis": "Bounded opportunity screen parses every actual length-prefixed AVC packet, distinguishes VCL nal_ref_idc and maps exact byte overlap. Both reference/non-reference classes exist; all IDRs critical, no non-reference IDR. No repair candidate is admitted because every current protected unit is critical; no decoding/fidelity success claimed."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "No differing allocation exists at tested1KiB/4KiB/16KiB whole-unit granularity under conservative reference importance, so an equal-budget repair benchmark is not applicable to this profile. No synthetic favorable loss schedule or inferred network saving."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with a concrete byte/packet FEC owner and source where authenticated protected units separate dependency classes, or an exact dependency graph justifying unequal weights among references. Then compare equal repair bytes over predeclared losses and verify reconstructed compressed bytes before decode."
+}

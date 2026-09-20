@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "20260919T230613Z-flac-polarity",
+  "item_keys": [
+    "R322.invert-flac-polarity-directly-in-the-residual-domain"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual signed16 FLAC fixed predictors0 through4,21bit escape residuals: warmups/residuals negated and frame CRCs regenerated. Streaming recurrence checks sample headroom with at most4 previous samples, so no claim of avoiding all reconstruction work. Every2570 output sample matches independent integer polarity oracle in host and Chrome; double inversion restores original compressed bytes. Each predictor rejects -32768 both at first sample and predicted body; generalLPC with validCRC, residual overflow, CRC corruption and truncation reject. Independent libFLAC integrity and native render/end/closed pass. Five alternating full source-read/parse/headroom-check/coded-transform/write/destination-decode jobs49.868ms versus ordinary decode/PCM-negate/FLAC-encode/destination-decode95.074ms ratio0.52452 passes<=0.9; output/source bytes1.0."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue only standalone lossless polarity-inverted FLAC for admitted fixed predictors0..4 with these bounded escape residuals and validated integer headroom. This is not a comparison against simply negating already-decoded playback PCM, and sample reconstruction for validation remains charged. Rice partitions, shifted LPC, broader workloads and production integration remain unqualified; no default route change.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_bits.py"
+  ],
+  "commands_log": "research/shared/runs/20260919T230613Z-flac-polarity/commands.log"
+}

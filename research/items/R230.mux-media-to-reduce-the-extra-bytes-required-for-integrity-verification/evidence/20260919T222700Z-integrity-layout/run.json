@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222700Z-integrity-layout",
+  "item_keys": [
+    "R230.mux-media-to-reduce-the-extra-bytes-required-for-integrity-verification"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:01:11.125031+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R230.mux-media-to-reduce-the-extra-bytes-required-for-integrity-verification/tests/layout.py research/items/R230.mux-media-to-reduce-the-extra-bytes-required-for-integrity-verification/evidence/20260919T222700Z-integrity-layout"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "b1045276e7f6385b3f728d0652cd6443bf70f62325d7f603a06a667b70f2baa0",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent FFprobe packet timing/flags/SHA256 and complete FFmpeg A/V framemd5 sequences exact. Both prepared layouts omit original absolute mfra index, avoiding stale references. Actual file-root Merkle proofs verify all required16KiB leaves; altered source fails its pinned root. Host mux/verified-byte component, not browser or torrent protocol qualification."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Deterministic exact-byte gate: two cold verified reads cover init+startup group and init+distant group, unique leaf indices counted per job including final partial leaf. Candidate padding1.661% passes2%; authenticated bytes save3.204% fails5%. No statistical interval needed for exact byte count, and no latency benchmark admitted after gate failure."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with a concrete media layout and seek distribution where authenticated-leaf overfetch exceeds this bounded padding cost. Preserve ordinary interleaving when no material verification-unit reduction exists."
+}

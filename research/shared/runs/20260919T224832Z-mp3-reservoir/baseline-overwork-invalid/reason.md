@@ -1,0 +1,1 @@
+Initial cost baseline unnecessarily reconstructed coded units before copying original frame suffixes. This overstates baseline setup; raw cost retained invalid. Final baseline indexes original frames directly without coded-unit parse/reconstruction.

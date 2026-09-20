@@ -1,0 +1,5 @@
+{
+  "scope": "Specific FFmpeg96tap DSD lowpass at2.8224MHz\u2192352.8k PCM, followed by explicit17tap PCM FIR decimation8 to44.1k. Candidate composes K[l]=sum_j g[j]h[l-8j] and uses packed-byte lookup tables directly. Baseline also packed-byte tables, not naive bit expansion.",
+  "correctness": "Compare baseline and fused full requested44100rate output against actual FFmpeg DSD decode then independent Python second FIR. Explicit1e-6abs tolerance accommodates eliminated intermediatefloat rounding.128packed-byte prefix establishes declared history,128byte tail covers compositeFIR; same sample phase/delay. Wrong bitorder/filter controls, malformed metadata/rate/identity not part bare component; source and coefficient hashes pinned.",
+  "performance": "Five alternating compiled complete packed read, cold table construction, actual filtering, retained intermediate where applicable, output write/read; <=0.9cost, compile excluded. Baseline retains efficient packed lookup behavior. No broad DSD decoder or spectral-quality claim."
+}

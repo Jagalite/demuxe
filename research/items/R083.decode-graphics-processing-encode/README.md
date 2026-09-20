@@ -2,12 +2,10 @@
 
 # Decode → graphics processing → encode
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **stop_current_profile**. correctness: **failed**, performance: **not_applicable**.
 
-Current graphics owner presents, not encodes; software handles requested video filters. Historical MediaRecorder pilot dropped callbacks and had transformed-pixel error. Shared physical GPU API availability removes only a prerequisite, not frame/timestamp preserving encode integration.
+Actual3-frame128x96 VP9 decode→WebGPU RGBinversion→timestamp-ownedcanvasVideoFrame→nativeVP9 VideoEncoder→independentfinaldecode. Same nativeencoder CPUinversion reference validatesallsourceRGBA againstindependentFFmpeg. Bothroutes encode/decodeall3frames at0/41667/83333us, includinglastframe; no MediaRecorder callback/real-time loss confound. Strictoutputfails: independenthostfinalI420 has2591different samples,max15. PreencoderGPUtransformedframe RGBA diagnostics already128/144/128differentchannels,max68, concentratedlast-column green; CPUinvertedinputs0differences. GPUcanvasframesBGRX vsCPUframesRGBA, identicaldeclaredsRGB/BT709/fullrange metadata. Failurethus precedesfinalencoding, but GPUYUVconversion versus canvasframecapture subboundary notfullyisolated. Onebounded source-path correction replacesRGBAcopyExternalImage staging withimportExternalTexture+textureSampleBaseClampToEdge; sameexactfailedoutputhashes, no thresholdrelaxation. Earlierstagingroute andintermediatediagnosis retained. Actualstale transformedframe discarded beforeencoderhandoff yields0encodedoutputs; freshsurvivor reproducescandidate output,38frames/9decoders/5encoders openedandclosed; wrongnoinversion outputdiffers andmissinglastframe detected. Lifecycle/timestamps pass but pixelcontractfails; no performancepairs run. browserdiagnosticharness passed=true isnotfidelitypass: strictComparisonPassed=false andresults.json explicitfalse. StopcurrentGPUvideo-to-canvas inversionroute; no productionrouting or realtimequalification.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: ReopenonlyafterfirstGPUcolor/canvascapturedivergence isfixed underexactsame3-frame independentCPU/hostoracle; preserve allPTS/lastframe/stalehandoffcontrols. Do notbenchmark or routeproduction on APIavailability/completeframecount alone.
 
-Next: Define one three-frame deterministic inversion encode with timestamp ownership before realtime tests; compare full retained frame identities.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T003140Z-external-texture-source/analysis.md)

@@ -1,0 +1,6 @@
+ffmpeg -hide_banner -y -f lavfi -i testsrc2=size=64x48:rate=12 -frames:v 48 -c:v libx264 -pix_fmt yuv420p -profile:v baseline -g 12 -keyint_min 12 -sc_threshold 0 -bf 0 -f h264 research/items/R085.out-of-order-gop-decode-and-reverse-presentation/evidence/20260919T222505Z-bounded-regions/gop.h264
+ffprobe -v error -show_packets -of json research/items/R085.out-of-order-gop-decode-and-reverse-presentation/evidence/20260919T222505Z-bounded-regions/gop.h264
+ffmpeg -v error -i research/items/R085.out-of-order-gop-decode-and-reverse-presentation/evidence/20260919T222505Z-bounded-regions/gop.h264 -pix_fmt yuv420p -fps_mode passthrough -f rawvideo -
+ffmpeg -version
+
+node research/items/R085.out-of-order-gop-decode-and-reverse-presentation/tests/bounded-regions.mjs research/items/R085.out-of-order-gop-decode-and-reverse-presentation/evidence/20260919T222505Z-bounded-regions

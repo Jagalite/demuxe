@@ -2,28 +2,24 @@
 
 # Decode seek preroll without producing unwanted presentation frames
 
-Full identity: `R135.decode-seek-preroll-without-producing-unwanted-presentation-frames`. Original rank: 207.
+Full identity: `R135.decode-seek-preroll-without-producing-unwanted-presentation-frames`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **inconclusive** (actual-route screen).
 
-Current remux preserves encoded samples and decoder bridge has no AV1 display-instruction rewriter. Suppressing presentation while retaining reference decoding requires authoring legal hidden preroll, not toggling a generic visibility flag.
+Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit.
 
-No matching candidate/reference/control execution for this exact gate. Reference-validated constrained AV1 hidden-preroll sequence with required-reference negative control.
-
-Next action: Prepare one reference-decoder-validated AV1 preroll sequence, compare continuing pictures and timestamps, and remove a required reference as adverse control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Research profile complete; reopen only with a representative longer-preroll workload and a stable cost benefit. Constrained syntax author is not a general AV1 rewriter.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Reference-validated constrained AV1 hidden-preroll sequence with required-reference negative control. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Reference-validated constrained AV1 hidden-preroll sequence with required-reference negative control. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
+| screen | passed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
+| correctness | passed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
+| performance | failed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
+| results | passed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
+| decision | passed | Constrained AV1 writer legally hides both key and inter preroll by authoring showable/error-resilient/refresh fields and header alignment while preserving entropy tile bytes. Independent host and actual Chrome output only exact target picture2; baseline outputs two unwanted pictures that are closed immediately. Missing required reference silently produces wrong target and is detected; naive display-bit flip fails syntax; reset requires rebuilding dependencies. Seven alternating50-fresh-owner jobs include header rewriting, decode, full target witness and cleanup: median0%cost saving, observed−140.40%to21.97%, misses5%gate. Reduced callbacks are not established latency benefit. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260919T224958Z-av1-hidden-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual fixed-order3/Rice1 FLAC temporal split:48original4096sample frames become96frames2048, predictor/residual values reused, second warmups derived with rolling3sample history, Rice partitions/numbering/STREAMINFO/CRCs rebuilt. All196608samples exactly match original host/native PCM; actual libFLAC --skip2048 suffix and Chrome encoded forward1.2s/back0.3s seek, EOF/cleanup pass. Wrong frame numbering passes sequential libFLAC validation but fails actual seek, demonstrating separate seek gate. CRC/truncation/unsafe cut reject. Initial tiny4096sample candidate and ordinary baseline both failed Chrome encoded seek, including padding variant; all preserved and longer4.096s workload resolves consumer gate. Five full cold read/parse/warmup/Ricewrite/destination-decode jobs496.581ms versus ordinary2048frame reencode/decode89.667ms ratio5.53808 fails<=0.9.
+
+Stop this Python temporal-frame split cost profile. Exact PCM, valid numbering and real seeking are demonstrated at the longer admitted workload, but avoiding prediction search does not offset entropy/parser overhead. Tiny-file Chrome seek failure remains an explicit common destination limitation. Other split positions, predictor modes/partitions, compiled implementation or production integration require new evidence.
+
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.

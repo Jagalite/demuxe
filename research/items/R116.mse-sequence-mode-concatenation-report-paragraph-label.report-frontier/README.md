@@ -2,28 +2,18 @@
 
 # MSE sequence-mode concatenation [report paragraph label]
 
-Full identity: `R116.mse-sequence-mode-concatenation-report-paragraph-label.report-frontier`. Original rank: 179.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-Current per-source segments timeline intentionally preserves source timing bias. Sequence concatenation requires logical asset mapping and exact audio/lead semantics; report red/green/blue samples do not establish all requested A/V boundaries.
-
-No matching candidate/reference/control execution for this exact gate. Two-source sequence-mode queue map with exact priming/lead and nonzero-origin timing oracle.
-
-Next action: Define a two-clip queue contract and compare sequence versus explicit-offset output including audio priming; nonzero-origin/B-frame clip must not acquire unintended timing shifts. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. Sequence mode, without manual transition offsets, automatically uses-3.083333/-5.083334 and yields adjacent[0,3.999998] picture epochs from sourceDTS3/7. It intentionally removes each epoch leadingpresentationbias; it isnotidentical toexplicitsegments mapping. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Two-source sequence-mode queue map with exact priming/lead and nonzero-origin timing oracle. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two-source sequence-mode queue map with exact priming/lead and nonzero-origin timing oracle. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Sequence mode, without manual transition offsets, automatically uses-3.083333/-5.083334 and yields adjacent[0,3.999998] picture epochs from sourceDTS3/7. It intentionally removes each epoch leadingpresentationbias; it isnotidentical toexplicitsegments mapping. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden. |
+| correctness | passed | Sequence mode, without manual transition offsets, automatically uses-3.083333/-5.083334 and yields adjacent[0,3.999998] picture epochs from sourceDTS3/7. It intentionally removes each epoch leadingpresentationbias; it isnotidentical toexplicitsegments mapping. Actual two-sourceB-frame24fps160x96AVC,48codedpacketseach, allcompositionreordered; exactindependentRGBA/ordinal mapping, crossboundary reverse/forward seeks, EOF andcleanup. A delayedactualReadableStream read fromoldgeneration isrejected beforeappend withrangesunchanged. Deliberatedoublebias produces onlyfirst2.083332s andcontrol detects missingsecondinterval. Video-only reportcapability; noselectedaudio/gaplessAAC, arbitrarycontainer orproductionqueueclaim. |
+| performance | not_applicable | Literal report investigates whether requested timeline mapping works; no completecost orresource-saving hypothesis. Capabilityendpoint doesnot require manufacturing a benchmark. All outputtiming distinctions areexplicit. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Sequence mode, without manual transition offsets, automatically uses-3.083333/-5.083334 and yields adjacent[0,3.999998] picture epochs from sourceDTS3/7. It intentionally removes each epoch leadingpresentationbias; it isnotidentical toexplicitsegments mapping. All96complete queriedimages and95subsequentcontinuousimages plusinitialpicture match isolatedsource oracles; no doublebias or stalegenerationpublication ishidden. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Bounded timeline report stage complete. Reopen for selectedaudio andencoderpriming, maintainedsessionplan integration ornewsourceepochs; preservemode-specific source-to-presentation map andsingleapplication ofbias.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

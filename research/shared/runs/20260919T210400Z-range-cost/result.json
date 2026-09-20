@@ -1,0 +1,189 @@
+{
+  "plan": {
+    "item": "R216.one-request-for-distant-byte-ranges",
+    "contract": "Three distant byte ranges within an owned resource, each a complete independently decodable copy of the existing generated2second H264/AAC movie. Compare three concurrent ordinary requests (cheapest correct baseline) with one multipart request, all receiving15ms per-request server delay. Parse exact Content-Range/body boundaries and reject truncation; all extracted movies must equal independent source bytes.",
+    "sampling": "Eleven alternating pairs over same HTTP origin, shared connection pool; complete fetch/body parsing/output gather measured. Fixture setup common to both.",
+    "threshold": "95% bootstrap lower bound of paired latency saving must exceed5%; otherwise no worthwhile latency benefit for this local parallel-range workload. Request-count and response-byte differences are reported separately."
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "parallel": {
+        "ms": 37.591999999999985,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 19.576458000000002,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 1,
+      "multipart": {
+        "ms": 17.16383300000001,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      },
+      "parallel": {
+        "ms": 19.096708000000035,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 2,
+      "parallel": {
+        "ms": 22.404083000000014,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 16.79445800000002,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 3,
+      "multipart": {
+        "ms": 17.704916999999966,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      },
+      "parallel": {
+        "ms": 20.70783300000005,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 4,
+      "parallel": {
+        "ms": 17.383958000000007,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 17.109249999999975,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 5,
+      "multipart": {
+        "ms": 17.100458000000003,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      },
+      "parallel": {
+        "ms": 17.281000000000063,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 6,
+      "parallel": {
+        "ms": 17.234833999999978,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 16.947874999999954,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 7,
+      "multipart": {
+        "ms": 16.959040999999957,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      },
+      "parallel": {
+        "ms": 17.049624999999992,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 8,
+      "parallel": {
+        "ms": 17.089500000000044,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 17.05174999999997,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 9,
+      "multipart": {
+        "ms": 16.324041999999963,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      },
+      "parallel": {
+        "ms": 16.757458999999926,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      }
+    },
+    {
+      "pair": 10,
+      "parallel": {
+        "ms": 16.834957999999915,
+        "responseBytes": 86637,
+        "requests": 3,
+        "completeMoviesExact": 3
+      },
+      "multipart": {
+        "ms": 16.44804099999999,
+        "responseBytes": 86884,
+        "requests": 1,
+        "completeMoviesExact": 3
+      }
+    }
+  ],
+  "sourceSHA256": "f168ac2efec2e118cf25536d32c5a92657e0d0a610261fcf2b8273521b3d3c59",
+  "vDecodedSHA256": "60d63c39a7e26b3ff946ec50b71605826f6fa4cf8dc8e8d52d964af65dd66388",
+  "aDecodedSHA256": "226970c07b7b220e52bd4d21f213d627061cfada30517c3e7080a7f69b26deb4",
+  "analysis": {
+    "medianSaving": 0.022982950120809753,
+    "bootstrap95": [
+      0.010447427810894028,
+      0.1450135318360003
+    ],
+    "accepted": false,
+    "parallelMedianMs": 17.281000000000063,
+    "multipartMedianMs": 17.05174999999997
+  },
+  "passed": true
+}

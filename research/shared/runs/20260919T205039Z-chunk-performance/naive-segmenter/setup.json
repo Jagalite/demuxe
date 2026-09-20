@@ -1,0 +1,71 @@
+{
+  "chunks": [
+    "chunk-000.flac",
+    "chunk-001.flac",
+    "chunk-002.flac",
+    "chunk-003.flac",
+    "chunk-004.flac",
+    "chunk-005.flac",
+    "chunk-006.flac",
+    "chunk-007.flac",
+    "chunk-008.flac",
+    "chunk-009.flac",
+    "chunk-010.flac",
+    "chunk-011.flac",
+    "chunk-012.flac",
+    "chunk-013.flac",
+    "chunk-014.flac",
+    "chunk-015.flac"
+  ],
+  "preparation_seconds": 0.10410883399890736,
+  "source_bytes": 823295,
+  "chunk_bytes": 947615,
+  "commands": [
+    {
+      "args": [
+        "ffmpeg",
+        "-nostdin",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "aevalsrc=0.3*sin(2*PI*(411*t+0.7*t*t))|0.25*sin(2*PI*(713*t+0.4*t*t)):s=48000:d=30",
+        "-sample_fmt",
+        "s16",
+        "-c:a",
+        "flac",
+        "research/shared/runs/20260919T_audio_chunk_performance/source.flac"
+      ],
+      "wall_seconds": 0.6481498749926686,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "ffmpeg",
+        "-nostdin",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "research/shared/runs/20260919T_audio_chunk_performance/source.flac",
+        "-c:a",
+        "flac",
+        "-f",
+        "segment",
+        "-segment_time",
+        "2",
+        "-reset_timestamps",
+        "1",
+        "research/shared/runs/20260919T_audio_chunk_performance/chunk-%03d.flac"
+      ],
+      "wall_seconds": 0.10410883399890736,
+      "exit": 0,
+      "stderr": ""
+    }
+  ]
+}

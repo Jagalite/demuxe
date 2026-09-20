@@ -1,0 +1,5 @@
+ffmpeg -v error -f rawvideo -pixel_format yuv420p -video_size 96x64 -framerate 12 -i research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/evidence/20260919T220411Z-native-relay/source.yuv -c:v libx264 -qp 0 -g 12 -bf 0 -pix_fmt yuv420p research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/evidence/20260919T220411Z-native-relay/source.mp4
+ffmpeg -v error -i research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/evidence/20260919T220411Z-native-relay/source.mp4 -pix_fmt rgba -fps_mode passthrough -f rawvideo -
+
+node research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/tests/native-relay.mjs research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/evidence/20260919T220411Z-native-relay
+node research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/tests/relay-cancellation.mjs research/items/R145.native-frame-relay-without-js-pixel-readback.report-continuity/evidence/20260919T220411Z-native-relay

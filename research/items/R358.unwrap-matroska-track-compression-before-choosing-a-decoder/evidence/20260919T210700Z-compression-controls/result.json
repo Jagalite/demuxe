@@ -1,0 +1,93 @@
+{
+  "scope": "Real pinned non-pthread FFmpeg AVIO suspending through JSPI on non-isolated HTTP; zlib Matroska build shares same profile. Captured output independently verified. Test reader has no production authorization/refresh layer.",
+  "cases": [
+    {
+      "name": "zlib",
+      "done": true,
+      "ticks": 15,
+      "reads": 1,
+      "isolated": false,
+      "shared": "undefined",
+      "heapShared": "ArrayBuffer",
+      "mime": "video/webm; codecs=\"vp09.00.10.08,opus\"",
+      "outputSHA256": "20b7687c750750965f90674c1e17362cf5d8d85589e41bcb4dbedba536de6241",
+      "independentDecodedPixelsAndPCMExact": true
+    },
+    {
+      "name": "malformed",
+      "done": true,
+      "ticks": 8,
+      "reads": 1,
+      "isolated": false,
+      "shared": "undefined",
+      "heapShared": "ArrayBuffer",
+      "mime": "video/webm; codecs=\"vp09.00.10.08,opus\"",
+      "outputSHA256": "c30ff04ad15cb93dc08f786b4e9a1dfa9ba5ab7cdbcfe373c67e3bfd675a527b"
+    },
+    {
+      "name": "oversize",
+      "done": true,
+      "ticks": 14,
+      "reads": 2,
+      "isolated": false,
+      "shared": "undefined",
+      "heapShared": "ArrayBuffer",
+      "mime": "video/webm; codecs=\"vp09.00.10.08,opus\"",
+      "outputSHA256": "c30ff04ad15cb93dc08f786b4e9a1dfa9ba5ab7cdbcfe373c67e3bfd675a527b"
+    },
+    {
+      "name": "unsupported",
+      "error": "Error: Invalid VP9 frame marker",
+      "ticks": 9,
+      "reads": 1
+    }
+  ],
+  "requests": [
+    {
+      "url": "/fixture/zlib",
+      "start": 0,
+      "end": 36116
+    },
+    {
+      "url": "/fixture/malformed",
+      "start": 0,
+      "end": 35712
+    },
+    {
+      "url": "/fixture/oversize",
+      "start": 0,
+      "end": 65535
+    },
+    {
+      "url": "/fixture/oversize",
+      "start": 65536,
+      "end": 68329
+    },
+    {
+      "url": "/fixture/unsupported",
+      "start": 0,
+      "end": 36116
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "capability": {
+    "isolated": false,
+    "Suspending": "function",
+    "promising": "function"
+  },
+  "adverse": [
+    {
+      "name": "malformed",
+      "done": true
+    },
+    {
+      "name": "oversize",
+      "done": true
+    },
+    {
+      "name": "unsupported",
+      "error": "Error: Invalid VP9 frame marker"
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: {\"name\":\"malformed\",\"done\":true,\"ticks\":8,\"reads\":1,\"isolated\":false,\"shared\":\"undefined\",\"heapShared\":\"ArrayBuffer\",\"mime\":\"video/webm; codecs=\\\"vp09.00.10.08,opus\\\"\",\"outputSHA256\":\"c30ff04ad15cb93dc08f786b4e9a1dfa9ba5ab7cdbcfe373c67e3bfd675a527b\"}\n    at file:///Volumes/seed2/Projects/demuxe/research/items/R358.unwrap-matroska-track-compression-before-choosing-a-decoder/tests/snapshots/compression-controls.mjs:6:2120"
+}

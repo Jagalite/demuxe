@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Explicit1:1→4:3aspect request changesonly3bytes inexistingavcC SPS/pasp; sourceandcandidate both101762bytes, nooffsetmoves. All90B-framepacketpayloads/flags/PTS/DTS/duration andall90hostdecodedpictures exact. Chromeintrinsicdisplaygeometry changes320x180→427x180 whileall90independent pausedfullpicturehashes equal; source replacement restores320x180/requiredframe andsuppressesdelayedoldgeometry. WrongSPSlength/type rejectbeforemutation. Thisqualifiesconstantlength metadata-onlyaspectcorrection; no AnnexBremux timing disturbance, no realtimezerodrop/CPU/generalSPSrewriter claim.

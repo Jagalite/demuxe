@@ -2,12 +2,10 @@
 
 # guarded narrow arithmetic
 
-Current disposition: **pursue**. Historical review; no new media execution.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Actual pinned 8-bit 4x4 IDCT body equals guarded int16-intermediate candidate on 65536 threshold-corner and 20000 random blocks under UBSan; 2673,-2673,-32768 reject. Scalar arithmetic component correctness only; no real coefficient admission or SIMD performance.
+PinnedFFmpeg scalar4x4IDCT guardednarrow variant now includes actualguard+fallback cost. NewUBSan run and4096mixedeligible/ineligibleblocks compare exact outputpixels and clearedcoefficients against unchanged pinnedbaseline, retaining85536corner/randomproof. Deterministic50%within2672guard and50%ineligible3000 coefficientblocks; onemillionblockowner tasks withinputgeneration/prechecks/processstartup/dispatch/copies/checksum/exit included. Candidate23.787ms versusbaseline25.335ms: saving6.11% bootstrap95[-7.593754202191438, 18.14447076302259], no accepted10%valuegate. Native scalar syntheticdistribution, not realcodec admission/SIMD or production speed proof. Historical LGPL sourcebody unmodified; originalnoticesretained and independentApache wrapperonly.
 
-Prepare: **passed**. Correctness: **passed**. Performance: **pending**.
+Next: Scoped guardedscalar experiment complete without established value. Reopen with real coefficient admission traces and a separately implemented SIMD candidate, includingguard/fallback/copycost; no production integration justified yet.
 
-Next: Capture real coefficient guard-admission distribution and include guard/fallback/SIMD cost before integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T211910Z-guard-cost/analysis.md)

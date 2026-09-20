@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T210000Z-equivalent-seek-cost",
+  "item_keys": [
+    "R262.configuration-interval-seek"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T20:41:40.884561+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R262.configuration-interval-seek/tests/cost.mjs",
+    "Python statistics median paired savings;10000bootstrap medians using seed262"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "af5c8a5fcc95bc35619e6e33cdd092edec88d4593ced3c66825d452f60eb11de",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Both replay and indexed paths reproduce all48 independent requested frame hashes/PTS in qualification and every timed run, close all frames/decoders; prior dependent-start negative retained. Explicit supplied source-bound interval, not generalized indexing."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Predeclared11alternating-order pairs after qualification; complete configure/decode/target-copy/hash/flush/close measured. Median paired saving -2.04% misses5% threshold. Wide deterministic bootstrap95% interval[-27.47%,25.05%] gives no established speed benefit. Resident inputs/shared acquisition and cold index build excluded explicitly."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen only with a materially heavier preceding interval or measured repeated-seek workload; include cold index/acquisition and reuse count before any whole-route benefit claim. No production policy from this small noisy negative."
+}

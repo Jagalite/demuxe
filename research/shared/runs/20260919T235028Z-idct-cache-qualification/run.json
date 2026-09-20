@@ -1,0 +1,47 @@
+{
+  "stage": "decision",
+  "status": "completed",
+  "commands": [
+    "python3 research/shared/tooling/build-idct-cache.py research/shared/runs/20260919T234721Z-idct-cache",
+    "python3 research/shared/tooling/idct-cache-fixture.py research/shared/runs/20260919T234721Z-idct-cache",
+    "node research/shared/tooling/idct-cache-browser.mjs research/shared/runs/20260919T234721Z-idct-cache"
+  ],
+  "analysis": "A real compiled Wasm AVC decoder caches exact signed4x4 inverse-transform residuals keyed by all16 dequantized coefficients, before adding each blocks own prediction/clipping. Bounded1024-slot collision-checked cache excludes zero/DC-only work and resets per owner. Graphics60frames and natural60frames match independent host full planes/PTS in all7 paired browser jobs. Hits are380/8553 (4.44%) and2465/26916 (9.16%). Median decode+oracle cost ratios1.101 and1.123; complete cold load/start/two-source job1.017 with broad0.417\u20133.052 range. No useful gain established; stop this cache variant, without claiming a stable general slowdown. Residual storage is an explicit fixed1024*(valid4+coeff32+residual64)=102400bytes, not a claimed physical RSS measurement. Cache full-key memcmp handles hash collisions; exact natural and graphic outputs include changing predictors. Sequential source-owner reset is exercised. No general bit-depth/8x8/SIMD replacement or codec-wide fuzz claim.",
+  "decisions": [
+    {
+      "key": "R300.reuse-repeated-inverse-transform-results-across-different-video-blocks",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual_modified_software_decoder_in_browser",
+      "new_media_execution": true,
+      "reason": "A real compiled Wasm AVC decoder caches exact signed4x4 inverse-transform residuals keyed by all16 dequantized coefficients, before adding each blocks own prediction/clipping. Bounded1024-slot collision-checked cache excludes zero/DC-only work and resets per owner. Graphics60frames and natural60frames match independent host full planes/PTS in all7 paired browser jobs. Hits are380/8553 (4.44%) and2465/26916 (9.16%). Median decode+oracle cost ratios1.101 and1.123; complete cold load/start/two-source job1.017 with broad0.417\u20133.052 range. No useful gain established; stop this cache variant, without claiming a stable general slowdown.",
+      "next_action": "Reopen for a source with materially higher nontrivial coefficient reuse or cheaper measured lookup; retain pure residual/own-prediction separation and full-key collision checks.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Built matched actual FFmpeg IDCT Wasm variants and independent graphics/natural full-frame references."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Real decoder counters:8553/26916 eligible non-DC calls;380/2465 exact cache hits."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "120 full frames and timestamps exact in each of7 pairs; each new source resets cache, later references remain exact."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "No5% complete-job gain;1.017 median cold ratio,1.101/1.123 decode+oracle medians and102400B retained cache; variable timing disclosed."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T235028Z-idct-cache-qualification",
+  "recorded_at_utc": "2026-09-19T23:50:28.112499+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256": "1d1a8b80e1b40293a82fda91643f4919b5985e91e1b602c701ddf819e8a1e167",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -53,103 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
+      "status": "passed",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
+      "status": "passed",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Reuse research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis compressed fixtures to implement bounded block/selector permutation, comparing decode-transform output and partial-edge/BC3-alpha controls.",
+      "status": "failed",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
+      "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed",
-      "rank": 384,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current texture uploads are uncompressed YUV/RGBA, not BC1/BC3 video blocks. Shared GPU compression support is only a capability; source secondary compression and selector permutation are new format infrastructure. New R195 ETC1S\u2192BC1/BC3 run now provides a usable synthetic compressed-texture fixture and GPU renderer; this does not implement the required block/selector spatial permutation or BC3 alpha transform.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_i/audits/R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
-      ],
-      "next_test": "Reuse research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis compressed fixtures to implement bounded block/selector permutation, comparing decode-transform output and partial-edge/BC3-alpha controls.",
-      "reopen_condition": "Reuse research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis compressed fixtures to implement bounded block/selector permutation, comparing decode-transform output and partial-edge/BC3-alpha controls.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed",
+    "disposition": "inconclusive",
+    "evidence_level": "actual-route screen",
+    "new_media_execution": true,
+    "reason": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
+    "next_action": "Research profile complete; revisit only with an actual consumer requiring rewritten blocks rather than cheaper coordinate rotation, or larger representative workloads.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T00:33:37.605187+00:00",
+    "run_ids": [
+      "20260920T003337Z-bc-rotation-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T003337Z-bc-rotation-qualification/run.json"
+    ]
   },
-  "next_action": "Reuse research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis compressed fixtures to implement bounded block/selector permutation, comparing decode-transform output and partial-edge/BC3-alpha controls.",
+  "next_action": "Research profile complete; revisit only with an actual consumer requiring rewritten blocks rather than cheaper coordinate rotation, or larger representative workloads.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

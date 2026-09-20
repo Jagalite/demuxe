@@ -2,12 +2,24 @@
 
 # Keep explicit channel processing on the Native audio graph
 
-Current disposition: **pursue**. Historical review; no new media execution.
+Full key: `R061.keep-explicit-channel-processing-on-the-native-audio-graph`
 
-Historical browser explicit six-index channel permutation yields exact Float32 samples; intentionally wrong routing fails the independent channel oracle. Scope is specified indices, not inferred speaker semantics, physical output or complete route ownership.
+Current decision: **pursue** (2026-09-19T21:23:45.431436+00:00).
 
-Prepare: **passed**. Correctness: **passed**. Performance: **pending**.
+Actual browser decode→native channel graph output is sample-identical to independently materialized software-matrix output for both six-channel permutation/gains and four ACN/SN3D directions. Wrong ordering and failure to stop a real stale source produce large errors; stop/disconnect/closed lifecycle passes. Seven-pair full decode/setup/render ratios1.05190 and1.05202 pass the predeclared1.10 cost ceiling; no speedup, CPU, energy or opaque-memory claim.
 
-Next: Integrate only an explicitly requested channel matrix with source/graph replacement lifecycle; compare equivalent full graph cost before benefit claim.
+Pursue declared static indexed channel operations/directional renderer within bounded cost. Physical speakers, headtracking and realtime video-owner integration are separate from this offline component.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T212345Z-graph-cost/run.json) · [Analysis](../../shared/runs/20260919T212345Z-graph-cost/analysis.md) · [Manifest](../../shared/runs/20260919T212345Z-graph-cost/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

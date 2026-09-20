@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T215439Z-tail-retirement",
+  "item_keys": [
+    "R017.model-unequal-tails-as-explicit-track-lifetime-phases"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual Chrome EOS baseline and explicit ended SourceBuffer retirement both play6s with either2svideo/6saudio or6svideo/2saudio. Last red frame freezes correctly for audio-long tail; blue/red frames continue for video-long tail. Candidate backward restoration rebuilds same element MediaSource, closes old owner, restores both buffers and red frame at0.6s. Actual interior2..4video gap with declaredend6 refuses retirement and plays future4.5s frame. Five alternating first-restored-frame plus play-ready latency pairs:audio-long16.370/12.105ms ratio1.35233 fails1.10; video-long12.365/18.520ms ratio0.66766 passes. Earlier fixed100ms observation costs invalidated, raw outputs preserved; no decoder-memory claim from buffer counts. Initial playback runner required exact owned process cleanup after outputs; followup renderer exits cleanly."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop current general retirement/rebuild cost profile: no additional tail capability over current EOS baseline and audio-long restore violates no-regression gate. Correctness is bounded presented-picture/clock/ownership, not new acoustic PCM proof. Video-long timing alone does not establish general benefit; reopen only with independent actual resource savings or improved restoration owner and repeated matched latency.",
+  "reused_evidence": [
+    "research/shared/runs/20260919T214510Z-mixed-tracks/manifest.json",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/red.mp4",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/blue.mp4",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/audio.webm"
+  ],
+  "commands_log": "research/shared/runs/20260919T215439Z-tail-retirement/commands.log"
+}

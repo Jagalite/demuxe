@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+ActualmaintainedWasmRemuxPlayer deadlineobserver attributes read/process/append injections correctly and preserves independentnative fullpausedpicturehash. 0/300/600/900ms grid against800msfirstpresentedframe deadline finds600mslastobservedsafe and900msfirstmiss forall3stages. Thismeasuresfirst-framecriticalpath, not originalmodelssteady-statestages orproofappendistightest. Actualcancelafterobservedread/processinjection rejectsAbortError in20.595/13.720ms andnoworkers/latepublication. UIappendblock is synchronous andnotclaimedinterruptible. OriginalmissingCOEPworkerroute failure preserved.

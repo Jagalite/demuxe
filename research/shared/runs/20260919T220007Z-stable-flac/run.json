@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T220007Z-stable-flac",
+  "item_keys": [
+    "R016.keep-a-stable-audio-output-format-through-frequent-switches"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Compatible48kmono integerFLAC16/24 tracks220/440Hz promote to common24bit with every host integer sample exact. Native Chrome3segment switching passes distinct track tones, marker timing about1.4ms, zero measured audio gaps, continuous H264pictures, parser abort/reset, unsupportedchangeType guard, forward/backwardseek, EOF and samebuffer ownership. Wrong+0.2s timeline fails independent marker oracle. Five alternating cold hostprepare plus matched browser creation/appends/cleanup:commonformat60.614+8.685ms versus nativecopy53.638+8.460ms, ratio1.11597 fails1.10. Native varyingprecision baseline already passes identical observable switch contract; no actual decoder-instance reuse inferred."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
+  "reused_evidence": [
+    "research/shared/runs/20260919T214510Z-mixed-tracks/manifest.json",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/red.mp4",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/blue.mp4",
+    "research/shared/runs/20260919T214510Z-mixed-tracks/green.webm"
+  ],
+  "commands_log": "research/shared/runs/20260919T220007Z-stable-flac/commands.log"
+}

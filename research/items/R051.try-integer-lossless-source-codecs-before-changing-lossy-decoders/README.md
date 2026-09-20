@@ -2,14 +2,26 @@
 
 # Try integer-lossless source codecs before changing lossy decoders
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Full key: `R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders`
 
-ALAC rejected by native media element and decodeAudioData, then isolated pinned ALAC Wasm decoder reproduced all 96000 stereo frames exactly with missing-extradata and truncated-packet rejection. Worth pursuing ALAC adaptation; TrueHD and complete route cost remain untested.
+Current decision: **pursue** (2026-09-19T21:26:58.284186+00:00).
 
-Correctness: **passed**. Performance: **pending**.
+Actual original native ALAC decode rejects; ordinary ALAC Wasm decoding plus ordinary FLAC adaptation and copied H264 produces384000 exact host PCM bytes/96000 stereo frames. Chrome recovers every signed16 sample exactly; all48 coded video packets are unchanged with normalized video timeline maximum error0.666ms (within the declared1.1ms source-timebase tolerance). Partial decoder job close/reopen, actual native MSE seek/audio/EOF and graph/worker cleanup pass. Finite bridge uses existing pinned modules, no different lossy decoder.
 
-Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.
+Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.
 
-Next: Integrate only declared ALAC adaptation owner with seek/cancel, then measure full startup and output costs.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T212658Z-alac-destination/run.json) · [Analysis](../../shared/runs/20260919T212658Z-alac-destination/analysis.md) · [Manifest](../../shared/runs/20260919T212658Z-alac-destination/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+[Timing and source-license narrative correction](../../shared/runs/20260919T212747Z-alac-timing-erratum/analysis.md). No new execution.

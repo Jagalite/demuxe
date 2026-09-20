@@ -1,0 +1,115 @@
+{
+  "scope": "Identity witness catches individually decodable believable wrong video order, channel swap and half-second audio displacement. Native destination decoder, canvas barcode and native decoded audio frequency identity; no physical audibility or continuous A/V latency claim.",
+  "rows": [
+    {
+      "name": "correct",
+      "codes": [
+        160,
+        161,
+        162,
+        163,
+        160
+      ],
+      "tones": [
+        [
+          320,
+          400,
+          480,
+          560
+        ],
+        [
+          900,
+          1000,
+          1100,
+          1200
+        ]
+      ],
+      "videoExpected": true,
+      "audioExpected": true,
+      "decodedFrames": 192000
+    },
+    {
+      "name": "video-reordered",
+      "codes": [
+        160,
+        162,
+        161,
+        163,
+        160
+      ],
+      "tones": [
+        [
+          320,
+          400,
+          480,
+          560
+        ],
+        [
+          900,
+          1000,
+          1100,
+          1200
+        ]
+      ],
+      "videoExpected": false,
+      "audioExpected": true,
+      "decodedFrames": 192000
+    },
+    {
+      "name": "channels-swapped",
+      "codes": [
+        160,
+        161,
+        162,
+        163,
+        160
+      ],
+      "tones": [
+        [
+          900,
+          1000,
+          1100,
+          1200
+        ],
+        [
+          320,
+          400,
+          480,
+          560
+        ]
+      ],
+      "videoExpected": true,
+      "audioExpected": false,
+      "decodedFrames": 192480
+    },
+    {
+      "name": "audio-shifted",
+      "codes": [
+        160,
+        161,
+        162,
+        163,
+        160
+      ],
+      "tones": [
+        [
+          0,
+          320,
+          400,
+          480
+        ],
+        [
+          0,
+          900,
+          1000,
+          1100
+        ]
+      ],
+      "videoExpected": true,
+      "audioExpected": false,
+      "decodedFrames": 192000
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "passed": true
+}

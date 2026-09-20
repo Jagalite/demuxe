@@ -1,0 +1,5 @@
+{
+  "scope": "Split actual 48frames each4096sample signed16 fixed-order3 Rice1 FLAC frame each into two2048sample frames. Reuse predictor/residual values, derive second warmups with rolling3sample history, regenerate Rice partitions/frame numbering/STREAMINFO/CRCs.",
+  "correctness": "All196608host/native samples exact; actual libFLAC encoded seek --skip2048 yields exactsuffix; native seek/end/cleanup. Wrong numbering negative; CRC/truncation/unsafecut reject.",
+  "performance": "Five alternating full source read/parse/derive warmup/Ricewrite/author/destinationdecode versus ordinary host decode/reencode at2048frames/destinationdecode. Same exact96-frame lossless endpoint, <=0.9cost."
+}

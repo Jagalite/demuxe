@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+UnmodifiedChrome152nativeIEEEfloat32 WAV accepts genuineprogressiveHTTP: playbackstartsafter229376of2304044bytes (9.95percent), all288000stereoframes exact against authoredFloat32PCM, peak1.749997 survives aboveunity, noextraend samples. Native4s/back0.5sseeks match exactexpectedframe, unsupportedWAVformatrejects, freshongoingHTTPcancelclosesbeforecomplete. Sixsecondboundedfiniteknownlengthrange source; this resolves directprogressivefloataudio destination. Itdoesnotestablish floatMSE, multiplexedA/V, infiniteunknownlength orconstantmemoryarbitrarilylongstreams. PriorMSEsampleentries remainunsupported.

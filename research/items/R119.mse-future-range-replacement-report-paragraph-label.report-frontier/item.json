@@ -54,82 +54,100 @@
     },
     "prepare": {
       "status": "passed",
-      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "basis": "New executable probe and declared workload/controls registered with source/input/runtime evidence.",
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "basis": "Valid same-configuration future replacement preserves all 96 complete B-frame pictures: the first source remains unchanged and the future interval becomes the requested second source on the same SourceBuffer. However, the actual failed-append control ends the MediaSource after destructive removal and loses the old future. The currently required rollback gate fails, so this is not a qualified replacement transaction.",
       "evidence": [
-        "results/top100/decisions.jsonl"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Future red\u2192green replacement and stale generation range preservation verified to EOF; exact full-frame/A/V boundary and real failed-append rollback remain unqualified.",
+      "status": "failed",
+      "basis": "Two independent 48-frame AVC sources, 24 fps, composition lead 83.333 ms. Replace the future at the established RAP boundary while paused at 0.5 s. Every valid-path queried RGBA image matches the isolated source oracle and the same SourceBuffer remains. A real AAC-only initialization under the AVC lane produces CHUNK_DEMUXER_ERROR_APPEND_FAILED; the range falls from [0.083333,4.083332] to [0.083333,2.083332] and the MediaSource ends. Cleanup passes. Existing stale-generation controls remain separate; no audio or transactional rollback claim is inferred from the positive picture result.",
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Presentation transaction has no equivalent-work timing or memory benchmark.",
+      "status": "not_applicable",
+      "basis": "Not applicable after the required failed-commit retention gate fails. No benchmark of an unqualified transaction.",
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
+      "basis": "Actual new execution raw outcomes, controls and scoped interpretation retained.",
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
+      "basis": "stop_current_profile: Valid same-configuration future replacement preserves all 96 complete B-frame pictures: the first source remains unchanged and the future interval becomes the requested second source on the same SourceBuffer. However, the actual failed-append control ends the MediaSource after destructive removal and loses the old future. The currently required rollback gate fails, so this is not a qualified replacement transaction.",
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "canonical-stage-reconciliation",
+    "campaign": "all-stages-transport",
     "record": {
       "key": "R119.mse-future-range-replacement-report-paragraph-label.report-frontier",
-      "state": "pursue",
-      "reason": "Future RAP-aligned range replacement changes red to green after2s while retaining SourceBuffer. Stale canceled transaction leaves buffered ranges unchanged; valid commit plays to EOF. Video-only component; current combined A/V controller not integrated.",
-      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
-      "evidence_level": "reconciled_component_test",
+      "state": "stop_current_profile",
+      "disposition": "stop_current_profile",
+      "reason": "Valid same-configuration future replacement preserves all 96 complete B-frame pictures: the first source remains unchanged and the future interval becomes the requested second source on the same SourceBuffer. However, the actual failed-append control ends the MediaSource after destructive removal and loses the old future. The currently required rollback gate fails, so this is not a qualified replacement transaction.",
+      "recorded_at_utc": "2026-09-19T22:25:19.435183+00:00",
+      "evidence_level": "component_test",
       "run_ids": [
-        "20260919T204000Z-stage-reconciliation"
+        "20260919T221300Z-future-images"
       ],
       "evidence": [
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
-        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
-        "results/top100/mse/result.json"
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/run.json",
+        "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T221300Z-future-images/manifest.json"
       ],
-      "new_experiment": false,
-      "original_state": "PURSUE",
-      "scope": "Future red\u2192green replacement and stale generation range preservation verified to EOF; exact full-frame/A/V boundary and real failed-append rollback remain unqualified.",
-      "performance_gate": "Presentation transaction has no equivalent-work timing or memory benchmark.",
-      "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
-      "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
+      "next_test": "Reopen with validated preparation before removal and an explicit recovery contract for failures after mutation. A full rebuild may be a declared fallback, but must not be described as retaining the old presentation. Then repeat valid and failed full-picture lifecycle gates before cost measurement.",
+      "reopen_condition": "Reopen with validated preparation before removal and an explicit recovery contract for failures after mutation. A full rebuild may be a declared fallback, but must not be described as retaining the old presentation. Then repeat valid and failed full-picture lifecycle gates before cost measurement.",
+      "scope": "Two independent 48-frame AVC sources, 24 fps, composition lead 83.333 ms. Replace the future at the established RAP boundary while paused at 0.5 s. Every valid-path queried RGBA image matches the isolated source oracle and the same SourceBuffer remains. A real AAC-only initialization under the AVC lane produces CHUNK_DEMUXER_ERROR_APPEND_FAILED; the range falls from [0.083333,4.083332] to [0.083333,2.083332] and the MediaSource ends. Cleanup passes. Existing stale-generation controls remain separate; no audio or transactional rollback claim is inferred from the positive picture result.",
+      "new_experiment": true,
+      "prior_decision": {
+        "campaign": "canonical-stage-reconciliation",
+        "record": {
+          "key": "R119.mse-future-range-replacement-report-paragraph-label.report-frontier",
+          "state": "pursue",
+          "reason": "Future RAP-aligned range replacement changes red to green after2s while retaining SourceBuffer. Stale canceled transaction leaves buffered ranges unchanged; valid commit plays to EOF. Video-only component; current combined A/V controller not integrated.",
+          "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+          "evidence_level": "reconciled_component_test",
+          "run_ids": [
+            "20260919T204000Z-stage-reconciliation"
+          ],
+          "evidence": [
+            "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/results.json",
+            "research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+            "results/top100/mse/result.json"
+          ],
+          "new_experiment": false,
+          "original_state": "PURSUE",
+          "scope": "Future red\u2192green replacement and stale generation range preservation verified to EOF; exact full-frame/A/V boundary and real failed-append rollback remain unqualified.",
+          "performance_gate": "Presentation transaction has no equivalent-work timing or memory benchmark.",
+          "next_test": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+          "reopen_condition": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard."
+        }
+      }
     }
   },
-  "next_action": "Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.",
+  "next_action": "Reopen with validated preparation before removal and an explicit recovery contract for failures after mutation. A full rebuild may be a declared fallback, but must not be described as retaining the old presentation. Then repeat valid and failed full-picture lifecycle gates before cost measurement.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

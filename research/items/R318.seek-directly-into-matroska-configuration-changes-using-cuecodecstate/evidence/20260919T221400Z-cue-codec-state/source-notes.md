@@ -1,0 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+The [Matroska element specification](https://www.matroska.org/technical/elements.html) defines CueCodecState as a Segment-relative reference to codec initialization; zero selects the initial TrackEntry. The [Cues recommendations](https://www.matroska.org/technical/cues.html) require the state reference when a cue targets a cluster containing a changed codec state. This fixture uses actual CodecState in the second epoch BlockGroup and independent AVC RAPs. State cannot replace prediction dependencies.
+
+The original epochs have identical dimensions but different CAVLC/CABAC initialization, and no in-band SPS/PPS that could silently repair stale initialization. Independent host decoding of each original epoch supplies the exact YUV420 oracle. Unmodified host sequential decoding of the combined Matroska emits codec errors; that diagnostic is preserved and is not used as the independent oracle. The successful candidate is a narrow research parser and native WebCodecs owner, not maintained FFmpeg demux integration.

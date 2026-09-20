@@ -2,12 +2,18 @@
 
 # Extend GPU reconstruction from still pictures to predictive video
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Current decision: **stop_current_profile**. Actual96codedDCblocks feedGPUinverseDC;32real parsedP pictures keep resident referencebuffers. All33fullYUV outputs match independentFFmpeg; wrongreference differs andwrongsource/fractionalchroma reject. Completeprepared-syntaxGPUreconstruction cost including freshadapter/device/pipelines/transfers/readback is102.95%slower median thanexactCPUcomponent;5%gatefails. Stop currenttinyDC-onlyprofile, notgeneralsplitdecoder.
 
-Existing GPU presentation uploads reconstructed planes; browser decode outputs complete frames. A CPU entropy/GPU MPEG2 reconstruction split requires coefficient, motion, reference and synchronization interfaces absent from these owners.
+| Stage | Status | Basis |
+| --- | --- | --- |
+| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Actual96codedDCblocks feedGPUinverseDC;32real parsedP pictures keep resident referencebuffers. All33fullYUV outputs match independentFFmpeg; wrongreference differs andwrongsource/fractionalchroma reject. Completeprepared-syntaxGPUreconstruction cost including freshadapter/device/pipelines/transfers/readback is102.95%slower median thanexactCPUcomponent;5%gatefails. Stop currenttinyDC-onlyprofile, notgeneralsplitdecoder. |
+| correctness | passed | ActualMPEG2 entropy DC/EOB/motion parsed;96coefficient GPUinverse (no uploaded initialpixels),512Pmacroblock prediction withresidentreferences. Independent33fullYUVpictureoracle exact, all22timedoutputs exact; wrongreference andsource/chromaphase controls; explicitresourcecleanup. Restricts initialI to DCmultiple8 withboundedmismatchrounding andP residual-free integerallplane motion. |
+| performance | failed | Predeclared11alternating pairs ofequivalent prepared-syntax reconstruction including freshGPUadapter/device, pipelines, buffertransfer, dispatch, finalreadback andcleanup. Sharedentropy andbrowserstartup excluded. Median saving -1.0295081288030938; bootstrap95 [-1.1206896643859738, -0.594900861434025];5%gate fails. Warmup variation retained; no energy/nativeplayback claim. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: Actual96codedDCblocks feedGPUinverseDC;32real parsedP pictures keep resident referencebuffers. All33fullYUV outputs match independentFFmpeg; wrongreference differs andwrongsource/fractionalchroma reject. Completeprepared-syntaxGPUreconstruction cost including freshadapter/device/pipelines/transfers/readback is102.95%slower median thanexactCPUcomponent;5%gatefails. Stop currenttinyDC-onlyprofile, notgeneralsplitdecoder. |
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next/reopen: Reopen for larger realeligibleprofile or fully implemented integerIDCT/residual/fractionalprediction with equivalent fulloutput and completecost. Preserve generation/reference lifetime and exactchromaphase guards; do not generalize DC-only proof to full MPEG2 decoding.
 
-Next: Start with one progressive I picture and exact coefficient/pixel oracle, then one P reference case; defer B/interlace and full decoder replacement.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

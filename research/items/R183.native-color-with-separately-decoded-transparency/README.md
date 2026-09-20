@@ -2,32 +2,10 @@
 
 # native color with separately decoded transparency
 
-Full identity: `R183.native-color-with-separately-decoded-transparency`. Original rank: 17.
+Current disposition: **pursue** for the scoped capability. Correctness **passed**; performance **passed**; other research gates passed.
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Prepared 32x32 VP8 color/mask first-picture task: two fresh WebCodecs decoders and CPU mask composition versus prepared native transparent WebM. Input encoding/extraction/packaging excluded. No GPU alpha shader or hardware decode claim. Alpha error0, premultiplied RGB error0 candidate /0.506 native, within original alpha<=2 RGB<=3 contract. Wrong timestamp pairing rejected. Initial native loadeddata draw failed and is preserved; diagnosed seek-to-first-picture correction includes seek cost, uses prior correctness harness timestamp+80ms selection, and does not change tolerance. Measured saving 76.89% with bootstrap95 [75.49999945014714, 77.99043127562612]; predeclared performance gate passed.
 
-Independent VP8 color/mask decoders pair frames by timestamp and dimensions, preserve exact alpha and reference visible color after explicit SD matrix metadata. Wrong pair rejects; implicit matrix variant failed and retained. No production two-clock owner or cost benefit claimed.
+Research component gates complete in this profile; a separately authorized production integration must qualify actual ownership, representative media, color and lifecycle contracts.
 
-## Accepted scope
-
-Explicit matrix metadata is required; implicit-matrix negative retained. Two-clock production owner not qualified.
-
-Three independent VP8 color/mask frame pairs have zero alpha and visible premultiplied-color error after explicit SD matrix; wrong timestamp/dimension pairing rejects and cleanup recorded.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | Three independent VP8 color/mask frame pairs have zero alpha and visible premultiplied-color error after explicit SD matrix; wrong timestamp/dimension pairing rejects and cleanup recorded. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
-
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Current record](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json) · [Run analysis](../../shared/runs/20260919T203737Z-presentation-performance/analysis.md)

@@ -2,14 +2,10 @@
 
 # keep Hap BC1 compressed to presentation
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Disposition: **inconclusive**. Correctness **passed**, performance **failed**; other research gates passed.
 
-Actual Hap1 packet with BC1 texture payload renders through WebGPU compression support and matches independently decoded host RGBA:16 compressed bytes vs128 RGBA bytes for tiny fixture. Uncompressed Hap transport only; Snappy/larger corpus/seek/cost not qualified.
+Actual128x128 uncompressed BC1 Hap packet in AVI, compressed GPU texture versus packed32 CPU BC1 expansion/RGBA upload. All30 complete GPU output pictures per owner match independent FFmpeg RGBA; wrong packet type and truncated section reject. Fresh owner recreates same output and destroys allGPUresources. Candidate245760 versus baseline1966080 application upload bytes per task. Fixture uses endpoint colors; not general interpolation or Snappy/fragmented Hap qualification. Complete owner wall-time saving17.20%, bootstrap95[5.352571629574243, 26.571304718372847]; predeclared performance gate failed.
 
-Correctness: **pending**. Performance: **pending**.
+Research experiment complete: earlier naive-byte-store baseline advantage is not sufficient; packed32 baseline is the final comparison. Reopen only for a specified texture workload with a representative baseline and newly predeclared cost/threshold.
 
-Actual Hap BC1 payload renders exact host RGBA with resource cleanup; 16 compressed versus 128 expanded bytes is representation accounting. No executed malformed Hap control, Snappy path or seek/source lifecycle acceptance is present.
-
-Next: Run malformed packet and replacement/replay controls for restricted uncompressed Hap before completing correctness.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T205835Z-palette-hap-packed-baseline/analysis.md)

@@ -1,0 +1,4 @@
+ffmpeg -v error -f lavfi -i testsrc2=s=160x96:r=24 -f lavfi -i anoisesrc=color=white:seed=785:sample_rate=48000:amplitude=0.2 -t 2 -c:v libvpx-vp9 -lossless 1 -g 24 -threads 2 -c:a libopus -b:a 128k research/shared/runs/20260919T211200Z-containerless-fidelity/source.webm
+python3 research/shared/tooling/containerless-fixture.py research/shared/runs/20260919T211200Z-containerless-fidelity
+node research/shared/tooling/containerless-audio-fidelity.mjs research/shared/runs/20260919T211200Z-containerless-fidelity
+node research/shared/tooling/containerless-pcm-compare.mjs research/shared/runs/20260919T211200Z-containerless-fidelity

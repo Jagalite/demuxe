@@ -1,0 +1,49 @@
+{
+  "stage": "decision",
+  "status": "completed",
+  "commands": [
+    "build/research-webrtc-venv/bin/python research/shared/tooling/screen-command-video.py research/shared/runs/20260920T001717Z-screen-commands",
+    "node research/shared/tooling/screen-command-browser.mjs research/shared/runs/20260920T001717Z-screen-commands",
+    "build/research-webrtc-venv/bin/python research/shared/tooling/screen-command-incremental.py research/shared/runs/20260920T001923Z-screen-incremental-baseline",
+    "node research/shared/tooling/screen-command-browser.mjs research/shared/runs/20260920T001923Z-screen-incremental-baseline",
+    "python3 research/shared/tooling/screen-command-negative.py research/shared/runs/20260920T001923Z-screen-incremental-baseline"
+  ],
+  "analysis": "Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive. Initial full-raster-redraw baseline overstated the gain; retained but superseded by incremental changed-block raster maintenance. Candidate covers whole-picture copy and aligned16x16 replace only, not general scroll or fractional motion. Existing pixel bytes are local; no network latency/bitrate benefit claimed. Every native output frame and decoder closes.",
+  "decisions": [
+    {
+      "key": "R128.compile-screen-operations-directly-into-video-prediction-commands",
+      "disposition": "inconclusive",
+      "evidence_level": "actual_producer_authored_avc_and_native_decoder",
+      "new_media_execution": true,
+      "reason": "Producer-owned aligned screen replace/copy commands become actual CAVLC I_PCM replacement and skip-run video, without motion estimation. All30 full I420 frames and PTS match independent host and Chrome, including frame_num wrap. Legal-but-stale skipped replacement remains decodable but corrupts27expectedpictures; out-of-bounds/color/timeline guards reject. Against in-process lossless x264 with incremental raster updates,7paired complete local producer+player jobs median0.8643x cost but bootstrap95[0.6080,1.0096] does not establish a reliable gain. Coded bytes26942 versus7810 (3.45x) also matter. Correct capability, cost inconclusive.",
+      "next_action": "Keep producer-assisted scope and bounds; pursue only with a realistic local transport/bitrate budget or a cheaper exact replacement code before product integration.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Actual producer trace, reference raster renderer, legal AVC I_PCM/skip-run writer and in-process ordinaryencoder baseline."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Knownscreencommands directly encode prediction syntax; no motion search or reencode proxy."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "30host/native fullframes+PTS exact, frame_num wrap and stale/legalwrongcopy falsifier; operationbounds reject and allframesclose."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "Reliable gain not established against incrementalbaseline:median0.8643ratio,bootstrap95 .6080\u20131.0096;3.45xencodedbytes, local-only costprofile."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T002106Z-screen-command-qualification",
+  "recorded_at_utc": "2026-09-20T00:21:06.053455+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256": "7f91bb605efed13ce473d5ab768321b0dbb17dfa2b955caaaefd283eb3078468",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

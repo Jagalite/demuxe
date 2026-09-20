@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T231200Z-flac-scan",
+  "item_keys": [
+    "R164.reconstruct-fixed-predictor-lossless-audio-with-parallel-scans"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Not used; compiled host scan plus independent FFmpeg oracle",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Real fixed-order1 FLAC escape-residual entropy traversal feeds compiled four-thread local scans, carry composition and four-thread output correction. All6168 signed16 samples including extrema exactly match independent FFmpeg and compiled serial predictor recurrence. Actual source-read/hash/entropy parser/intermediate file transfer/executable startup/output read and thread creation/join included equally; serial baseline is compiled, not Python-loop comparison. Identity, CRC, truncation, valid-CRC wrong predictor guards reject; omitted carry changes PCM. Five alternating complete jobs103.304ms parallel versus59.639ms serial median ratio1.73214 fails<=0.9; raw timings variable and retained. Original compiled kernel and build command pinned."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this short24-block cold threaded scan profile. Parallel prefix reconstruction is demonstrated only for fixed-order1 escape residuals; measured small workload does not amortize threads/process/transfer costs. Larger blocks, persistent ownership or a different runtime require new declared measurements. No generic Rice decode or full FLAC parallel decoder qualification, and no production edits.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_bits.py",
+    "research/shared/runs/20260919T225529Z-flac-reverse/source.flac",
+    "research/shared/runs/20260919T225529Z-flac-reverse/manifest.json",
+    "/usr/bin/c++"
+  ],
+  "commands_log": "research/shared/runs/20260919T231200Z-flac-scan/commands.log"
+}

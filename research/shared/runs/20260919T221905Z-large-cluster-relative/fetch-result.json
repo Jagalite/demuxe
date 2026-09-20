@@ -1,0 +1,9 @@
+{
+  "plan": {
+    "scope": "ActualexistingRangeReader,15msHTTP, bothcoldheader+Cues acquisition. Prefixbaseline parsesfromclusterstart; candidatevalidatesCueRelativePosition andfetcheskey750through779. Bothdecodeall30referenceframes, target760..779with10framespreroll. Ninealternatingpairs includingcopy/parse/read/decode/startup/teardown.",
+    "gate": "lower95pairedcompletecorrecttarget latency saving>10percent, feweractualwirebytes; exactfullhostpixels/PTS; wrongoffset/sourceversion andinflightcancel reject.",
+    "limits": "SingletrackstableVP9 onecluster input; noarbitrarylacing/audio/prerollindex orproductionbrowserdemux integration."
+  },
+  "rows": [],
+  "error": "Error: Command failed: ffmpeg -v error -i research/shared/runs/20260919T221905Z-large-cluster-relative/large-cluster.webm -vf select=between(n,750,779) -pix_fmt yuv420p -fps_mode passthrough -f rawvideo -\n[AVFilterGraph @ 0x7d8c74000] No such filter: '750'\nError opening output file -.\nError opening output files: Filter not found\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:882:11)\n    at execFileSync (node:child_process:918:15)\n    at file:///Volumes/seed2/Projects/demuxe/research/shared/tooling/relative-cue-fetch.mjs:8:18"
+}

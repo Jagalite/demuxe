@@ -2,14 +2,24 @@
 
 # Decode an Ambisonic sound field natively, then render its spatial meaning separately
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Full key: `R241.decode-an-ambisonic-sound-field-natively-then-render-its-spatial-meaning-separately`
 
-Genuine mapping-family-2 four-channel Opus decoded with correct channel tones and near-exact host PCM. Explicit ACN/SN3D W,Y,Z,X directional matrix matches scalar oracle; wrong ordering fails. No physical spatial qualification.
+Current decision: **pursue** (2026-09-19T21:23:45.431436+00:00).
 
-Correctness: **passed**. Performance: **pending**.
+Actual browser decode→native channel graph output is sample-identical to independently materialized software-matrix output for both six-channel permutation/gains and four ACN/SN3D directions. Wrong ordering and failure to stop a real stale source produce large errors; stop/disconnect/closed lifecycle passes. Seven-pair full decode/setup/render ratios1.05190 and1.05202 pass the predeclared1.10 cost ceiling; no speedup, CPU, energy or opaque-memory claim.
 
-Mapping-family-2 Opus produces 96000 four-channel frames with max host PCM error 3.725e-8; truncated input rejects. Four ACN/SN3D directions match scalar reference within 7.451e-9, while wrong ordering differs about 0.2. Cleanup recorded; physical spatial output excluded.
+Pursue declared static indexed channel operations/directional renderer within bounded cost. Physical speakers, headtracking and realtime video-owner integration are separate from this offline component.
 
-Next: Define spatial renderer and head-tracking/device contract separately; no acoustic or energy claim from this component.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T212345Z-graph-cost/run.json) · [Analysis](../../shared/runs/20260919T212345Z-graph-cost/analysis.md) · [Manifest](../../shared/runs/20260919T212345Z-graph-cost/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

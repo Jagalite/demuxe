@@ -1,0 +1,28 @@
+[
+  [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "aevalsrc=0.8*sin(2*PI*211*t):s=8000:d=1",
+    "-c:a",
+    "adpcm_ima_wav",
+    "research/shared/runs/20260919T_audio_ima_state/1ch.wav"
+  ],
+  [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "aevalsrc=0.8*sin(2*PI*211*t)|0.7*sin(2*PI*317*t):s=8000:d=1",
+    "-c:a",
+    "adpcm_ima_wav",
+    "research/shared/runs/20260919T_audio_ima_state/2ch.wav"
+  ]
+]

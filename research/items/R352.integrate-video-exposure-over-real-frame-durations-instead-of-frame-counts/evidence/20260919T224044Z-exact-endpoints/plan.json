@@ -1,0 +1,10 @@
+{
+  "before_execution": true,
+  "contract": "Explicit requested exposure intermediate,64x64 opaqueblack/white VideoFrames withrealPTS/duration. Preserveone sourceepoch, integrate exactoverlapduration inwindow, normalizecoveredtime. Linearendpointcolors0/1; outputRGBA32float, noHDR/generalcolorspace/displaytransferclaim.",
+  "oracle": "IndependentPython Fraction exactintegral; full10/30ms is3/4, splitwhite3x10 remains3/4, partial5/25ms5/6, endpointwindows0or1. AllGPUfloatpixels <=1e-7 absolute error (full3/4 exactlyrepresentable).",
+  "controls": "Framecountaverage1/2 mustfailfullreference; zero/negative/gap/overlap timeline rejects. CancelGPUresult bysourceepoch, discardoldresult andretainnewexactresult; closeallVideoFrames/devices/buffers.",
+  "endpoint": "New explicitVFR exposure capability, no speedhypothesis. Ordinaryplayback andframeaccurateexport notsilentlyaveraged.",
+  "prior_run": "research/items/R352.integrate-video-exposure-over-real-frame-durations-instead-of-frame-counts/evidence/20260919T223904Z-normalized-weights",
+  "diagnosed_correction": "GPU runtime division30000/30000 produced1.0000001192092896, exceeding unchanged1e-7 floatbound. Normalize exactinteger-duration weights onCPU beforefloat32upload andsumGPU weightedvalues without reciprocaldivision. Preservesexacttemporalweighting, nooutputthreshold relaxation.",
+  "further_diagnosis": "Duration-normalization alone preservedperpixelerrorbound butexactsplit-invariance stillfailed. GPUbyte255/255 conversion also usesapproximate reciprocal. For thepredeclaredblack/white-endpoint profile, assertendpointadmission andconvert0/255 withselect0/1 exactly; no generalizedcolorspaceclaim orerrorboundrelaxation. Both priorfailedimplementations retained."
+}

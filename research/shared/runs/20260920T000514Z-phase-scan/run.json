@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260920T000514Z-phase-scan",
+  "item_keys": [
+    "R351.parallelize-phase-vocoder-accumulation-without-resetting-phase-at-job-boundaries"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used, original phase-vocoder component",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual four spawned worker simple phase-vocoder prefix accumulation: Hann1024/hop256/rate0.8, adjacent interpolation, ties-even residual wrap, ordered cross-worker phase carry, complete inverse FFT/normalized overlap-add cropped to120000samples. Independent sequential phase loop waveform max absolute error1.882e-12<=1e-9; resetting phase at each job yields0.724error. All worker executors close. Five alternating complete cold source/hash/STFT/process transfer/startup/prefix/compose/iFFT/OLA jobs373.316ms versus sequential27.632ms ratio13.5103 fails0.9. Uncropped tail diagnostic retained; no transient fidelity claim."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this process-based simple phase-vocoder profile on end-to-end cost. Correct boundary phase is demonstrated, but repeated prestarted shared-memory work or another explicitly chosen stretcher requires new gates. No production time-stretch replacement or maintained renderer qualification.",
+  "reused_evidence": [
+    "/tmp/demuxe-audio-numeric/numpy-2.5.3.dist-info/METADATA",
+    "/tmp/demuxe-audio-numeric/numpy-2.5.3.dist-info/RECORD"
+  ],
+  "commands_log": "research/shared/runs/20260920T000514Z-phase-scan/commands.log"
+}

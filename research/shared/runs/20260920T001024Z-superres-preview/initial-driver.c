@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <aom/aom_decoder.h>
+#include <aom/aomdx.h>
+#include <aom_scale/yv12config.h>
+#include <aom_ports/mem.h>
+static int mode,captured,pw,ph;static unsigned char*preview;
+int demuxe_preview_tap(YV12_BUFFER_CONFIG *f){if(mode==2)return 0;if(f->bit_depth!=8||f->subsampling_x!=1||f->subsampling_y!=1)return 0;pw=f->y_crop_width;ph=f->y_crop_height;int widths[3]={pw,f->uv_crop_width,f->uv_crop_width},heights[3]={ph,f->uv_crop_height,f->uv_crop_height},strides[3]={f->y_stride,f->uv_stride,f->uv_stride};unsigned char*planes[3]={f->y_buffer,f->u_buffer,f->v_buffer};preview=malloc(pw*ph+2*widths[1]*heights[1]);int at=0;for(int p=0;p<3;p++)for(int y=0;y<heights[p];y++)for(int x=0;x<widths[p];x++){unsigned v=f->flags&YV12_FLAG_HIGHBITDEPTH?CONVERT_TO_SHORTPTR(planes[p])[y*strides[p]+x]:planes[p][y*strides[p]+x];if(v>255)exit(7);preview[at++]=v;}captured=1;return mode==1;}
+static void save(const char*prefix,const char*suffix,const unsigned char*b,int n){char name[2048];snprintf(name,sizeof(name),"%s.%s",prefix,suffix);FILE*f=fopen(name,"wb");if(!f)exit(8);fwrite(b,1,n,f);fclose(f);}
+int main(int argc,char**argv){if(argc!=4)return 1;mode=atoi(argv[3]);FILE*f=fopen(argv[1],"rb");if(!f)return 2;fseek(f,0,SEEK_END);long size=ftell(f);rewind(f);unsigned char*b=malloc(size);fread(b,1,size,f);fclose(f);if(size<44)return 3;unsigned n=b[32]|b[33]<<8|b[34]<<16|b[35]<<24;if(n>(unsigned)size-44)return 4;aom_codec_ctx_t ctx;aom_codec_dec_cfg_t cfg={0};cfg.threads=1;if(aom_codec_dec_init(&ctx,aom_codec_av1_dx(),&cfg,0))return 5;int status=aom_codec_decode(&ctx,b+44,n,0);free(b);unsigned char*full=0;int fw=0,fh=0,fullbytes=0;
+if(mode==1){if(!captured||status!=AOM_CODEC_ERROR){fprintf(stderr,"no cancelled owned preview status%d captured%d\n",status,captured);aom_codec_destroy(&ctx);return 6;}}
+else{if(status){fprintf(stderr,"decode %s\n",aom_codec_error(&ctx));aom_codec_destroy(&ctx);return 9;}aom_codec_iter_t it=0;aom_image_t*im=aom_codec_get_frame(&ctx,&it);if(!im){aom_codec_destroy(&ctx);return 10;}fw=im->d_w;fh=im->d_h;fullbytes=fw*fh+2*((fw+1)/2)*((fh+1)/2);full=malloc(fullbytes);int at=0;for(int p=0;p<3;p++){int w=p?(fw+1)/2:fw,h=p?(fh+1)/2:fh;for(int y=0;y<h;y++)for(int x=0;x<w;x++)full[at++]=im->fmt&AOM_IMG_FMT_HIGHBITDEPTH?((uint16_t*)(im->planes[p]+y*im->stride[p]))[x]:im->planes[p][y*im->stride[p]+x];}if(mode==2){pw=(fw*8+6)/12;ph=fh;preview=malloc(pw*ph+2*((pw+1)/2)*((ph+1)/2));int srcat=0,dstat=0;for(int p=0;p<3;p++){int sw=p?(fw+1)/2:fw,dw=p?(pw+1)/2:pw,h=p?(fh+1)/2:fh;for(int y=0;y<h;y++)for(int x=0;x<dw;x++){int lo=x*sw,hi=(x+1)*sw,sum=0;for(int k=lo/dw;k<(hi+dw-1)/dw;k++){int a=lo>k*dw?lo:k*dw,z=hi<(k+1)*dw?hi:(k+1)*dw;sum+=full[srcat+y*sw+k]*(z-a);}preview[dstat++]=(sum+sw/2)/sw;}srcat+=sw*h;}}}
+aom_codec_destroy(&ctx);if(!preview)return 11;save(argv[2],"preview.yuv",preview,pw*ph+2*((pw+1)/2)*((ph+1)/2));if(full&&mode==0)save(argv[2],"full.yuv",full,fullbytes);printf("{\"mode\":%d,\"previewWidth\":%d,\"previewHeight\":%d,\"displayWidth\":%d,\"displayHeight\":%d,\"decoderStatus\":%d,\"capturedBeforeUpscale\":%s,\"ownedAfterDestroy\":true}\n",mode,pw,ph,fw,fh,status,captured?"true":"false");free(preview);free(full);return 0;}

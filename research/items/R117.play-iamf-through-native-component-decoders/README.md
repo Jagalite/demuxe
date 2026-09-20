@@ -2,14 +2,24 @@
 
 # Play IAMF through native component decoders
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Full key: `R117.play-iamf-through-native-component-decoders`
 
-Genuine authored IAMF stereo presentation passes strict one-element/one-layer/zero-gain applicability gate; host-extracted FLAC component natively decodes all96000 frames matching original PCM. Unsupported gain rejects. Host demux prerequisite and flat presentation only; no generic IAMF renderer or browser IAMF parser.
+Current decision: **pursue** (2026-09-19T21:49:20.302418+00:00).
 
-Correctness: **passed**. Performance: **pending**.
+Fresh actual IAMF admission reads stream groups from source through host ffprobe, rejects unsupported gain, copies qualified FLAC component, and native Chrome decodes/renders every96000stereo signed16samples exactly under one clock. Full offline render, unity gain, ended callback, closed context and truncated component rejection pass. Five alternating complete binary-delivery pairs including host admission/extraction or hostreference decode, source transfer, native render and cleanup cost168.838ms versus173.859ms, ratio0.97112 passes1.10 no-regression threshold. Earlier JSON transfer timings invalidated and preserved;404 transport failure preserved.
 
-Strict flat stereo IAMF presentation validates one element/layer and zero gain. Native extracted FLAC returns all 96000 frames, maximum host sample error 3.055e-6; unsupported gain and truncated input reject. Accepted flat whole-file component, not general IAMF renderer.
+Pursue strict flatstereo one-element/layer zero-gain finite host-parser bridge. No general IAMF parameter automation/spatial rendering, browser-only parser, streaming seek or production admission. Cost is neutral at this bound, not proven speedup.
 
-Next: Specify browser parsing/parameter ownership and complete cost before broad IAMF support or performance claims.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T214920Z-iamf-cost/run.json) · [Analysis](../../shared/runs/20260919T214920Z-iamf-cost/analysis.md) · [Manifest](../../shared/runs/20260919T214920Z-iamf-cost/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

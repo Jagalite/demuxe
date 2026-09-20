@@ -89,92 +89,60 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "Maintained remux capture preserves48 video/95 audio packets, and native HLS serves marked A/V through seek/EOF; wrong range boundary rejects and resources clean up.",
+      "basis": "Scoped143 coded packets and integer packet times/durations, full host pixels/PCM exact; native HLS/direct/MSE actual marked A/V, seek/EOF/cleanup; previous wrong-range rejection retained. Exact browser waveform and arbitrary sources not claimed.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/hls/maintained-result.json",
-        "results/top100/hls/native-delivery.json"
+        "research/shared/runs/20260919T205900Z-hls-duration/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate.",
+      "status": "passed",
+      "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/hls/maintained-result.json",
-        "results/top100/hls/native-delivery.json"
+        "research/shared/runs/20260919T205900Z-hls-duration/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments.",
+      "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/hls/maintained-result.json",
-        "results/top100/hls/native-delivery.json"
+        "research/shared/runs/20260919T205900Z-hls-duration/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scientific verdict preserved with normalized disposition and explicit scoped gates.",
+      "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
       "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/hls/maintained-result.json",
-        "results/top100/hls/native-delivery.json"
+        "research/shared/runs/20260919T205900Z-hls-duration/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "top30-stage-reconciliation",
-    "record": {
-      "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
-      "recorded_at_utc": "2026-09-19T20:18:43.070415+00:00",
-      "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
-      "previous_state": "PURSUE",
-      "initial_rank": 7,
-      "run_ids": [
-        "20260919T201843Z-top30-stage-reconciliation"
-      ],
-      "evidence_level": "reconciled_real_path_screen",
-      "new_media_execution": false,
-      "reason": "Actual Demuxe-produced fMP4 fragments served as native HLS byte ranges reach marked A/V, seek and EOF; misaligned ranges fail. Tiny loopback delivery prototype only; not a generic source-authorized production resource service.",
-      "scope": "Tiny loopback byte-range HLS view over generated fragments; production authorization/resource service excluded.",
-      "correctness_acceptance": "Maintained remux capture preserves48 video/95 audio packets, and native HLS serves marked A/V through seek/EOF; wrong range boundary rejects and resources clean up.",
-      "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
-      "reopen_condition": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
-      "prior_decision": {
-        "campaign": "top100",
-        "ledger": "results/top100/decisions.jsonl",
-        "line": 14,
-        "record": {
-          "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
-          "rank": 7,
-          "state": "PURSUE",
-          "reason": "Actual Demuxe-produced fMP4 fragments served as native HLS byte ranges reach marked A/V, seek and EOF; misaligned ranges fail. Tiny loopback delivery prototype only; not a generic source-authorized production resource service.",
-          "evidence_level": "REAL_PATH_SCREEN",
-          "evidence": [
-            {
-              "path": "hls/maintained-result.json",
-              "sha256": "5d7d37f5dcd7a76bce1389cb53721c4e8ea1a4aee9ba9232b4b56ab8a76013d2"
-            },
-            {
-              "path": "hls/native-delivery.json",
-              "sha256": "5fbf259e77cedff5d6b2f186b240375a522135645faab3269dfbac92bba87494"
-            }
-          ],
-          "recorded_at_utc": "2026-09-19T18:17:13.090720+00:00"
-        }
+    "key": "R363.expose-prepared-fragments-as-a-native-hls-presentation",
+    "disposition": "pursue",
+    "evidence_level": "actual_destination_cost_with_host_timeline_oracle",
+    "new_media_execution": true,
+    "reason": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim.",
+    "next_action": "Bounded finite H264/AAC HLS destination research gates complete with explicit timeline/duration adapter. Production manifest ownership/authorization and long segmented-media integration remain separate; no CPU or speedup promotion.",
+    "stages": {
+      "correctness": {
+        "status": "passed",
+        "basis": "Scoped143 coded packets and integer packet times/durations, full host pixels/PCM exact; native HLS/direct/MSE actual marked A/V, seek/EOF/cleanup; previous wrong-range rejection retained. Exact browser waveform and arbitrary sources not claimed."
       },
-      "evidence": [
-        "research/shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json",
-        "results/top100/hls/maintained-result.json",
-        "results/top100/hls/native-delivery.json"
-      ]
-    }
+      "performance": {
+        "status": "passed",
+        "basis": "Native HLS, direct-file and application-MSE each rendered marked A/V, sought and reached EOF in seven rotated triplets. Same timeline-normalized prepared bytes: all143 codec packets, rational PTS/DTS/durations and host decoded pictures/PCM match source. Median first A/V HLS79.5ms, direct92.6ms, MSE78.7ms. HLS-minus-direct paired median-14.7ms,95%bootstrap[-34.89999997615814, 13.300000011920929]; upper bound meets declared100ms startup regression budget. No significant speedup claim."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T20:51:06.528050+00:00",
+    "run_ids": [
+      "20260919T205900Z-hls-duration"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T205900Z-hls-duration/run.json"
+    ]
   },
-  "next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+  "next_action": "Bounded finite H264/AAC HLS destination research gates complete with explicit timeline/duration adapter. Production manifest ownership/authorization and long segmented-media integration remain separate; no CPU or speedup promotion.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

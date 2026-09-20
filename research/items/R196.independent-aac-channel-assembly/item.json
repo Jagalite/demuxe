@@ -47,102 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "status": "passed",
+      "basis": "Actual independent AAC-LC48k mono sources parsed at coded SCE boundaries and assembled into stereo PCE with two front SCEs, channel_configuration0 and only second tag renamed. Source hash/rate/origin/priming/input-length/frame-count certificates validated. All49152 samples per channel match both independent originals exactly in FFmpeg and Chrome; native render/end/closed pass. Priming, origin, hash, frame-count mismatches and cancellation reject; dependency parser controls pinned from actual R268 run. Five alternating cold table-load/source-read/identity/parser/PCE-write/single-stereo-decode jobs74.677ms versus two original mono decodes plus PCM interleave57.193ms ratio1.30570 fails<=0.9.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
+      "status": "failed",
+      "basis": "Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "basis": "stop_current_profile: Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R196.independent-aac-channel-assembly",
-      "rank": 309,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:03:56.060985+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T230356Z-aac-stereo"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current mux copies one selected audio stream; there is no AAC raw-element parser/PCE writer or priming alignment owner. Mono AAC channels cannot be arbitrarily concatenated without validating independent syntax.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual independent AAC-LC48k mono sources parsed at coded SCE boundaries and assembled into stereo PCE with two front SCEs, channel_configuration0 and only second tag renamed. Source hash/rate/origin/priming/input-length/frame-count certificates validated. All49152 samples per channel match both independent originals exactly in FFmpeg and Chrome; native render/end/closed pass. Priming, origin, hash, frame-count mismatches and cancellation reject; dependency parser controls pinned from actual R268 run. Five alternating cold table-load/source-read/identity/parser/PCE-write/single-stereo-decode jobs74.677ms versus two original mono decodes plus PCM interleave57.193ms ratio1.30570 fails<=0.9.",
+      "next_action": "Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
+      "reopen_condition": "Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R196.independent-aac-channel-assembly.md"
-      ],
-      "next_test": "Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
-      "reopen_condition": "Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T230356Z-aac-stereo/run.json"
+      ]
     }
   },
-  "next_action": "Implement only a bounded AAC element/PCE oracle for one synchronized pair with disabled coupling/PNS/TNS/SBR; enable one excluded tool or change priming as an explicit reject control.",
+  "next_action": "Stop this cold Python independent-SCE assembly cost profile. Exact compressed assembly capability is demonstrated for aligned independent AAC-LC only; consumer startup/output fidelity do not justify arbitrary priming, CPE halves, coupling or SBR admission. Prepared or transfer-constrained workloads require new declared cost tests; no production integration.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

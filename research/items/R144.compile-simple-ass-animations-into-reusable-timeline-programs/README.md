@@ -2,20 +2,10 @@
 
 # Compile simple ASS animations into reusable timeline programs
 
-Current decision: **pursue**. Restricted fad animation reused two opacity-regime mask templates plus piecewise alpha; matches actual libass geometry/masks with at most one alpha unit at seven times including rewind. Single-mask variant fails because libass changes outline mask when fill becomes opaque. No general ASS compiler or measured gain.
+Disposition: **inconclusive**. Correctness **passed**, performance **failed**; other research gates passed.
 
-Historical stage reconciliation; no new experiment.
+Restricted four-second fad(300,300) caption program, two opacity-regime maskfamilies. All98 requestedtimes includingrewind match independent real libass glyph geometry/masks/RGB exactly and alpha within original1-code bound. Unsupportedmove string rejected by narrow admission. Candidate template preparation includes2libass renders versus98baseline renders, plus worker/font/load/compare/termination; no general ASS source/layout semantics. Complete owner wall-time saving8.19%, bootstrap95[-8.375982414610462, 21.856847448795325]; predeclared performance gate failed.
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | passed | Two opacity-regime templates match real libass masks/geometry with≤1alpha-unit error at seven times including rewind; preserved single-mask variant fails. Restricted fad program only. |
-| performance | pending | No compilation/cache/retention/CPU workload benchmark or generalASS claim. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+Research experiment complete without demonstrated cold-owner latency value. Reopen only for a specified persistent-worker or longer subtitle schedule where avoided work matters; declare new costs and threshold before measuring.
 
-Next: Identify the exact subtitle representation, maintained renderer and existing cache behavior. Distinguish an oracle discrepancy from a player defect.
-
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T210256Z-ass-owners/analysis.md)

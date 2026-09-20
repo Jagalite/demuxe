@@ -2,32 +2,18 @@
 
 # one SourceBuffer, different codec and container
 
-Full identity: `R138.one-sourcebuffer-different-codec-and-container.report-continuity`. Original rank: 9.
-
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
-
-Reconciled completed prior evidence: Rendered pictures and selected audio survive a codec/container transition through one SourceBuffer; useful explicit continuity capability, without claiming gapless or application integration.
-
-## Accepted scope
-
-AVC/AAC MP4 to VP9/Opus WebM through one MSE SourceBuffer; not gapless or sample-exact qualification.
-
-Retained changeType and restart controls both render expected red/green pictures and tones with cleanup. Boundary timing/PCM and adverse lifecycle remain open; media log includes splice and encoded-time warnings.
-
-Next action: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-## Stages
+Current decision: **pursue**. One SourceBuffer crosses AVC/fMP4 to VP9/WebM with every24frame query exactly matching independent isolated native presentations. Continuous playback delivers the remaining23frames with exact hashes and timeline. Stale generation rejects; fatal bad second init explicitly requires rebuild. Qualified local transition benchmark shows22.55% median savings.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | pending | Retained changeType and restart controls both render expected red/green pictures and tones with cleanup. Boundary timing/PCM and adverse lifecycle remain open; media log includes splice and encoded-time warnings. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | One SourceBuffer crosses AVC/fMP4 to VP9/WebM with every24frame query exactly matching independent isolated native presentations. Continuous playback delivers the remaining23frames with exact hashes and timeline. Stale generation rejects; fatal bad second init explicitly requires rebuild. Qualified local transition benchmark shows22.55% median savings. |
+| correctness | passed | Exact original report video-only scope: two1s160x96@12fps changing-picture streams,24 complete RGBA frame hashes equal isolated baseline at frame centers, reverse/forward queries, one retained SourceBuffer. Continuous playback23subsequent frames exact plus independently queried initialframe, timestamps0.083333..1.917,EOF. Stale callback after replacement rejected; actual wrong-container second init errors, declared full rebuild restores old frame. No claim old SourceBuffer can roll back fatal parse errors; URLs/elements released. Audio,gapless A/V and production queue ownership excluded. |
+| performance | passed | Predeclared11 alternating fresh-owner pairs after correctness; old source opened and firstframe established before measured transition. Candidate changeType+append versus restart/reappend, through full-frame capture/hash and cleanup. Resident identical encoded bytes common; no network/browser startup saving claimed. Median saving22.5457%, deterministic bootstrap95 median[15.6185%,41.2366%],5% gate passed. Prior rAF-quantized run retained/excluded with explicit measurement correction. No CPU, physical memory or energy claim. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: One SourceBuffer crosses AVC/fMP4 to VP9/WebM with every24frame query exactly matching independent isolated native presentations. Continuous playback delivers the remaining23frames with exact hashes and timeline. Stale generation rejects; fatal bad second init explicitly requires rebuild. Qualified local transition benchmark shows22.55% median savings. |
 
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
+Next/reopen: Pursue bounded video-only component. Production adoption needs actual queue/generation owner integration and selected-audio sample-boundary tests; preserve mandatory rebuild on fatal parser errors. No routing changes.
 
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

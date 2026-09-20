@@ -2,12 +2,10 @@
 
 # Stop replaying alpha-animation history when its remaining contribution is bounded
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-No APNG retained composition/index owner or opt-in approximation contract exists. Current output promises full frame; bounded transmittance cannot silently justify approximate playback, and historical microbenchmark excludes decode/index work.
+Explicitopt-inpreview contract: actual48frame16x16 RGBA8 APNG OVER/NONE payloads, normalizedpremultipliedencodedRGB+alpha composite versusindependent100decimaldigit Pythonreference. Tolerance1/1024 at everycomponent/pixel; this isnot native8bit repeatedrounding identity. BrowseractualCRC/sequence/geometryindex andnativeDecompressionStream decodeallselectedNone-filterPNGpayloads. Reverseaccumulation tracksperpixel suffixvalue/T andoutwardroundedTbound withnumericalerrorallowance. Mainfixture6of48wholeframepayloads sufficient: maxactualcomponenterror0.0009204534822872 <=maxbound0.0009204534822936 <1/1024; whitebackgroundcompositeerror0.00087811168248 alsoallpixelsbounded. Uncoveredcolumncontrol forcesall48payloads and fullprecisionoutput, notfalseearlystop. Transparentcolored samples contributezero; 500step underflowcontrol retainspositive5e-324 conservativebound, opaque endpoint exactzero, transparentendpoint retainsone. Approximateowner rejects exactadvanceuntil full48framereplay restores exactstate; oldinflightinflate completion rejectedafterownerretirement, freshsurvivorexact, allownerreferences cleared. InitialNodeevaluateReferenceError preserved, nocandidateexecutedthere. IndependentFFmpeg realAPNGdecode confirmsstreamvalid but its8bitcoalescedoutput differsfromdeclaredhighprecisionoracle by0.00188088 >previewtolerance, so not an eligiblebaseline forthisexplicitcontract; no claimacceleratingunchangednativeAPNGoutput. Ninewholecoldfetch/index/inflate/componentdecode/composite/check/retirejobs: exactforward10.589ms, boundedpreview3.822ms,saving63.90% CI[60.72186828565065, 66.97819315856502], passeslower95>=10%. NoGPUrenderer/physicaldisplay guarantee or automaticlossyplaybackadmission.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Pursueonlyexplicitboundedpremultipliedpreview contract withperpixelconservativebound and mandatoryexactstate restoration. This doesnotqualify approximate substitutioninto existingexactnativeAPNGplayback. Broaderfilter/color/disposal andproductionowner integrationseparate.
 
-Next: Define explicit preview tolerance/surface and bounded APNG history planner; test every pixel bound, uncovered pixel, transparent colored sample and underflow, restoring exact state before exact continuation.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T002356Z-bounded-alpha-evaluate/analysis.md)

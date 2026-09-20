@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221200Z-rewind-exact-window",
+  "item_keys": [
+    "R143.compressed-fragment-rewind-cache.report-continuity"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:22:24.314146+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R143.compressed-fragment-rewind-cache.report-continuity/tests/rewind-cache.mjs"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "800325b8c93f4e4093c1c3f482b4a8f31a4340c5d7be3bcac3b9bc820bea218d",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Video-only AVC with predictive frames and RAP-aligned fragments. A two-fragment cache includes initialization bytes, enforces its byte cap by actual eviction, reports a cache miss, and rejects changed source/configuration/generation keys before append. Native MSE removes the first second, then reappends the exact 16,708-byte cached fragment without replacing its SourceBuffer. All 48 pictures in [0,2) match an independently prepared full-source decoded cache; backward seek, EOF and cleanup pass. Cache identity is a tested research owner, not maintained production admission."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared deterministic application cache payload accounting: at least 50% reduction for the same 48-picture window. Candidate 33,765 bytes including initialization and two copied compressed fragments; baseline 2,949,120 bytes in 48 actual RGBA arrays. Reduction 98.8551%, gate passed. Cold decoded preparation 521.4 ms, compressed preparation 0.875 ms, and rewind plus 48 image checks 343.765 ms are descriptive single-run observations, not comparative latency claims. Shared resident fixture and hidden MSE/decoder allocations are explicitly excluded; no physical-memory or energy inference."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Bounded cache component is worth pursuing. Reopen for maintained source/configuration identity, real source cancellation, non-RAP cache misses or other media profiles; measure complete deployment cost before changing player cache policy."
+}

@@ -58,79 +58,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Source-grounded contract retained; current scope and falsifier narrowed in run analysis.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Generated stereo FLAC, three independent decoder references, persistent resampling and bounded queue control executed.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "A real host FLAC decoder feeds bounded PCM queues to three persistent resamplers. Outputs at 32000/44100/48000 Hz exactly match independent decode paths (64000/88200/96000 stereo frames). Actual fanout backpressures; slow rejection and epoch tests are separate policy components, not integration proof.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "correctness": {
-      "status": "pending",
-      "basis": "Output fidelity passed for three sample rates; actual cancellation/source replacement not exercised, only separate policy controls.",
+      "status": "passed",
+      "basis": "Actual bounded fanout preserves all three sample-rate outputs. A stalled third consumer is terminated while two survivors remain exact; source1 is terminated midstream, all jobs reaped, distinct source2 restarts exactly, and an actual stale epoch publish cannot enter new queues. Queue payload never exceeds8192bytes per consumer. Matched host wall median41.852ms shared versus35.306ms three concurrent independent decoders is1.18542x and fails0.90 target.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Lifecycle correctness gate incomplete; no runtime gain inferred from one versus three decoder counts.",
+      "status": "failed",
+      "basis": "Actual bounded fanout preserves all three sample-rate outputs. A stalled third consumer is terminated while two survivors remain exact; source1 is terminated midstream, all jobs reaped, distinct source2 restarts exactly, and an actual stale epoch publish cannot enter new queues. Queue payload never exceeds8192bytes per consumer. Matched host wall median41.852ms shared versus35.306ms three concurrent independent decoders is1.18542x and fails0.90 target.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Commands, output identities, source/runtime manifest, limitations and expected adverse outcomes captured.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scoped disposition recorded; integration and release qualification remain separate.",
+      "basis": "stop_current_profile: Stop this four-process shared-source optimization profile for2s FLAC. Reopen with an expensive source decoder or in-process shared resamplers and repeat equal-work measurement; opaque process/pipe memory and energy remain unmeasured.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "audio-stage-reconciliation",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R327.share-one-decoded-audio-source-across-many-sample-rate-consumers",
-      "recorded_at_utc": "2026-09-19T19:59:33.240223+00:00",
+      "recorded_at_utc": "2026-09-19T20:56:27.118329+00:00",
       "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T195933Z-audio-fanout"
+        "20260919T205627Z-shared-source-cost"
       ],
-      "evidence_level": "component_test",
-      "profile": "host FFmpeg FLAC to source-rate stereo f32; three independent persistent sample-rate consumers",
+      "evidence_level": "actual_component_execution",
       "candidate_executed": true,
       "fallback_observed": false,
-      "reason": "A real host FLAC decoder feeds bounded PCM queues to three persistent resamplers. Outputs at 32000/44100/48000 Hz exactly match independent decode paths (64000/88200/96000 stereo frames). Actual fanout backpressures; slow rejection and epoch tests are separate policy components, not integration proof.",
-      "next_action": "Exercise actual consumer cancellation/source replacement under one owned browser PCM broker, then benchmark equivalent independent persistent decoders including all queues and copies.",
-      "reopen_condition": "Exercise actual consumer cancellation/source replacement under one owned browser PCM broker, then benchmark equivalent independent persistent decoders including all queues and copies.",
+      "reason": "Actual bounded fanout preserves all three sample-rate outputs. A stalled third consumer is terminated while two survivors remain exact; source1 is terminated midstream, all jobs reaped, distinct source2 restarts exactly, and an actual stale epoch publish cannot enter new queues. Queue payload never exceeds8192bytes per consumer. Matched host wall median41.852ms shared versus35.306ms three concurrent independent decoders is1.18542x and fails0.90 target.",
+      "next_action": "Stop this four-process shared-source optimization profile for2s FLAC. Reopen with an expensive source decoder or in-process shared resamplers and repeat equal-work measurement; opaque process/pipe memory and energy remain unmeasured.",
+      "reopen_condition": "Stop this four-process shared-source optimization profile for2s FLAC. Reopen with an expensive source decoder or in-process shared resamplers and repeat equal-work measurement; opaque process/pipe memory and energy remain unmeasured.",
       "evidence": [
-        "research/items/R327.share-one-decoded-audio-source-across-many-sample-rate-consumers/evidence/20260919T195933Z-audio-fanout/run.json"
-      ],
-      "blocker_category": null
+        "research/shared/runs/20260919T205627Z-shared-source-cost/run.json"
+      ]
     }
   },
-  "next_action": "Exercise actual consumer cancellation/source replacement under one owned browser PCM broker, then benchmark equivalent independent persistent decoders including all queues and copies.",
+  "next_action": "Stop this four-process shared-source optimization profile for2s FLAC. Reopen with an expensive source decoder or in-process shared resamplers and repeat equal-work measurement; opaque process/pipe memory and energy remain unmeasured.",
   "integration": {
     "status": "not_integrated"
   },

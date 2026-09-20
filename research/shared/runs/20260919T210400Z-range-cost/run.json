@@ -1,0 +1,33 @@
+{
+  "stage": "performance",
+  "status": "failed",
+  "commands": [
+    "node research/shared/tooling/range-cost.mjs research/shared/runs/20260919T210400Z-range-cost"
+  ],
+  "analysis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload. First harness decode stdout buffer was too small; retained ENOBUFS error is setup/harness failure, not media rejection. All complete source bytes equivalent; malformed multipart termination rejected. No generic server availability, HTTP2/3, high-concurrency or CPU claim.",
+  "decisions": [
+    {
+      "key": "R216.one-request-for-distant-byte-ranges",
+      "disposition": "inconclusive",
+      "evidence_level": "actual_parallel_http_cost",
+      "new_media_execution": true,
+      "reason": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload.",
+      "next_action": "Bounded latency gate concluded without sufficient benefit. Reopen only for request-limited/high-latency capable origin where equivalent concurrent ranges are measured; retain correct optional multipart parser.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "Eleven alternating actual HTTP jobs compare one multipart response with three CONCURRENT ordinary requests, each yielding three exact independently decoded source movies. Median latency17.28ms parallel versus17.05ms multipart; paired saving2.30%,95%bootstrap [1.04,14.50] misses declared5% lower-bound gate. One request replaces three but carries extra multipart bytes; no material latency benefit established for this local15ms-delay workload."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T210400Z-range-cost",
+  "recorded_at_utc": "2026-09-19T21:06:51.871108+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "18bab697a56a79ee2af2de7195a47fd7fba13ca34d54aadc5cdb612947fbbe46",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

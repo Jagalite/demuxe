@@ -2,32 +2,24 @@
 
 # Make cancellation follow media dependency boundaries
 
-Full identity: `R208.make-cancellation-follow-media-dependency-boundaries`. Original rank: 30.
+Full identity: `R208.make-cancellation-follow-media-dependency-boundaries`.
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Current decision: **pursue** (actual-http-and-host-decode-comparative-cost).
 
-Required target GOP remains retained and independently decodes24 exact frames while actual unrelated speculative fetch aborts, observed by server. Stale generation publication rejects. HTTP dependency component, not WebTransport integration.
+Ninealternating actualHTTP+hostdecode pairs: targetlatency saving34.51percent95CI[12.12,39.78], lowerboundpasses10percent. All24pictures exact; badhash and missingRAP controls reject, cancelled speculativeHTTP and stalegenerationguard preserved. Coldfixture acquisition, SHAverification, actualdecoder startup/output and completed background work charged. Local25msGOP/150ms unrelatedtail profile; no browser CPU/network-general claim. Candidate retains exact requiredGOP while aborting unrelated speculative response; cancel-all baseline refetches requiredbytes. Retainedbyte cost and allwirebytes captured, no retain-all claim.
 
-## Accepted scope
-
-Owned HTTP dependency component only; no generic WebTransport or latency qualification.
-
-Required24-packet GOP remains and decodes24 exact frames while actual speculative HTTP fetch abort is observed by server; stale generation publication rejects.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
+Next action: Scoped research complete; production dependency-index ownership and representative network qualification remain separate.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
 | prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
 | screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
 | correctness | passed | Required24-packet GOP remains and decodes24 exact frames while actual speculative HTTP fetch abort is observed by server; stale generation publication rejects. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
+| performance | passed | Ninealternating actualHTTP+hostdecode pairs: targetlatency saving34.51percent95CI[12.12,39.78], lowerboundpasses10percent. All24pictures exact; badhash and missingRAP controls reject, cancelled speculativeHTTP and stalegenerationguard preserved. Coldfixture acquisition, SHAverification, actualdecoder startup/output and completed background work charged. Local25msGOP/150ms unrelatedtail profile; no browser CPU/network-general claim. Candidate retains exact requiredGOP while aborting unrelated speculative response; cancel-all baseline refetches requiredbytes. Retainedbyte cost and allwirebytes captured, no retain-all claim. |
+| results | passed | Ninealternating actualHTTP+hostdecode pairs: targetlatency saving34.51percent95CI[12.12,39.78], lowerboundpasses10percent. All24pictures exact; badhash and missingRAP controls reject, cancelled speculativeHTTP and stalegenerationguard preserved. Coldfixture acquisition, SHAverification, actualdecoder startup/output and completed background work charged. Local25msGOP/150ms unrelatedtail profile; no browser CPU/network-general claim. Candidate retains exact requiredGOP while aborting unrelated speculative response; cancel-all baseline refetches requiredbytes. Retainedbyte cost and allwirebytes captured, no retain-all claim. |
+| decision | passed | Ninealternating actualHTTP+hostdecode pairs: targetlatency saving34.51percent95CI[12.12,39.78], lowerboundpasses10percent. All24pictures exact; badhash and missingRAP controls reject, cancelled speculativeHTTP and stalegenerationguard preserved. Coldfixture acquisition, SHAverification, actualdecoder startup/output and completed background work charged. Local25msGOP/150ms unrelatedtail profile; no browser CPU/network-general claim. Candidate retains exact requiredGOP while aborting unrelated speculative response; cancel-all baseline refetches requiredbytes. Retainedbyte cost and allwirebytes captured, no retain-all claim. |
 
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[New run](../../shared/runs/20260919T213500Z-dependency-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

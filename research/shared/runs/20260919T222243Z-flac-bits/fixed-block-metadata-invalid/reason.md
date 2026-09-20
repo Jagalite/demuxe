@@ -1,0 +1,1 @@
+Independent flac-t caught fixed-block STREAMINFO minblock1792 versus nominal4096 mismatch: samples decode but frame numbering warnings mean seekability not trustworthy. Correct nominal min/max both4096 (finalshortblock excepted), preserve invalid full outputs and rerun destination/cost. MD5 remains explicitlyunset, not staleoriginal.

@@ -2,28 +2,18 @@
 
 # WebM Cues placement changes request timing, not total work here
 
-Full identity: `R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier`. Original rank: 181.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-RangeReader already exposes byte-aligned cache requests; no Cues relocating/virtual byte-view writer exists. Historical near-equal totals only support request-shaping hypothesis, not a local byte-saving result.
-
-No matching candidate/reference/control execution for this exact gate. Cues relocation writer and real startup/seek request-timing oracle; no byte-saving inference from historical near-equal totals.
-
-Next action: Before building relocation, inspect current request timing for a real target; only if startup-versus-seek latency tradeoff matters compare front/tail Cues with unchanged cluster payloads and stale-offset control. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. Equal-size front and tail Cues representations preserve every encoded packet hash and reject invalid relocated pointers. All 22 cold browser target pictures equal the independent original source. Under 256KiB responses with 20ms delay, front Cues save median 18.05% complete metadata/seek/picture/cleanup latency (95% bootstrap [12.46%,27.38%]); median total bytes improve only 2.86%. Two candidate owners transfer 45.71% more bytes, retained as variability, so this is timing rather than uniform traffic reduction.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Cues relocation writer and real startup/seek request-timing oracle; no byte-saving inference from historical near-equal totals. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Cues relocation writer and real startup/seek request-timing oracle; no byte-saving inference from historical near-equal totals. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Equal-size front and tail Cues representations preserve every encoded packet hash and reject invalid relocated pointers. All 22 cold browser target pictures equal the independent original source. Under 256KiB responses with 20ms delay, front Cues save median 18.05% complete metadata/seek/picture/cleanup latency (95% bootstrap [12.46%,27.38%]); median total bytes improve only 2.86%. Two candidate owners transfer 45.71% more bytes, retained as variability, so this is timing rather than uniform traffic reduction. |
+| correctness | passed | All packet timing/flags/payload hashes identical under independent FFprobe, all source Clusters unchanged. Independent original native picture at25.0167s matches all22 front/tail owners; bad relocated cue pointer rejected; each owner closes. |
+| performance | passed | Predeclared11 alternating fresh-owner pairs, actual cold file read/hash, metadata, seek, full640x360RGBA hash and cleanup. Median saving18.05% exceeds5%; median byte ratio.9714 below1.1. 95% median saving interval[12.46%,27.38%]. Offline authoring separately measured1.64/2.03ms; this is static authored representation, not runtime per-seek rewriting. No universal network benefit. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Equal-size front and tail Cues representations preserve every encoded packet hash and reject invalid relocated pointers. All 22 cold browser target pictures equal the independent original source. Under 256KiB responses with 20ms delay, front Cues save median 18.05% complete metadata/seek/picture/cleanup latency (95% bootstrap [12.46%,27.38%]); median total bytes improve only 2.86%. Two candidate owners transfer 45.71% more bytes, retained as variability, so this is timing rather than uniform traffic reduction. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Consider front Cues when authoring this static WebM profile; measure representative networks before integration. No general request-count or traffic-reduction claim.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

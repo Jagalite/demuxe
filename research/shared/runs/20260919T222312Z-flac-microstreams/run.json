@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "run_id": "20260919T222312Z-flac-microstreams",
+  "item_keys": [
+    "R223.flac-frame-range-microstream.report-continuity",
+    "R245.standalone-flac-from-original-frames.report-c"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Full-frame-preserving FLAC microstreams have exact sequential host/nativePCM and truthfulmetadata; separateencodedrandomseek extension fails. Original scoped cost endpoints tested independently."
+  },
+  "performance": {
+    "status": "mixed"
+  },
+  "decision": "mixed",
+  "per_item_outcomes": {
+    "R223.flac-frame-range-microstream.report-continuity": {
+      "disposition": "stop_current_profile",
+      "performance": "failed",
+      "reason": "Actual8s48kstereoFLAC has84frames; original42-frame suffix starting193536 yields190464samples/3.968s with truthfultotal and explicitlyunknownzeroMD5. Everycompletecodedframe hash unchanged; hostPCM and allChrome native/reference/render float samples exactly match continuoussuffix. CorruptedCRC rejected. Five alternating coldindex/read/copy/microdecode pairs64.865ms versus34.579ms fullsource decode+crop, ratio1.87585 fails0.9. Separate encodedmicrofile randomseek testfails libFLAC SEEK_ERROR at1/5000/189952 dueunchangedabsolute frame numbers; sequentialmicrodecode remains valid.",
+      "limits": "Stop current cold indexed suffix-microdecode costprofile; pursue no productionroute from this result. Exactsequential source-range restart is demonstrated, but standalone encodedfile randomseek is not. Reopen on cachedindex/range-source workload with fullcost and truthfulmetadata. Headerrebasing changescompleteframeidentity and is separate variant."
+    },
+    "R245.standalone-flac-from-original-frames.report-c": {
+      "disposition": "pursue",
+      "performance": "passed",
+      "reason": "Actual6s48kstereoFLAC originalframes20\u201322 copyunchanged into0.256s12288sample microfile. Correcttotal and exactboundedPCM MD5; allframehashesunchanged, flac-t succeeds, corruptionrejects. Host and everyChrome native/reference/render float sample exactly match source81920:94208. Five alternating complete coldindex/copy/boundedchecksumdecode+consumerdecode pairs91.199ms versus106.204ms fulldecode/crop/ordinaryFLACencode+consumerdecode, ratio0.85872 passes0.9. Separate randomskip withinencodedmicrofile fails libFLAC SEEK_ERROR atnonzeroindices dueabsoluteoriginal frame numbers; do notcall it portable seekablefile.",
+      "limits": "Pursue narrow whole-file decodeAudioData/finiteclip consumption endpoint only, with exactmetadata/MD5 costcharged. Encodedmicrofile native randomseek remains failed; byte-identicalframes cannot silently be renumbered. No productionadmission or genericstandalone-seekability claim. Reopen broaderfilecontract with explicitheader-rebase variant and independentseek oracle."
+    }
+  },
+  "limits": "R223 coldindexed suffix costfails; R245 exactchecksummed whole-decode clip costpasses. Per-item limits explicit.",
+  "reused_evidence": [
+    "/opt/homebrew/bin/flac"
+  ],
+  "commands_log": "research/shared/runs/20260919T222312Z-flac-microstreams/commands.log"
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T220900Z-timeline-map-acceptance",
+  "item_keys": [
+    "R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:20:13.888719+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "FFmpeg arguments: research/shared/runs/20260919T220700Z-timeline-fixtures/generator.json",
+    "python3 research/items/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier/tests/author-epoch.py research/shared/runs/20260919T220700Z-timeline-fixtures/a.mp4 research/shared/runs/20260919T220700Z-timeline-fixtures/a-epoch.mp4 3 --verify",
+    "python3 research/items/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier/tests/author-epoch.py research/shared/runs/20260919T220700Z-timeline-fixtures/b.mp4 research/shared/runs/20260919T220700Z-timeline-fixtures/b-epoch.mp4 7 --verify",
+    "node research/items/R117.mse-timestampoffset-concatenation-report-paragraph-label.report-frontier/tests/timeline-map.mjs"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "1f37f7a36fe0924c65c53c883ba44c940f5d6053ccf504fdd82d47050574f74e",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Explicit segment offsets-3/-5 map sourceDTSepochs3/7 into outputDTS0/2 while retaining83.333ms composition lead, yielding[.083333,4.083332]. Actual two-sourceB-frame24fps160x96AVC,48codedpacketseach, allcompositionreordered; exactindependentRGBA/ordinal mapping, crossboundary reverse/forward seeks, EOF andcleanup. A delayedactualReadableStream read fromoldgeneration isrejected beforeappend withrangesunchanged. Deliberatedoublebias produces onlyfirst2.083332s andcontrol detects missingsecondinterval. Video-only reportcapability; noselectedaudio/gaplessAAC, arbitrarycontainer orproductionqueueclaim."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Literal report investigates whether requested timeline mapping works; no completecost orresource-saving hypothesis. Capabilityendpoint doesnot require manufacturing a benchmark. All outputtiming distinctions areexplicit."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Bounded timeline report stage complete. Reopen for selectedaudio andencoderpriming, maintainedsessionplan integration ornewsourceepochs; preservemode-specific source-to-presentation map andsingleapplication ofbias."
+}

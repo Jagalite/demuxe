@@ -2,28 +2,18 @@
 
 # Compact large seek maps with checkpoints
 
-Full identity: `R075.compact-large-seek-maps-with-checkpoints`. Original rank: 240.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-The current JS metadata probe is bounded and does not retain a dense 100000-entry seek map; FFmpeg owns the live demux index under a 4 MiB cap. The reported delta/checkpoint representation saves synthetic array bytes but does not identify a current array owner to replace.
-
-No matching candidate/reference/control execution for this exact gate. Actual large-source index allocation/query identity; synthetic arrays are not a current dense seek-map owner.
-
-Next action: Inspect one large-source real FFmpeg index allocation and expose its actual query/identity contract before testing block-16 deltas. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. On an actual100000-picture all-intra MP4 sample map, checkpoint32 delta representation retains353126B versus1600000B Float64 baseline:77.93% less logical array storage. Every reconstructed entry and100000 independent predecessor queries match; stale source, truncated varints and>4GiB arithmetic controls pass. Cold build+query jobs are21.79% slower at median; pursue only the literal retained-array representation capability, not speed, peak memory or an identified production replacement.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Actual large-source index allocation/query identity; synthetic arrays are not a current dense seek-map owner. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Actual large-source index allocation/query identity; synthetic arrays are not a current dense seek-map owner. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | On an actual100000-picture all-intra MP4 sample map, checkpoint32 delta representation retains353126B versus1600000B Float64 baseline:77.93% less logical array storage. Every reconstructed entry and100000 independent predecessor queries match; stale source, truncated varints and>4GiB arithmetic controls pass. Cold build+query jobs are21.79% slower at median; pursue only the literal retained-array representation capability, not speed, peak memory or an identified production replacement. |
+| correctness | passed | Independent FFprobe supplies actual all-keyframe PTS/byte positions. All100000 scalar entries and100000 queries exact under separate baseline binary search; malformed stream/source identity rejects; wide-offset controls exact. Index-only component, no media transformation. |
+| performance | passed | Source-defined array storage gate<=50% baseline passes at22.07%.11 alternating cold constructors+100000queries retain raw timings; median complete latency21.79% worse. Transient author arrays make peak memory higher than final retention and are not physical-heap qualified. No latency or total-resource benefit asserted. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: On an actual100000-picture all-intra MP4 sample map, checkpoint32 delta representation retains353126B versus1600000B Float64 baseline:77.93% less logical array storage. Every reconstructed entry and100000 independent predecessor queries match; stale source, truncated varints and>4GiB arithmetic controls pass. Cold build+query jobs are21.79% slower at median; pursue only the literal retained-array representation capability, not speed, peak memory or an identified production replacement. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Use only if a concrete large retained map owner values the77.93% array reduction enough to accept construction/query cost. Maintained native FFmpeg seeks remain unchanged; audit real exposure before integration.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -2,12 +2,10 @@
 
 # Entropy-only transcoding
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Current decision: **blocked — setup**.
 
-Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.
+Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.
 
-Next: Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Source audit](../../shared/runs/20260920T004801Z-entropy-translator-source-audit/analysis.md) · [Current stages](item.json) · [History](history.jsonl)

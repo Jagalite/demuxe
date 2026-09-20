@@ -1,0 +1,12 @@
+{
+  "profile": "Three512x512 baseline grayscale JPEGs; aligned256x256 crop at128,128. Exact retained quantized coefficients/quant tables; independently FFmpeg full-decode crop vs cropped JPEG decode exact; browser full-decode crop vs ImageDecoder transformed JPEG exact.",
+  "controls": [
+    "misaligned origin admission rejects",
+    "wrong crop differs",
+    "late source epoch image closes",
+    "all ImageDecoder/VideoFrame/bitmap owners close"
+  ],
+  "performance": "9 alternating pairs, each3 images whole jpegtran process+read+browser decode/draw/readback/hash versus browser full decode/crop/draw/readback/hash; no offline preparation exemption. Mean end-to-end ms, bootstrap95 lower saving>=10%.",
+  "prior_run": "research/items/R108.crop-or-transform-mjpeg-in-the-coefficient-domain/evidence/20260919T225403Z-aligned-crop",
+  "correction": "Remove per-byte Playwright JSON serialization from timed transport; real local HTTP binary reads on both paths. Retain initial timings as harness-cost-confounded, not acceptance."
+}

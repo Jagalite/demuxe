@@ -2,28 +2,24 @@
 
 # Select or assemble whole Opus elementary streams without PCM
 
-Full identity: `R104.select-or-assemble-whole-opus-elementary-streams-without-pcm`. Original rank: 219.
+Full key: `R104.select-or-assemble-whole-opus-elementary-streams-without-pcm`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (2026-09-19T22:45:52.505468+00:00).
 
-Whole-track Opus packaging exists but selected component streams and family255 mapping are not exposed; current adaptation is mono/stereo. A self-delimiting component parser plus truthful layout/trim contract is needed.
+Actual six-channel mapping-family-1 Opus, four elementary streams and two coupled pairs, parsed at real self-delimited coded frame boundaries. Mono stream extraction, complete coupled stereo extraction, and pair-plus-mono assembly retain every selected coded component and preserve preskip120/end trim. All96000 frames exactly match corresponding full-source channels in host FFmpeg and Chrome152, including offline render/ended/closed. Half-pair intent, mismatched preskip, CRC corruption and truncation rejected. Five alternating cold source-read/parse/CRC/Ogg-write/decode pairs versus full six-channel decode plus efficient PCM channel slicing: mono52.705ms vs42.117ms ratio1.2514; stereo55.710ms vs45.208ms ratio1.2323; three-channel70.973ms vs50.152ms ratio1.4152. All fail predeclared0.9 cost threshold.
 
-No matching candidate/reference/control execution for this exact gate. Self-delimiting Opus multistream component selector with whole coupled-pair, layout and pre-skip rules.
+Stop this cold Python parser/rewriter cost profile. Exact whole-elementary-stream capability is demonstrated only for fixed mapping, one CELT20ms frame per component, shared source/priming, and zero gain; not half-pair extraction, arbitrary packets, independently primed sources, or production integration. A materially faster implementation or transfer-limited workload needs a new declared experiment.
 
-Next action: Extract one entire independent mono component and one coupled pair from a marked fixture, compare payload/PCM and reject half-pair selection or mismatched pre-skip. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Self-delimiting Opus multistream component selector with whole coupled-pair, layout and pre-skip rules. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Self-delimiting Opus multistream component selector with whole coupled-pair, layout and pre-skip rules. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T224552Z-opus-streams/run.json) · [Analysis](../../shared/runs/20260919T224552Z-opus-streams/analysis.md) · [Manifest](../../shared/runs/20260919T224552Z-opus-streams/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual MP4/Matroska/fragmented-MP4 owners share144immutable AVC payload objects only when configuration and payload hashes match, while retaining each source authorization and timeline. All144full pictures per source reconstructed from cached payloads exactly match independent FFmpeg decode; retiring one owner leaves survivor exact. Changed source/authority/config keys reject reuse. Nine cold read/hash/demux/cache jobs: measured retained allocations329884vs523434bytes (36.98%less), median cost0.9511times per-source baseline, within declared1.25budget. This is component allocation evidence, not physicalRSS/network savings or interchangeability of timestamps/containers.

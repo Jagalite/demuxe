@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225500Z-decode-order-trust",
+  "item_keys": [
+    "R181.dependency-aware-corruption-tracking"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:59:22.475418+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R181.dependency-aware-corruption-tracking/tests/trust.py research/items/R181.dependency-aware-corruption-tracking/evidence/20260919T225400Z-corruption-trust",
+    "python3 research/items/R181.dependency-aware-corruption-tracking/tests/trust-decode-order.py research/items/R181.dependency-aware-corruption-tracking/evidence/20260919T225500Z-decode-order-trust",
+    "python3 research/items/R181.dependency-aware-corruption-tracking/tests/owner.py research/items/R181.dependency-aware-corruption-tracking/evidence/20260919T225500Z-decode-order-trust"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "5768a7a3a8c3af5b87ed0af2b9e686b9eed4717838a426ef3e73c929bd41bc2b",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent host decoded frameMD5 keyed by presentation timestamps, actual MP4 packet/NAL reference flags and IDR classification. Three36AU perturbations: nonref35remaining exact, refloss8changed+1missing, headerperturb9changed. Every affected output unknown, all24postIDR outputs clear/exact; no false-clear in profile. Actual naive PTS-only interval fails on B0.25 depending on future P0.333. Hash/generation-bound research trust owner rejects stale/wrong source and after retirement."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Literal source establishes conservative correctness/trust behavior after known loss, not faster decoding or repaired output. Unknown pictures are not claimed reconstructed correctly; no performance gate applies to this capability."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Only expose clear output when source-bound decode-order provenance supports it; carry pending reordered picture tags across reset. Extend codec/reference/adverse profiles before maintained integration, and do not treat warnings or eventual IDR recovery as exact per-picture contamination proof."
+}

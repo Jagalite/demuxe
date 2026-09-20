@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+#include <stdio.h>
+#include <stdlib.h>
+#include <jpeglib.h>
+int main(int argc,char**argv){if(argc!=2)return 2;FILE*f=fopen(argv[1],"rb");if(!f)return 3;struct jpeg_decompress_struct j;struct jpeg_error_mgr e;j.err=jpeg_std_error(&e);jpeg_create_decompress(&j);jpeg_stdio_src(&j,f);jpeg_read_header(&j,TRUE);jvirt_barray_ptr*a=jpeg_read_coefficients(&j);if(j.num_components!=1)return 4;printf("{\"width\":%u,\"height\":%u,\"quant\":[",j.image_width,j.image_height);for(int k=0;k<64;k++)printf("%s%u",k?",":"",j.quant_tbl_ptrs[j.comp_info[0].quant_tbl_no]->quantval[k]);printf("],\"blocks\":[");for(JDIMENSION y=0;y<j.comp_info[0].height_in_blocks;y++){JBLOCKARRAY row=j.mem->access_virt_barray((j_common_ptr)&j,a[0],y,1,FALSE);for(JDIMENSION x=0;x<j.comp_info[0].width_in_blocks;x++){printf("%s[",y||x?",":"");for(int k=0;k<64;k++)printf("%s%d",k?",":"",row[0][x][k]);printf("]");}}printf("]}\n");jpeg_finish_decompress(&j);jpeg_destroy_decompress(&j);fclose(f);return 0;}

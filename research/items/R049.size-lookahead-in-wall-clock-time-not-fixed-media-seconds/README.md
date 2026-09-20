@@ -2,20 +2,24 @@
 
 # Size lookahead in wall-clock time, not fixed media seconds
 
-Current decision: **pursue**. Reconciled completed prior evidence: At 0.5x startup, peak buffered media changed 5.503999s to 3.007999s, fetched bytes 2359296 to 1572864. Actual 4x after seek is explicitly asserted; frame progress, source replacement rejection and worker cleanup pass. Worth a bounded rate-aware preparation policy; no generalized high-speed improvement claimed.
+Full identity: `R049.size-lookahead-in-wall-clock-time-not-fixed-media-seconds`.
 
-Historical stage reconciliation; no new experiment.
+Current decision: **pursue** (actual-browser-policy-and-complete-work-count-comparison).
+
+All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect.
+
+Next action: Scoped research gate complete. Production integration and broader workload qualification remain separate.
+
+## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
 | prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
 | screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | pending | Actual0.5x/4x route progress, source replacement rejection and worker cleanup recorded; no complete independent picture/PCM oracle for rate-policy changes. |
-| performance | pending | Buffered time and fetched-byte work counts improve startup; no equivalent-work statistical latency/CPU gate. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+| correctness | passed | All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. |
+| performance | passed | At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. |
+| results | passed | All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect. |
+| decision | passed | All actual AVIO read buffers SHA256-exact against source slices;8 independent paused full-frame references exact for each policy, forward/back seek, changed-source rejection and worker cleanup pass. Continuous callback oracle mismatch also affected baseline and is preserved as failed measurement, corrected to stable paused within-frame comparison. At0.5x playback prepared media drops2286808to1524397bytes (33.34percent) inall5paired cases, exceeding20percent gate. 4x seek completes under same source delay with exact source/picture controls; raw fast-preparation and fetchedbytes retained. This passes slow-playback work reduction only; no broad fast-rate starvation claim. License-only correction: source-derived snapshots are GPL-3.0-or-later, as their preserved headers say; earlier manifest GPL-2.0-or-later metadata was incorrect. |
 
-Next: Trace the precise owner, generation, reset/flush/commit or allocation being changed. Reproduce the present behavior before removing any guard.
-
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[New run](../../shared/runs/20260919T212800Z-policy-license-correction/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

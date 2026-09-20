@@ -1,0 +1,9 @@
+{
+  "new_execution": false,
+  "owner": "web/filter-retained-engine-worker.js",
+  "presentSelected": "mpv selected PTS and selected delay authoritative",
+  "presentReady": "setTimeout deadline then draw",
+  "physical_scanout_verified": false,
+  "blocker_category": "environment",
+  "reason": "Current retained custom presenter has a real remaining display-opportunity question: filter-retained-engine-worker.js presentSelected reads mpv selectedPTS/selecteddelay, presentReady draws immediately or uses setTimeout to that deadline, and schedulePump polls10ms duringactivework. It does not observe physical display opportunities or use requestAnimationFrame for this custompresentation owner. Native-player requestVideoFrameCallback observers belong to another backend and are not evidence that this proposal is already implemented. Existing headless runs can prove sourcePTS/frame selection/cancellation but do not measure physical scanout, refresh cadence or actual fixed-display repeats. Retain the physical-display environment gate; do not turn callbackcount/timer experiments into a completed cadence stage. This record is a source-owner clarification only, no new experiment or negative result."
+}

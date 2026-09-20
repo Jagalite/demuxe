@@ -75,78 +75,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Exact mechanism and bounded profile distinguished from overlapping item keys.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Fixtures, independent same-decoder output references, wrong-output controls and runtime/source hashes pinned.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Whole-output host/browser evidence reused with exact artifact identities; new CRC/lacing/continuation and packet-identity adverse controls pass.",
+      "basis": "Real progressive HTTP page-readiness delivery reaches first browser audio at median2035.9ms original pages versus2036.9ms one-packet pages;1.00049 ratio fails0.90 startup target while bytes grow12.9155%. All8 actual delivery trials consume complete responses, produce audio and reach EOF. No lower latency on this browser/fixture policy; additional23.705ms repagination setup only increases candidate cost.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "Byte overhead observed, but no equivalent actual delivery trace or latency measurement.",
+      "status": "failed",
+      "basis": "Real progressive HTTP page-readiness delivery reaches first browser audio at median2035.9ms original pages versus2036.9ms one-packet pages;1.00049 ratio fails0.90 startup target while bytes grow12.9155%. All8 actual delivery trials consume complete responses, produce audio and reach EOF. No lower latency on this browser/fixture policy; additional23.705ms repagination setup only increases candidate cost.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "New and reused execution identities, controls, limits, manifests and commands captured.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Scoped pursue disposition; integration and release qualification remain separate.",
+      "basis": "stop_current_profile: Stop the low-latency claim for this2s Chrome page-delivery profile. Reopen only with a materially different consumer/buffering policy or justified live workload; unchanged packets and PCM remain correct.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "audio-stage-reconciliation",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R239.packet-granular-ogg-opus-repagination.report-c",
-      "recorded_at_utc": "2026-09-19T20:13:17.931463+00:00",
+      "recorded_at_utc": "2026-09-19T20:56:27.118329+00:00",
       "stage": "decision",
-      "disposition": "pursue",
-      "state": "pursue",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T201317Z-ogg-controls"
+        "20260919T205627Z-ogg-delivery"
       ],
-      "evidence_level": "component_test_with_pinned_reuse",
-      "profile": "Reused genuine 2s mono Ogg source and group-1 repagination, new independent page/packet validation; no codec frame regrouping",
+      "evidence_level": "actual_component_execution",
       "candidate_executed": true,
       "fallback_observed": false,
-      "reason": "One-packet Ogg repagination preserves all 103 packets including headers, complete host/browser PCM and final granule. New strict parser rejects truncated body and a correctly checksummed missing continuation. Source 5 pages become 103, increasing bytes 20487 to 23133 (+12.9155%). No measured delivery-latency benefit.",
-      "next_action": "Require a real page-withholding delivery trace before building a production Ogg output path; compare full latency and byte cost under that policy.",
-      "reopen_condition": "Require a real page-withholding delivery trace before building a production Ogg output path; compare full latency and byte cost under that policy.",
+      "reason": "Real progressive HTTP page-readiness delivery reaches first browser audio at median2035.9ms original pages versus2036.9ms one-packet pages;1.00049 ratio fails0.90 startup target while bytes grow12.9155%. All8 actual delivery trials consume complete responses, produce audio and reach EOF. No lower latency on this browser/fixture policy; additional23.705ms repagination setup only increases candidate cost.",
+      "next_action": "Stop the low-latency claim for this2s Chrome page-delivery profile. Reopen only with a materially different consumer/buffering policy or justified live workload; unchanged packets and PCM remain correct.",
+      "reopen_condition": "Stop the low-latency claim for this2s Chrome page-delivery profile. Reopen only with a materially different consumer/buffering policy or justified live workload; unchanged packets and PCM remain correct.",
       "evidence": [
-        "research/shared/runs/20260919T201317Z-ogg-controls/run.json"
+        "research/shared/runs/20260919T205627Z-ogg-delivery/run.json"
       ]
     }
   },
-  "next_action": "Require a real page-withholding delivery trace before building a production Ogg output path; compare full latency and byte cost under that policy.",
+  "next_action": "Stop the low-latency claim for this2s Chrome page-delivery profile. Reopen only with a materially different consumer/buffering policy or justified live workload; unchanged packets and PCM remain correct.",
   "integration": {
     "status": "not_integrated"
   },

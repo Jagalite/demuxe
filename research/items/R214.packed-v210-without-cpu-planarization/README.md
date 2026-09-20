@@ -2,12 +2,10 @@
 
 # packed v210 without CPU planarization
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.
+ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: ExactGPU v210 unpack/partialgroup/stride ownership gate complete, totalcost guardfailed. Reopenfor representative largerpacked422 workloads or viableGPUconsumer integration with unchanged10bit oracle and cheapestCPUbaseline.
 
-Next: Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md)

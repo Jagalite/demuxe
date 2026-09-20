@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221600Z-cues-placement",
+  "item_keys": [
+    "R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:45:17.852292+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier/tests/relocate-cues.py research/items/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier/evidence/20260919T221600Z-cues-placement",
+    "node research/items/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier/tests/placement-browser.mjs research/items/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier/evidence/20260919T221600Z-cues-placement"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "e5151643ec417cfdc89f3e74f114714066c415f09d774ba7072dc1ed36ac9be1",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "All packet timing/flags/payload hashes identical under independent FFprobe, all source Clusters unchanged. Independent original native picture at25.0167s matches all22 front/tail owners; bad relocated cue pointer rejected; each owner closes."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared11 alternating fresh-owner pairs, actual cold file read/hash, metadata, seek, full640x360RGBA hash and cleanup. Median saving18.05% exceeds5%; median byte ratio.9714 below1.1. 95% median saving interval[12.46%,27.38%]. Offline authoring separately measured1.64/2.03ms; this is static authored representation, not runtime per-seek rewriting. No universal network benefit."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Consider front Cues when authoring this static WebM profile; measure representative networks before integration. No general request-count or traffic-reduction claim."
+}

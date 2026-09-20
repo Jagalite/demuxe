@@ -54,102 +54,70 @@
     },
     "prepare": {
       "status": "blocked",
-      "basis": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "basis": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "basis": "Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     },
     "correctness": {
       "status": "blocked",
-      "basis": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "basis": "No original-syntax-preserving translated bitstream yet.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     },
     "performance": {
       "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
+      "basis": "Requires faithful translated output correctness first.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "basis": "Pinned source interfaces and blockers captured.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "basis": "Setup block; not negative codec finding.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "exact-entropy-source-audit",
     "record": {
       "key": "R120.entropy-only-transcoding",
-      "rank": 352,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-20T00:48:01.999042+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "blocked",
+      "state": "blocked",
+      "blocker_category": "setup",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260920T004801Z-entropy-translator-source-audit"
       ],
-      "evidence_level": "reconciled_source_review",
+      "evidence_level": "pinned_source_review",
+      "candidate_executed": false,
       "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current AVC parsing validates parameter sets/packet framing and passes entropy-coded slices unchanged. CABAC-to-CAVLC translation requires full symbol/context parsing and new slice serialization, far beyond a metadata relabel.",
+      "reason": "Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.",
+      "next_action": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R120.entropy-only-transcoding.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/conversation/PROPOSAL_SCOPE_EXTRACTS.md"
-      ],
-      "next_test": "Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
-      "reopen_condition": "Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+      ]
     }
   },
-  "next_action": "Use a restricted I/P slice corpus with independent reconstruction hashes; demonstrate one entropy representation conversion preserving coefficients/motion and reject unsupported slice tools.",
+  "next_action": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

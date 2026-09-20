@@ -2,12 +2,10 @@
 
 # Decompress Hap’s texture data directly into GPU-owned storage
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **stop_current_profile**. correctness: **passed**, performance: **failed**.
 
-Current textures upload decoded R8/RGBA bytes. No bounded Hap/Snappy job parser, GPU overlap-dependency scheduler or compressed-texture copy path exists. BC support alone cannot provide GPU Snappy reconstruction.
+Actual Snappy-compressed HapBC1 section445B for8192B blocks with145copyoperations including17overlapcopies; wrappedAVI independentlyFFmpegdecodesexact65536RGBAbytes. CPU boundedheader/varint/literal/copyparser builds148jobs without candidateCPU expansion; GPU serialorderedpersection shader reconstructs exact8192B, legal256Brow compressedbuffer-to-texturecopy samplesBC1 and fullrender/readback matchesindependentFFmpeg everypixel. Wrongoffset/truncatedsection/outputcap reject; submittedoldGPUgeneration outputdiscarded beforepublication, freshsurvivor30framesexact; buffers/textures/devices destroyed and zeroGPUerrors. InitialAVI LISToffsetharnessfailure and invalidWGSLreservedget diagnostics preserved: invalidshader nevercounted as algorithmfidelityfailure; diagnosedrename plus explicitcompilationgate enablesactualcandidate. Ninealternating colddevice30framewholejobs charge CPUjobparser, expandeduint input/jobtransfer, shader/pipeline/bufferallocation, orderedGPUexpansion/copy/render/readback/compare andteardown againstCPU Snappyexpansion+directcompressedwriteTexture andsamerender/readback/teardown. Baseline19.656ms versuscandidate121.867ms; saving-520.01% paired95CI[-572.7722774430015, -468.79356605360624], failinglower95>=10%. SerialGPU executor preservesoverlap butdoesnotaccelerate tiny128square frame; no generalGPUparallelSnappy claim, nochunkparallel/schedulingplatformport. Finaldiagnostic exactBytesfalse in timedrows means diagnosticrawreadback notrequested, not observed mismatch; rawbyteequalityestablished in correctnessruns and alltimedfullRGBAexact.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Stop serial single-section GPU Snappy implementation for tinyHapBC1: exact bytes, overlap dependencies and compressedcopy pass, but wholejobcost~6.25xCPUroute. Reopen onlywith substantive parallelchunkworkload/executor change and sameindependentbytes/pixels, lifecycle and totalcost gates.
 
-Next: Define one bounded Snappy job graph and exact reconstructed-byte oracle; overlapping backreference and compressed-block alignment controls must pass before GPU presentation.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T000640Z-gpu-snappy-shader-name/analysis.md)

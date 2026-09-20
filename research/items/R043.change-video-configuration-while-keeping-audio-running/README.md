@@ -2,22 +2,18 @@
 
 # Change video configuration while keeping audio running
 
-`R043.change-video-configuration-while-keeping-audio-running`
-
-Current decision: **pursue**. Actual future AVC video replacements small160x96→large320x180→small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject.
+Current decision: **stop_current_profile**. The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Hashed generated tone clips, reused authored video fragments and browser harness; observed output oracle only. |
-| screen | passed | Actual future AVC video replacements small160x96→large320x180→small160x96 at2/4 s retain original AAC source buffer and 440Hz observed output while playing. Fresh init segments, EOF and reverse/forward seeks pass; stale pre-commit generation and invalid preparation reject. |
-| correctness | pending | Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls. |
-| performance | pending | No equivalent-work benchmark before relevant output correctness gates. |
-| results | passed | Immutable shared positive and failed variants registered; each case maps separately to this exact mechanism. |
-| decision | passed | Pursue bounded mechanism; no integration or release qualification. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination. |
+| correctness | failed | Actual wrong-track AAC initialization appended to the AVC video lane rejects after future-video removal. Old video ends at 1.999999 s instead of 6 s in both variants; audio remains buffered through 6.021333 s while the MediaSource has ended. Cleanup and stale-generation rejection pass. Independent 72-frame legal geometry evidence is retained separately; no claim of exact PCM or rollback. |
+| performance | not_applicable | No benchmark after the failed transaction fidelity gate. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | stop_current_profile: The valid 360p/720p geometry paths render exact pictures, but the current remove-then-append transaction cannot preserve playback after a real incoming initialization failure. Both paused/seek and future-playing controls lose old video beyond 2 seconds and end MediaSource; retained AAC buffer identity does not establish uninterrupted audio after a failed destination. |
 
-Next: Run numbered synchronized 360p/720p frame oracles, exact unchanged PCM, paused and seek-during-commit variants, real failed-init rollback and closed-GOP misalignment controls.
+Next/reopen: Reopen with actual source/configuration preparation that prevents this mismatch before removal, plus a declared recovery path for post-removal failures; then repeat unchanged PCM, paused/seek lifecycle, and equivalent complete-cost gates.
 
-[Contract and current state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
-
-Research-only; shipping behavior unchanged.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim.

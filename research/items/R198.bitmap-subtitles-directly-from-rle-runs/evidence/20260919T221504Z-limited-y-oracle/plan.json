@@ -1,0 +1,9 @@
+{
+  "before_execution": true,
+  "fixture": "Real binaryPGS display+palette-onlyupdate+clear packets, onecomplete64x16object at20,30 on160x96, genuine shortcolored/transparentRLE runs, opaque/semitransparent/transparentgrayscale palette. Fragmented/multipleobject/colorchroma outsideprofile.",
+  "correctness": "Independent FFmpeg PGS decoder timestamps andfullRGBA raster against integercodevalue source-over; exact. Oversized/truncatedRLE rejects; clearandbackwardseekstate restore. GPUcandidate mustmatch every state beforetiming.",
+  "baseline": "Materialized indexbitmap +GPU palettecompositor; no deliberately redundantRGBA expansionbaseline. Candidate keepsRLEspans +GPUdirectcompositor.",
+  "metric": "Nine alternating coldGPUowner32-event traces; CPUindexexpansion, GPUsetup/upload/dispatch/finalreadback/cleanup charged. Commonpacketparse preparedsameinput; lower95 pairedsaving>=10%.",
+  "prior_run": "research/items/R198.bitmap-subtitles-directly-from-rle-runs/evidence/20260919T221346Z-real-pgs-runs",
+  "diagnosed_correction": "Independent FFmpeg overlays subtitles overlimitedYUV black before RGB conversion. OriginalRGBA source-over gives128 atsemiwhite; actualY blend floor((235*128+16*127)/255)=125 thenlimited-Y\u2192RGB rounding gives127. Implement matching declaredFFmpeg compositiondomain; retain original768one-code failures, do notrelax exactoutput."
+}

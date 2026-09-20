@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225320Z-pip-owner-observer",
+  "item_keys": [
+    "R022.use-document-pip-to-keep-native-subtitles-and-controls"
+  ],
+  "recorded_at_utc": "2026-09-19T22:54:37.209685+00:00",
+  "stage": "decision",
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "platform": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  },
+  "reason": "Actual Chrome Document PiP with trusted click retains the same maintained native Player video, ASS worker, gain0.5, paused0.7s/rate1.25 and exact full video/ASS-mask hashes. No-activation request correctly throws NotAllowedError. Research custom control shell moves to actual PiP document: focus and volume0.3 work, old document pointer listener removed/new listener bound, video/overlay coordinates agree.640x360 resize then320x180 restore exactly restores the complete original ASS mask; close restores same owner, reopen/source replacement retires old video/canvas and renders different black source/new ASS; destroy while PiP open leaves zero workers and detached shell. Preserve initial harness ReferenceError and substantive second-resize failure: transferred original ResizeObserver stopped scheduling and left640x360 mask on320x180 video. Bounded research correction installs an observer from current owner document and invokes retained ASS invalidation hook; disconnect/rebind on transfer/source/destroy. No production edits. Native-direct ASS/gain and custom Player shell only; full custom-element global listeners, fullscreen, worker MSE and physical PiP geometry remain outside scope. Capability performance not applicable; no speed claim."
+}

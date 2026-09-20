@@ -1,0 +1,4 @@
+ffmpeg -v error -f lavfi -i testsrc2=size=160x96:rate=30:duration=4 -an -c:v libvpx-vp9 -threads 2 -deadline realtime -cpu-used 8 -g 120 -cluster_time_limit 5000 -cluster_size_limit 10000000 research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split/source.webm
+python3 research/items/R240.vp9-webm-cluster-surgery.report-c/tests/prepare.py research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split
+node research/items/R240.vp9-webm-cluster-surgery.report-c/tests/cluster-browser.mjs research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222200Z-cluster-split
+node research/items/R240.vp9-webm-cluster-surgery.report-c/tests/cluster-settled.mjs research/items/R240.vp9-webm-cluster-surgery.report-c/evidence/20260919T222400Z-cluster-settled-oracle

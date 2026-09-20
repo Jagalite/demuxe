@@ -1,0 +1,5 @@
+{
+  "scope": "Real independent stereo signed16 FLAC fixed-order1 Rice-coded partition0. Advance one-bit sum parity; derive exact mid residual=(rL+rR-eNew+eOld)/2 and side residual=rL-rR without full L/R amplitude reconstruction. Mid warmup floor((L+R)/2), side17bits; truthful mid-side frames and CRC.",
+  "correctness": "All3084stereo frames exact host/native original PCM including negative odd sums and signed16 extrema. Dropped parity wrong-output control, coupled source/CRC/truncation reject.",
+  "performance": "Five alternating cold read/parse/parity transform/Rice encode/write/destination decode versus ordinary source decode/explicitmid_sideFLAC encode/destination decode. Standalonemid-side lossless stream endpoint; <=0.9cost and <=1.25source bytes."
+}

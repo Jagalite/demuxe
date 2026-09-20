@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+    "-O2",
+    "-pthread",
+    "-msimd128",
+    "-I/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg",
+    "-I/Volumes/seed2/Projects/webmpv/build/sources/ffmpeg",
+    "research/shared/tooling/wasm-video-prefix.c",
+    "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavcodec/libavcodec.a",
+    "/Volumes/seed2/Projects/webmpv/build/obj-software-full-ffmpeg/libavutil/libavutil.a",
+    "-sMODULARIZE=1",
+    "-sEXPORT_ES6=1",
+    "-sEXPORT_NAME=createDecoder",
+    "-sENVIRONMENT=web,worker",
+    "-sINITIAL_MEMORY=33554432",
+    "-sMAXIMUM_MEMORY=134217728",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sSTACK_SIZE=2097152",
+    "-sWASM_BIGINT=1",
+    "-sFILESYSTEM=0",
+    "-sEXPORTED_FUNCTIONS=[\"_vd_init\",\"_vd_packet\",\"_vd_flush\",\"_vd_close\",\"_malloc\",\"_free\"]",
+    "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\"]",
+    "-o",
+    "research/shared/runs/20260919T225942Z-software-prefix/decoder.mjs"
+  ],
+  "exit": 1,
+  "stderr": "shared:INFO: old sanity: 4.0.14|/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/bin\nshared:INFO: new sanity: 4.0.14|/private/tmp/webmpv-m0-tools-p2id00ls/bin\nshared:INFO: (Emscripten: config changed, clearing cache)\nemcc: warning: cannot check node version: [Errno 2] No such file or directory: '/private/tmp/webmpv-m0-tools-p2id00ls/node' [-Wversion-check]\nemcc: error: clang executable not found at `/private/tmp/webmpv-m0-tools-p2id00ls/bin/clang`\n"
+}

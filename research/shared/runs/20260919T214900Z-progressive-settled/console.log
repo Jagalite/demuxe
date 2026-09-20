@@ -1,0 +1,135 @@
+{
+  "scope": "Finite eight-second AVC/AAC native URL, four-second first fragment then remaining bytes after 3.5 seconds. Native full-response baseline, no MSE or library.",
+  "head": 158604,
+  "requests": [
+    {
+      "path": "/",
+      "started": 1789854688693
+    },
+    {
+      "path": "/favicon.ico",
+      "started": 1789854688740
+    },
+    {
+      "path": "/full?oracle",
+      "started": 1789854688806,
+      "range": "bytes=0-",
+      "ended": 1789854688809
+    },
+    {
+      "path": "/full?1789854692520",
+      "started": 1789854692524,
+      "range": "bytes=0-",
+      "ended": 1789854692525
+    },
+    {
+      "path": "/favicon.ico",
+      "started": 1789854692606
+    },
+    {
+      "path": "/slow?1789854702413",
+      "started": 1789854702424,
+      "range": "bytes=0-",
+      "ended": 1789854705928,
+      "closed": 1789854705932
+    },
+    {
+      "path": "/truncated?1789854713844",
+      "started": 1789854713855,
+      "range": "bytes=0-",
+      "ended": 1789854717356,
+      "closed": 1789854717363
+    },
+    {
+      "path": "/truncated?1789854713844",
+      "started": 1789854717662,
+      "range": "bytes=158604-",
+      "rejectedResume": true
+    },
+    {
+      "path": "/cancel?1789854718301",
+      "started": 1789854718309,
+      "range": "bytes=0-",
+      "closed": 1789854718751
+    }
+  ],
+  "cases": [
+    {
+      "mode": "full",
+      "presented": 96,
+      "firstOutput": 1789854692550,
+      "ended": true,
+      "duration": 8,
+      "position": 8,
+      "sampleRate": 48000,
+      "seek": [
+        {
+          "t": 0.3,
+          "match": true
+        },
+        {
+          "t": 6.3,
+          "match": true
+        },
+        {
+          "t": 1.3,
+          "match": true
+        }
+      ],
+      "cleanup": true,
+      "wrong": 95
+    },
+    {
+      "mode": "slow",
+      "presented": 96,
+      "firstOutput": 1789854702449,
+      "ended": true,
+      "duration": 8,
+      "position": 8,
+      "sampleRate": 48000,
+      "seek": [
+        {
+          "t": 0.3,
+          "match": true
+        },
+        {
+          "t": 6.3,
+          "match": true
+        },
+        {
+          "t": 1.3,
+          "match": true
+        }
+      ],
+      "cleanup": true,
+      "wrong": 95
+    },
+    {
+      "mode": "truncated",
+      "presented": 27,
+      "firstOutput": 1789854713883,
+      "ended": false,
+      "error": "PipelineStatus::PIPELINE_ERROR_READ: FFmpegDemuxer: data source error",
+      "duration": 4.032,
+      "position": 2.24,
+      "sampleRate": 48000,
+      "cleanup": true,
+      "wrong": 26
+    },
+    {
+      "mode": "cancel",
+      "presented": 5,
+      "firstOutput": 1789854718333,
+      "cancelTime": 0.416,
+      "cancelledAt": 1789854718748,
+      "noFurtherSource": true,
+      "ended": false,
+      "duration": null,
+      "position": 0,
+      "sampleRate": 48000,
+      "cleanup": true,
+      "wrong": 4
+    }
+  ],
+  "browser": "152.0.7977.83"
+}

@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260920T001658Z-jpeg-scan",
+  "item_keys": [
+    "R336.reconstruct-predictor-4-lossless-jpeg-with-two-dimensional-prefix-sums"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used, host SOF3 component",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual SOF3 grayscale8bit predictor4/Pt0/no-restart Huffman JPEG384x256: all98304 parsed signed residuals match independently derived image differences; two modular row/column NumPy prefix scans with128initial seed reconstruct every pixel exactly against authored pixels and independent FFmpeg decoder. Initial row/column, negative wrap residuals and positive residuals pass; wrong seed, truncated entropy, wrong predictor and restart controls detected. Five alternating full cold Python/NumPy startup/read/parse/scans/write171.471ms vs ordinary FFmpegdecode/write34.703ms ratio4.94112 fails0.9. No GPU execution or generic Huffman/restart/precision admission."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this CPU Python entropy/two-scan implementation on complete cost. A compiled parser or GPU parallel scan may reopen under the same exact boundary contract and a new end-to-end benchmark. Only the explicit canonical four-bit category Huffman table and one-million-pixel bound are admitted; no JPEG-LS or predictor substitution claim.",
+  "reused_evidence": [
+    "/tmp/demuxe-audio-numeric/numpy-2.5.3.dist-info/METADATA",
+    "/tmp/demuxe-audio-numeric/numpy-2.5.3.dist-info/RECORD"
+  ],
+  "commands_log": "research/shared/runs/20260920T001658Z-jpeg-scan/commands.log"
+}

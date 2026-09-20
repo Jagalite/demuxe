@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+The first registration happened before the process had exited and its shell-redirection console stream flushed. At registration console.log was genuinely empty and its manifest captured the empty SHA256. The process later wrote its final console summary, creating a hash mismatch. Preserve all late bytes here and restore only that original log to the legitimately captured empty state; no scientific result JSON changes or deletion. The raw final console is now separately indexed with this explicit chronology. Future registrations wait for process exit.

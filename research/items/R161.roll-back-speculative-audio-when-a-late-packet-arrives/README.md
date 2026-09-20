@@ -2,28 +2,24 @@
 
 # Roll back speculative audio when a late packet arrives
 
-Full identity: `R161.roll-back-speculative-audio-when-a-late-packet-arrives`. Original rank: 210.
+Full key: `R161.roll-back-speculative-audio-when-a-late-packet-arrives`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (2026-09-19T22:29:54.036748+00:00).
 
-PCM ring publication has consumed/written counters but no provisional rollback window; browser decoder state is opaque. Snapshotting software Opus state also requires a matching copyable decoder ABI and a pre-commit output owner.
+Actualpinnedhostlibopus snapshots decoderbeforePLC, decodesfourfollowingpackets provisionally, restoreslateoriginal and replacesfivepacketwindow beforepublication. Latepositions2/20/60/95 allreproduce everycontinuousno-loss floatbyte throughcomplete96000sample output with312preskip/endtrim. Missingrestore changesoutput; actualone-sampleconsumerread prohibitsrollback withoutstatechange; source/runtime identity, epoch andclosedguardsreject. Fivealternating completepacket40lateevent jobs including snapshot/PLC/restore/redecode cost2.393ms versus3.350ms freshdecoderprefix replay baseline, ratio0.71437 passes0.9. Retainedsnapshot18468bytes plus19200pendingPCMbytes explicit. Installedopus.h documents contiguousstate memcpy; no inventedopaque-state API.
 
-No matching candidate/reference/control execution for this exact gate. Copyable software Opus decoder state and provisional pre-commit output transaction; consumed samples cannot roll back.
+Pursue bounded controlledhostlate-packet transaction beforeirreversibleconsumption, pinnedlibopus/runtimeABI andsource/epochkey. No WebCodecs opaque-state cloning, browseraudio rollback afteroutput, packetnetworkdeadline or production integration claim. Costsharedpreencodedinput/runtime; no networkwait included. Real-time application needs ownerpublication discipline matching this provedboundary.
 
-Next action: Define one host-only late-packet transaction before PCM publication and prove restored suffix equality; explicitly reject rollback after consumed advances. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Copyable software Opus decoder state and provisional pre-commit output transaction; consumed samples cannot roll back. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Copyable software Opus decoder state and provisional pre-commit output transaction; consumed samples cannot roll back. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T222954Z-opus-rollback/run.json) · [Analysis](../../shared/runs/20260919T222954Z-opus-rollback/analysis.md) · [Manifest](../../shared/runs/20260919T222954Z-opus-rollback/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

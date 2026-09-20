@@ -2,12 +2,24 @@
 
 # Sample B44-compressed HDR images without expanding the whole frame
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R313.sample-b44-compressed-hdr-images-without-expanding-the-whole-frame`
 
-Presenter uses expanded 8-bit planes/RGBA; no B44 block parser/index or half-float demand sampler exists. Generic shader-f16 capability is not a B44 sampler and current color path cannot preserve arbitrary HALF values.
+Current decision: **stop_current_profile** (2026-09-20T00:25:45.238923+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual OpenEXR B44 single HALF-Y/pLinearfalse130x98 file parsed into825four-by-four blocks including right/bottom padding. All12740 reconstructed half bit patterns exactly match independent OpenEXR decoder; encoded output intentionally differs from precompression pixels. Actual WebGPU direct block sampling1066queried pixels matches the same half bits and identical HDR grayscale consumer output versus GPU expanding only87selected unique blocks into compact half storage. Truncated/version/wrong-pixel controls pass; stale epoch prevents readback publication and all GPU resources close. Five alternating cold device/read/hash/upload/pipeline/sample/consumer/readback medians6.9vs7.2ms ratio0.95833 fails0.9. Initial shader/pipeline startup is separately retained and variable; no stable speedup claim.
 
-Next: Define one bounded B44 block address/unpack oracle including negative HALF/nonzero window; reject raw-chunk fallback/truncation before shader implementation and compare dense-view recomputation cost.
+Stop this sparse-view B44 sampler at its declared latency gate. Capability and retained compressed representation are real; different repeated access or memory budget may reopen with full measured costs. Baseline already expands only selected blocks, not full frame. B44A, pLinear conversion, RGB and general EXR layouts remain excluded; no pre-encoding lossless claim.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T002545Z-b44/run.json) · [Analysis](../../shared/runs/20260920T002545Z-b44/analysis.md) · [Manifest](../../shared/runs/20260920T002545Z-b44/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

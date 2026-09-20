@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
+      "status": "passed",
+      "basis": "Actual paired Wasm runtime builds; matched compiler/link options and retained source dependency provenance.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
+      "basis": "Candidate CABAC branch removed, explicit progressive8bit420CAVLC guard executes.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
+      "status": "passed",
+      "basis": "30 full frames/PTS exact; live changed CABAC configuration returns-199 and emits0 changed pictures, baseline accepts30; owners closed.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Record one narrow progressive AVC tool set and current code-size/hot-path exposure; only then scope one specialized artifact with a changed-tool control.",
+      "status": "failed",
+      "basis": "Required gain not established:0.4522% smaller module, median1.5326x cost, very noisy0.213\u20137.700x range; inconclusive effect estimate.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
+      "basis": "Built paired real Wasm AVC decoders with identical compiler/link settings; candidate removes CABAC execution behind progressive8bit420/CAVLC guards. Both decode all30 full frames and PTS exactly; an in-owner CABAC PPS change passes the ordinary decoder but candidate returns explicit rejection before publishing any changed-profile picture. Wasm bytes fall only0.4522%. Seven alternating fresh-browser load/start/decode jobs have median1.5326x candidate cost and very wide0.213\u20137.700x ratios under concurrent campaign load. No trustworthy gain demonstrated; retain inconclusive cost outcome, not a stable53% regression claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
+      "basis": "Built paired real Wasm AVC decoders with identical compiler/link settings; candidate removes CABAC execution behind progressive8bit420/CAVLC guards. Both decode all30 full frames and PTS exactly; an in-owner CABAC PPS change passes the ordinary decoder but candidate returns explicit rejection before publishing any changed-profile picture. Wasm bytes fall only0.4522%. Seven alternating fresh-browser load/start/decode jobs have median1.5326x candidate cost and very wide0.213\u20137.700x ratios under concurrent campaign load. No trustworthy gain demonstrated; retain inconclusive cost outcome, not a stable53% regression claim.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
+        "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R145.guarded-format-specialized-wasm-decoder-variants",
-      "rank": 287,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current codec bridge qualifies codec names/configuration and uses maintained decoder/kernel stack. A progressive/precision/tool-specialized Wasm runtime is a distinct build/profile artifact; a source audit cannot infer startup benefit or safely drop uncommon tools.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R145.guarded-format-specialized-wasm-decoder-variants.md"
-      ],
-      "next_test": "Record one narrow progressive AVC tool set and current code-size/hot-path exposure; only then scope one specialized artifact with a changed-tool control.",
-      "reopen_condition": "Record one narrow progressive AVC tool set and current code-size/hot-path exposure; only then scope one specialized artifact with a changed-tool control.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R145.guarded-format-specialized-wasm-decoder-variants",
+    "disposition": "inconclusive",
+    "evidence_level": "actual_compiled_wasm_browser_component",
+    "new_media_execution": true,
+    "reason": "Built paired real Wasm AVC decoders with identical compiler/link settings; candidate removes CABAC execution behind progressive8bit420/CAVLC guards. Both decode all30 full frames and PTS exactly; an in-owner CABAC PPS change passes the ordinary decoder but candidate returns explicit rejection before publishing any changed-profile picture. Wasm bytes fall only0.4522%. Seven alternating fresh-browser load/start/decode jobs have median1.5326x candidate cost and very wide0.213\u20137.700x ratios under concurrent campaign load. No trustworthy gain demonstrated; retain inconclusive cost outcome, not a stable53% regression claim.",
+    "next_action": "Do not integrate for performance; reopen only with a larger real restriction opportunity and controlled load/start/decode measurement. Keep every tool-change guard.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual paired Wasm runtime builds; matched compiler/link options and retained source dependency provenance."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Candidate CABAC branch removed, explicit progressive8bit420CAVLC guard executes."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "30 full frames/PTS exact; live changed CABAC configuration returns-199 and emits0 changed pictures, baseline accepts30; owners closed."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Required gain not established:0.4522% smaller module, median1.5326x cost, very noisy0.213\u20137.700x range; inconclusive effect estimate."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T23:49:36.710063+00:00",
+    "run_ids": [
+      "20260919T234936Z-specialized-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T234936Z-specialized-qualification/run.json"
+    ]
   },
-  "next_action": "Record one narrow progressive AVC tool set and current code-size/hot-path exposure; only then scope one specialized artifact with a changed-tool control.",
+  "next_action": "Do not integrate for performance; reopen only with a larger real restriction opportunity and controlled load/start/decode measurement. Keep every tool-change guard.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -53,103 +53,84 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "status": "passed",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "status": "passed",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
+      "status": "failed",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "basis": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "research-presentation-stage-completion",
     "record": {
       "key": "R214.packed-v210-without-cpu-planarization",
-      "rank": 258,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-20T00:15:42.081161+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "state": "inconclusive",
+      "disposition": "inconclusive",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260920T001249Z-gpu-v210-legal-range"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current YUV fast path admits planar 420P, while v210 needs packed 10-bit 4:2:2 words, stride and partial-group semantics. Shared WebGPU availability resolves the historical generic GPU block but does not supply a v210 destination shader or admission contract.",
+      "new_execution": true,
+      "evidence_level": "component_test",
+      "reason": "ActualFFmpeg v21050x8 stream2048bytes, stride256 although9packinggroupsrequire144B/row. Independenthost yuv422p10le decoded400Y+200U+200V samples exactlyoriginaladmitted4..1019range. Initial0..1023 authoredinput revealedencoderclampingreserved0..3/1020..1023, retainedpriorplanes; changedfixture tolegalrange, notGPUtolerance. ActualGPU packedwordunpack intoownedu32planes andindependentintegerneighborconsumer reproduceall800rawsamples+800filteredoutputs exactly. Poisonedrowpadding and unusedpartiallastgroup fieldsdo notaffectvisibleplanes; truncatedbuffer/wrong144stride reject; submittedstaleGPUgeneration discard+freshsurvivor100framesexact; buffers/devicesclose,zeroGPUerrors. Ninealternatingcolddevice100frame jobs include sourcefetch/validation, CPUplanarization+3200Buploadversus2048Bpackedupload/GPUunpack, sameGPUintegerconsumer/readback/compareandteardown. Baseline375.500ms candidate443.689ms,saving-18.16% CI[-38.05665672235885, 0.5535938751215941], failslower95>=10%gate. NoRGB/HDRdisplayconversion, generalstride/colorformatadmission orphysicalenergyclaim. DirectpackedGPUboundaryreal, buttinycompleteworkloadcostdoesnotjustifyintegration; loadedhostvariationretained inuncertainty.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R214.packed-v210-without-cpu-planarization.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/evidence/prerequisites/result.json"
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/results.json",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/analysis.md",
+        "research/items/R214.packed-v210-without-cpu-planarization/evidence/20260920T001249Z-gpu-v210-legal-range/manifest.json"
       ],
-      "next_test": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
-      "reopen_condition": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+      "next_test": "ExactGPU v210 unpack/partialgroup/stride ownership gate complete, totalcost guardfailed. Reopenfor representative largerpacked422 workloads or viableGPUconsumer integration with unchanged10bit oracle and cheapestCPUbaseline.",
+      "reopen_condition": "ExactGPU v210 unpack/partialgroup/stride ownership gate complete, totalcost guardfailed. Reopenfor representative largerpacked422 workloads or viableGPUconsumer integration with unchanged10bit oracle and cheapestCPUbaseline."
     }
   },
-  "next_action": "Specify a packed-v210 shader boundary on one width-50 buffer and compare recovered planes with independent host decode before live integration.",
+  "next_action": "ExactGPU v210 unpack/partialgroup/stride ownership gate complete, totalcost guardfailed. Reopenfor representative largerpacked422 workloads or viableGPUconsumer integration with unchanged10bit oracle and cheapestCPUbaseline.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

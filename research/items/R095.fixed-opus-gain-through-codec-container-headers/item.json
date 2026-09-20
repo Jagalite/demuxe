@@ -58,99 +58,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R095.fixed-opus-gain-through-codec-container-headers.md"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Read and pinned historical fixture/output/control evidence; no rerun.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Requested-6dB plus existing+3dB header matches gain-node reference RMS within0.02%; double-attenuation control differs50%, seek and EOF pass.",
+      "basis": "Existing+3dB plus requested-6dB becomes-3dB Opus header with every encoded packet unchanged. All96000 browser output samples match GainNode reference within7.451e-9, RMS ratio1.000000006; double attenuation control yields0.501187 ratio. Nine-pair full copy/patch/decode/render/cleanup median3.880ms versus3.985ms (0.97365x) passes1.10 no-regression ceiling. Prior actual native seek/EOF persistence is pinned and reused.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance.",
+      "status": "passed",
+      "basis": "Existing+3dB plus requested-6dB becomes-3dB Opus header with every encoded packet unchanged. All96000 browser output samples match GainNode reference within7.451e-9, RMS ratio1.000000006; double attenuation control yields0.501187 ratio. Nine-pair full copy/patch/decode/render/cleanup median3.880ms versus3.985ms (0.97365x) passes1.10 no-regression ceiling. Prior actual native seek/EOF persistence is pinned and reused.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
+      "basis": "pursue: Pursue static WebM Opus gain metadata for this known existing-gain policy. No generalized speedup, physical energy, dynamic gain automation, loudness-tag rewrite, Ogg or MP4 claim.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "r101-250-stage-reconciliation",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R095.fixed-opus-gain-through-codec-container-headers",
-      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+      "recorded_at_utc": "2026-09-19T21:23:45.431436+00:00",
       "stage": "decision",
-      "initial_rank": 241,
       "disposition": "pursue",
       "state": "pursue",
-      "previous_state": "PURSUE",
-      "evidence_level": "reconciled_imported_execution",
-      "new_media_execution": false,
-      "reason": "Requested-6dB combines with existing+3dB Opus header gain. Browser header-only output RMS matches original header plus gain node within0.02%; doubled attenuation differs by50%. Seek/EOF pass. Worth static explicit asset gain, not dynamic volume or quantified CPU claim.",
-      "correctness_acceptance": "Requested-6dB plus existing+3dB header matches gain-node reference RMS within0.02%; double-attenuation control differs50%, seek and EOF pass.",
-      "next_action": "Qualify static asset-gain metadata profiles separately from dynamic volume and benchmark only if a real cost claim is needed.",
-      "reopen_condition": "Qualify static asset-gain metadata profiles separately from dynamic volume and benchmark only if a real cost claim is needed.",
-      "blocker_category": null,
       "run_ids": [
-        "20260919T202508Z-r101-250-stage-reconciliation"
+        "20260919T212345Z-opus-gain-cost"
       ],
-      "prior_decision": {
-        "campaign": "full-completion",
-        "ledger": "results/full-completion/completion.jsonl",
-        "line": 19,
-        "record": {
-          "key": "R095.fixed-opus-gain-through-codec-container-headers",
-          "state": "PURSUE",
-          "evidence": "r95/result.json",
-          "reason": "Requested-6dB combines with existing+3dB Opus header gain. Browser header-only output RMS matches original header plus gain node within0.02%; doubled attenuation differs by50%. Seek/EOF pass. Worth static explicit asset gain, not dynamic volume or quantified CPU claim.",
-          "recorded_at_utc": "2026-09-19T17:14:02.926688+00:00"
-        }
-      },
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Existing+3dB plus requested-6dB becomes-3dB Opus header with every encoded packet unchanged. All96000 browser output samples match GainNode reference within7.451e-9, RMS ratio1.000000006; double attenuation control yields0.501187 ratio. Nine-pair full copy/patch/decode/render/cleanup median3.880ms versus3.985ms (0.97365x) passes1.10 no-regression ceiling. Prior actual native seek/EOF persistence is pinned and reused.",
+      "next_action": "Pursue static WebM Opus gain metadata for this known existing-gain policy. No generalized speedup, physical energy, dynamic gain automation, loudness-tag rewrite, Ogg or MP4 claim.",
+      "reopen_condition": "Pursue static WebM Opus gain metadata for this known existing-gain policy. No generalized speedup, physical energy, dynamic gain automation, loudness-tag rewrite, Ogg or MP4 claim.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-completion/r95/result.json"
+        "research/shared/runs/20260919T212345Z-opus-gain-cost/run.json"
       ]
     }
   },
-  "next_action": "Qualify static asset-gain metadata profiles separately from dynamic volume and benchmark only if a real cost claim is needed.",
+  "next_action": "Pursue static WebM Opus gain metadata for this known existing-gain policy. No generalized speedup, physical energy, dynamic gain automation, loudness-tag rewrite, Ogg or MP4 claim.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -53,96 +53,84 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "status": "passed",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "status": "passed",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+      "status": "not_applicable",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "basis": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "research-presentation-stage-completion",
     "record": {
       "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
-      "rank": 336,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:34:23.345481+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "state": "pursue",
+      "disposition": "pursue",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T233157Z-jxl-jpeg-reconstruction"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.",
+      "new_execution": true,
+      "evidence_level": "component_test",
+      "reason": "The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode.md"
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/results.json",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md",
+        "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260919T233157Z-jxl-jpeg-reconstruction/manifest.json"
       ],
-      "next_test": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
-      "reopen_condition": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+      "next_test": "Scoped reconstruction and browser-image gates are complete. A browser/Wasm deployment, larger reconstruction limits or a compression/cost claim requires its own bounded contract; retain rejection of JXL files without original-JPEG reconstruction metadata.",
+      "reopen_condition": "Scoped reconstruction and browser-image gates are complete. A browser/Wasm deployment, larger reconstruction limits or a compression/cost claim requires its own bounded contract; retain rejection of JXL files without original-JPEG reconstruction metadata."
     }
   },
-  "next_action": "Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.",
+  "next_action": "Scoped reconstruction and browser-image gates are complete. A browser/Wasm deployment, larger reconstruction limits or a compression/cost claim requires its own bounded contract; retain rejection of JXL files without original-JPEG reconstruction metadata.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

@@ -1,0 +1,9 @@
+{
+  "strict_contract": "Exact native PNG RGBA bytes for both compressed GPU outputs",
+  "correctness": "failed",
+  "maximum_error": 1,
+  "performance": "not_applicable",
+  "prior_run": "research/items/R195.prepared-texture-video-to-several-gpu-destinations/evidence/20260919T200653Z-basis",
+  "new_execution": false,
+  "reason": "The genuine ETC1S-to-BC1/BC3 WebGPU execution remains feasible, but its declared exact native-PNG reconstruction contract fails by one channel code. Independent normalized interpolation math explains GPU nearest rounding versus native integer floor, but explanation does not make strict byte fidelity pass. Preserve the failed experiment and stop this strict variant; no performance run is warranted before correctness. The former pending precision question is resolved by retaining the original threshold rather than relaxing it. This is a fidelity failure, not an unavailable-tool or GPU capability block."
+}

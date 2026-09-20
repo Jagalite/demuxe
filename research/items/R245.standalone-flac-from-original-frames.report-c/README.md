@@ -2,28 +2,24 @@
 
 # standalone FLAC from original frames
 
-Full identity: `R245.standalone-flac-from-original-frames.report-c`. Original rank: 225.
+Full key: `R245.standalone-flac-from-original-frames.report-c`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (2026-09-19T22:23:12.889048+00:00).
 
-Historical defer retained for the exact complete-frame identity gate. Complete original-frame excerpt profile with unchanged full frame hashes, truthful totals/checksum and browser duration/PCM. R270 setup is reusable but its rewritten headers are a different identity contract.
+Actual6s48kstereoFLAC originalframes20–22 copyunchanged into0.256s12288sample microfile. Correcttotal and exactboundedPCM MD5; allframehashesunchanged, flac-t succeeds, corruptionrejects. Host and everyChrome native/reference/render float sample exactly match source81920:94208. Five alternating complete coldindex/copy/boundedchecksumdecode+consumerdecode pairs91.199ms versus106.204ms fulldecode/crop/ordinaryFLACencode+consumerdecode, ratio0.85872 passes0.9. Separate randomskip withinencodedmicrofile fails libFLAC SEEK_ERROR atnonzeroindices dueabsoluteoriginal frame numbers; do notcall it portable seekablefile.
 
-No matching candidate/reference/control execution for this exact gate. Complete original-frame excerpt profile with unchanged full frame hashes, truthful totals/checksum and browser duration/PCM. R270 setup is reusable but its rewritten headers are a different identity contract.
+Pursue narrow whole-file decodeAudioData/finiteclip consumption endpoint only, with exactmetadata/MD5 costcharged. Encodedmicrofile native randomseek remains failed; byte-identicalframes cannot silently be renumbered. No productionadmission or genericstandalone-seekability claim. Reopen broaderfilecontract with explicitheader-rebase variant and independentseek oracle.
 
-Next action: Implement one complete-frame excerpt writer only when requested, correct total samples/checksum, and compare frame payloads, PCM, duration and corrupted CRC rejection. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Shared immutable component run; no production qualification.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Complete original-frame excerpt profile with unchanged full frame hashes, truthful totals/checksum and browser duration/PCM. R270 setup is reusable but its rewritten headers are a different identity contract. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Complete original-frame excerpt profile with unchanged full frame hashes, truthful totals/checksum and browser duration/PCM. R270 setup is reusable but its rewritten headers are a different identity contract. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T222312Z-flac-microstreams/run.json) · [Analysis](../../shared/runs/20260919T222312Z-flac-microstreams/analysis.md) · [Manifest](../../shared/runs/20260919T222312Z-flac-microstreams/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

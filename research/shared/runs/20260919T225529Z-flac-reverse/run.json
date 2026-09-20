@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225529Z-flac-reverse",
+  "item_keys": [
+    "R165.reverse-predictive-audio-by-transforming-its-residuals"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Real signed16 FLAC fixed-order1 blocks257 with17bit escape residuals: last sample derived from warmup+sum(residuals), new warmup emitted, residuals reversed/negated, block order reversed, frame numbering/CRCs regenerated. All6168 samples exactly match independent full PCM reversal in FFmpeg and Chrome including -32768/32767 boundaries; applying transform twice reproduces original compressed stream bytes. Wrong predictor with validCRC, residual sign overflow, corruptCRC and truncation reject. Independent libFLAC integrity, native render/end/closed pass. Five alternating cold source read/parse/transform/write/destination-decode jobs38.417ms versus source decode/PCM-reverse/ordinaryFLAC-encode/destination-decode94.047ms, ratio0.40849 passes<=0.9; output/source bytes1.0 passes<=1.25."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue only standalone lossless reversed-FLAC output for this explicitly admitted fixed-order1 escape-residual profile. Matched endpoint includes compressed output, so this is not a comparison against simple PCM-only playback reversal. General Rice partitions, other predictors, mixed block modes, and long streams need separate parser and workload qualification. STREAMINFO MD5 explicitly unknown; no production routing change.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_bits.py"
+  ],
+  "commands_log": "research/shared/runs/20260919T225529Z-flac-reverse/commands.log"
+}

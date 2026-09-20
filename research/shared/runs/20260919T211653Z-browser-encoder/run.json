@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T211653Z-browser-encoder",
+  "item_keys": [
+    "R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "failed",
+    "scope": "Actual browser Opus+copied-H264 prototype and archived192kbps Wasm baseline preserve all24 video packet hashes. Corrected Ogg/Matroska pre-skip312 and terminal discard648 yield48000 decoded samples; encoder reset discards an old queued block. But MP4 remux destination yields48648 candidate samples and48840 baseline samples in both host/browser decoding, violating48000-sample gate. Ogg cross-decoder floats differ at max9.5144e-5; no bit-identical or universal lossy quality claim."
+  },
+  "performance": {
+    "status": "not_applicable"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this untrimmed MP4 destination profile; do not benchmark invalid output. Reopen with destination-consumed end trimming or an explicit sample-count adapter, then repeat full copied-video/audio lifecycle and quality gates. Audio-only Ogg encoder remains feasible.",
+  "reused_evidence": [
+    "results/top100/lanes/small.mp4",
+    "web/native-remux-source-worker.js",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/manifest.json",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/remux.mjs",
+    "/Volumes/seed2/Projects/demuxe-optimization-integration/build/adaptation-opus-01/engine-1789529087506119000/remux.wasm"
+  ],
+  "commands_log": "research/shared/runs/20260919T211653Z-browser-encoder/commands.log"
+}

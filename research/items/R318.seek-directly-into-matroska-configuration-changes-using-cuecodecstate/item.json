@@ -53,99 +53,121 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Unperformed fixture gate: Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.",
+      "status": "passed",
+      "basis": "New executable probe and declared workload/controls registered with source/input/runtime evidence.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
+      "basis": "A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.",
+      "status": "passed",
+      "basis": "Two 10-frame, 10 fps AVC epochs share dimensions but differ in baseline CAVLC versus high-profile CABAC configuration. The second BlockGroup contains CodecState and its cue references that actual Segment-relative element; first cue uses the initial TrackEntry. No in-band SPS/PPS masks stale initialization. Four initial seek targets [1,0,1,0] and all 880 timed target pictures match independent host-decoded YUV420 hashes, dimensions and absolute timestamps exactly. Wrong initialization yields zero pictures and EncodingError. Stale source identity, invalid state position and non-RAP entry reject. Every frame and decoder closes. This is a narrow browser component, not maintained Matroska demux integration or arbitrary codec-state support.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "status": "passed",
+      "basis": "Predeclared 11 alternating pairs of four fresh seek owners [1,0,1,0]. Both return 40 exact target pictures per job; cue-directed mode submits 40 packets, sequential replay submits 60. Includes source hash/index parsing, state lookup, decoder creation/configure/decode/flush, target plane copies/hashes and cleanup; resident byte transfer and independent oracle preparation excluded equally. Median complete-job saving 29.5472%, bootstrap 95% median [24.0741,42.0798]%; 5% gate passed. No remote-range, physical memory or energy claim.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
+      "basis": "Actual new execution raw outcomes, controls and scoped interpretation retained.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
+      "basis": "pursue: A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "r101-250-stage-reconciliation",
+    "campaign": "all-stages-transport",
     "record": {
       "key": "R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate",
-      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
-      "stage": "decision",
-      "initial_rank": 172,
-      "disposition": "blocked",
-      "state": "blocked",
-      "previous_state": "DEFER_SETUP",
-      "evidence_level": "reconciled_source_review",
-      "new_media_execution": false,
-      "reason": "Remux explicitly rejects changed video extradata and its seek state does not expose Matroska CueCodecState. Indexed configuration-epoch mapping requires a demux/configuration transaction, while cues cannot recreate prediction history.",
-      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.",
-      "next_action": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
-      "reopen_condition": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
-      "blocker_category": "fixture",
+      "state": "pursue",
+      "disposition": "pursue",
+      "reason": "A genuine two-epoch Matroska fixture now proves CueCodecState-directed seeking across different AVC initialization states in both directions. All independent host YUV images and timestamps match. Ignoring the second state causes a real decoder error; a missing RAP, malformed state offset and stale source are rejected. Eleven paired complete jobs show 29.55% median savings versus sequential epoch replay.",
+      "recorded_at_utc": "2026-09-19T22:33:05.486405+00:00",
+      "evidence_level": "component_test",
       "run_ids": [
-        "20260919T202508Z-r101-250-stage-reconciliation"
+        "20260919T221400Z-cue-codec-state"
       ],
+      "evidence": [
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/run.json",
+        "research/items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/evidence/20260919T221400Z-cue-codec-state/manifest.json"
+      ],
+      "next_test": "Pursue this source-bound configuration-seek component. Maintained demux integration must propagate CodecState correctly and preserve explicit RAP dependencies, source identity and owner cleanup; other codec/container profiles require separate admission.",
+      "reopen_condition": "Pursue this source-bound configuration-seek component. Maintained demux integration must propagate CodecState correctly and preserve explicit RAP dependencies, source identity and owner cleanup; other codec/container profiles require separate admission.",
+      "scope": "Two 10-frame, 10 fps AVC epochs share dimensions but differ in baseline CAVLC versus high-profile CABAC configuration. The second BlockGroup contains CodecState and its cue references that actual Segment-relative element; first cue uses the initial TrackEntry. No in-band SPS/PPS masks stale initialization. Four initial seek targets [1,0,1,0] and all 880 timed target pictures match independent host-decoded YUV420 hashes, dimensions and absolute timestamps exactly. Wrong initialization yields zero pictures and EncodingError. Stale source identity, invalid state position and non-RAP entry reject. Every frame and decoder closes. This is a narrow browser component, not maintained Matroska demux integration or arbitrary codec-state support.",
+      "new_experiment": true,
       "prior_decision": {
-        "campaign": "full-completion",
-        "ledger": "results/full-completion/completion.jsonl",
-        "line": 247,
+        "campaign": "r101-250-stage-reconciliation",
         "record": {
           "key": "R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate",
-          "state": "DEFER_SETUP",
-          "evidence": [
-            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
-          ],
+          "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+          "stage": "decision",
+          "initial_rank": 172,
+          "disposition": "blocked",
+          "state": "blocked",
+          "previous_state": "DEFER_SETUP",
+          "evidence_level": "reconciled_source_review",
+          "new_media_execution": false,
           "reason": "Remux explicitly rejects changed video extradata and its seek state does not expose Matroska CueCodecState. Indexed configuration-epoch mapping requires a demux/configuration transaction, while cues cannot recreate prediction history.",
-          "evidence_level": "SOURCE_REVIEW",
-          "carried_forward": true,
-          "next_test": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject.",
-          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject.",
-          "recorded_at_utc": "2026-09-19T17:34:19.112002+00:00"
+          "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Two-epoch Matroska CueCodecState source plus per-epoch RAP/configuration reference.",
+          "next_action": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+          "reopen_condition": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+          "blocker_category": "fixture",
+          "run_ids": [
+            "20260919T202508Z-r101-250-stage-reconciliation"
+          ],
+          "prior_decision": {
+            "campaign": "full-completion",
+            "ledger": "results/full-completion/completion.jsonl",
+            "line": 247,
+            "record": {
+              "key": "R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate",
+              "state": "DEFER_SETUP",
+              "evidence": [
+                "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+              ],
+              "reason": "Remux explicitly rejects changed video extradata and its seek state does not expose Matroska CueCodecState. Indexed configuration-epoch mapping requires a demux/configuration transaction, while cues cannot recreate prediction history.",
+              "evidence_level": "SOURCE_REVIEW",
+              "carried_forward": true,
+              "next_test": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject.",
+              "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject.",
+              "recorded_at_utc": "2026-09-19T17:34:19.112002+00:00"
+            }
+          },
+          "evidence": [
+            "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+            "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
+          ]
         }
-      },
-      "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate.md"
-      ]
+      }
     }
   },
-  "next_action": "Provide one two-epoch Matroska fixture and validate CueCodecState bytes/identity before one seek each direction; mid-GOP cold start or wrong epoch state must reject. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+  "next_action": "Pursue this source-bound configuration-seek component. Maintained demux integration must propagate CodecState correctly and preserve explicit RAP dependencies, source identity and owner cleanup; other codec/container profiles require separate admission.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

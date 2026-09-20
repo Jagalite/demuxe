@@ -1,0 +1,78 @@
+{
+  "cwd": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    [
+      "cc",
+      "-O2",
+      "research/items/R184.browser-hevc-base-separate-dolby-vision-reshaping/tests/placebo-reference-trace.c",
+      "-I/opt/homebrew/Cellar/libplacebo/7.360.1/include",
+      "-I/opt/homebrew/Cellar/shaderc/2026.3/include",
+      "-I/opt/homebrew/Cellar/vulkan-loader/1.4.350.1/../../../opt/vulkan-headers/include",
+      "-I/opt/homebrew/opt/little-cms2/include",
+      "-I/opt/homebrew/Cellar/ffmpeg/8.1.2/include",
+      "-L/opt/homebrew/Cellar/libplacebo/7.360.1/lib",
+      "-lplacebo",
+      "-L/opt/homebrew/Cellar/ffmpeg/8.1.2/lib",
+      "-lavformat",
+      "-lavcodec",
+      "-lavutil",
+      "-o",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/placebo-reference-trace"
+    ],
+    [
+      "cc",
+      "-O2",
+      "research/items/R184.browser-hevc-base-separate-dolby-vision-reshaping/tests/placebo-reference-sampling.c",
+      "-I/opt/homebrew/Cellar/libplacebo/7.360.1/include",
+      "-I/opt/homebrew/Cellar/shaderc/2026.3/include",
+      "-I/opt/homebrew/Cellar/vulkan-loader/1.4.350.1/../../../opt/vulkan-headers/include",
+      "-I/opt/homebrew/opt/little-cms2/include",
+      "-I/opt/homebrew/Cellar/ffmpeg/8.1.2/include",
+      "-L/opt/homebrew/Cellar/libplacebo/7.360.1/lib",
+      "-lplacebo",
+      "-L/opt/homebrew/Cellar/ffmpeg/8.1.2/lib",
+      "-lavformat",
+      "-lavcodec",
+      "-lavutil",
+      "-o",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/placebo-reference-sampling"
+    ],
+    [
+      "node",
+      "research/items/R184.browser-hevc-base-separate-dolby-vision-reshaping/tests/explicit-fullrange.mjs",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis"
+    ],
+    [
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/placebo-reference-trace",
+      "research/shared/runs/20260920T005243Z-dovi-profile5/source.mp4",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/traced",
+      "0",
+      "1"
+    ],
+    [
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/placebo-reference-sampling",
+      "research/shared/runs/20260920T005243Z-dovi-profile5/source.mp4",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis/raw-sampled",
+      "0",
+      "3"
+    ],
+    [
+      "python3",
+      "research/items/R184.browser-hevc-base-separate-dolby-vision-reshaping/tests/nominal-interpretations.py"
+    ],
+    [
+      "python3",
+      "research/items/R184.browser-hevc-base-separate-dolby-vision-reshaping/tests/numeric-diagnosis.py",
+      "research/shared/runs/20260920T011000Z-dovi-access-diagnosis"
+    ]
+  ],
+  "environment": {
+    "nativeExecutions": {
+      "VK_DRIVER_FILES": "/opt/homebrew/Cellar/molten-vk/1.4.1/etc/vulkan/icd.d/MoltenVK_icd.json"
+    },
+    "numpyScripts": {
+      "PYTHONPATH": "/tmp/demuxe-audio-numeric"
+    }
+  },
+  "initialSetupDiagnostic": "Default python3 lackednumpy; reused existingparentnumericpath. No packageinstallation."
+}

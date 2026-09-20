@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
+      "status": "passed",
+      "basis": "Real AV1 reference-slot graph derived from source headers; conservative transitive closure implemented.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
+      "basis": "54-to4 packet opportunity demonstrated on prepared independent reference banks.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
+      "status": "passed",
+      "basis": "Independent host and browser full output+PTS exact; missing-reference negative fails; output and decoders closed.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Identify one constrained software GOP and compare a parsed dependency graph with full decode before suppressing one certified unused reconstruction.",
+      "status": "failed",
+      "basis": "Cold acquisition+decode lower bound median6.879x prefix baseline, minimum3.486x across7 pairs.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
+      "basis": "A real prepared AV1 dependency graph reduces the exact-target prefix from54 packets to4, preserving all selected full pictures and original timestamps in independent host and Chrome decoders. Omitting a necessary reference fails. Seven alternating cold comparisons charge actual header-certificate acquisition; acquisition plus decode alone is6.879 times baseline at the median (all pairs regress), before graph construction/serialization. Stop this cold seek profile; no claim against amortized trusted indexes or arbitrary coded-block slicing.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
+      "basis": "A real prepared AV1 dependency graph reduces the exact-target prefix from54 packets to4, preserving all selected full pictures and original timestamps in independent host and Chrome decoders. Omitting a necessary reference fails. Seven alternating cold comparisons charge actual header-certificate acquisition; acquisition plus decode alone is6.879 times baseline at the median (all pairs regress), before graph construction/serialization. Stop this cold seek profile; no claim against amortized trusted indexes or arbitrary coded-block slicing.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
+        "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R132.exact-frame-dependency-slicing",
-      "rank": 284,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current bridge delegates complete packet decoding and SIMD kernels reconstruct requested blocks without a frame-dependency slicing graph. Skipping picture reconstruction requires parsing reference management inside a controlled decoder, not merely dropping submitted packets.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R132.exact-frame-dependency-slicing.md"
-      ],
-      "next_test": "Identify one constrained software GOP and compare a parsed dependency graph with full decode before suppressing one certified unused reconstruction.",
-      "reopen_condition": "Identify one constrained software GOP and compare a parsed dependency graph with full decode before suppressing one certified unused reconstruction.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R132.exact-frame-dependency-slicing",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual_host_and_browser_component",
+    "new_media_execution": true,
+    "reason": "A real prepared AV1 dependency graph reduces the exact-target prefix from54 packets to4, preserving all selected full pictures and original timestamps in independent host and Chrome decoders. Omitting a necessary reference fails. Seven alternating cold comparisons charge actual header-certificate acquisition; acquisition plus decode alone is6.879 times baseline at the median (all pairs regress), before graph construction/serialization. Stop this cold seek profile; no claim against amortized trusted indexes or arbitrary coded-block slicing.",
+    "next_action": "Reopen with an amortized authenticated dependency certificate; retain source/config/epoch identity and required header-state dependencies.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Real AV1 reference-slot graph derived from source headers; conservative transitive closure implemented."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "54-to4 packet opportunity demonstrated on prepared independent reference banks."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Independent host and browser full output+PTS exact; missing-reference negative fails; output and decoders closed."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Cold acquisition+decode lower bound median6.879x prefix baseline, minimum3.486x across7 pairs."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T23:34:14.859718+00:00",
+    "run_ids": [
+      "20260919T233127Z-av1-dependency-slice"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T233127Z-av1-dependency-slice/run.json"
+    ]
   },
-  "next_action": "Identify one constrained software GOP and compare a parsed dependency graph with full decode before suppressing one certified unused reconstruction.",
+  "next_action": "Reopen with an amortized authenticated dependency certificate; retain source/config/epoch identity and required header-state dependencies.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

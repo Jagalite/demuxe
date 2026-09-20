@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225700Z-rap-preroll-baseline",
+  "item_keys": [
+    "R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-20T00:02:42.727111+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary/tests/seed.py research/items/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary/evidence/20260919T225600Z-synthetic-reference",
+    "python3 research/items/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary/tests/complete-cost.py research/items/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary/evidence/20260919T225600Z-synthetic-reference research/items/R326.smart-cut-predictive-video-by-synthesizing-only-the-missing-reference-boundary/evidence/20260919T225700Z-rap-preroll-baseline"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "8ef7126c806e813f4ac353058b082a97a173c63b68ee691b229f9b6b7826bed9",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "36picture640x360constant-block MPEG2 noB source, cut10. Reencoded exact reference9 followed by unchanged26originalP payloads, explicit I/P and temporal_reference9..35. Host wanted-frame hashes all26exact; wrong-color reference and missing reference fail. Synthetic I is explicitly decoder-only preroll, not presented. All22timed candidate/baseline jobs again consume26exact hashes. No generalized motion/quantization state or browser-native qualification."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Predeclared11alternating cold pairs include decode-prefix/seedencode/assembly or originalRAP filecopy, then software decode/hiddenpreroll and26wanted-frame hash consumption. Cheapest faithful RAP-copy baseline; median saving-105.301%, bootstrap95[-252.907,-52.264]% vs+5%gate. Earlier full edge reencode baseline also negative-16.28%. No extrapolation to repeated amortized playback or browser energy."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Retain originalRAP preroll for this profile. Reopen only with a justified repeated-use/remote-transfer workload where smaller dependency boundary amortizes synthesis, and prove full reference numbering/filter state plus nonpresentation. Do not ship a synthetic visible seed or generalize constant-block exactness."
+}

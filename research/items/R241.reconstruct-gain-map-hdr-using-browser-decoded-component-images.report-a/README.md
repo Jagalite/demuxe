@@ -2,28 +2,10 @@
 
 # Reconstruct gain-map HDR using browser-decoded component images
 
-Full identity: `R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a`. Original rank: 228.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Built official libultrahdr pinned f3e36226914289cfefcf0d81a6471cf6266c79fb and generated a genuine conforming64x64 UltraHDR JPEG with neutral sRGB base/same-size grayscale gainmap, gamma1.5, nonzero SDR/HDR offsets and explicit output capacities1/2/4. Official probe extracts compressed components/metadata; independent CPU decoder gives complete linear RGBA16float references. Actual browser ImageDecoder component pixels match independent djpeg component arrays exactly. Actual WebGPU metadata reconstruction reuses exactly2 decoded component owners for all3 paused capacity choices. Same-array independent Python math maximumerror3.975e-7; complete browser route vs pinned decoder maximumabsolute0.000488639/relative0.000484142 across all4096pixels/capacity, within predeclared absolute0.002 and relative0.005 whenreference>=0.01; alphaexact1. Wrong gamma fails12285channels; invalid capacity/orientation/missing gain/zero gamma reject; old GPU epoch result discarded and fresh survives;frames/buffers/devicesclosed. Preserve failed API configuration-after-probe and initial continuous-formula reconstruction (capacity4 maximum0.00271535 exceeds original0.002bound), plus FFmpeg component6 one-code differences. Diagnosed correction matches pinned1024-entry inverse-sRGB/gain lookup sampling; no tolerance relaxation. Scoped real UltraHDR component-route capability passes. Host native probe supplies metadata/components; no all-browser parser/build deployment, unequal-size gainmap reconstruction, colored wide-gamut base/RGB gainmaps, arbitrary orientation, physical HDR display or timed video qualification. No speed claim; capability performance N/A.
 
-The shared current probe exposes a nonfallback Apple GPU, so the historical no-GPU blocker is stale. A conforming gain-map fixture/reference and an UltraHDR metadata/reconstruction path remain unprovided; current SDR YUV shader is not that implementation.
+Next: Scoped component research gates complete. General browser-only parsing/deployment, smaller gainmaps, wide-gamut colored bases, RGB gainmaps, physical HDR display and timed media require separate contracts; no production route changed.
 
-No matching candidate/reference/control execution for this exact gate. Conforming gain-map HDR image plus pinned reconstruction reference and metadata; current GPU availability is not the blocker.
-
-Next action: Acquire one pinned conforming gain-map image and decoded HDR reference, then audit metadata and browser component decode before a reconstruction shader. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Conforming gain-map HDR image plus pinned reconstruction reference and metadata; current GPU availability is not the blocker. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Conforming gain-map HDR image plus pinned reconstruction reference and metadata; current GPU availability is not the blocker. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T230156Z-ultrahdr-lut-contract/analysis.md)

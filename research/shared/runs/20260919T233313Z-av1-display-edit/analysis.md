@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual AV1 syntax author hides the original reference-building inter picture and inserts a visible independent intra-only edited picture with refresh_frame_flags0. The later original inter packet retains its entropy bytes and reconstructs exactly. All3 full output pictures/PTS match independent host and Chrome across2 fresh owners. Refreshing a live slot with the edited picture instead fails the required negative; cold delta rejects and every output/decoder closes. Prepared no-order-hint/no-frame-ID/no-grain same-profile capability only; no generalized editor, arbitrary timeline replacement or cost claim.

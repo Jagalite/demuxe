@@ -2,28 +2,18 @@
 
 # compressed-fragment rewind cache
 
-Full identity: `R143.compressed-fragment-rewind-cache.report-continuity`. Original rank: 183.
-
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
-
-Buffered seeks already reuse live MSE; evicted fragments are not retained as compressed payload cache and source readers are retired on restart. Rewind-after-eviction needs bounded source/codec-keyed compressed ownership separate from MSE receipts.
-
-No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.
-
-Next action: Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
+Current decision: **pursue**. A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction. |
+| correctness | passed | Video-only AVC with predictive frames and RAP-aligned fragments. A two-fragment cache includes initialization bytes, enforces its byte cap by actual eviction, reports a cache miss, and rejects changed source/configuration/generation keys before append. Native MSE removes the first second, then reappends the exact 16,708-byte cached fragment without replacing its SourceBuffer. All 48 pictures in [0,2) match an independently prepared full-source decoded cache; backward seek, EOF and cleanup pass. Cache identity is a tested research owner, not maintained production admission. |
+| performance | passed | Predeclared deterministic application cache payload accounting: at least 50% reduction for the same 48-picture window. Candidate 33,765 bytes including initialization and two copied compressed fragments; baseline 2,949,120 bytes in 48 actual RGBA arrays. Reduction 98.8551%, gate passed. Cold decoded preparation 521.4 ms, compressed preparation 0.875 ms, and rewind plus 48 image checks 343.765 ms are descriptive single-run observations, not comparative latency claims. Shared resident fixture and hidden MSE/decoder allocations are explicitly excluded; no physical-memory or energy inference. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next/reopen: Bounded cache component is worth pursuing. Reopen for maintained source/configuration identity, real source cancellation, non-RAP cache misses or other media profiles; measure complete deployment cost before changing player cache policy.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

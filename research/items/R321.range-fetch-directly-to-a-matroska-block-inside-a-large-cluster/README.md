@@ -2,28 +2,24 @@
 
 # Range-fetch directly to a Matroska block inside a large Cluster
 
-Full identity: `R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster`. Original rank: 170.
+Full identity: `R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (actual-route screen).
 
-Current small-cluster fixture has no expensive prefix worth bypassing. The current reader already starts misses at requested offsets; demonstrating additional value needs an exact large-Cluster CueRelativePosition seek trace and dependent-frame control. Defer that fixture/index setup; do not treat unknown opportunity as a failed block-relative seek.
+Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed.
 
-No matching candidate/reference/control execution for this exact gate. Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving.
-
-Next action: Next missing gate: Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Research profile complete. Consider authenticated index/provider integration only for genuine large Clusters; do not generalize to small-Cluster workloads.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed fixture gate: Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Large-Cluster CueRelativePosition trace and exact target/dependency oracle; present small clusters cannot expose the intended saving. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Authored large Cluster with independently verified packets, timing and source-bound index; actual RangeReader and WebCodecs candidate. |
+| screen | passed | Authored large Cluster with independently verified packets, timing and source-bound index; actual RangeReader and WebCodecs candidate. |
+| correctness | passed | Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed. |
+| performance | passed | Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed. |
+| results | passed | Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed. |
+| decision | passed | Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260919T223155Z-relative-cue-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

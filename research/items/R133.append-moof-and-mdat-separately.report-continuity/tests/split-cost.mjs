@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: Apache-2.0
+import {chromium} from 'playwright';
+import {spawn} from 'node:child_process';
+import {readFile,writeFile} from 'node:fs/promises';
+const out='research/shared/runs/20260919T215500Z-split-append-cost';
+const source=await readFile('research/shared/runs/20260919T214800Z-progressive-fidelity/source.mp4'),boxes=[];
+for(let p=0;p<source.length;){const n=source.readUInt32BE(p);boxes.push({p,n,type:source.toString('ascii',p+4,p+8)});p+=n;}
+const first=boxes.find(b=>b.type==='moof'),init=[...source.subarray(0,first.p)],groups=[];
+for(const b of boxes.filter(b=>b.type==='moof')){const m=boxes.find(x=>x.p===b.p+b.n);if(m.type!=='mdat')throw Error('not mdat');groups.push({moof:[...source.subarray(b.p,b.p+b.n)],mdat:[...source.subarray(m.p,m.p+m.n)]});}
+const oracle=JSON.parse(await readFile('research/shared/runs/20260919T214900Z-progressive-settled/full.json','utf8')).presented.map(x=>x.hash);
+const result={scope:'Source-authored AVC/AAC moof/mdat split appends versus charged gather copy on fresh native MSE owners. Resident source/reference setup common.',rows:[]};
+const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
+try{
+ const origin=await new Promise(r=>server.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m)r(m[0]);}));browser=await chromium.launch({channel:'chrome',headless:true});result.browser=browser.version();const page=await browser.newPage();await page.goto(origin+'/examples/custom-controls.html');
+ result.probe=await page.evaluate(async({init,groups,oracle})=>{
+  const event=(o,n)=>new Promise((r,j)=>{const t=setTimeout(()=>j(Error(n+' deadline')),6000);o.addEventListener(n,()=>{clearTimeout(t);r();},{once:true});o.addEventListener('error',()=>{clearTimeout(t);j(Error(n+' error'));},{once:true});});
+  const typed=groups.map(g=>({moof:new Uint8Array(g.moof),mdat:new Uint8Array(g.mdat)}));const head=new Uint8Array(init);
+  async function run(mode,all){const started=performance.now(),v=document.createElement('video');v.muted=true;document.body.append(v);const ms=new MediaSource(),url=URL.createObjectURL(ms),open=event(ms,'sourceopen');v.src=url;let appendCount=0,gatherBytes=0;try{await open;const sb=ms.addSourceBuffer('video/mp4; codecs="avc1.42c00a,mp4a.40.2"');const append=async data=>{const done=event(sb,'updateend');sb.appendBuffer(data);appendCount++;await done;};await append(head);for(const g of typed){if(mode==='split'){await append(g.moof);await append(g.mdat);}else{const joined=new Uint8Array(g.moof.length+g.mdat.length);joined.set(g.moof);joined.set(g.mdat,g.moof.length);gatherBytes+=joined.length;await append(joined);}}ms.endOfStream();const indices=all?Array.from({length:96},(_,i)=>i):[3,51,87],images=[];for(const i of indices){const seek=event(v,'seeked');v.currentTime=(i+.5)/12+.021333;await seek;const c=new OffscreenCanvas(160,96),ctx=c.getContext('2d');ctx.drawImage(v,0,0);const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',ctx.getImageData(0,0,160,96).data))].map(x=>x.toString(16).padStart(2,'0')).join('');images.push({i,hash,match:hash===oracle[i]});}v.pause();v.removeAttribute('src');v.load();v.remove();URL.revokeObjectURL(url);return {mode,ms:performance.now()-started,images,appendCount,gatherBytes,cleanup:true};}finally{v.pause();v.removeAttribute('src');v.load();v.remove();URL.revokeObjectURL(url);}}
+  const correctness=[];for(const mode of ['gather','split'])correctness.push(await run(mode,true));if(correctness.some(r=>r.images.some(x=>!x.match)))return {correctness,passed:false};const rows=[];for(let pair=0;pair<11;pair++)for(const mode of pair%2?['split','gather']:['gather','split']){const r=await run(mode,false);if(r.images.some(x=>!x.match))throw Error('wrong timed image');rows.push({pair,...r});}return {correctness,rows,passed:true};
+ },{init,groups,oracle});
+}catch(e){result.error=String(e.stack);process.exitCode=1;}finally{await browser?.close();server.kill();await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({error:result.error,passed:result.probe?.passed,rows:result.probe?.rows?.length}));}

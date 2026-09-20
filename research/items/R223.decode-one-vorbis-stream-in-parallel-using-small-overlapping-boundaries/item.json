@@ -47,102 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "status": "passed",
+      "basis": "Actual four concurrently launched host Vorbis packet-range decoders each retain identification/comment/setup and one preceding overlap packet; regenerated Ogg page granules preserve final512sample trim. All192000stereo frames including every seam equal continuous host decode exactly; each omitted-preroll control differs. Four workers complete and are reaped. Five alternating complete cold source/hash/CRC/repage/write/decode/transfer/join81.536ms versus continuous33.130ms ratio2.46110 fails0.9. Fixture uses long blocks; short/long transition generality is excluded.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Inspect one pinned Vorbis packet stream and compare two jobs with a preceding packet, varying short/long window transition and EOF trim.",
+      "status": "failed",
+      "basis": "Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "basis": "stop_current_profile: Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries",
-      "rank": 291,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-20T00:08:53.289619+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260920T000853Z-vorbis-parallel"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Local adaptation does not admit Vorbis decoding; software audio is continuous mpv-owned. Independent Vorbis jobs need packet/window overlap and global trimming before any parallel scheduler can safely splice PCM.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual four concurrently launched host Vorbis packet-range decoders each retain identification/comment/setup and one preceding overlap packet; regenerated Ogg page granules preserve final512sample trim. All192000stereo frames including every seam equal continuous host decode exactly; each omitted-preroll control differs. Four workers complete and are reaped. Five alternating complete cold source/hash/CRC/repage/write/decode/transfer/join81.536ms versus continuous33.130ms ratio2.46110 fails0.9. Fixture uses long blocks; short/long transition generality is excluded.",
+      "next_action": "Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.",
+      "reopen_condition": "Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R223.decode-one-vorbis-stream-in-parallel-using-small-overlapping-boundaries.md"
-      ],
-      "next_test": "Inspect one pinned Vorbis packet stream and compare two jobs with a preceding packet, varying short/long window transition and EOF trim.",
-      "reopen_condition": "Inspect one pinned Vorbis packet stream and compare two jobs with a preceding packet, varying short/long window transition and EOF trim.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260920T000853Z-vorbis-parallel/run.json"
+      ]
     }
   },
-  "next_action": "Inspect one pinned Vorbis packet stream and compare two jobs with a preceding packet, varying short/long window transition and EOF trim.",
+  "next_action": "Stop this short-asset subprocess parallel Vorbis profile on complete cost. Longer assets, persistent workers and qualified short/long transitions require a new contract and measured gate. No browser/Wasm parallel decoder integration or generic one-packet proof.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

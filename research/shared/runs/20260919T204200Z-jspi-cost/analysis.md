@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry. No pthread speed comparison; no physical RSS or production admission claim. Ordinary AAC MP4 priming failure remains excluded. Runtime cache reused, worker/instance cold each trial.

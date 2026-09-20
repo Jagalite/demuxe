@@ -2,12 +2,24 @@
 
 # residual-domain FLAC mixing
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R180.residual-domain-flac-mixing`
 
-Current adaptation handles one selected audio track, not aligned two-source residual mixing. Report exact order3 frame sum has a narrow compatible predictor/headroom contract; parsing/reencoding and source authority need a new preparation owner.
+Current decision: **pursue** (2026-09-19T23:25:33.880396+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Two real signed16 mono FLAC frames use fixed predictor3 and Rice parameter1. Actual parsed warmups and4093residuals summed; output Rice parameter chosen, frame/integrity regenerated. Rolling three-sample recurrence validates headroom without materializing full source PCM buffers; all4096output samples exactly match independent PCM sum, range-4509..5000. FFmpeg/Chrome/libFLAC integrity/native render/end/closed pass. Mismatched predictor, origin/alignment, overflow, CRC and truncation reject. Five alternating complete read/parse/mix/write/destination-decode jobs71.452ms versus ordinary FFmpeg dual-input amix(no normalization)/signed16FLAC encode/destination-decode102.732ms ratio0.69552 passes<=0.9. Output1600bytes; sourceA1403bytes, not a compression-win claim.
 
-Next: Find one explicit two-source mix request and validate alignment/predictor/headroom before comparing a single residual sum with PCM oracle.
+Pursue aligned independent mono fixed-order3/Rice1 residual mixing for standalone lossless summed FLAC. Headroom validation performs rolling reconstruction and is charged; this is not a claim of zero PCM arithmetic or superiority over already-decoded playback mixing. General gains, clipping, resampling, coupled channels, misaligned frames and shiftedLPC remain unqualified.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T232533Z-flac-mix/run.json) · [Analysis](../../shared/runs/20260919T232533Z-flac-mix/analysis.md) · [Manifest](../../shared/runs/20260919T232533Z-flac-mix/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

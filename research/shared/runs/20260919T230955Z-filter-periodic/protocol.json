@@ -1,0 +1,6 @@
+{
+  "scope": "Controlled stable scalar binary64 IIR periodic initialization,64sample loop, poles.8/.98/.999/.9999. Derive one-loop affine M,b and solve state=b/(1-M), then render first10requested loops640samples. Explicit max abs tolerance1e-12 versus long iterated reference.",
+  "baseline": "Actually iterate loops until a posteriori state-error estimate |delta|/(1-a^64)<=1e-13 or state converges exactly, then render same10loops. No arbitrary fixed burnin count in measured baseline.",
+  "performance": "Five alternating cold source read/hash, state derivation or adaptive convergence, and full640sample output across four poles. <=0.9cost. Reference20000loop burnin excluded from both timed variants.",
+  "guards": "Reject nonstable/nearunit denominator<=1e-9, wrong source and cancellation. Zero initialization negative control; closure error separately measured."
+}

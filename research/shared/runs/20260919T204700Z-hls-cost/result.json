@@ -1,0 +1,129 @@
+{
+  "plan": {
+    "items": [
+      "R088.native-hls-playlist-views-over-compatible-existing-media",
+      "R363.expose-prepared-fragments-as-a-native-hls-presentation"
+    ],
+    "sampling": "Seven matched triplets, rotate HLS/direct/MSE order, fresh page each trial, same prepared bytes/server/browser. Shared preparation sunk identically for all routes; separately report source and prepared sizes, playlist bytes and fragment counts.",
+    "metric": "First simultaneous rendered red pixel/440Hz audio latency from assigning source, plus full trial through seek/EOF/cleanup and HTTP resource bytes",
+    "threshold": "Every route must render A/V, seek and EOF. Native HLS is worthwhile for this finite fixture only if bootstrap95% upper bound of paired startup regression versus cheapest direct-file baseline is below100ms; report MSE comparison separately. This is a declared local research startup budget, not a catalogue-wide product threshold.",
+    "limits": "No physical energy, hardware decode, CPU reduction or complete preparation timing claim. Preparation bytes identical, already validated/captured once. Browser-owned fetching eliminates JS appends but is not itself a CPU saving. Concurrent machine activity uncontrolled."
+  },
+  "scope": "Native HTML media URL destinations with no HLS library. Real rendered color/audio; no hardware/energy or route admission claim.",
+  "fragments": [
+    {
+      "offset": 1260,
+      "size": 1135
+    },
+    {
+      "offset": 2395,
+      "size": 12304
+    },
+    {
+      "offset": 14699,
+      "size": 379
+    },
+    {
+      "offset": 15078,
+      "size": 13712
+    }
+  ],
+  "requests": [
+    {
+      "url": "/",
+      "range": null,
+      "time": 1789850587541
+    },
+    {
+      "url": "/favicon.ico",
+      "range": null,
+      "time": 1789850587576
+    },
+    {
+      "url": "/playlist.m3u8",
+      "range": "bytes=0-",
+      "time": 1789850587942
+    },
+    {
+      "url": "/clip.mp4",
+      "range": "bytes=0-",
+      "time": 1789850587949,
+      "responseBytes": 28976
+    },
+    {
+      "url": "/clip.mp4",
+      "range": "bytes=0-",
+      "time": 1789850587952,
+      "responseBytes": 28976
+    },
+    {
+      "url": "/favicon.ico",
+      "range": null,
+      "time": 1789850587965
+    },
+    {
+      "url": "/",
+      "range": null,
+      "time": 1789850589793
+    },
+    {
+      "url": "/clip.mp4",
+      "range": "bytes=0-",
+      "time": 1789850589866,
+      "responseBytes": 28976
+    },
+    {
+      "url": "/favicon.ico",
+      "range": null,
+      "time": 1789850589903
+    },
+    {
+      "url": "/",
+      "range": null,
+      "time": 1789850592136
+    },
+    {
+      "url": "/clip.mp4",
+      "range": null,
+      "time": 1789850592169,
+      "responseBytes": 28976
+    }
+  ],
+  "cases": [
+    {
+      "name": "hls",
+      "firstAVAt": 512,
+      "av": 40,
+      "ended": true,
+      "failed": null,
+      "seeked": true,
+      "totalMs": 1411.300000011921,
+      "cleanup": true,
+      "pair": 0
+    },
+    {
+      "name": "direct",
+      "firstAVAt": 139.5,
+      "av": 87,
+      "ended": true,
+      "failed": null,
+      "seeked": true,
+      "totalMs": 2090.5,
+      "cleanup": true,
+      "pair": 0
+    },
+    {
+      "name": "mse-open-response",
+      "firstAVAt": null,
+      "av": 0,
+      "ended": false,
+      "failed": "AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22",
+      "seeked": false,
+      "totalMs": 12011,
+      "cleanup": true,
+      "pair": 0
+    }
+  ],
+  "browser": "152.0.7977.83",
+  "error": "AssertionError [ERR_ASSERTION]: {\"name\":\"mse-open-response\",\"firstAVAt\":null,\"av\":0,\"ended\":false,\"failed\":\"AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22\",\"seeked\":false,\"totalMs\":12011,\"cleanup\":true,\"pair\":0}\n    at file:///Volumes/seed2/Projects/demuxe/research/shared/tooling/hls-destination-cost.mjs:30:80"
+}

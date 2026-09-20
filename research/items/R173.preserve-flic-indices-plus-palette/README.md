@@ -2,14 +2,10 @@
 
 # preserve FLIC indices plus palette
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Disposition: **inconclusive**. Correctness **passed**, performance **failed**; other research gates passed.
 
-Actual two-frame FLC with palette-only second update renders exact independent RGBA through index+palette GPU textures. Restricted COLOR256/COPY chunks establish representation feasibility; other FLIC opcodes and seek checkpoints remain future work.
+Actual128x128 FLC COPY/palette-only frames, indices/palette texture shader versus optimized packed32 CPU palette expansion and RGBA texture upload. All30 requested pictures in order0,1,0 repeated10times exactly match independent FFmpeg RGBA, including backward checkpoint selection and palette-only change. Strict file/frame/chunk/palette/COPY bounds reject truncation. Every owner reparses immutable source, destroys textures/readback/device. Candidate522240 versus baseline1966080 application upload bytes per task. This restricted parser does not admit general FLIC delta chunks. Complete owner wall-time saving6.24%, bootstrap95[-2.8209419393916635, 14.050267781750103]; predeclared performance gate failed.
 
-Correctness: **pending**. Performance: **pending**.
+Research experiment complete: earlier naive-byte-store baseline advantage is not sufficient; packed32 baseline is the final comparison. Reopen only for a specified texture workload with a representative baseline and newly predeclared cost/threshold.
 
-Two actual FLC frames including palette-only update render exact independent RGBA on GPU and clean up. No executed malformed FLIC control or seek/checkpoint reconstruction is recorded; GPU recovery belongs to another case and cannot substitute.
-
-Next: Execute a malformed chunk and backward checkpoint reconstruction for COLOR256/COPY scope before correctness acceptance.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Analysis](../../shared/runs/20260919T205835Z-palette-hap-packed-baseline/analysis.md)

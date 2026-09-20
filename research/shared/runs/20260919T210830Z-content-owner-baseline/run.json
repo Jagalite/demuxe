@@ -1,0 +1,34 @@
+{
+  "stage": "performance",
+  "status": "passed",
+  "commands": [
+    "python3 research/shared/tooling/content-retention.py research/shared/runs/20260919T210700Z-content-retention",
+    "python3 research/shared/tooling/content-retention-owner-baseline.py research/shared/runs/20260919T210830Z-content-owner-baseline"
+  ],
+  "analysis": "Nine alternating cold ownership constructions preserve both authorized files' exact ordered codec bytes while keeping timeline references separate. Against cheaper per-file content dedup baseline, cross-file sharing reduces median live traced allocation4856\u21923252bytes (33.03%), including dictionaries/hash keys/list/object overhead, passing declared10% local memory gate. All owner refs release. First naive per-packet comparator retained and superseded. This tiny exact-sharing fixture saves1604live Python-traced bytes, not a global memory/RSS result. Index/demux setup is shared, peak/time samples retained, whole process native allocations and browser are not measured. Existing poisoned-digest/config-miss controls retained. No common decoded reference state shared.",
+  "decisions": [
+    {
+      "key": "R200.content-addressed-reuse-across-different-files",
+      "disposition": "pursue",
+      "evidence_level": "actual_immutable_ownership_memory",
+      "new_media_execution": true,
+      "reason": "Nine alternating cold ownership constructions preserve both authorized files' exact ordered codec bytes while keeping timeline references separate. Against cheaper per-file content dedup baseline, cross-file sharing reduces median live traced allocation4856\u21923252bytes (33.03%), including dictionaries/hash keys/list/object overhead, passing declared10% local memory gate. All owner refs release. First naive per-packet comparator retained and superseded.",
+      "next_action": "Scoped immutable compressed-payload sharing research complete. Production pursuit needs actual cross-file hit rates and runtime memory measurement, retaining authorization and per-source timestamps outside shared storage.",
+      "stages": {
+        "performance": {
+          "status": "passed",
+          "basis": "Nine alternating cold ownership constructions preserve both authorized files' exact ordered codec bytes while keeping timeline references separate. Against cheaper per-file content dedup baseline, cross-file sharing reduces median live traced allocation4856\u21923252bytes (33.03%), including dictionaries/hash keys/list/object overhead, passing declared10% local memory gate. All owner refs release. First naive per-packet comparator retained and superseded."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T210830Z-content-owner-baseline",
+  "recorded_at_utc": "2026-09-19T21:06:55.796141+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "7092e96c609a815dca32700b8a4cdce554d58e28cd7ea572585dde59aba14a52",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -2,12 +2,24 @@
 
 # Compile a decoder kernel for a repeatedly used Huffman codebook
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R292.compile-a-decoder-kernel-for-a-repeatedly-used-huffman-codebook`
 
-Current custom browser bridge does not admit MJPEG and software decoding uses established codec machinery. Historical source-specialized Wasm is an offline-generated coefficient kernel, not a bounded runtime generator or full player. Real repeated table frequency and module amortization remain required.
+Current decision: **stop_current_profile** (2026-09-20T00:34:39.315379+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual generated specialized Wasm versus ordinary prederived8bit Huffman lookup plus long-code fallback decodes four unchanged128x128 baseline grayscale JPEGs. All65536 quantized coefficients match independent libjpeg, all per-frame consumed bits/symbol counts match, and same-consumer reconstructed grayscale pixels are exact. Actual long-code/tail escapes244–376 and16–47 stuffed bytes per frame exercised. Changed optimized codebook rejects specialization then valid generic fallback matches; oversubscribed table/truncation and actual valid restart-JPEG exclusion controls pass. Five alternating first-use four-frame specialization jobs include trusted constant generation, native Wasm compiler, instantiation/table validation/read/decode/transfer:451.663ms vs maintained general3.626ms ratio124.565 fails0.9. Huge cold compiler/OS variance retained (first19seconds), no steady-state throughput claim.
 
-Next: Measure table reuse in one actual MJPEG source and identify the general lookup baseline; only then scope one trusted generated kernel.
+Stop this cold four-frame codebook-specialization profile on setup cost. Warm repeatedly reused kernels may reopen only with independently charged preparation/amortization and actual throughput evidence. Current implementation targets the entropy/coefficient kernel; no production MJPEG route, full Wasm IDCT integration, restart support or browser-native speed claim.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T003439Z-huffman-special/run.json) · [Analysis](../../shared/runs/20260920T003439Z-huffman-special/analysis.md) · [Manifest](../../shared/runs/20260920T003439Z-huffman-special/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

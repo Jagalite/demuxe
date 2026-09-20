@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260920T000004Z-rice-scan",
+  "item_keys": [
+    "R231.parallelize-rice-parsing-through-composable-finite-state-transitions"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "not used, host entropy component",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual Rice0 residual payload from one60001sample fixed1FLAC frame: four spawned workers summarize completed unary runs and leading/trailing carry, then compose to60000 signed residuals exactly. Independent FFmpeg PCM equals original60001samples. Chunk sizes1/7/251/8191 and long unary across a boundary pass; omitted carry and truncated final code controls detect. Five alternating cold payload read/hash, process startup/transfer/summary/composition/cleanup98.521ms vs serial loop3.991ms ratio24.686 fails0.9. This is parameter0 only, not a generic Rice-k parser."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this process-based Rice0 chunk parser on cost. The composable boundary mechanism is real, but no speedup in this fixture; wider symbol/state support or a compiled shared-memory implementation needs new correctness and complete cost evidence.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_bits.py",
+    "research/shared/tooling/audio-stage-probes/flac_predictive_bits.py"
+  ],
+  "commands_log": "research/shared/runs/20260920T000004Z-rice-scan/commands.log"
+}

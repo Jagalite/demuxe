@@ -53,96 +53,84 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "status": "passed",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "status": "passed",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+      "status": "passed",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "basis": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "research-presentation-stage-completion",
     "record": {
       "key": "R178.selective-jpeg-2000-source-reads",
-      "rank": 314,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T23:43:31.348594+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "state": "pursue",
+      "disposition": "pursue",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T234126Z-openjpeg-active-quality-layers"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "RangeReader can fetch bounded offsets, but current software output is complete decoded image and no OpenJPEG decode-area callback/index adapter exists. Historical quality/reduce constraints did not reduce bytes inside the same tile.",
+      "new_execution": true,
+      "evidence_level": "component_test",
+      "reason": "Built pinned official OpenJPEG v2.5.3 and executed genuine streaming read/skip/seek callbacks on a 1024\u00d71024 grayscale codestream with 256\u00d7256 tiles, RPCL progression and three quality layers. Full decoded pixels equal the generated original. The selected 256\u00d7256 area exactly matches both independent full-image crop and separate CLI decode; reduced-resolution and first-layer outputs also match their independently requested references. On the textured fixture, first-layer pixels genuinely differ from full-quality pixels. Actual unique callback reads fall from 505948 to 46513 bytes, a 90.81% reduction, with 15 seek/skip operations. Neither resolution reduction nor quality-layer restriction saves any additional source bytes within that area: both still read 46513. Preserve the earlier highly compressible fixture, whose first layer already contained its lossless output and therefore did not exercise a meaningful quality distinction. Truncated headers and out-of-bounds areas reject without output publication; fresh owners reproduce the accepted result, and every codec/stream/file owner closes. Correctness and the predeclared source-byte-work gate pass. This is logical source-callback work, not OS physical reads, network bytes, decode-time speed, energy, or an integrated browser range reader. Production is unchanged.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_g/audits/R178.selective-jpeg-2000-source-reads.md"
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/results.json",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/analysis.md",
+        "research/items/R178.selective-jpeg-2000-source-reads/evidence/20260919T234126Z-openjpeg-active-quality-layers/manifest.json"
       ],
-      "next_test": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
-      "reopen_condition": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+      "next_test": "Scoped spatial source-byte selectivity is established. Preserve zero additional byte savings from quality/resolution limits. Browser transport integration or latency/energy claims require separate complete-cost measurements and offset/identity controls.",
+      "reopen_condition": "Scoped spatial source-byte selectivity is established. Preserve zero additional byte savings from quality/resolution limits. Browser transport integration or latency/energy claims require separate complete-cost measurements and offset/identity controls."
     }
   },
-  "next_action": "Define source-bound tile/packet mapping and one OpenJPEG callback adapter; compare two corner ROIs and full-image reduced-resolution control, counting unique bytes rather than decoder calls.",
+  "next_action": "Scoped spatial source-byte selectivity is established. Preserve zero additional byte savings from quality/resolution limits. Browser transport integration or latency/energy claims require separate complete-cost measurements and offset/identity controls.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

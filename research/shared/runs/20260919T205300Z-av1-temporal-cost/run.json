@@ -1,0 +1,47 @@
+{
+  "stage": "performance",
+  "status": "passed",
+  "commands": [
+    "python3 research/shared/tooling/av1-temporal-cost.py research/shared/runs/20260919T205300Z-av1-temporal-cost"
+  ],
+  "analysis": "480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms. Existing wrong-mask and missing-key controls retained; packet timestamps preserved. Scope is host software decoding480160x96pictures built from20closed copies of the original24-picture GOP. No arbitrary AV1, physical energy, browser CPU or hardware-admission claim.",
+  "decisions": [
+    {
+      "key": "R239.extract-an-av1-operating-point-before-decoding.report-a",
+      "disposition": "pursue",
+      "evidence_level": "actual_complete_task_performance",
+      "new_media_execution": true,
+      "reason": "480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms.",
+      "next_action": "Bounded temporal-layer extraction research complete for declared profile. Integrate only behind validated advertised operating point and exact timestamp contract; separately measure target browser hardware workload.",
+      "stages": {
+        "performance": {
+          "status": "passed",
+          "basis": "480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms."
+        }
+      }
+    },
+    {
+      "key": "R350.extract-a-declared-lower-frame-rate-av1-operating-point-before-decoding",
+      "disposition": "pursue",
+      "evidence_level": "actual_complete_task_performance",
+      "new_media_execution": true,
+      "reason": "480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms.",
+      "next_action": "Bounded temporal-layer extraction research complete for declared profile. Integrate only behind validated advertised operating point and exact timestamp contract; separately measure target browser hardware workload.",
+      "stages": {
+        "performance": {
+          "status": "passed",
+          "basis": "480-frame two-temporal-layer authored AV1: actual extraction plus decode returns240pictures byte-exact to full decode followed by output selection. Eleven alternating fresh FFmpeg jobs include source read, OBU parsing/extraction, process startup, decoding and output transfer. Median paired saving19.95%,95%bootstrap [11.70,23.00] clears declared10% gate. Baseline median75.23ms; candidate62.82ms."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T205300Z-av1-temporal-cost",
+  "recorded_at_utc": "2026-09-19T20:54:50.285856+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "34484686736563908078ab27d64d49eddbdaa1922331eb7e3ffa0e6f0f3a8dde",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

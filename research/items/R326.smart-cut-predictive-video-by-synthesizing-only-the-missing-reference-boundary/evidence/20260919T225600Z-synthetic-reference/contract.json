@@ -1,0 +1,15 @@
+{
+  "scope": "MPEG2 noB constant640x360 blocks, one36picture GOP; cut atpicture10, synthetic exact reference picture9 is decoder pre-roll and deliberately not presented.",
+  "correctness_gate": "All26presented candidate/baseline pictures equal independent originalsource; entire copied suffix bytes untouched; temporal_reference9..35 and I/P verified; wrong/missing seed must differ.",
+  "performance_gate": {
+    "metric": "Complete cold command preparation walltime including decode-prefix/encode-one/seed assembly vs decode-prefix/full26picture edge reencode",
+    "pairs": 11,
+    "order": "alternating",
+    "thresholdMedianSaving": 0.05
+  },
+  "limitations": [
+    "Host software component only, not browser native MPEG2",
+    "Caller must enforce seed nonpresentation",
+    "No arbitrary motion/quantization/reference equivalence claim"
+  ]
+}

@@ -86,99 +86,121 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Unperformed setup gate: Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.",
+      "status": "passed",
+      "basis": "New executable probe and declared workload/controls registered with source/input/runtime evidence.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope.",
+      "basis": "A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.",
+      "status": "passed",
+      "basis": "Video-only AVC with predictive frames and RAP-aligned fragments. A two-fragment cache includes initialization bytes, enforces its byte cap by actual eviction, reports a cache miss, and rejects changed source/configuration/generation keys before append. Native MSE removes the first second, then reappends the exact 16,708-byte cached fragment without replacing its SourceBuffer. All 48 pictures in [0,2) match an independently prepared full-source decoded cache; backward seek, EOF and cleanup pass. Cache identity is a tested research owner, not maintained production admission.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters.",
+      "status": "passed",
+      "basis": "Predeclared deterministic application cache payload accounting: at least 50% reduction for the same 48-picture window. Candidate 33,765 bytes including initialization and two copied compressed fragments; baseline 2,949,120 bytes in 48 actual RGBA arrays. Reduction 98.8551%, gate passed. Cold decoded preparation 521.4 ms, compressed preparation 0.875 ms, and rewind plus 48 image checks 343.765 ms are descriptive single-run observations, not comparative latency claims. Shared resident fixture and hidden MSE/decoder allocations are explicitly excluded; no physical-memory or energy inference.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred.",
+      "basis": "Actual new execution raw outcomes, controls and scoped interpretation retained.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Normalized disposition preserves prior scoped scientific verdict and names the next missing gate.",
+      "basis": "pursue: A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction.",
       "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "r101-250-stage-reconciliation",
+    "campaign": "all-stages-transport",
     "record": {
       "key": "R143.compressed-fragment-rewind-cache.report-continuity",
-      "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
-      "stage": "decision",
-      "initial_rank": 183,
-      "disposition": "blocked",
-      "state": "blocked",
-      "previous_state": "DEFER_SETUP",
-      "evidence_level": "reconciled_source_review",
-      "new_media_execution": false,
-      "reason": "Buffered seeks already reuse live MSE; evicted fragments are not retained as compressed payload cache and source readers are retired on restart. Rewind-after-eviction needs bounded source/codec-keyed compressed ownership separate from MSE receipts.",
-      "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.",
-      "next_action": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
-      "reopen_condition": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
-      "blocker_category": "setup",
+      "state": "pursue",
+      "disposition": "pursue",
+      "reason": "A byte-capped compressed cache restores an evicted first fragment on the same SourceBuffer and reproduces all 48 independent pictures in the exact two-second window. Source, configuration and generation mismatches reject cache reuse. Retained application payload is 33,765 bytes versus 2,949,120 bytes for the actually allocated decoded RGBA cache, a 98.86% reduction.",
+      "recorded_at_utc": "2026-09-19T22:22:24.314146+00:00",
+      "evidence_level": "component_test",
       "run_ids": [
-        "20260919T202508Z-r101-250-stage-reconciliation"
+        "20260919T221200Z-rewind-exact-window"
       ],
+      "evidence": [
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/run.json",
+        "research/items/R143.compressed-fragment-rewind-cache.report-continuity/evidence/20260919T221200Z-rewind-exact-window/manifest.json"
+      ],
+      "next_test": "Bounded cache component is worth pursuing. Reopen for maintained source/configuration identity, real source cancellation, non-RAP cache misses or other media profiles; measure complete deployment cost before changing player cache policy.",
+      "reopen_condition": "Bounded cache component is worth pursuing. Reopen for maintained source/configuration identity, real source cancellation, non-RAP cache misses or other media profiles; measure complete deployment cost before changing player cache policy.",
+      "scope": "Video-only AVC with predictive frames and RAP-aligned fragments. A two-fragment cache includes initialization bytes, enforces its byte cap by actual eviction, reports a cache miss, and rejects changed source/configuration/generation keys before append. Native MSE removes the first second, then reappends the exact 16,708-byte cached fragment without replacing its SourceBuffer. All 48 pictures in [0,2) match an independently prepared full-source decoded cache; backward seek, EOF and cleanup pass. Cache identity is a tested research owner, not maintained production admission.",
+      "new_experiment": true,
       "prior_decision": {
-        "campaign": "full-completion",
-        "ledger": "results/full-completion/completion.jsonl",
-        "line": 255,
+        "campaign": "r101-250-stage-reconciliation",
         "record": {
           "key": "R143.compressed-fragment-rewind-cache.report-continuity",
-          "state": "DEFER_SETUP",
-          "evidence": [
-            "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
-          ],
+          "recorded_at_utc": "2026-09-19T20:25:08.587468+00:00",
+          "stage": "decision",
+          "initial_rank": 183,
+          "disposition": "blocked",
+          "state": "blocked",
+          "previous_state": "DEFER_SETUP",
+          "evidence_level": "reconciled_source_review",
+          "new_media_execution": false,
           "reason": "Buffered seeks already reuse live MSE; evicted fragments are not retained as compressed payload cache and source readers are retired on restart. Rewind-after-eviction needs bounded source/codec-keyed compressed ownership separate from MSE receipts.",
-          "evidence_level": "SOURCE_REVIEW",
-          "carried_forward": true,
-          "next_test": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache.",
-          "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache.",
-          "recorded_at_utc": "2026-09-19T17:34:19.113982+00:00"
+          "correctness_acceptance": "No matching candidate/reference/control execution for this exact gate. Byte-capped compressed rewind cache retaining init/RAP dependencies and invalidating source/configuration epochs.",
+          "next_action": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+          "reopen_condition": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+          "blocker_category": "setup",
+          "run_ids": [
+            "20260919T202508Z-r101-250-stage-reconciliation"
+          ],
+          "prior_decision": {
+            "campaign": "full-completion",
+            "ledger": "results/full-completion/completion.jsonl",
+            "line": 255,
+            "record": {
+              "key": "R143.compressed-fragment-rewind-cache.report-continuity",
+              "state": "DEFER_SETUP",
+              "evidence": [
+                "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+              ],
+              "reason": "Buffered seeks already reuse live MSE; evicted fragments are not retained as compressed payload cache and source readers are retired on restart. Rewind-after-eviction needs bounded source/codec-keyed compressed ownership separate from MSE receipts.",
+              "evidence_level": "SOURCE_REVIEW",
+              "carried_forward": true,
+              "next_test": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache.",
+              "reopen_condition": "Reopen at this specific bounded next slice or when current owner/workload changes: Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache.",
+              "recorded_at_utc": "2026-09-19T17:34:19.113982+00:00"
+            }
+          },
+          "evidence": [
+            "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
+            "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
+          ]
         }
-      },
-      "evidence": [
-        "research/shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R143.compressed-fragment-rewind-cache.report-continuity.md"
-      ]
+      }
     }
   },
-  "next_action": "Specify one two-fragment byte-capped rewind cache with init/RAP dependencies; evict then reappend exact bytes and verify target frame, changed source or codec epoch must invalidate cache. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.",
+  "next_action": "Bounded cache component is worth pursuing. Reopen for maintained source/configuration identity, real source cancellation, non-RAP cache misses or other media profiles; measure complete deployment cost before changing player cache policy.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

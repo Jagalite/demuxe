@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T215300Z-progressive-profile-acceptance",
+  "item_keys": [
+    "R115.play-an-ongoing-fmp4-response-through-one-native-url"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:58:16.239297+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "FFmpeg generator: research/shared/runs/20260919T214800Z-progressive-fidelity/generator.json",
+    "node research/items/R115.play-an-ongoing-fmp4-response-through-one-native-url/tests/progressive.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "d6f910ca975845482f9e6a41721991524dd81f30590c3650c03798967d4c1ad6",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "failed",
+      "basis": "Independent full-response native playback yields96distinct complete160x96 RGBA pictures; both progressive variants match all96. Non-Range variant has exact decoded PCM order after explicitly removing a measured buffering-silence interval, but three requested seeks(.3,6.3,1.3s) clamp0; cancellation closes pendingresponse and actual truncation/refused resume errors withoutfalseEOF. Range-capable variant preserves all385024activePCM samples exactly and allthree exact seek images, but firstoutput occurs afterresponseEOF. This fails the current combined capability contract; no gapless, endless-live, reconnection or production claim."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "No timing benefit benchmark after combined route contract fails. Observed first-output/EOF ordering and buffering silence are feasibility diagnostics, not CPU/latency savings."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with a source/delivery profile that demonstrates correct early output and declared seek behavior together, or explicitly choose a sequential nonseekable endpoint accepting measured buffering. Preserve separate transport/cancellation semantics; do not infer low latency from early color/tone alone."
+}

@@ -2,28 +2,18 @@
 
 # Recover an interrupted partial append without replacing MSE
 
-Full identity: `R037.recover-an-interrupted-partial-append-without-replacing-mse`. Original rank: 147.
-
-Current decision: **pursue** (reconciled from **PURSUE**). No new media execution.
-
-Actual SourceBuffer abort after incomplete moof or sample allows complete target-RAP append and marked A/V through EOF without replacing MSE. Generation flag in harness is only a model, not validation of maintained stale-message ownership.
-
-Actual SourceBuffer abort during moof or sample parsing permits complete RAP retry and A/V/EOF without replacement. Stale-generation flag is a model, not maintained message-ownership qualification.
-
-Next action: Exercise maintained generation/cancel/source replacement before integration.
-
-## Stages
+Current decision: **inconclusive**. Parser abort and retry preserves accepted media and all 24 target pictures. The predeclared 5% point-estimate cost gate passed at 6.31%, but the 95% median interval spans -19.52% to +15.72%. Economic benefit remains inconclusive; retained-owner capability is supported.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Read and pinned historical fixture/output/control evidence; no rerun. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | passed | Actual SourceBuffer abort during moof or sample parsing permits complete RAP retry and A/V/EOF without replacement. Stale-generation flag is a model, not maintained message-ownership qualification. |
-| performance | pending | No predeclared equivalent-work benchmark/cost analysis; counts and incidental timings cannot establish performance. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Parserabort/retry preservesacceptedfirstGOP and all24 targetframeimages; pointlatencygatepasses6.31%median, but effectuncertainty remainswide. |
+| correctness | passed | ActualMSE finiteAVC B/P source,24distinctfulltargetimage hashes equalfreshnativepresentation. Abortin incomplete secondmdat retainsfirst0–1sGOP, retriescompleteRAP packetwindow; stalegeneration delayedtail refused beforeappend. All media/URLs released. HistoricalA/Vscreen remainsseparate; newperfprofile video-only. Maintainedcontroller/asyncremotesource ownership notqualified. |
+| performance | passed | Predeclared11alternating fresh-owner pairs, sameacceptedoldGOP pluspartialparse/injectedfault. Candidate abort/retry vsnewMediaSource/init/targetappend, throughsamecorrecttargetseek/fullimagehash andcleanup. Median saving 6.308991461636115%,bootstrap95median [-19.52410036898511, 15.718418461736894]%;5%pointgate passed. Allsamplesretained, uncertaintycanincludezero. Nophysicalmemory/quota,network,CPUorenergyclaim; sharedsource/browserstartup excluded. Gate onlylocalcomponentlatency. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | Parser abort and retry preserves accepted media and all 24 target pictures. The predeclared 5% point-estimate cost gate passed at 6.31%, but the 95% median interval spans -19.52% to +15.72%. Economic benefit remains inconclusive; retained-owner capability is supported. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
+Next: Keep the proven parser-reset capability. Reopen the economic decision with a representative workload and a predeclared sampling plan; the current experiment does not establish a reliable latency improvement.
 
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

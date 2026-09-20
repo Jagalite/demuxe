@@ -1,0 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures.
+
+Ninepairedstatic two-programTS completehostfilter/remux/decodejobs preserveallselectedpictures/PCM. BaselineFFmpegdirectprogramselection vsPythonPID/PATfilter thenFFmpeg; bothchargeinputread, properADTS-to-ASC/delaymoov,decodeoutput. Saving1.71percent95[-1.82,3.76] misseslower95>5percentgate. Packetbyte reduction isreal but completecostbenefit notestablished. PriorreversedPAT/missingprogram andbrowsercontrols retained. No dynamicPSI/scrambling/generalWasmCPUclaim.

@@ -58,115 +58,80 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders.md"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "prepare": {
       "status": "passed",
-      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Historical outcome retained and individually reconciled. Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "correctness": {
       "status": "passed",
-      "basis": "Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.",
+      "basis": "Actual original native ALAC decode rejects; ordinary ALAC Wasm decoding plus ordinary FLAC adaptation and copied H264 produces384000 exact host PCM bytes/96000 stereo frames. Chrome recovers every signed16 sample exactly; all48 coded video packets are unchanged with normalized video timeline maximum error0.666ms (within the declared1.1ms source-timebase tolerance). Partial decoder job close/reopen, actual native MSE seek/audio/EOF and graph/worker cleanup pass. Finite bridge uses existing pinned modules, no different lossy decoder.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "performance": {
-      "status": "pending",
-      "basis": "No accepted complete-cost comparative performance gate. Output/count feasibility does not prove speed, memory or energy. Integrate only declared ALAC adaptation owner with seek/cancel, then measure full startup and output costs.",
+      "status": "not_applicable",
+      "basis": "Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Historical outcome retained and individually reconciled. Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Historical outcome retained and individually reconciled. Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.",
+      "basis": "pursue: Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-top100-31-65-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders",
-      "rank": 48,
-      "state": "pursue",
-      "disposition": "pursue",
+      "recorded_at_utc": "2026-09-19T21:27:47.827854+00:00",
       "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
       "run_ids": [
-        "20260919T201644Z-top100-31-65-reconciliation"
+        "20260919T212658Z-alac-destination",
+        "20260919T212747Z-alac-timing-erratum"
       ],
-      "recorded_at_utc": "2026-09-19T20:20:45.045709+00:00",
-      "evidence_level": "reconciled_historical_component_test",
-      "new_execution": false,
-      "historical_state": "PURSUE",
-      "reason": "ALAC rejected by native media element and decodeAudioData, then isolated pinned ALAC Wasm decoder reproduced all 96000 stereo frames exactly with missing-extradata and truncated-packet rejection. Worth pursuing ALAC adaptation; TrueHD and complete route cost remain untested.",
-      "stage_acceptance": "Native ALAC rejection is separately recorded. Isolated pinned FFmpeg ALAC Wasm returns exact 384000 PCM bytes/96000 stereo frames; missing extradata and truncated packets reject, cleanup passes. TrueHD and complete route excluded.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual original native ALAC decode rejects; ordinary ALAC Wasm decoding plus ordinary FLAC adaptation and copied H264 produces384000 exact host PCM bytes/96000 stereo frames. Chrome recovers every signed16 sample exactly; all48 coded video packets are unchanged with normalized video timeline maximum error0.666ms (within the declared1.1ms source-timebase tolerance). Partial decoder job close/reopen, actual native MSE seek/audio/EOF and graph/worker cleanup pass. Finite bridge uses existing pinned modules, no different lossy decoder.",
+      "next_action": "Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
+      "reopen_condition": "Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
       "evidence": [
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
-        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
-        "results/top100/environment.json",
-        "results/top100/audio/native-result.json",
-        "results/top100/lossless/result.json"
+        "research/shared/runs/20260919T212658Z-alac-destination/run.json",
+        "research/shared/runs/20260919T212747Z-alac-timing-erratum/run.json"
       ],
-      "next_test": "Integrate only declared ALAC adaptation owner with seek/cancel, then measure full startup and output costs.",
-      "reopen_condition": "Integrate only declared ALAC adaptation owner with seek/cancel, then measure full startup and output costs.",
-      "scope": "Explicit archived profile only; no runtime requalification."
+      "correction": "Correction only, no new experiment: original narrative mistakenly said1microsecond. Its immutable verification.json records0.000666seconds, matching the executed1.1ms tolerance. Coded video packet identity and audio exactness remain unchanged. Original decoder.c SPDX is Apache-2.0; previous generated manifest mislabeled this source as CC-BY-4.0. Original source bytes/notices are authoritative and remain unchanged."
     }
   },
-  "next_action": "Integrate only declared ALAC adaptation owner with seek/cancel, then measure full startup and output costs.",
+  "next_action": "Original proposal is an input/destination feasibility question with no speed/resource hypothesis; performance is not applicable to this declared ALAC16 capability endpoint. Pursue normal integer-lossless adaptation for this profile. TrueHD,24bit, streaming memory ownership and production admission remain separately unqualified.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

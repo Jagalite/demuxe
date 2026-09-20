@@ -2,12 +2,10 @@
 
 # Spatially selective video
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-Current playback decodes one full representation; no authored quadrant catalogue, viewport tile selection or synchronized compositor exists. Historical prepared tiles are near-equivalent lossy output, not same-pixel optimization.
+Prepared12-frame256x256 lossless VP9 fullpicture plusfour128x128 quadrantstreams withsynchronized24fps PTS. Everyindependent FFmpegdecodedI420 sample equalsauthored original; actualChromeWebCodecs softwarepreferred decodesallfour, concatenatedcomplete YUVplanes match all12fullpicture hashes and timestamps exactly. Fullpicturedecodedviewportcropequals selectedtile. Wrongquadrants changesfullpicturehash, oldgenerationfirstoutputdiscarded+closed, freshdifferenttile all12outputs exact;289frames/25decoders allclosed. Ninealternating completeprepared-asset online requests include binaryfetch/IVFparse/configure/12framedecode/copy/fullpicturecrop-or-directtile/hash/close. Fullpicturemean19.567ms versusselectedtile5.500ms; saving71.89% paired95CI[62.46312676342798, 80.8586058140282], passing predeclaredlower95>=10%. Offlineauthoring explicitlyseparate: fourtileencoding1.129s vsfull1.179s; alltiles158875B vsfull153956B; selectedtile40943B. This isprepared lossless specialtyasset viewport capability/cost, notarbitrarylossyencode equivalence or realtime transcodingwin. No fullGPUcompositor/presentation, physicalbandwidth/energy or universallyminimaldecode claim. Fixedalignedtop-leftviewport, allfourCPUplaneassembly only correctness; viewportpan/overlappingrequests/productionselectionnotqualified.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Preparedlossless alignedviewport profile passesexactplane and onlinecost gates. Pursueonlywith acceptedofflineauthoring/storage and viewportneed; productiontilemanifest/viewporttransition/GPUcomposition require separateintegration. Do not apply result to historical lossy near-equivalenttiles.
 
-Next: Define one prepared-tile manifest and viewport request contract; compare one tile against original crop and all-four reconstruction, rejecting claims of byte/pixel equality when encode boundaries differ.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T235714Z-prepared-lossless-tiles/analysis.md)

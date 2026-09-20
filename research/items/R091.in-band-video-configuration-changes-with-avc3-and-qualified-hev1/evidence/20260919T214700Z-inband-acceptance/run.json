@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T214700Z-inband-acceptance",
+  "item_keys": [
+    "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:50:05.101331+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1/tests/prepare.py",
+    "node research/items/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1/tests/inband.mjs",
+    "node research/items/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1/tests/lifecycle.mjs",
+    "node research/items/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1/tests/cost.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "88dab43b2da6cc757dcf5e8ccf014bd3ce442f276c12dcbca55c726b5571f037",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Both fresh-init and in-band-only paths match all72 independent full-frame RGBA hashes/dimensions, five reverse/forward seek queries,71 continuous presented pictures, EOF and cleanup. Truthful same-profile AVC level3.1; actual SPS/PPS/IDR admission rejects a missing-configuration control before mutation. Delayed stale-generation publication is rejected before append. Unchanged AAC lane identity is observed but no PCM continuity claim; no hev1, open-GOP, arbitrary parameters or post-mutation rollback claim."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "11 predeclared alternating pairs;5% median saving gate passed at10.8734%, bootstrap95 median[6.7969,17.5184]%. Fresh MSE owner, byte slicing, append, three correct full-image seek queries and cleanup included; resident fixture/reference setup common and excluded. All timed images pass. Large first-pair and final-pair variance retained, no discarded samples."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Bounded AVC component worth pursuing. Reopen for maintained integration or independently scoped hev1 source/destination; preserve exact configuration admission and qualify real source replacement/audio separately before production."
+}

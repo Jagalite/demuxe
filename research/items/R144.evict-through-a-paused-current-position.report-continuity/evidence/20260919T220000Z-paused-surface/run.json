@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T220000Z-paused-surface",
+  "item_keys": [
+    "R144.evict-through-a-paused-current-position.report-continuity"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:06:27.072689+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R144.evict-through-a-paused-current-position.report-continuity/tests/paused-eviction.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "55f11c2b324b52fb622c0900611d02b636c6430f118a008e96750fd1deed0408",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual AVC/AAC native MSE, independently decoded whole-file full160x96 image oracle. Before/after paused image at1.5s identical and exact, readyState4, noerror. Removed.5s seek remains pending350ms and oldpicture differs from correcttarget; samebytes reappend completesseek with exacttarget image, forward6.3s exact; cleanup verified. Source-report pausedsurface retention only, no audio replay ordecoder-reference retention claim."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "No physical memory, decoder surface reclamation or resource-saving claim. Logical buffered-time removal is directly observed but cannot qualify physicalmemory economics; the source report explicitly disclaims those. Capability endpoint has no applicable cost benchmark."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Bounded paused-surface report complete. A production memory policy must separately measure actualretention and rehydrationcost and retain explicit removed-range recovery; no automaticaggressiveeviction policy is authorized by this result."
+}

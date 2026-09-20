@@ -1,0 +1,1789 @@
+{
+  "plan": {
+    "workload": "11 alternating cold browser owner jobs; startup128B,distant128B,final64B. Include header acquisition, HKDF/key import, segment authentication, range copies and owner cancellation. HTTP modeled256KiB/s+5ms each response, no-store. Compare wait-full sequential decrypt once per job, plus plaintext range baseline.",
+    "gate": "All plaintext ranges equal official Python Tink reference; wrong key/context/header/cipher/position/truncation/stale owner reject before exposing requested data. Median ciphertext bytes reduction>=80%, median total latency ratio<=1.25 versus sequential.",
+    "scope": "Authorized pinned encrypted-object identity/key/context are input. Tink AES128_GCM_HKDF_4KB exact format; not a new scheme, secret manager, peer transport or maintained Demuxe integration."
+  },
+  "browser": "152.0.7977.83",
+  "probe": {
+    "controls": {
+      "allRangesExact": true,
+      "completePlaintextExact": true,
+      "wrongKey": "OperationError",
+      "wrongAAD": "OperationError",
+      "tamper": "OperationError",
+      "wrongPosition": "OperationError",
+      "truncated": "OperationError",
+      "wrongFinal": "OperationError",
+      "staleETag": "Error: source identity/status",
+      "cancel": "Error: cancelled owner"
+    },
+    "ranges": [
+      [
+        0,
+        128
+      ],
+      [
+        4036,
+        80
+      ],
+      [
+        8126,
+        40
+      ],
+      [
+        315281,
+        64
+      ],
+      [
+        0,
+        512
+      ],
+      [
+        28621,
+        512
+      ],
+      [
+        57242,
+        512
+      ],
+      [
+        85863,
+        512
+      ],
+      [
+        114484,
+        512
+      ],
+      [
+        143105,
+        512
+      ],
+      [
+        171727,
+        512
+      ],
+      [
+        200348,
+        512
+      ],
+      [
+        228969,
+        512
+      ],
+      [
+        257590,
+        512
+      ],
+      [
+        286211,
+        512
+      ],
+      [
+        314833,
+        512
+      ]
+    ],
+    "queries": [
+      [
+        0,
+        128
+      ],
+      [
+        270345,
+        128
+      ],
+      [
+        315281,
+        64
+      ]
+    ],
+    "count": 78,
+    "rows": [
+      {
+        "pair": 0,
+        "sequential": {
+          "id": "0-sequential",
+          "ms": 1230,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "0-range",
+          "ms": 71,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "0-plain",
+          "ms": 21.900000035762787,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 1,
+        "range": {
+          "id": "1-range",
+          "ms": 61.09999996423721,
+          "bytes": 9417
+        },
+        "sequential": {
+          "id": "1-sequential",
+          "ms": 1236.1000000238419,
+          "bytes": 316641
+        },
+        "plain": {
+          "id": "1-plain",
+          "ms": 53.19999998807907,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 2,
+        "sequential": {
+          "id": "2-sequential",
+          "ms": 1236.6000000238419,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "2-range",
+          "ms": 158.60000002384186,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "2-plain",
+          "ms": 25.399999976158142,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 3,
+        "range": {
+          "id": "3-range",
+          "ms": 72.69999998807907,
+          "bytes": 9417
+        },
+        "sequential": {
+          "id": "3-sequential",
+          "ms": 1230.9000000357628,
+          "bytes": 316641
+        },
+        "plain": {
+          "id": "3-plain",
+          "ms": 24.099999964237213,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 4,
+        "sequential": {
+          "id": "4-sequential",
+          "ms": 1223.300000011921,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "4-range",
+          "ms": 62.90000003576279,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "4-plain",
+          "ms": 20.5,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 5,
+        "range": {
+          "id": "5-range",
+          "ms": 63.59999996423721,
+          "bytes": 9417
+        },
+        "sequential": {
+          "id": "5-sequential",
+          "ms": 1226.4000000357628,
+          "bytes": 316641
+        },
+        "plain": {
+          "id": "5-plain",
+          "ms": 21,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 6,
+        "sequential": {
+          "id": "6-sequential",
+          "ms": 1223.5999999642372,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "6-range",
+          "ms": 61.80000001192093,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "6-plain",
+          "ms": 18.80000001192093,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 7,
+        "range": {
+          "id": "7-range",
+          "ms": 62.10000002384186,
+          "bytes": 9417
+        },
+        "sequential": {
+          "id": "7-sequential",
+          "ms": 1224.3999999761581,
+          "bytes": 316641
+        },
+        "plain": {
+          "id": "7-plain",
+          "ms": 22.5,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 8,
+        "sequential": {
+          "id": "8-sequential",
+          "ms": 1221.5,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "8-range",
+          "ms": 62.40000003576279,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "8-plain",
+          "ms": 20.19999998807907,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 9,
+        "range": {
+          "id": "9-range",
+          "ms": 60.89999997615814,
+          "bytes": 9417
+        },
+        "sequential": {
+          "id": "9-sequential",
+          "ms": 1222.800000011921,
+          "bytes": 316641
+        },
+        "plain": {
+          "id": "9-plain",
+          "ms": 21,
+          "bytes": 320
+        }
+      },
+      {
+        "pair": 10,
+        "sequential": {
+          "id": "10-sequential",
+          "ms": 1223.199999988079,
+          "bytes": 316641
+        },
+        "range": {
+          "id": "10-range",
+          "ms": 64.90000003576279,
+          "bytes": 9417
+        },
+        "plain": {
+          "id": "10-plain",
+          "ms": 21.5,
+          "bytes": 320
+        }
+      }
+    ]
+  },
+  "analysis": {
+    "medianByteSavingPct": 97.02596947331521,
+    "medianLatencyRatio": 0.05141829480515804,
+    "medianRangeMs": 62.90000003576279,
+    "medianPlainMs": 21.5
+  },
+  "passed": true,
+  "logs": [
+    {
+      "id": null,
+      "path": "/favicon.ico",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 4096,
+      "end": 8191,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 4096,
+      "end": 8191,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 8192,
+      "end": 12287,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 28672,
+      "end": 32767,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 57344,
+      "end": 61439,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 86016,
+      "end": 90111,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 114688,
+      "end": 118783,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 143360,
+      "end": 147455,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 172032,
+      "end": 176127,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 200704,
+      "end": 204799,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 229376,
+      "end": 233471,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 258048,
+      "end": 262143,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 286720,
+      "end": 290815,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 4096,
+      "end": 8191,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 8192,
+      "end": 12287,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 12288,
+      "end": 16383,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 16384,
+      "end": 20479,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 20480,
+      "end": 24575,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 24576,
+      "end": 28671,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 28672,
+      "end": 32767,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 32768,
+      "end": 36863,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 36864,
+      "end": 40959,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 40960,
+      "end": 45055,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 45056,
+      "end": 49151,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 49152,
+      "end": 53247,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 53248,
+      "end": 57343,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 57344,
+      "end": 61439,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 61440,
+      "end": 65535,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 65536,
+      "end": 69631,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 69632,
+      "end": 73727,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 73728,
+      "end": 77823,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 77824,
+      "end": 81919,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 81920,
+      "end": 86015,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 86016,
+      "end": 90111,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 90112,
+      "end": 94207,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 94208,
+      "end": 98303,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 98304,
+      "end": 102399,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 102400,
+      "end": 106495,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 106496,
+      "end": 110591,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 110592,
+      "end": 114687,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 114688,
+      "end": 118783,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 118784,
+      "end": 122879,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 122880,
+      "end": 126975,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 126976,
+      "end": 131071,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 131072,
+      "end": 135167,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 135168,
+      "end": 139263,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 139264,
+      "end": 143359,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 143360,
+      "end": 147455,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 147456,
+      "end": 151551,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 151552,
+      "end": 155647,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 155648,
+      "end": 159743,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 159744,
+      "end": 163839,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 163840,
+      "end": 167935,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 167936,
+      "end": 172031,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 172032,
+      "end": 176127,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 176128,
+      "end": 180223,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 180224,
+      "end": 184319,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 184320,
+      "end": 188415,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 188416,
+      "end": 192511,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 192512,
+      "end": 196607,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 196608,
+      "end": 200703,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 200704,
+      "end": 204799,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 204800,
+      "end": 208895,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 208896,
+      "end": 212991,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 212992,
+      "end": 217087,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 217088,
+      "end": 221183,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 221184,
+      "end": 225279,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 225280,
+      "end": 229375,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 229376,
+      "end": 233471,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 233472,
+      "end": 237567,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 237568,
+      "end": 241663,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 241664,
+      "end": 245759,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 245760,
+      "end": 249855,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 249856,
+      "end": 253951,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 253952,
+      "end": 258047,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 258048,
+      "end": 262143,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 262144,
+      "end": 266239,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 266240,
+      "end": 270335,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 274432,
+      "end": 278527,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 278528,
+      "end": 282623,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 282624,
+      "end": 286719,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 286720,
+      "end": 290815,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 290816,
+      "end": 294911,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 294912,
+      "end": 299007,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 299008,
+      "end": 303103,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 303104,
+      "end": 307199,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 307200,
+      "end": 311295,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 311296,
+      "end": 315391,
+      "bytes": 4096
+    },
+    {
+      "id": "correct",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "wrongKey",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "wrongKey",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "wrongAAD",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "wrongAAD",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "tamper",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "tamper",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "wrongPosition",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "wrongPosition",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "truncated",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "truncated",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "wrongFinal",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "wrongFinal",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "cancel",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "cancel",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "0-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "0-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "0-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "0-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "0-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "0-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "0-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "0-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "0-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "1-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "1-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "1-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "1-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "1-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "1-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "1-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "1-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "1-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "2-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "2-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "2-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "2-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "2-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "2-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "2-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "2-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "2-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "3-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "3-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "3-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "3-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "3-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "3-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "3-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "3-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "3-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "4-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "4-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "4-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "4-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "4-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "4-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "4-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "4-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "4-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "5-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "5-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "5-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "5-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "5-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "5-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "5-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "5-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "5-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "6-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "6-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "6-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "6-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "6-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "6-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "6-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "6-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "6-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "7-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "7-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "7-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "7-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "7-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "7-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "7-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "7-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "7-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "8-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "8-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "8-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "8-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "8-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "8-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "8-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "8-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "8-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "9-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "9-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "9-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "9-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "9-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "9-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "9-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "9-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "9-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    },
+    {
+      "id": "10-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "10-sequential",
+      "path": "/cipher",
+      "start": 0,
+      "end": 316616,
+      "bytes": 316617
+    },
+    {
+      "id": "10-range",
+      "path": "/cipher",
+      "start": 0,
+      "end": 23,
+      "bytes": 24
+    },
+    {
+      "id": "10-range",
+      "path": "/cipher",
+      "start": 24,
+      "end": 4095,
+      "bytes": 4072
+    },
+    {
+      "id": "10-range",
+      "path": "/cipher",
+      "start": 270336,
+      "end": 274431,
+      "bytes": 4096
+    },
+    {
+      "id": "10-range",
+      "path": "/cipher",
+      "start": 315392,
+      "end": 316616,
+      "bytes": 1225
+    },
+    {
+      "id": "10-plain",
+      "path": "/plain",
+      "start": 0,
+      "end": 127,
+      "bytes": 128
+    },
+    {
+      "id": "10-plain",
+      "path": "/plain",
+      "start": 270345,
+      "end": 270472,
+      "bytes": 128
+    },
+    {
+      "id": "10-plain",
+      "path": "/plain",
+      "start": 315281,
+      "end": 315344,
+      "bytes": 64
+    }
+  ]
+}

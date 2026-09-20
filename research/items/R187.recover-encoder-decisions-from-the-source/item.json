@@ -53,103 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "status": "passed",
+      "basis": "Actual source motion side data and real libx265 merange hook; predeclared quality/size/cost gates.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "basis": "5408/5108 vectors produce real target search-range16 versus57 baseline, scene cut included.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "status": "passed",
+      "basis": "Both120frame workload families decode with complete frame count; PSNR/byte bounds pass across7pairs, scene-change source includes Iframe30.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+      "status": "failed",
+      "basis": "Complete source analysis+target encode median1.0758x/1.0823x, no5% saving; highly variable timings disclosed.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "basis": "Real AVC source motion vectors drive an actual x265 global search-range hook (57\u219216), not a proxy search model. Natural60-frame and scene-change60-frame sources export5408/5108 vectors; scene source retains keyframes0/30. Seven paired full encodes stay inside predeclared<=0.1dB quality loss and<=2% byte growth: natural PSNR improves0.00686dB/bytes+0.276%, scene output unchanged. Including fresh source-analysis pass, median complete costs1.0758x/1.0823x miss5% saving, with broad timing ranges. Stop this hint variant; no per-block vector injection or general encoder rejection.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
+      "basis": "Real AVC source motion vectors drive an actual x265 global search-range hook (57\u219216), not a proxy search model. Natural60-frame and scene-change60-frame sources export5408/5108 vectors; scene source retains keyframes0/30. Seven paired full encodes stay inside predeclared<=0.1dB quality loss and<=2% byte growth: natural PSNR improves0.00686dB/bytes+0.276%, scene output unchanged. Including fresh source-analysis pass, median complete costs1.0758x/1.0823x miss5% saving, with broad timing ranges. Stop this hint variant; no per-block vector injection or general encoder rejection.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
+        "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R187.recover-encoder-decisions-from-the-source",
-      "rank": 363,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current player exposes packet/frame flow, not source encoder decision logs or a target transcoder search interface. Historical x264 first-pass hints guided a separate block-matching model and did not demonstrate actual bitstream extraction or AVC-to-HEVC quality/cost.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_h/audits/R187.recover-encoder-decisions-from-the-source.md",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/R183-R192-report.md"
-      ],
-      "next_test": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
-      "reopen_condition": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R187.recover-encoder-decisions-from-the-source",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual_source_motion_and_target_hevc_encode",
+    "new_media_execution": true,
+    "reason": "Real AVC source motion vectors drive an actual x265 global search-range hook (57\u219216), not a proxy search model. Natural60-frame and scene-change60-frame sources export5408/5108 vectors; scene source retains keyframes0/30. Seven paired full encodes stay inside predeclared<=0.1dB quality loss and<=2% byte growth: natural PSNR improves0.00686dB/bytes+0.276%, scene output unchanged. Including fresh source-analysis pass, median complete costs1.0758x/1.0823x miss5% saving, with broad timing ranges. Stop this hint variant; no per-block vector injection or general encoder rejection.",
+    "next_action": "Reopen for a true lower-overhead or per-block target-encoder hook; preserve scene-change and full rate-distortion comparison.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual source motion side data and real libx265 merange hook; predeclared quality/size/cost gates."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "5408/5108 vectors produce real target search-range16 versus57 baseline, scene cut included."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Both120frame workload families decode with complete frame count; PSNR/byte bounds pass across7pairs, scene-change source includes Iframe30."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Complete source analysis+target encode median1.0758x/1.0823x, no5% saving; highly variable timings disclosed."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T23:59:00.988967+00:00",
+    "run_ids": [
+      "20260919T235525Z-source-motion-encoder"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T235525Z-source-motion-encoder/run.json"
+    ]
   },
-  "next_action": "Identify one available source hint and a real target encoder hook, then compare complete rate-distortion output to its own search baseline, including scene changes.",
+  "next_action": "Reopen for a true lower-overhead or per-block target-encoder hook; preserve scene-change and full rate-distortion comparison.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

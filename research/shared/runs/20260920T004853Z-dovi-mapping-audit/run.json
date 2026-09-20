@@ -1,0 +1,47 @@
+{
+  "stage": "screen",
+  "status": "fixture_block_confirmed",
+  "commands": [
+    "cc -O2 research/shared/tooling/dovi-mapping-audit.c [pkg-config libavformat/libavcodec/libavutil flags] -o research/shared/runs/20260920T004853Z-dovi-mapping-audit/audit",
+    "research/shared/runs/20260920T004853Z-dovi-mapping-audit/audit research/shared/runs/20260919T200800Z-dolby/glass-blowing2-dolby-vision-profile-8-1-frag.mp4"
+  ],
+  "analysis": "Actual installed FFmpeg decoded all120frames of the genuine Chromium/Dolby8.1 sample and exposed120 RPU metadata records. Every Y/Cb/Cr reshaping curve is a single linear identity piece [0,8388608,0] with denominator2^23 and pivots0..1023; zero nonidentity frames. The genuine source therefore cannot test nontrivial reshaping. Independent Dolby color/reshaping reference remains unprepared; ordinary HDR10-base equivalence is not that oracle. Installedlibplacebo7.360.1/MoltenVK are potential reference tooling, not an executed Dolby reference. This is a fixture/setup prerequisite, not a measured negative for separate Dolby color processing. No inference that Dolby color matrices, dynamic trims or overall appearance are identity; only reshaping polynomial claim is established. Build.json records exact expanded compiler command.",
+  "decisions": [
+    {
+      "key": "R184.browser-hevc-base-separate-dolby-vision-reshaping",
+      "disposition": "blocked",
+      "blocker_category": "fixture",
+      "evidence_level": "prerequisite probe",
+      "new_media_execution": true,
+      "reason": "Actual installed FFmpeg decoded all120frames of the genuine Chromium/Dolby8.1 sample and exposed120 RPU metadata records. Every Y/Cb/Cr reshaping curve is a single linear identity piece [0,8388608,0] with denominator2^23 and pivots0..1023; zero nonidentity frames. The genuine source therefore cannot test nontrivial reshaping. Independent Dolby color/reshaping reference remains unprepared; ordinary HDR10-base equivalence is not that oracle. Installedlibplacebo7.360.1/MoltenVK are potential reference tooling, not an executed Dolby reference. This is a fixture/setup prerequisite, not a measured negative for separate Dolby color processing.",
+      "next_action": "Acquire a genuine nonidentity-reshaping Dolby source and prepare an independent Dolby reference (potentially installedlibplacebo after validation). Then execute browserbase+transform against declared signal boundary.",
+      "stages": {
+        "prepare": {
+          "status": "blocked",
+          "basis": "Actual source has only identity reshaping; nontrivial source plus independent reference still missing."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual installed FFmpeg decoded all120frames of the genuine Chromium/Dolby8.1 sample and exposed120 RPU metadata records. Every Y/Cb/Cr reshaping curve is a single linear identity piece [0,8388608,0] with denominator2^23 and pivots0..1023; zero nonidentity frames. The genuine source therefore cannot test nontrivial reshaping. Independent Dolby color/reshaping reference remains unprepared; ordinary HDR10-base equivalence is not that oracle. Installedlibplacebo7.360.1/MoltenVK are potential reference tooling, not an executed Dolby reference. This is a fixture/setup prerequisite, not a measured negative for separate Dolby color processing."
+        },
+        "correctness": {
+          "status": "blocked",
+          "basis": "No separate Dolby transform candidate or independent nontrivial oracle executed."
+        },
+        "performance": {
+          "status": "blocked",
+          "basis": "Dependent on the missing relevant correctness gate."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T004853Z-dovi-mapping-audit",
+  "recorded_at_utc": "2026-09-20T00:50:25.078498+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "dirty_diff_sha256": "7809e3965ac527cd462872b8d7b789fbdbef135d38b71f70a47670c8f821d99b",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -2,12 +2,24 @@
 
 # Produce dual-mono and silent channel slots through Opus mapping metadata
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Full key: `R225.produce-dual-mono-and-silent-channel-slots-through-opus-mapping-metadata`
 
-Current native remux selects MP4/WebM and copies existing channel metadata; there is no Ogg mapping-family writer. Legal dual-mono/silent-slot assignments represent an explicit changed output request, not preservation of original channel layout.
+Current decision: **stop_current_profile** (2026-09-20T00:08:53.289619+00:00).
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Actual mono Opus mapping family1 streams1/coupled0 [0,0] and[0,255] retain coded packets, preskip/gain/endgranule. All96000stereo frames match same-consumer mono duplication/silence in Chrome and libopus, with native render/EOF/closed. Wrong source/intent/cancellation guards reject. Default FFmpeg native Opus decoder incorrectly zeros both channels for silent-right; that destination remains excluded and failed run is retained. With efficient strided PCM expansion baseline, complete cold remap/CRC/write/libopus consumption ratios1.11953 dualmono and1.29753 silent fail0.9. Earlier generator-based baseline diagnostic is retained but not accepted.
 
-Next: Define one Ogg Opus mono-to-dual mapping and compare decoded channels with source-plus-zero reference before adding any player API.
+Stop this complete cold mapping/consumption cost profile. Metadata capability is real for Chrome/libopus, but default native FFmpeg silent-slot fidelity is not. Prepared packet mapping or another workload must separately remeasure; no spatial upmixing or production routing claim.
 
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260920T000853Z-opus-slots/run.json) · [Analysis](../../shared/runs/20260920T000853Z-opus-slots/analysis.md) · [Manifest](../../shared/runs/20260920T000853Z-opus-slots/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

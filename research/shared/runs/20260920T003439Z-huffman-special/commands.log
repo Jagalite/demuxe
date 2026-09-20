@@ -1,0 +1,4 @@
+clang -O2 -I/opt/homebrew/opt/jpeg-turbo/include research/shared/tooling/audio-stage-probes/jpeg_coeff_oracle.c /opt/homebrew/opt/jpeg-turbo/lib/libjpeg.a -o research/shared/runs/20260919T_audio_huffman_special/oracle
+python3 research/shared/tooling/audio-stage-probes/huffman_prepare.py research/shared/runs/20260919T_audio_huffman_special
+node research/shared/tooling/audio-stage-probes/huffman_wasm.mjs research/shared/runs/20260919T_audio_huffman_special
+python3 research/shared/tooling/audio-stage-probes/huffman_adverse.py research/shared/runs/20260919T_audio_huffman_special

@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260919T212100Z-continuous-frames",
+  "item_keys": [
+    "R138.one-sourcebuffer-different-codec-and-container.report-continuity"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T21:02:14.058417+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R138.one-sourcebuffer-different-codec-and-container.report-continuity/tests/transaction.mjs # exit1 incomplete-control assumption",
+    "node research/items/R138.one-sourcebuffer-different-codec-and-container.report-continuity/tests/transaction-rejection.mjs",
+    "node research/items/R138.one-sourcebuffer-different-codec-and-container.report-continuity/tests/transition-cost.mjs # artificialrAF latency retained but not accepted",
+    "node research/items/R138.one-sourcebuffer-different-codec-and-container.report-continuity/tests/seeked-cost.mjs",
+    "node research/items/R138.one-sourcebuffer-different-codec-and-container.report-continuity/tests/continuous-frames.mjs"
+  ],
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256_at_registration": "f6afd43255af00dea163e19e09b0fe223ecd174f25cdb1bfe450f368669a5bf5",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Exact original report video-only scope: two1s160x96@12fps changing-picture streams,24 complete RGBA frame hashes equal isolated baseline at frame centers, reverse/forward queries, one retained SourceBuffer. Continuous playback23subsequent frames exact plus independently queried initialframe, timestamps0.083333..1.917,EOF. Stale callback after replacement rejected; actual wrong-container second init errors, declared full rebuild restores old frame. No claim old SourceBuffer can roll back fatal parse errors; URLs/elements released. Audio,gapless A/V and production queue ownership excluded."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Predeclared11 alternating fresh-owner pairs after correctness; old source opened and firstframe established before measured transition. Candidate changeType+append versus restart/reappend, through full-frame capture/hash and cleanup. Resident identical encoded bytes common; no network/browser startup saving claimed. Median saving22.5457%, deterministic bootstrap95 median[15.6185%,41.2366%],5% gate passed. Prior rAF-quantized run retained/excluded with explicit measurement correction. No CPU, physical memory or energy claim."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Pursue bounded video-only component. Production adoption needs actual queue/generation owner integration and selected-audio sample-boundary tests; preserve mandatory rebuild on fatal parser errors. No routing changes."
+}

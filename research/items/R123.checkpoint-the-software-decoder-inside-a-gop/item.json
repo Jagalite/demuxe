@@ -53,96 +53,83 @@
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
+      "status": "passed",
+      "basis": "Actual codec-aware retained/rebased state copier wrapped by versioned in-process handle; no raw context memcpy.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
+      "basis": "Checkpoint inside one GOP restores repeated suffixes after original decoder continuation.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
+      "status": "passed",
+      "basis": "3x30 full frames/PTS exact per7paired jobs; source/runtime/owner/version/cut and dropped-handle controls; all owned contexts retired.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Inventory one pinned decoder checkpoint field set and state hash against packet replay; reject any opaque pointer dependency before implementation.",
+      "status": "passed",
+      "basis": "Prepared-runtime complete3scrub job including checkpoint construction median16.57% faster;95% paired-bootstrap saving1.565\u201322.23%; cold startup variability kept separate.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
+      "basis": "A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065\u20131.3971), so pursue bounded already-loaded scrubbing only.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
+      "basis": "A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065\u20131.3971), so pursue bounded already-loaded scrubbing only.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
+        "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
-    "record": {
-      "key": "R123.checkpoint-the-software-decoder-inside-a-gop",
-      "rank": 283,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
-      "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
-      ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Current software fallback resets codec buffers and replays retained packets. There is no codec-aware versioned export of reference pictures/bookkeeping. Raw AVCodecContext copying would violate pointers and ownership; WebCodecs state export is not available through this owner.",
-      "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R123.checkpoint-the-software-decoder-inside-a-gop.md"
-      ],
-      "next_test": "Inventory one pinned decoder checkpoint field set and state hash against packet replay; reject any opaque pointer dependency before implementation.",
-      "reopen_condition": "Inventory one pinned decoder checkpoint field set and state hash against packet replay; reject any opaque pointer dependency before implementation.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
-    }
+    "key": "R123.checkpoint-the-software-decoder-inside-a-gop",
+    "disposition": "pursue",
+    "evidence_level": "actual_codec_aware_owned_state_in_wasm",
+    "new_media_execution": true,
+    "reason": "A pinned in-process AVC checkpoint owns codec-aware state through FFmpeg SPS/PPS/reference retention, DPB pointer rebasing and POC/MMCO/SEI copying, not raw context memcpy. At the fully drained no-B picture30 boundary, three restored30-picture suffixes remain host-exact after each prior live decoder reaches EOF. All source/runtime/owner/version/cut guards and dropped-handle rejection pass. Seven paired prepared-runtime jobs include checkpoint construction and3scrubs: median0.8343x replay cost, paired bootstrap95 ratio[0.7777,0.9844]. Cold startup is noisier (median0.9042x, range0.2065\u20131.3971), so pursue bounded already-loaded scrubbing only.",
+    "next_action": "Keep pinned runtime/profile and source-owner guards. Portable serialization, B-frame queues and thread-transition support remain separate implementation work before broader qualification.",
+    "stages": {
+      "prepare": {
+        "status": "passed",
+        "basis": "Actual codec-aware retained/rebased state copier wrapped by versioned in-process handle; no raw context memcpy."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Checkpoint inside one GOP restores repeated suffixes after original decoder continuation."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "3x30 full frames/PTS exact per7paired jobs; source/runtime/owner/version/cut and dropped-handle controls; all owned contexts retired."
+      },
+      "performance": {
+        "status": "passed",
+        "basis": "Prepared-runtime complete3scrub job including checkpoint construction median16.57% faster;95% paired-bootstrap saving1.565\u201322.23%; cold startup variability kept separate."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T00:05:13.526695+00:00",
+    "run_ids": [
+      "20260920T000513Z-codec-checkpoint-qualification"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T000513Z-codec-checkpoint-qualification/run.json"
+    ]
   },
-  "next_action": "Inventory one pinned decoder checkpoint field set and state hash against packet replay; reject any opaque pointer dependency before implementation.",
+  "next_action": "Keep pinned runtime/profile and source-owner guards. Portable serialization, B-frame queues and thread-transition support remain separate implementation work before broader qualification.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

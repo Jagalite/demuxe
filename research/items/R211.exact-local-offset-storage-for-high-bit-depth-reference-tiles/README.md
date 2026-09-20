@@ -2,12 +2,10 @@
 
 # Exact local-offset storage for high-bit-depth reference tiles
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current fast presenter is 8-bit 420P; compact 10-bit reference tiles would require changed software decoder storage and reconstruction access. Report poststorage exactness does not establish codec-internal support or eliminate required plane materialization.
+Actual31-frame128x128 lossless Main10 HEVC independently decoded by FFmpeg equals original10bit YUV samples. Research three-owner retention ring stores smooth Yplanes as16x16 tile16bitbase+8bitoffset, wide tiles retain16bit samples; everyYsample and independent Python3x3 integer filter exact across all31planes. Checkerboard0/1023 forces64wide tiles and native rawfallback, releasing tile/payload capacities. Stalegeneration, out-of-range index and depth1024 rejected; source replacement/eviction and finalcleanup exercised. Nine alternating fresh native process jobs over30smoothplanes include source/oracle reads, owner copy/encoding, three-picture retention, actualdirect9sample filter access, oracle checks and teardown. Count includes allocatedvector capacities and owner structures: representation reduction48.207%. Mean dense12.861ms candidate12.707ms; wholecost regression-1.200% with paired95%CI[-57.47884139020378, 178.18275080629226]. Jointpredeclared >=25%memory reduction and upper95costregression<=25% fails because uncertainty exceedsallowedcost. Preserve inconclusive cost rather than infer speed from pointestimate. Counts exclude alreadydecoded input/oracle buffers, processRSS and allocator overhead, bothroutesload same inputs; Yplaneowneronly, no chroma packing, no decoderinternalreference integration or avoided fullplane materialization. Checkerboardfallback preserves exact payload but owner metadata overhead remains; no universal zero-overheadclaim.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Exact local-offset retainedY-owner works and reduces named representation48.2%, but bounded wholejobcost gate inconclusive. Reopen only for representative retainedreference workload with sufficient costresolution and actual consumer integration; preserve nativefallback and strict10bit output contract.
 
-Next: Audit one high-bit-depth retained reference owner and compare compact/uncompact tile access including checkerboard fallback before integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T234454Z-decoded10bit-owner/analysis.md)

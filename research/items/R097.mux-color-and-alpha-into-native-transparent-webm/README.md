@@ -2,32 +2,10 @@
 
 # Mux color and alpha into native transparent WebM
 
-Full identity: `R097.mux-color-and-alpha-into-native-transparent-webm`. Original rank: 23.
+Current disposition: **pursue** for the scoped capability. Correctness **passed**; performance **failed**; other research gates passed.
 
-Current decision: **pursue**. Scientific verdict preserved from **PURSUE**; stages reconciled 2026-09-19T20:18:43.070415+00:00. No new media execution.
+Same prepared first-picture task with native transparent WebM as candidate. This measures native owner startup, not packet packaging time or whole media conversion. Native transparency capability remains correct; no startup speed benefit. Native alpha output remains correct through current first-picture and retained prior seek/rewind/EOF evidence. Native owner startup is slower than separate decoding on this tiny prepared fixture; do not mistake capability for a latency win. Measured saving -332.65% with bootstrap95 [-354.34783957969086, -308.1632561457253]; predeclared performance gate failed.
 
-Mux-only reconstruction of suitable aligned VP8 color/alpha packet pairs preserves complete host RGBA and native transparency through seek, rewind and EOF. Mispaired timestamp rejects. Color/mask source preparation cost remains separate; no hardware alpha claim.
+Do not pursue native WebM for startup-speed improvement on this fixture; retain its transparent container capability. Reopen performance only for a specified longer-playback or interoperability workload.
 
-## Accepted scope
-
-Three suitable encoded pairs; source preparation cost separate, no hardware-alpha claim.
-
-Mux-only VP8 color/alpha host RGBA is exact; native browser alpha error0 and premultiplied RGB rounding error at most0.506 byte through seek/rewind/EOF; mispaired timestamp rejects.
-
-Next action: Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Historical fixtures, runtime/source manifest and result hashes reviewed and verified; no new execution or fixture generation. |
-| screen | passed | Prior bounded screening reviewed; scientific disposition unchanged. |
-| correctness | passed | Mux-only VP8 color/alpha host RGBA is exact; native browser alpha error0 and premultiplied RGB rounding error at most0.506 byte through seek/rewind/EOF; mispaired timestamp rejects. |
-| performance | pending | No predeclared equivalent-work benchmark and complete cost/sampling analysis in cited evidence; counters and incidental timing do not pass this gate. |
-| results | passed | Referenced result bytes and source/runtime manifests verified; reconciliation records acceptance scope without rerunning experiments. |
-| decision | passed | Scientific verdict preserved with normalized disposition and explicit scoped gates. |
-
-[Reconciliation](../../shared/runs/20260919T201843Z-top30-stage-reconciliation/run.json) · [Evidence index](evidence/index.json) · [Current state](item.json) · [History](history.jsonl)
-
-Original definitions and historical evidence remain intact. Integration and release qualification are separate.
+[Current record](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json) · [Run analysis](../../shared/runs/20260919T203737Z-presentation-performance/analysis.md)

@@ -1,0 +1,1 @@
+RFC9559 DiscardPadding5.1.3.5.7: negativepadding describes beginningofBlock, positivepaddingend. CodecDelay5.1.4.1.25 describes codecdiscard andtimestampadjustment. These fields do not prove arbitraryconsumer composition. https://www.rfc-editor.org/rfc/rfc9559.html#name-discardpadding-element

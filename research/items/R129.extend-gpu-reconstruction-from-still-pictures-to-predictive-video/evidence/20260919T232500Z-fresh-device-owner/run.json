@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T232500Z-fresh-device-owner",
+  "item_keys": [
+    "R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-20T00:51:52.580189+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video/tests/prepare.py research/items/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video/evidence/20260919T232400Z-gpu-dc-prediction",
+    "node research/items/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video/tests/gpu-owned.mjs research/items/R129.extend-gpu-reconstruction-from-still-pictures-to-predictive-video/evidence/20260919T232500Z-fresh-device-owner"
+  ],
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "dirty_diff_sha256_at_registration": "4ab7bf2c9546febf2069ad8f3ee7d04bc472e8dc38eaf00cc547903ec6964d6c",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "ActualMPEG2 entropy DC/EOB/motion parsed;96coefficient GPUinverse (no uploaded initialpixels),512Pmacroblock prediction withresidentreferences. Independent33fullYUVpictureoracle exact, all22timedoutputs exact; wrongreference andsource/chromaphase controls; explicitresourcecleanup. Restricts initialI to DCmultiple8 withboundedmismatchrounding andP residual-free integerallplane motion."
+    },
+    "performance": {
+      "status": "failed",
+      "basis": "Predeclared11alternating pairs ofequivalent prepared-syntax reconstruction including freshGPUadapter/device, pipelines, buffertransfer, dispatch, finalreadback andcleanup. Sharedentropy andbrowserstartup excluded. Median saving -1.0295081288030938; bootstrap95 [-1.1206896643859738, -0.594900861434025];5%gate fails. Warmup variation retained; no energy/nativeplayback claim."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen for larger realeligibleprofile or fully implemented integerIDCT/residual/fractionalprediction with equivalent fulloutput and completecost. Preserve generation/reference lifetime and exactchromaphase guards; do not generalize DC-only proof to full MPEG2 decoding."
+}

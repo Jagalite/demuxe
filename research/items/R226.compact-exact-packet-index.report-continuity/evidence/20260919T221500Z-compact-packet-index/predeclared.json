@@ -1,0 +1,6 @@
+{
+  "workload": "Actual 96-sample signed-CTTS MP4; eight nonmonotonic ordinal queries per fresh owner. Baseline uses existing compressed MP4 sample tables, not padded scalar records.",
+  "metrics": "Source-bound compact serialized bytes versus the actual required MP4 table boxes; cold preparation and eight exact queries in nanoseconds.",
+  "gate": "At least 10% serialized-byte saving and 5% median complete cold-job saving. Eleven alternating batches of 100 jobs; bootstrap 95% median interval.",
+  "costs": "Candidate must author its sidecar from source tables in each cold job. Both verify source hash and parse source; candidate encoding and query scans included. Resident file acquisition and independent ffprobe oracle excluded equally. This does not replace native FFmpeg internal allocation."
+}

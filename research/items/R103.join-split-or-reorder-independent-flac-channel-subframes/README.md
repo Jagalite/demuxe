@@ -2,28 +2,24 @@
 
 # Join, split or reorder independent FLAC channel subframes
 
-Full identity: `R103.join-split-or-reorder-independent-flac-channel-subframes`. Original rank: 203.
+Full key: `R103.join-split-or-reorder-independent-flac-channel-subframes`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (2026-09-19T22:22:43.500827+00:00).
 
-Maintained FLAC path decodes selected audio and admits mono/stereo; no residual-bit parser exposes independent subframes. Compressed channel selection is distinct from whole-track selection and needs new bounded framing/layout logic.
+Actualindependent fourchannel20bit FLAC uses257sample verbatim subframes,5148bits each (non-byte-aligned). Bitrange select3,1 and synchronizedtwo-mono assembly preserve codedsubframe bits; every hostS32 and Chrome normalizedfloat equals exact sourcechannelreference. Duplicateintent, mismatchedsampleposition/block, dependentchannel, CRC/truncation controls reject. Five alternating coldparse/select/write+decode pairs27.756ms versus56.637ms normaldecode-pan-reencode+sameconsumer, ratio0.49007 passes0.9.
 
-No matching candidate/reference/control execution for this exact gate. Independent-channel FLAC subframe bit-range parser, layout writer and decorrelated-stereo rejection.
+Pursue restricted independent20bitverbatim channel bitcopy/assembly at proved identicalblock/samplepositions. No genericRice/LPC parsing or dependentstereo support, no sample reconstitution in candidate. Cost is tiny cold host subprocess endpoint; throughput/browser CPU savings notestablished. No productionadmission.
 
-Next action: Parse one independently coded four-channel FLAC and copy two complete subframe bit ranges; compare every sample with decode-select-reencode and reject mid/side or mismatched blocks. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Shared immutable component run; no production qualification.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Independent-channel FLAC subframe bit-range parser, layout writer and decorrelated-stereo rejection. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Independent-channel FLAC subframe bit-range parser, layout writer and decorrelated-stereo rejection. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T222243Z-flac-bits/run.json) · [Analysis](../../shared/runs/20260919T222243Z-flac-bits/analysis.md) · [Manifest](../../shared/runs/20260919T222243Z-flac-bits/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

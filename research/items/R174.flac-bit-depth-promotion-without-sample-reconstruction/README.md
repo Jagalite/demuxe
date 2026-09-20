@@ -2,28 +2,24 @@
 
 # FLAC bit-depth promotion without sample reconstruction
 
-Full identity: `R174.flac-bit-depth-promotion-without-sample-reconstruction`. Original rank: 195.
+Full key: `R174.flac-bit-depth-promotion-without-sample-reconstruction`
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **pursue** (2026-09-19T22:22:43.500827+00:00).
 
-Current FLAC admission requires established 16/24-bit integer precision and ordinary encode, so 20-bit framing promotion is not present. The one-frame mono result needs a bounded subframe parser and truthful STREAMINFO/CRC rewriting.
+Actual4096sample mono20bit fixed-predictor0/escape-residual FLAC is promoted to24bit by4wastedbits and rebuilt frame/header CRCs; every coded residual bit remains unchanged. Sourceframe10253bytes→10254. Independent hostnormalizedS32 and Chrome nativefloat are exactly identical; wrong3wastedbits changesPCM and is rejected. MalformedCRC/truncation/dependent-channel profiles reject. Five alternating cold read/parse/promote/write+hostdecode pairs30.798ms versus57.001ms ordinarydecode/reencode24+sameconsumer, ratio0.54030 passes0.9.
 
-No matching candidate/reference/control execution for this exact gate. Bounded FLAC subframe/wasted-bit parser and truthful20-to24-bit promotion controls; new framing helper does not parse residuals.
+Pursue admitted mono20→24 fixed0/escape profile, not arbitraryRice partitions, predictionorders or decorrelatedstereo. Native destination and exactpayload verified; hostprocess-bound cold endpoint, no browserdecode CPU speedclaim. MD5explicitlyunknownzeros, frameCRCs independentlyverified. No productionintegration.
 
-Next action: Prototype only independent mono 20-to-24 wasted-bit promotion and compare normalized exact samples, rejecting decorrelated stereo and malformed residual bounds. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Shared immutable component run; no production qualification.
 
-## Stages
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Bounded FLAC subframe/wasted-bit parser and truthful20-to24-bit promotion controls; new framing helper does not parse residuals. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Bounded FLAC subframe/wasted-bit parser and truthful20-to24-bit promotion controls; new framing helper does not parse residuals. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Run](../../shared/runs/20260919T222243Z-flac-bits/run.json) · [Analysis](../../shared/runs/20260919T222243Z-flac-bits/analysis.md) · [Manifest](../../shared/runs/20260919T222243Z-flac-bits/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

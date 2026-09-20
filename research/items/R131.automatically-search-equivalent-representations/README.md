@@ -2,28 +2,24 @@
 
 # Automatically search equivalent representations
 
-Full identity: `R131.automatically-search-equivalent-representations`. Original rank: 182.
+Full identity: `R131.automatically-search-equivalent-representations`.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Current decision: **stop_current_profile** (actual-route screen).
 
-Maintained pipeline has guarded fixed transforms, not a vetted recipe-search engine with relation oracles and budgets. Automated equivalent representation search is a separate offline system, not automatic route admission.
+Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred.
 
-No matching candidate/reference/control execution for this exact gate. Two explicitly vetted offline recipes with preconditions, relation oracle and bounded search budget.
-
-Next action: Define a two-recipe offline search only with explicit preconditions and payload/timing/seek oracle; intentionally non-equivalent recipe must be rejected and no result enters automatic routing. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
+Next action: Reopen only for an authorized repeated-use workload that amortizes measured offline validation or a cheaper trustworthy admission certificate. No automatic routing change.
 
 ## Stages
 
 | Stage | Status | Basis |
-| --- | --- | --- |
+|---|---|---|
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Two explicitly vetted offline recipes with preconditions, relation oracle and bounded search budget. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Two explicitly vetted offline recipes with preconditions, relation oracle and bounded search budget. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
+| prepare | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
+| screen | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
+| correctness | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
+| performance | failed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
+| results | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
+| decision | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
 
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[New run](../../shared/runs/20260919T223731Z-representation-search-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

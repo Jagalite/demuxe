@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "run_id": "20260919T225200Z-track-mime-map",
+  "item_keys": [
+    "R127.nonlinear-speed-curves-without-video-re-encoding"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:54:54.298126+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/R127.nonlinear-speed-curves-without-video-re-encoding/tests/prepare-markers.py research/items/R127.nonlinear-speed-curves-without-video-re-encoding/evidence/20260919T224800Z-audio-markers",
+    "python3 research/items/R127.nonlinear-speed-curves-without-video-re-encoding/tests/verify-markers.py research/items/R127.nonlinear-speed-curves-without-video-re-encoding/evidence/20260919T224800Z-audio-markers",
+    "python3 research/items/R127.nonlinear-speed-curves-without-video-re-encoding/tests/audio-markers.py research/items/R127.nonlinear-speed-curves-without-video-re-encoding/evidence/20260919T224800Z-audio-markers",
+    "node research/items/R127.nonlinear-speed-curves-without-video-re-encoding/tests/browser-map-track-mimes.mjs research/items/R127.nonlinear-speed-curves-without-video-re-encoding/evidence/20260919T225100Z-fragmented-native-map research/items/R127.nonlinear-speed-curves-without-video-re-encoding/evidence/20260919T225200Z-track-mime-map"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "577c661b6f3ab03bafccf58708a68427975dc36c9c6e6013876896900d12b4f8",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Independent host packet PTS/DTS/hash and96 decoded picture comparisons;96 full native query pictures plus continuous playback and backward/forward seeks/EOF.264000 PCM samples exact separately prepared atempo reference; marker time errors0.008/0.017/-4.493ms vs30ms gate, pitch440Hz, joinquiet0 and paddedtail0. Source-generation rejects before append. Fixed-map noB/mono profile with real post-roll only; synthetic padding and container/MIME setup failures retained."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Literal conversation source defines requested nonlinear timeline capability with copied video and one prepared audio output. No complete-job speed/energy/memory claim; three audio filter branches and100ms post-roll disclosed. A performance benchmark is not an applicable acceptance gate for this bounded fidelity endpoint."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Require an explicit authorized monotone map, suitable audio context and separately qualified timestamp/B-frame profile. General music/perceptual seam behavior and dynamically changing rates need additional evidence before integration; do not silently pad unavailable tail audio."
+}

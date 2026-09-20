@@ -2,20 +2,26 @@
 
 # exact MP3 seek closure
 
-Current decision: **pursue**. Actual MP3 continuous PCM suffix oracle at two targets distinguishes insufficient cold/preroll windows from exact recovery. Validated closure is tied to authored48k stereo128k fixture without Xing trimming; not a universal2-frame rule or browser seek feature.
+Full key: `R230.exact-mp3-seek-closure.report-continuity`
 
-Historical stage reconciliation; no new experiment.
+Current decision: **stop_current_profile** (2026-09-19T21:45:10.321305+00:00).
 
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed. |
-| screen | passed | Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness. |
-| correctness | passed | Continuous MP3floatPCM suffix exact at target100/220only after sufficientpreroll;0/1/2priorframes fail and3passes for authored48kstereo128k/noXing profile. Pure closure oracle, no universal2-frame or browser-admission claim. |
-| performance | pending | No integrated seek latency/byte-cost benchmark; correctness profile is narrow. |
-| results | passed | Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution. |
-| decision | passed | Normalized historical scoped decision with stage-specific acceptance and remaining limitations. |
+Fresh20 alternating seek queries to packets100/220 in pinned48k stereo128k no-Xing MP3 reproduce every continuous-reference float byte after3frame72ms preroll; no-preroll and wrong-source-identity controls reject. Five complete alternating batch pairs include cold ffprobe index/read/hash, tail file writes, decoder processes, PCM output and trim:778.862ms candidate versus750.574ms baseline, ratio1.03769 fails0.9. Initial overlapping cost run retained invalid; final isolated timings used.
 
-Next: Locate one real repeated read/index/validation boundary and its trusted source identity. Separate logical requests from transferred or physical-disk bytes.
+Stop current host subprocess suffix-seek cost profile; exact closure remains demonstrated at these two targets. Reopen with persistent decoder/range reader implementation and independent exact PCM oracle, then rerun complete cost; no universal3frame guarantee.
 
-[Definition and state](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+No production integration or release qualification. Original provisional directory renamed after capture; replay into a new output directory. Exact original protocol and all measured samples retained.
+
+| Stage | Status |
+| --- | --- |
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | failed |
+| results | passed |
+| decision | passed |
+
+[Run](../../shared/runs/20260919T214510Z-mp3-cost/run.json) · [Analysis](../../shared/runs/20260919T214510Z-mp3-cost/analysis.md) · [Manifest](../../shared/runs/20260919T214510Z-mp3-cost/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+Disposition vocabulary normalized 2026-09-19T21:48:27.630401+00:00; no new execution.

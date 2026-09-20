@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Truthful CueRelativePosition into one genuine 3.65 MB VP9 Cluster passed exact source packet/timeline preservation, 30 independent full host and Chrome decoded pictures, malformed offset, changed ETag, missing RAP and in-flight cancellation controls. Nine alternating cold HTTP/header/Cues/parse/copy/temp-IVF/decode/close pairs saved median82.36% time (95%81.87–82.62%) and93.73% wire bytes against bounded prefix scanning. Prebuilt index preparation and WAN are excluded; source index generation was independently checked, no native Matroska support claimed.

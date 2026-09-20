@@ -2,12 +2,10 @@
 
 # JPEG XL reconstruction followed by browser JPEG decode
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Current video route exposes codec frames, not a JPEG XL original-JPEG reconstruction adapter followed by browser image decode. A libjxl source file in dependency tree is not proof the required Wasm API is built/available.
+The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs through JxlEncoderAddJPEGFrame and stores reconstruction metadata. A separate reconstruction process receives only each JXL file, uses JPEG_RECONSTRUCTION and a bounded 1 MiB JPEG output buffer, and emits every original JPEG byte exactly. It has no access to an original-JPEG sidecar or pixel reencoding shortcut. Chromium independently decodes all four original/reconstructed pairs: zero differences across 3,391,488 RGBA channels. Missing reconstruction metadata, truncated JXL and non-JPEG input reject; a 32-byte output cap rejects without a progress loop or partial output publication. All codec owners are destroyed; stale browser image generation is discarded, a fresh differently sized source survives, and all 10 ImageBitmaps close. Correctness passes for this original-JPEG reconstruction capability. Performance is not applicable to this additional representation endpoint; no decoder speed or general JPEG XL browser support is claimed. The libjxl reconstruction adapter is a host component, not a deployed Wasm/browser codec service. Production behavior is unchanged.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: Scoped reconstruction and browser-image gates are complete. A browser/Wasm deployment, larger reconstruction limits or a compression/cost claim requires its own bounded contract; retain rejection of JXL files without original-JPEG reconstruction metadata.
 
-Next: Establish one bounded libjxl reconstruction API artifact and genuine JPEG-origin JXL fixture; exact JPEG hash then browser image equality, rejecting missing metadata/truncation/oversized output.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md)

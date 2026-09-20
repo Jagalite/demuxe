@@ -1,0 +1,96 @@
+[
+  {
+    "command": [
+      "/usr/bin/cc",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom-build",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/apps",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/common",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/examples",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/stats",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/third_party/libyuv/include",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom/third_party/libwebm",
+      "-O3",
+      "-DNDEBUG",
+      "-std=c11",
+      "-Wall",
+      "-Wdisabled-optimization",
+      "-Wextra",
+      "-Wextra-semi",
+      "-Wextra-semi-stmt",
+      "-Wfloat-conversion",
+      "-Wformat=2",
+      "-Wimplicit-function-declaration",
+      "-Wmissing-declarations",
+      "-Wmissing-prototypes",
+      "-Wpointer-arith",
+      "-Wshadow",
+      "-Wshorten-64-to-32",
+      "-Wsign-compare",
+      "-Wstring-conversion",
+      "-Wtype-limits",
+      "-Wundef",
+      "-Wuninitialized",
+      "-Wunreachable-code-aggressive",
+      "-Wunused",
+      "-Wvla",
+      "-Wc23-extensions",
+      "-D_LARGEFILE_SOURCE",
+      "-D_FILE_OFFSET_BITS=64",
+      "-flax-vector-conversions=none",
+      "-arch",
+      "arm64",
+      "-c",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/decodeframe.c",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/research-superres-preview/decodeframe.c.o"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "command": [
+      "ar",
+      "r",
+      "/Volumes/seed2/Projects/demuxe/build/research-superres-preview/libaom.a",
+      "/Volumes/seed2/Projects/demuxe/build/research-superres-preview/decodeframe.c.o"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "command": [
+      "clang",
+      "-O3",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom-build",
+      "research/shared/tooling/superres-preview.c",
+      "/Volumes/seed2/Projects/demuxe/build/research-superres-preview/libaom.a",
+      "-lc++",
+      "-lm",
+      "-lpthread",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "command": [
+      "clang",
+      "-O3",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom",
+      "-I/Volumes/seed2/Projects/demuxe/build/catalogue-tools/aom-build",
+      "research/shared/tooling/superres-preview.c",
+      "/Volumes/seed2/Projects/demuxe/build/research-superres-preview/libaom.a",
+      "-lc++",
+      "-lm",
+      "-lpthread",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T001024Z-superres-preview/preview"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "reason": "Ordinary timed baseline materializes only requestedpreview; fulloracle write restricted to diagnosticmode0."
+  }
+]

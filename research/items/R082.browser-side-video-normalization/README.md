@@ -2,14 +2,12 @@
 
 # Browser-side video normalization
 
-Current disposition: **pursue**. Historical execution reconciled; no new media run.
+Disposition: **pursue**. correctness: **passed**, performance: **not_applicable**.
 
-Actual browser VP9 decode to AVC VideoEncoder to decoder: all72 frames and timestamps retained, every visible RGB frame exceeds32dB PSNR for explicitly lossy output. Wrong timestamp order rejected. Component viability only; source audio/mux/route costs not qualified.
+Exact source card says measure additional source/destination capability, otherwise cost. The retained actual WebCodecs normalization experiment supplies72VP9 inputframes to AVCencoder with explicitPTS; all72returned framePTS preserved and allvisibleRGB PSNR values exceed declared32dB lossyqualitygate; wrongtimestamporderrejects and codecs/framesclose without errors. Source-reported MediaRecorder clock drift is not present in this explicitPTS component. This is permitted lossy frame normalization capability, no speed/resource advantage hypothesis, so comparativeperformance is notapplicable to this endpoint. Do not compare AVCencoding with original-packet copying or invent a speedclaim. No newexperiment; exact archived output reread and verified. Mux/audio/nativeMSEintegration and arbitraryformats remainexcluded.
 
-Correctness: **passed**. Performance: **pending**.
+Next: Scoped permitted-lossy normalization research capability endpoint complete. Production mux/audio/presentation integration must be separately scoped; any efficiency claim needs an equivalent permitted-lossy baseline and predeclared workload.
 
-All 72 VP9→AVC frames retain PTS; every visible RGB comparison exceeds the predeclared 32 dB lossy threshold (observed samples exceed 56 dB). Wrong timestamp order rejects; codecs close without errors. Accepted only for bounded lossy frame normalization, not mux/audio/route.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T211419Z-capability-endpoint/analysis.md)
 
-Next: Measure complete decode/encode/mux cost only for an explicit lossy-use workload; add source cancellation before integration.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Acceptance review](../../shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md)
+[Fixture provenance metadata amendment](../../shared/runs/20260919T211636Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

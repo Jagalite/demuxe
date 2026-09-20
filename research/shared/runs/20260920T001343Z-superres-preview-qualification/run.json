@@ -1,0 +1,48 @@
+{
+  "stage": "decision",
+  "status": "completed",
+  "commands": [
+    "python3 research/shared/tooling/build-superres-preview.py research/shared/runs/20260920T001024Z-superres-preview",
+    "python3 research/shared/tooling/superres-preview-test.py research/shared/runs/20260920T001024Z-superres-preview",
+    "Direct-area baseline driver relink exact command in research/shared/runs/20260920T001218Z-superres-direct-baseline/build-result.json",
+    "python3 research/shared/tooling/superres-preview-test.py research/shared/runs/20260920T001218Z-superres-direct-baseline"
+  ],
+  "analysis": "Actual libaom decoder-internal tap copies427x360 pre-super-resolution420 samples before upscaling, then intentionally cancels the one-shot decode after the owned copy. Copy survives decoder destruction; continuing tap yields identical preview and ordinary full640x360 output equals independent dav1d. Preview luma43.663dB versus full decode+area-downscale passes predeclared20dB altered-output budget. No-superres and truncated input reject. Eleven complete process/decode/copy/output jobs versus direct strided full-output area-downscale: median0.7712x cost, bootstrap95[0.6220,0.8088]. Pursue this pinned one-keyframe preview, not later-reference decoding or browser integration. Decoder returns intentional AOM_CODEC_ERROR only after successful owned tap; malformed/no-tap errors are never accepted. Scope8bit420, fixedsuperresdenominator12, restorationdisabled, one keyframe then destruction, so no incompatible low-resolution reference state survives. Baseline downscales directly from public decoder planes without an unnecessary full-frame copy/write. Quality is explicitly a preview contract, not exact final-resolution output.",
+  "decisions": [
+    {
+      "key": "R269.av1-pre-super-resolution-preview",
+      "disposition": "pursue",
+      "evidence_level": "actual_decoder_internal_surface_and_bounded_cancellation",
+      "new_media_execution": true,
+      "reason": "Actual libaom decoder-internal tap copies427x360 pre-super-resolution420 samples before upscaling, then intentionally cancels the one-shot decode after the owned copy. Copy survives decoder destruction; continuing tap yields identical preview and ordinary full640x360 output equals independent dav1d. Preview luma43.663dB versus full decode+area-downscale passes predeclared20dB altered-output budget. No-superres and truncated input reject. Eleven complete process/decode/copy/output jobs versus direct strided full-output area-downscale: median0.7712x cost, bootstrap95[0.6220,0.8088]. Pursue this pinned one-keyframe preview, not later-reference decoding or browser integration.",
+      "next_action": "Keep pinned internal-surface lifetime, profile and explicit altered-output guard; browser deployment, future references and other restoration/depth profiles require separate qualification.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Real decoder-internal pre-upscale surface exposed by isolatedlibaom rebuild; ownpixels copied before cancellation/destruction."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "427x360 actual pre-upscale reconstruction versus640x360publicoutput; no reencode proxy."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "Continuing/cancelled taps byteexact, fulloutput independentdav1dexact;43.663dBpreview exceeds20dBbudget, malformed/no-tap controls reject."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Completecold process+decode+requestedpreview copy/write median22.88% saving, bootstrap95saving19.12\u201337.80%,11pairs versusdirect-plane area baseline."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T001343Z-superres-preview-qualification",
+  "recorded_at_utc": "2026-09-20T00:13:43.845156+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256": "79edb70337cad9fa56ed235cac74e1f5fe608fed4bfa4b46248b2f3d6b611da2",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

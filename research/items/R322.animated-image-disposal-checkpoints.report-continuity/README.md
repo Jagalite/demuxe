@@ -2,12 +2,10 @@
 
 # Animated-image disposal checkpoints
 
-Current disposition: **blocked** — **setup** prerequisite. Historical review; no new media execution.
+Disposition: **pursue**. correctness: **passed**, performance: **passed**.
 
-Current retained state contains video frames and generations, not an animated-image compositor with disposal transactions. A checkpoint must capture post-disposal canvas state; historical controlled commands do not parse real GIF palettes/interlace/transparency.
+Real48-frame16x16 GIF89a withglobal/localpalettes, transparency, interlace, disposal1/2/3,20msduration. Restrictedvalid clear-per-literalLZW parser/compositor checkpoints postprior-disposal state every8frames, retaining6*1024Bcanvas payload. All48permutedrandomseek full premultipliedRGBA hashes match independentauthoredoracle, FFmpeg realGIFdecode andChromeImageDecoder; transparentRGB canonicalizedzero for canvasrepresentation, nohiddenRGBclaim. Native timestamps exact. Wrongcheckpointbeforepriorrestore-to-previous yieldsdifferentfullframe; truncatedGIF rejects; checkpointownerretirement clearsmaps/frames and rejectsreads; actualpendingnativeframe sourceepochdiscard/closes, freshcheckpointowner exact,481VideoFramesopened/closed. Ninecoldwholejobs includeinputfetch/parse/LZWdecode/checkpointpreparation/full48randomseekreplay/hash/cleanup. Candidate264compositions including48prepare vsforward1176; retainedcheckpointpayload6144B plusworking/prior-disposal state, no nativeinternalmemory/RSSclaim. Cheapestmeanbaselineforward9.667ms; nativepersistentImageDecoder42.722ms; candidate5.222ms. Savingagainstcheapest45.98% CI[20.259128167367834, 59.81630306995092], passinglower95>=10%. Scopeexplicitpalette/transparency/interlace/disposal fixture withboundedclear-per-literalLZW, notgeneralGIFdictionarydecoder/integration; preparationandcheckpointstoragepaidandreported.
 
-Prepare: **blocked**. Correctness: **blocked**. Performance: **blocked**.
+Next: ActualGIF postdisposalcheckpoint component passes exactrandomseek and fullcost gates for boundedrestrictedprofile with6144Bcheckpointpayload. GeneralLZW andproductionanimatedowner integration remainseparate; retain wrongpre-disposalcheckpoint regression.
 
-Next: Define one tiny real disposal fixture and reference compositor, checkpoint after prior disposal and compare random seeks, with restore-to-previous incorrectly timed as adverse control.
-
-[Current record](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json) · [Review](../../shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md)
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T001739Z-real-gif-checkpoints/analysis.md)

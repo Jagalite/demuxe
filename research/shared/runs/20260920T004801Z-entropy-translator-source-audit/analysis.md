@@ -1,0 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.
+
+Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.

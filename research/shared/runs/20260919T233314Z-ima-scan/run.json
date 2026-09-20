@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "run_id": "20260919T233314Z-ima-scan",
+  "item_keys": [
+    "R190.restricted-ima-adpcm-through-two-clipped-scans"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Not used; compiled host scan plus independent FFmpeg oracle",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual mono/stereo IMA-WAV parser feeds work-efficient compiled clipped-transition prefix scans: four-thread local prefixes/carry correction for step-index, then predictor. All8164mono and8136stereo frames exactly match compiled ordinary sequential decoder and installedFFmpeg8.1.2. Twenty-five extreme predictor/index synthetic cases also exact; invalid index rejected before publication. Current per-shift delta rule is explicitly pinned; old product-rounding formula disagrees at first sample13vs11 and is preserved in fixture run. Five alternating complete mono+stereo source/hash/WAVparse/nibble serialization/process/table/thread setup/output read/reinterleave jobs439.182ms parallel versus317.401ms compiled serial median ratio1.38368 fails<=0.9."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this cold per-block threaded clipped-scan profile. Associative scan correctness is demonstrated with actual work-efficient CPU implementation and all transfer/synchronization costs charged, but no speedup here. A persistent runtime, larger blocks or GPU implementation needs new full-pass evidence; do not propagate across IMA arithmetic variants or claim currentFFmpeg equivalence for older rounding.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/ima_wav_logical.py",
+    "research/shared/runs/20260919T232859Z-ima-fixture/1ch.wav",
+    "research/shared/runs/20260919T232859Z-ima-fixture/2ch.wav",
+    "research/shared/runs/20260919T232859Z-ima-fixture/manifest.json",
+    "/usr/bin/c++"
+  ],
+  "commands_log": "research/shared/runs/20260919T233314Z-ima-scan/commands.log"
+}

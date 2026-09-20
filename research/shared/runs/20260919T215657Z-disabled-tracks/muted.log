@@ -1,0 +1,428 @@
+ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.2 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.102 / 60. 26.102
+  libavcodec     62. 28.102 / 62. 28.102
+  libavformat    62. 12.102 / 62. 12.102
+  libavdevice    62.  3.102 / 62.  3.102
+  libavfilter    11. 14.102 / 11. 14.102
+  libswscale      9.  5.102 /  9.  5.102
+  libswresample   6.  3.102 /  6.  3.102
+Splitting the commandline.
+Reading option '-v' ... matched as option 'v' (set logging level) with argument 'debug'.
+Reading option '-y' ... matched as option 'y' (overwrite output files) with argument '1'.
+Reading option '-i' ... matched as input url with argument 'research/shared/runs/20260919T_audio_disabled_tracks/source.mkv'.
+Reading option '-map' ... matched as option 'map' (set input stream mapping) with argument '0:v:0'.
+Reading option '-map' ... matched as option 'map' (set input stream mapping) with argument '0:a:0'.
+Reading option '-c:v' ... matched as option 'c' (select encoder/decoder ('copy' to copy stream without reencoding)) with argument 'copy'.
+Reading option '-c:a' ... matched as option 'c' (select encoder/decoder ('copy' to copy stream without reencoding)) with argument 'flac'.
+Reading option '-sample_fmt' ... matched as option 'sample_fmt' (set sample format) with argument 's32'.
+Reading option '-bits_per_raw_sample' ... matched as option 'bits_per_raw_sample' (set the number of bits per raw sample) with argument '24'.
+Reading option '-strict' ...Routing option strict to both codec and muxer layer
+ matched as AVOption 'strict' with argument 'experimental'.
+Reading option '-movflags' ... matched as AVOption 'movflags' with argument 'frag_keyframe+empty_moov+default_base_moof'.
+Reading option 'research/shared/runs/20260919T_audio_disabled_tracks/muted.mp4' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option v (set logging level) with argument debug.
+Applying option y (overwrite output files) with argument 1.
+Successfully parsed a group of options.
+Parsing a group of options: input url research/shared/runs/20260919T_audio_disabled_tracks/source.mkv.
+Successfully parsed a group of options.
+Opening an input file: research/shared/runs/20260919T_audio_disabled_tracks/source.mkv.
+[in#0 @ 0xabac18000] Opening 'research/shared/runs/20260919T_audio_disabled_tracks/source.mkv' for reading
+[file @ 0xabac1c000] Setting default whitelist 'file,crypto,data'
+[in#0 @ 0xabac18000] Format matroska,webm probed with size=2048 and score=100
+st:0 removing common factor 1000000 from timebase
+st:1 removing common factor 1000000 from timebase
+[in#0/matroska,webm @ 0xabac18000] Before avformat_find_stream_info() pos: 836 bytes read:32768 seeks:0 nb_streams:2
+[h264 @ 0xabac28380] nal_unit_type: 7(SPS), nal_ref_idc: 3
+[h264 @ 0xabac28380] Decoding VUI
+[h264 @ 0xabac28380] nal_unit_type: 8(PPS), nal_ref_idc: 3
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 128, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft_sr_ns_float_neon - type: fft_float, len: 64, factor: 2, flags: [aligned, inplace, out_of_place, preshuf]
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 256, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft_sr_ns_float_neon - type: fft_float, len: 128, factor: 2, flags: [aligned, inplace, out_of_place, preshuf]
+[h264 @ 0xabac28380] nal_unit_type: 7(SPS), nal_ref_idc: 3
+[h264 @ 0xabac28380] Decoding VUI
+[h264 @ 0xabac28380] nal_unit_type: 8(PPS), nal_ref_idc: 3
+[h264 @ 0xabac28380] nal_unit_type: 6(SEI), nal_ref_idc: 0
+[h264 @ 0xabac28380] nal_unit_type: 5(IDR), nal_ref_idc: 3
+[h264 @ 0xabac28380] Format yuv420p chosen by get_format().
+[h264 @ 0xabac28380] Reinit context to 160x96, pix_fmt: yuv420p
+[h264 @ 0xabac28380] nal_unit_type: 1(Coded slice of a non-IDR picture), nal_ref_idc: 2
+    Last message repeated 5 times
+[in#0/matroska,webm @ 0xabac18000] All info found
+[in#0/matroska,webm @ 0xabac18000] After avformat_find_stream_info() pos: 9415 bytes read:32768 seeks:0 frames:18
+Input #0, matroska,webm, from 'research/shared/runs/20260919T_audio_disabled_tracks/source.mkv':
+  Metadata:
+    COMPATIBLE_BRANDS: iso5iso6mp41
+    MAJOR_BRAND     : iso5
+    MINOR_VERSION   : 512
+    ENCODER         : Lavf62.12.102
+  Duration: 00:00:02.02, start: 0.000000, bitrate: 203 kb/s
+  Stream #0:0, 8, 1/1000: Video: h264 (Constrained Baseline), 1 reference frame, yuv420p(progressive, left), 160x96 [SAR 1:1 DAR 5:3], 0/1, 24 fps, 24 tbr, 1k tbn (default)
+    Metadata:
+      HANDLER_NAME    : VideoHandler
+      ENCODER         : Lavc62.28.102 libx264
+      DURATION        : 00:00:02.000000000
+  Stream #0:1, 10, 1/1000: Audio: ac3, 48000 Hz, stereo, fltp, 192 kb/s
+    Metadata:
+      DURATION        : 00:00:02.016000000
+Successfully opened the file.
+Parsing a group of options: output url research/shared/runs/20260919T_audio_disabled_tracks/muted.mp4.
+Applying option map (set input stream mapping) with argument 0:v:0.
+Applying option map (set input stream mapping) with argument 0:a:0.
+Applying option c:v (select encoder/decoder ('copy' to copy stream without reencoding)) with argument copy.
+Applying option c:a (select encoder/decoder ('copy' to copy stream without reencoding)) with argument flac.
+Applying option sample_fmt (set sample format) with argument s32.
+Applying option bits_per_raw_sample (set the number of bits per raw sample) with argument 24.
+Successfully parsed a group of options.
+Opening an output file: research/shared/runs/20260919T_audio_disabled_tracks/muted.mp4.
+[out#0/mp4 @ 0xabb064300] Adding streams from explicit maps...
+[vost#0:0/copy @ 0xabacb0000] Created video stream from input stream 0:0
+[aost#0:1/flac @ 0xabacb0300] Created audio stream from input stream 0:1
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 128, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft_sr_ns_float_neon - type: fft_float, len: 64, factor: 2, flags: [aligned, inplace, out_of_place, preshuf]
+Transform tree:
+    mdct_inv_float_c - type: mdct_float, len: 256, factors[2]: [2, any], flags: [unaligned, out_of_place, inv_only]
+        fft_sr_ns_float_neon - type: fft_float, len: 128, factor: 2, flags: [aligned, inplace, out_of_place, preshuf]
+[file @ 0xabac1c280] Setting default whitelist 'file,crypto,data'
+Successfully opened the file.
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+  Stream #0:1 -> #0:1 (ac3 (native) -> flac (native))
+[aost#0:1/flac @ 0xabacb0300] Starting thread...
+[af#0:1 @ 0xabac68000] Starting thread...
+[aist#0:1/ac3 @ 0xabac0c480] [dec:ac3 @ 0xabb01cc80] Starting thread...
+[in#0/matroska,webm @ 0xabb01c000] Starting thread...
+Press [q] to stop, [?] for help
+detected 8 logical cores
+[graph_-1_in_0:1 @ 0xabb064f00] Setting 'time_base' to value '1/48000'
+[graph_-1_in_0:1 @ 0xabb064f00] Setting 'sample_rate' to value '48000'
+[graph_-1_in_0:1 @ 0xabb064f00] Setting 'sample_fmt' to value 'fltp'
+[graph_-1_in_0:1 @ 0xabb064f00] Setting 'channel_layout' to value 'stereo'
+[graph_-1_in_0:1 @ 0xabb064f00] tb:1/48000 samplefmt:fltp samplerate:48000 chlayout:stereo
+[format_out_#0:1 @ 0xabb065140] Setting 'sample_fmts' to value 's32'
+Filter 'Parsed_anull_0' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p
+  out[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p
+Filter 'graph_-1_in_0:1' formats:
+  out[0] 'default':
+    Channel layouts: stereo
+    Sample rates: 48000
+    Sample formats: fltp
+Filter 'out_#0:1' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: u8 s16 s32 flt dbl u8p s16p s32p fltp dblp s64 s64p
+Filter 'format_out_#0:1' formats:
+  in[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: s32
+  out[0] 'default':
+    Channel layouts: 
+    Sample rates: 
+    Sample formats: s32
+[format_out_#0:1 @ 0xabb065140] auto-inserting filter 'auto_aresample_0' between the filter 'Parsed_anull_0' and the filter 'format_out_#0:1'
+[AVFilterGraph @ 0xabb068080] query_formats: 4 queried, 10 merged, 15 already done, 0 delayed
+[auto_aresample_0 @ 0xabb065200] [SWR @ 0xaba908000] Using fltp internally between filters
+[auto_aresample_0 @ 0xabb065200] ch:2 chl:stereo fmt:fltp r:48000Hz -> ch:2 chl:stereo fmt:s32 r:48000Hz
+[flac @ 0xabac29180]  compression: 5
+[flac @ 0xabac29180]  lpc type: Levinson-Durbin recursion with Welch window
+[flac @ 0xabac29180]  prediction order: 1, 8
+[flac @ 0xabac29180]  order method: estimate
+[flac @ 0xabac29180]  partition order: 0, 8
+[flac @ 0xabac29180]  block size: 4608
+[flac @ 0xabac29180]  lpc precision: 15
+[mp4 @ 0xabac18280] Empty MOOV enabled; disabling automatic bitstream filtering
+Output #0, mp4, to 'research/shared/runs/20260919T_audio_disabled_tracks/muted.mp4':
+  Metadata:
+    COMPATIBLE_BRANDS: iso5iso6mp41
+    MAJOR_BRAND     : iso5
+    MINOR_VERSION   : 512
+    encoder         : Lavf62.12.102
+  Stream #0:0, 0, 1/16000: Video: h264 (Constrained Baseline), 1 reference frame (avc1 / 0x31637661), yuv420p(progressive, left), 160x96 [SAR 1:1 DAR 5:3], 0/1, q=2-31, 24 fps, 24 tbr, 16k tbn (default)
+    Metadata:
+      HANDLER_NAME    : VideoHandler
+      ENCODER         : Lavc62.28.102 libx264
+      DURATION        : 00:00:02.000000000
+  Stream #0:1, 0, 1/48000: Audio: flac (fLaC / 0x43614C66), 48000 Hz, stereo, s32 (24 bit), 128 kb/s
+    Metadata:
+      encoder         : Lavc62.28.102 flac
+      DURATION        : 00:00:02.016000000
+[out#0/mp4 @ 0xabb064300] Starting thread...
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.032
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.041
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.041 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.083
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.064
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.083 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.124
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.124 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.166
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.166 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.208
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.208 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.249
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.249 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.291
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.291 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.333
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.333 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.374
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.374 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.096
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.416
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.416 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.096 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.128
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.16
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.458
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.458 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.192
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.192 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.224
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.499
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.499 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.541
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.541 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.256
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.583
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.583 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.288
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.288 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.32
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.352
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.384
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.624
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.384 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.624 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.666
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.666 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.708
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.708 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.749
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.749 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.096
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.096 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.416
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.448
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.48
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.48 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.791
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.791 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.833
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.833 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.192
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.192 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.512
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.544
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.576
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.576 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.874
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.874 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.916
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.916 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.958
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.958 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.288
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.288 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.608
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.64
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.999
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.999 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.672
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.672 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.041
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.041 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.384
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.384 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.704
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.736
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.768
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.768 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.083
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.083 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.124
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.124 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.48
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.48 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.8
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.832
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.864
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.864 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.166
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.166 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.208
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.208 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.249
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.249 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.576
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.576 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.896
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.928
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.96
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 0.96 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.291
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.291 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.333
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.333 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.672
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.672 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 0.992
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.024
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.056
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.056 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.374
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.374 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.416
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.416 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.768
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.768 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.088
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.12
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.152
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.152 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.458
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.458 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.499
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.499 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.541
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.541 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.864
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.864 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.184
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.216
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.248
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.248 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.583
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.583 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.624
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.624 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 0.96
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 0.96 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.28
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.312
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.344
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.666
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.666 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.344 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.708
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.708 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.056
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.056 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.376
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.408
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.44
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.44 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.749
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.749 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.791
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.791 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.833
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.833 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.152
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.152 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.472
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.504
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.536
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.536 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.874
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.874 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.916
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.916 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.248
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.248 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.568
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.6
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.632
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.632 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.958
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.958 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.999
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.999 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.344
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.344 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.664
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.696
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.728
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.728 queue head -1 ts N/A
+[in#0/matroska,webm @ 0xabb01c000] EOF while reading input
+[in#0/matroska,webm @ 0xabb01c000] Terminating thread with return code 0 (success)
+[out#0/mp4 @ 0xabb064300] sq: 0 EOF
+[out#0/mp4 @ 0xabb064300] sq: finish 0; head ts 1.999
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.44
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.44 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.76
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.792
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.824
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.824 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.536
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.536 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.856
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.888
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.92
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 1.92 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.632
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.632 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.952
+[aist#0:1/ac3 @ 0xabac0c480] [dec:ac3 @ 0xabb01cc80] Decoder thread received EOF packet
+[aist#0:1/ac3 @ 0xabac0c480] [dec:ac3 @ 0xabb01cc80] Decoder returned EOF, finishing
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 1.984
+[aist#0:1/ac3 @ 0xabac0c480] [dec:ac3 @ 0xabb01cc80] Terminating thread with return code 0 (success)
+[out#0/mp4 @ 0xabb064300] sq: send 0 ts 2.016
+[out#0/mp4 @ 0xabb064300] sq: receive 0 ts 2.016 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.728
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.728 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: 0 EOF
+[out#0/mp4 @ 0xabb064300] sq: finish 0; head ts 2.016
+[out#0/mp4 @ 0xabb064300] sq: finish queue
+[out#0/mp4 @ 0xabb064300] sq: 0 EOF
+[out#0/mp4 @ 0xabb064300] sq: finish queue
+[out_#0:1 @ 0xabb065080] EOF on sink link out_#0:1:default.
+[af#0:1 @ 0xabac68000] Filtergraph returned EOF, finishing
+[af#0:1 @ 0xabac68000] All consumers returned EOF
+[out#0/mp4 @ 0xabb064300] sq: 0 EOF
+[out#0/mp4 @ 0xabb064300] sq: finish queue
+[af#0:1 @ 0xabac68000] Terminating thread with return code 0 (success)
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.824
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.824 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 1.92
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 1.92 queue head -1 ts N/A
+[aost#0:1/flac @ 0xabacb0300] [enc:flac @ 0xabac145b0] Encoder thread received EOF
+[aost#0:1/flac @ 0xabacb0300] Terminating thread with return code 0 (success)
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 2.016
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 2.016 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: send 1 ts 2.016
+[out#0/mp4 @ 0xabb064300] sq: receive 1 ts 2.016 queue head -1 ts N/A
+[out#0/mp4 @ 0xabb064300] sq: 1 EOF
+[out#0/mp4 @ 0xabb064300] sq: finish 1; head ts 2.016
+[out#0/mp4 @ 0xabb064300] sq: finish queue
+[out#0/mp4 @ 0xabb064300] Muxer returned EOF
+[out#0/mp4 @ 0xabb064300] Terminating thread with return code 0 (success)
+[AVIOContext @ 0xabb01cf00] Statistics: 218977 bytes written, 0 seeks, 2 writeouts
+[out#0/mp4 @ 0xabb064300] Output file #0 (research/shared/runs/20260919T_audio_disabled_tracks/muted.mp4):
+[out#0/mp4 @ 0xabb064300]   Output stream #0:0 (video): 48 packets muxed (1229 bytes); 
+[out#0/mp4 @ 0xabb064300]   Output stream #0:1 (audio): 21 frames encoded (96768 samples); 22 packets muxed (215509 bytes); 
+[out#0/mp4 @ 0xabb064300]   Total: 70 packets (216738 bytes) muxed
+[out#0/mp4 @ 0xabb064300] video:1KiB audio:210KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 1.033045%
+frame=   48 fps=0.0 q=-1.0 Lsize=     214KiB time=00:00:01.99 bitrate= 876.3kbits/s speed= 230x elapsed=0:00:00.00    
+[in#0/matroska,webm @ 0xabb01c000] Input file #0 (research/shared/runs/20260919T_audio_disabled_tracks/source.mkv):
+[in#0/matroska,webm @ 0xabb01c000]   Input stream #0:0 (video): 48 packets read (1229 bytes); 
+[in#0/matroska,webm @ 0xabb01c000]   Input stream #0:1 (audio): 63 packets read (48384 bytes); 63 frames decoded; 0 decode errors (96768 samples); 
+[in#0/matroska,webm @ 0xabb01c000]   Total: 111 packets (49613 bytes) demuxed
+[AVIOContext @ 0xabb01c140] Statistics: 51255 bytes read, 0 seeks
+
+Exiting with exit code 0

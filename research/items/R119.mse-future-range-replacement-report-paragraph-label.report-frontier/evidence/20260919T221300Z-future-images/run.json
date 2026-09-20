@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "run_id": "20260919T221300Z-future-images",
+  "item_keys": [
+    "R119.mse-future-range-replacement-report-paragraph-label.report-frontier"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T22:25:19.435183+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "node research/items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/tests/future-replacement.mjs"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "f9460573d55353a1d8efbbab6714cee6dad27d161b07294e726b425621b5549d",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "failed",
+      "basis": "Two independent 48-frame AVC sources, 24 fps, composition lead 83.333 ms. Replace the future at the established RAP boundary while paused at 0.5 s. Every valid-path queried RGBA image matches the isolated source oracle and the same SourceBuffer remains. A real AAC-only initialization under the AVC lane produces CHUNK_DEMUXER_ERROR_APPEND_FAILED; the range falls from [0.083333,4.083332] to [0.083333,2.083332] and the MediaSource ends. Cleanup passes. Existing stale-generation controls remain separate; no audio or transactional rollback claim is inferred from the positive picture result."
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Not applicable after the required failed-commit retention gate fails. No benchmark of an unqualified transaction."
+    }
+  },
+  "decision": "stop_current_profile",
+  "next_action": "Reopen with validated preparation before removal and an explicit recovery contract for failures after mutation. A full rebuild may be a declared fallback, but must not be described as retaining the old presentation. Then repeat valid and failed full-picture lifecycle gates before cost measurement."
+}

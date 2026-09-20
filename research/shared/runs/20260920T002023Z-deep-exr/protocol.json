@@ -1,0 +1,5 @@
+{
+  "scope": "Three real OpenEXR deep scanline RGBAZ128x128 frames,1..6 depth-sorted point samples; premultiplied front-to-back composition. Nine32x32ROI views; source-paired retained sample adapter. No volumetric overlapping-segment semantics.",
+  "oracle": "Independent scalar float64 front-to-back full composition, compare decoded deep values exactly and CPU/GPU ROI output within2e-6. Wrong frame association, invalid depth order or alpha reject.",
+  "cost": "Five alternating full cold EXR read/hash/validate plus deferred9ROI versus eager fullflatten once perframe plus9ROI slices. GPU separately compares same uploaded deep samples with direct ROI versus eager full frame once then ROI gather; include browser/device/pipeline/upload/dispatch/readback/cleanup."
+}

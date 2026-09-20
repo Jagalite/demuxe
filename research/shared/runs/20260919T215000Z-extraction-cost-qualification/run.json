@@ -1,0 +1,63 @@
+{
+  "stage": "performance",
+  "status": "failed",
+  "commands": [
+    "python3 research/shared/tooling/mp4-adapter-cost.py research/shared/runs/20260919T214600Z-mp4-adapter-cost",
+    "python3 research/shared/tooling/caption-extraction-cost.py research/shared/runs/20260919T214900Z-caption-cost",
+    "python3 research/shared/tooling/idr-suffix-cost.py research/shared/runs/20260919T214800Z-idr-suffix-cost"
+  ],
+  "analysis": "ColdNode ordinaryMP4adapter fullprepare/output+hostdecode compared toFFmpegcopy-fragmentdelaymoov+hostdecode; alloriginalpictures/PCM exact, current72video142audio sampletableprofile. Hostprocessstartup charged, notbrowserwarmJS/Wasm. 11pairedjobs median saving-37.27percent95[-47.19,-30.33], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile.\n\nColdPython AnnexeB/T35parity/text extraction vsFFmpegmovie+608SRT: sameauthored zero-timepop-onHI. Originalparitynegative/fullvideofidelity retained. No general608/708captionrenderer/seekstatereconstruction, onlyrestrictedextractioncomponent. 11pairedjobs median saving-28.08percent95[-32.79,-19.57], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile.\n\nFullsource readandAnnexBboundary/configdiscovery charged before48picture IDRsuffix decode vsfull72picturedecode+slice. All48pictures exact everyjob; originalmissingconfiguration/dependententrycontrols retained. Decoderinputbytes reduce butsource-readbytes unchanged. HostFFmpegcomponent, notbrowserseek. 11pairedjobs median saving0.31percent95[-4.46,2.33], misseslower95>5percent gate. Costbenefit notestablished; uncertainty preserved.",
+  "decisions": [
+    {
+      "key": "R046.a-small-javascript-ordinary-mp4-to-mse-adapter",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "ColdNode ordinaryMP4adapter fullprepare/output+hostdecode compared toFFmpegcopy-fragmentdelaymoov+hostdecode; alloriginalpictures/PCM exact, current72video142audio sampletableprofile. Hostprocessstartup charged, notbrowserwarmJS/Wasm. 11pairedjobs median saving-37.27percent95[-47.19,-30.33], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile.",
+      "next_action": "Scopedcostdecision complete. Reopen onlyfor a materiallydifferent integratedowner/workload, withcorrectness andcost chargedagain.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "ColdNode ordinaryMP4adapter fullprepare/output+hostdecode compared toFFmpegcopy-fragmentdelaymoov+hostdecode; alloriginalpictures/PCM exact, current72video142audio sampletableprofile. Hostprocessstartup charged, notbrowserwarmJS/Wasm. 11pairedjobs median saving-37.27percent95[-47.19,-30.33], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile."
+        }
+      }
+    },
+    {
+      "key": "R060.extract-in-band-closed-captions-from-compressed-video-headers",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "ColdPython AnnexeB/T35parity/text extraction vsFFmpegmovie+608SRT: sameauthored zero-timepop-onHI. Originalparitynegative/fullvideofidelity retained. No general608/708captionrenderer/seekstatereconstruction, onlyrestrictedextractioncomponent. 11pairedjobs median saving-28.08percent95[-32.79,-19.57], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile.",
+      "next_action": "Scopedcostdecision complete. Reopen onlyfor a materiallydifferent integratedowner/workload, withcorrectness andcost chargedagain.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "ColdPython AnnexeB/T35parity/text extraction vsFFmpegmovie+608SRT: sameauthored zero-timepop-onHI. Originalparitynegative/fullvideofidelity retained. No general608/708captionrenderer/seekstatereconstruction, onlyrestrictedextractioncomponent. 11pairedjobs median saving-28.08percent95[-32.79,-19.57], misseslower95>5percent gate. Measuredregression inthiscoldprocessprofile."
+        }
+      }
+    },
+    {
+      "key": "R225.h-264-self-contained-idr-suffix.report-continuity",
+      "disposition": "inconclusive",
+      "evidence_level": "actual-host-complete-cost-comparison",
+      "new_media_execution": true,
+      "reason": "Fullsource readandAnnexBboundary/configdiscovery charged before48picture IDRsuffix decode vsfull72picturedecode+slice. All48pictures exact everyjob; originalmissingconfiguration/dependententrycontrols retained. Decoderinputbytes reduce butsource-readbytes unchanged. HostFFmpegcomponent, notbrowserseek. 11pairedjobs median saving0.31percent95[-4.46,2.33], misseslower95>5percent gate. Costbenefit notestablished; uncertainty preserved.",
+      "next_action": "Scopedcostdecision complete. Reopen onlyfor a materiallydifferent integratedowner/workload, withcorrectness andcost chargedagain.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "Fullsource readandAnnexBboundary/configdiscovery charged before48picture IDRsuffix decode vsfull72picturedecode+slice. All48pictures exact everyjob; originalmissingconfiguration/dependententrycontrols retained. Decoderinputbytes reduce butsource-readbytes unchanged. HostFFmpegcomponent, notbrowserseek. 11pairedjobs median saving0.31percent95[-4.46,2.33], misseslower95>5percent gate. Costbenefit notestablished; uncertainty preserved."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T215000Z-extraction-cost-qualification",
+  "recorded_at_utc": "2026-09-19T21:45:00.380285+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "a60b079e4768d799cd9c623d115deb75e4421d52df302906696bb6ddb56b44ec",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

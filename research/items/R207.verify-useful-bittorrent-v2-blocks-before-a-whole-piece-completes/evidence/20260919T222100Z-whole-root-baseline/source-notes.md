@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+BEP52 primary source: https://www.bittorrent.org/beps/bep_0052.html . SHA-256 hashes actual16KiB leaves, short final block is not zero padded, missing balancing leaves are zero hashes. The file root is pinned from authored bencoded v2 info, also independently reproduced by recursive Python. The component receives this authenticated root as input; metainfo discovery, peer transport and BEP52 hash-request framing are outside this experiment. The first two leaves (32768B) release media while three leaves remain unavailable. The file is68645B and fits within one short final256KiB logical piece.

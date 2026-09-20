@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual ordinary ZIP DEFLATE index stores process-local zlib inflate copies every32KiB and verifies complete initial CRC. All100random reads and complete reconstructed fMP4 are byte-exact; invalid ranges, source identity, CRC, bare compressed cursor, stale epoch and closed owner reject. Identical recovered destination reuses independently recorded native MSE fixture controls. Against cheapest inflate-once retained-file baseline, complete cold100-query task is3.922times slower and measured owned live allocations2,589,440vs843,909bytes (3.068times larger). Stop this small-entry profile; no network, persistent snapshot, browser-native inflater or processRSS claim.

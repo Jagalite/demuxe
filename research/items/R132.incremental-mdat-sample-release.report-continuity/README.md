@@ -2,18 +2,18 @@
 
 # incremental mdat sample release
 
-Current decision: **pursue**. Actual Chrome emits presented video frames from12 complete coded samples while mdat tail is withheld; first sample truncated by1byte presents0frames until remainder arrives. Both complete to EOF and clean up.
+Current decision: **pursue**. Actualpartial-mdat endpoint now has complete48changing-picture fidelity and source-cancel guards. Every48picture matches whole-input baseline in24freshstreams; firstsample-minusonebyte emitsnone untiltail. Elevenpaired streams withidentical450ms tailavailability give449.84ms median firstcorrectframe improvement whileallfulloutputs/EOF pass.
 
 | Stage | Status | Basis |
 | --- | --- | --- |
 | define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | passed | Authored or reused hashed synthetic fixture, executable component and independent reference/control for scoped screen. |
-| screen | passed | Actual Chrome emits presented video frames from12 complete coded samples while mdat tail is withheld; first sample truncated by1byte presents0frames until remainder arrives. Both complete to EOF and clean up. |
-| correctness | pending | Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified. |
-| performance | pending | No equivalent-work benchmark or owner opportunity measurement. |
-| results | passed | Immutable positive/negative evidence and manifests registered. |
-| decision | passed | Scoped pursue; remaining gate and actual owner opportunity explicit. |
+| prepare | passed | New executable probe and declared workload/controls registered with source/input/runtime evidence. |
+| screen | passed | Actualpartial-mdat endpoint now has complete48changing-picture fidelity and source-cancel guards. Every48picture matches whole-input baseline in24freshstreams; firstsample-minusonebyte emitsnone untiltail. Elevenpaired streams withidentical450ms tailavailability give449.84ms median firstcorrectframe improvement whileallfulloutputs/EOF pass. |
+| correctness | passed | Exact source report parserquestion: completecoded samples delivered fromexistingmdat before enclosingpayloadcomplete.48distinct fullRGBA referenceframe hashes fromindependentwhole-input MSE; all48 continuouslypresented frames exact ininitialpartial,incompletecontrol and22timedstreams. Partialhead12samples presents11before450ms tail; incompletefirstsample0beforetail. Cancelledgeneration stale tailappend returnsfalse beforeSourceBuffer mutation. Allmediaelements/URLs released. Preparedencodedinput, not newstreamingmux emission, selectedaudio or arbitraryfragment layouts. |
+| performance | passed | Predeclared11alternating fresh-owner pairs, samebytesavailable headt0/tailt450ms. Candidateappendshead, baselineawaitswholemdat. Every48framefullhash/EOF checked; sourceopen/append/play/finaltail/cleanup included and firstcorrectframe/completeEOF separatelyreported. Median startupimprovement449.84ms, bootstrap95[444.71,455.48]ms, threshold200ms passed. Controllednetworkavailability model, no physicalnetwork/CPU/memory claim; sharedbrowser/sourceacquisition common. Mechanismonly helpswhen producer releasescomplete samplesbeforetail; currentmux interface not changed. |
+| results | passed | Actual new execution raw outcomes, controls and scoped interpretation retained. |
+| decision | passed | pursue: Actualpartial-mdat endpoint now has complete48changing-picture fidelity and source-cancel guards. Every48picture matches whole-input baseline in24freshstreams; firstsample-minusonebyte emitsnone untiltail. Elevenpaired streams withidentical450ms tailavailability give449.84ms median firstcorrectframe improvement whileallfulloutputs/EOF pass. |
 
-Next: Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.
+Next/reopen: Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission.
 
-[Contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+[Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)

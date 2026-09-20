@@ -1,0 +1,7 @@
+["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "aevalsrc=0.1*sin(2*PI*220*t)|0.1*sin(2*PI*440*t)|0.1*sin(2*PI*660*t)|0.1*sin(2*PI*80*t)|0.1*sin(2*PI*880*t)|0.1*sin(2*PI*1100*t):s=48000:d=2:c=5.1", "-c:a", "libopus", "-application", "lowdelay", "-frame_duration", "20", "-b:a", "384k", "research/shared/runs/20260919T_audio_opus_streams/source.ogg"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_opus_streams/source.ogg", "-f", "f32le", "-"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_opus_streams/mono.ogg", "-f", "f32le", "-"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_opus_streams/stereo.ogg", "-f", "f32le", "-"]
+["ffmpeg", "-v", "error", "-i", "research/shared/runs/20260919T_audio_opus_streams/three.ogg", "-f", "f32le", "-"]
+node research/shared/tooling/audio-stage-probes/opus_stream_browser.mjs research/shared/runs/20260919T_audio_opus_streams
+python3 research/shared/tooling/audio-stage-probes/opus_stream_cost.py research/shared/runs/20260919T_audio_opus_streams

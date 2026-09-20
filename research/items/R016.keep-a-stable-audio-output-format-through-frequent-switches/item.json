@@ -47,102 +47,77 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "basis": "Actual component executed; no fallback.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "status": "passed",
+      "basis": "Compatible48kmono integerFLAC16/24 tracks220/440Hz promote to common24bit with every host integer sample exact. Native Chrome3segment switching passes distinct track tones, marker timing about1.4ms, zero measured audio gaps, continuous H264pictures, parser abort/reset, unsupportedchangeType guard, forward/backwardseek, EOF and samebuffer ownership. Wrong+0.2s timeline fails independent marker oracle. Five alternating cold hostprepare plus matched browser creation/appends/cleanup:commonformat60.614+8.685ms versus nativecopy53.638+8.460ms, ratio1.11597 fails1.10. Native varyingprecision baseline already passes identical observable switch contract; no actual decoder-instance reuse inferred.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Dependent on explicit unresolved setup/fixture and correctness gates: Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+      "status": "failed",
+      "basis": "Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Recorded screening/reconciliation completed, not candidate qualification. Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "basis": "stop_current_profile: Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "research-ranks251-392-acceptance",
+    "campaign": "audio-executed-stage-closure",
     "record": {
       "key": "R016.keep-a-stable-audio-output-format-through-frequent-switches",
-      "rank": 294,
-      "state": "blocked",
-      "disposition": "blocked",
-      "blocker_category": "setup",
-      "secondary_blocker_categories": [],
+      "recorded_at_utc": "2026-09-19T22:00:07.933497+00:00",
       "stage": "decision",
-      "recorded_at_utc": "2026-09-19T20:25:15.327659+00:00",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
       "run_ids": [
-        "20260919T202334Z-ranks251-392-reconciliation"
+        "20260919T220007Z-stable-flac"
       ],
-      "evidence_level": "reconciled_source_review",
-      "new_execution": false,
-      "historical_state": "DEFER_SETUP",
-      "reason": "Audio track switch currently restarts remux at the existing position; FLAC output preserves source rate/layout rather than enforcing a stable session configuration. A persistent audio producer and permitted common profile are needed, especially where native tracks differ.",
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Compatible48kmono integerFLAC16/24 tracks220/440Hz promote to common24bit with every host integer sample exact. Native Chrome3segment switching passes distinct track tones, marker timing about1.4ms, zero measured audio gaps, continuous H264pictures, parser abort/reset, unsupportedchangeType guard, forward/backwardseek, EOF and samebuffer ownership. Wrong+0.2s timeline fails independent marker oracle. Five alternating cold hostprepare plus matched browser creation/appends/cleanup:commonformat60.614+8.685ms versus nativecopy53.638+8.460ms, ratio1.11597 fails1.10. Native varyingprecision baseline already passes identical observable switch contract; no actual decoder-instance reuse inferred.",
+      "next_action": "Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
+      "reopen_condition": "Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
       "evidence": [
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/results.json",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/analysis.md",
-        "research/shared/runs/20260919T202334Z-ranks251-392-reconciliation/manifest.json",
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_f/audits/R016.keep-a-stable-audio-output-format-through-frequent-switches.md"
-      ],
-      "next_test": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
-      "reopen_condition": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
-      "scope": "Explicit archived profile and preparation gap; no new execution, production integration or general algorithm rejection."
+        "research/shared/runs/20260919T220007Z-stable-flac/run.json"
+      ]
     }
   },
-  "next_action": "Trace one pair of compatible integer tracks through current switch and measure interruption before designing one stable FLAC producer boundary.",
+  "next_action": "Stop current commonFLAC preparation cost profile for these compatible integer tracks. This compares FLACprecision configurations, not heterogeneous codec switching or resampling. Reopen with repeated-source amortization or a source pair showing real native reconfiguration disruption; include exact precision, requestedtrackidentity and full preparation cost. No production route changes.",
   "integration": {
     "status": "not_assessed_by_migration"
   },

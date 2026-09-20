@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "20260919T233247Z-codec-filter-checkpoint",
+  "item_keys": [
+    "R329.build-audio-seek-checkpoints-from-codec-state-plus-filter-state-together"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Not used; actual logical decoder and integer DSP pipeline with independent host oracle",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual stereo IMA-WAV logical predictor/index/nibble position state combined with explicit integer stereo average, pair-average2to1 resampler pending phase, and integer IIR state. Whole8136input frames\u21924068output frames exactly match independent FFmpeg8.1.2 decode followed by ordinary pipeline. Thirty-five128sample seek continuations exact, including13restores with pending odd-input resampler phase, codec block resets and nearEOF. Thirty-two JSON checkpoints18240bytes contain only logical fields/positions plus source/runtime/recipe/epoch identity and checksum, no raw pointers. Omitting filter or pending phase changes output; changed source/runtime/filter/epoch, corrupted snapshot and cancellation reject. Five complete cold read/hash/parse/checkpoint-building/JSONwrite-read plus35seek-output jobs37.634ms versus full-prefix replay171.893ms ratio0.21894 passes<=0.9."
+  },
+  "performance": {
+    "status": "passed"
+  },
+  "decision": "pursue",
+  "limits": "Pursue this exact versioned IMA-WAV/mixer/resampler/IIR recipe and repeated-seek workload. Encoder padding is included explicitly; no gapless trim claim. Current per-shift IMA arithmetic is verified against installedFFmpeg8.1.2; older report/product-rounding rule differs and is preserved as rejected cross-runtime evidence. Other codecs, resamplers, filters, recipe changes and production integration require new logical continuation contracts.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/ima_wav_logical.py",
+    "research/shared/runs/20260919T232859Z-ima-fixture/2ch.wav",
+    "research/shared/runs/20260919T232859Z-ima-fixture/decoder-results.json",
+    "research/shared/runs/20260919T232859Z-ima-fixture/manifest.json"
+  ],
+  "commands_log": "research/shared/runs/20260919T233247Z-codec-filter-checkpoint/commands.log"
+}

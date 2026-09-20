@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "run_id": "20260919T224200Z-explicit-retirement",
+  "item_keys": [
+    "R354.replace-an-oversized-preparation-heap-while-native-playback-continues"
+  ],
+  "stage": "decision",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-19T23:32:08.517611+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "ffmpeg -v error -safe 0 -auto_convert 0 -f concat -i research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T223400Z-real-index-heap/source.ffconcat -map 0:v -c copy -movflags +faststart research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T223400Z-real-index-heap/source.mp4",
+    "node research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/tests/heap-observe.mjs research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T223600Z-multitrack-heap",
+    "ffmpeg -v error -i research/items/R075.compact-large-seek-maps-with-checkpoints/evidence/20260919T222300Z-real-dense-map/source.mp4 -map 0:v -c copy -bsf:v h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0 -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv -movflags +faststart research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T224000Z-explicit-color-control/source.mp4",
+    "python3 research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/tests/continuation-reference-explicit.py research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T224200Z-explicit-retirement research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T224100Z-explicit-multitrack-source/source.mp4",
+    "node research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/tests/retire-bounded.mjs research/items/R354.replace-an-oversized-preparation-heap-while-native-playback-continues/evidence/20260919T224200Z-explicit-retirement"
+  ],
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "dirty_diff_sha256_at_registration": "696080b85077cda8bcb864ccb3d2efa7a1224518611b511da61bfe4e10921744",
+    "note": "Registration snapshot; executable/runtime and fixture identities separately hashed."
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "correctness": {
+      "status": "passed",
+      "basis": "Real FFmpeg Wasm workers, original immutable File and selected-track virtual view. Explicit recipe ordinal166/config/timebase/source generation;61 payload/DTS/duration tuples exact against independent host FFprobe;6 full native pictures exact against direct-source continuous oracle. Same presentation owners and no waiting across retirement. Stale recipe and actual corrupted first fragment rejected before publication; worker count0 after cleanup. Unspecified-color failures retained; audio/subtitles/B-frame continuation excluded."
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Exact observed reserved-Wasm capacity80543744\u219267108864B gives16.6802% reduction>=10%. Simultaneous capacities147652608B<=2x old.60B replacement tags plus bounded800585B selected-header scratch and reader327680B peak-owned bytes disclosed. Preparation224.445ms/first verification228.070ms are single-run descriptive overhead, not latency savings. No RSS/physical release claim. Conditional already-grown state only; upfront projection may avoid original cost."
+    }
+  },
+  "decision": "pursue",
+  "next_action": "Prefer upfront selected-track projection where possible. For a genuinely already-grown owner, consider this validated continuation pattern with explicit config/source/sample recipes. Qualify actual audio/B-frame selected profile and memory pressure before integration; never infer physical memory reclamation from Wasm byteLength."
+}

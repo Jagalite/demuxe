@@ -1,0 +1,34 @@
+{
+  "stage": "performance",
+  "status": "passed",
+  "commands": [
+    "node research/shared/tooling/worker-mse-cost.mjs research/shared/runs/20260919T203900Z-worker-cost",
+    "node research/shared/tooling/worker-mse-paced-cost.mjs research/shared/runs/20260919T204100Z-worker-paced"
+  ],
+  "analysis": "Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control. No CPU/energy or production integration claim. Browser startup shared, owner creation/transfer/appends included; cleanup reported separately. Main thread delivery ticks are precisely the scheduling work moved to worker.",
+  "decisions": [
+    {
+      "key": "R005.move-mse-ownership-off-the-window-thread",
+      "disposition": "pursue",
+      "evidence_level": "actual_component_performance",
+      "new_media_execution": true,
+      "reason": "Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control.",
+      "next_action": "Research component gates complete for paced ingress under UI load. Separate integration project: apply ownership protocol to maintained scheduler and reproduce workload before production admission.",
+      "stages": {
+        "performance": {
+          "status": "passed",
+          "basis": "Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260919T204100Z-worker-paced",
+  "recorded_at_utc": "2026-09-19T20:43:49.262304+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "a99e793beab78ec6f28cae252562cb844af527c5",
+    "dirty_diff_sha256": "39f9793cbd2c5fa8692014000bc582ad43d5bca9c8a543f21560df09ded5a9ff",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

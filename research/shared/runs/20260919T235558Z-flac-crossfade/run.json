@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "run_id": "20260919T235558Z-flac-crossfade",
+  "item_keys": [
+    "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes"
+  ],
+  "stage": "correctness_and_performance",
+  "status": "completed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "8666434920cd4f4fc35a5c099901826e03be8916",
+    "os_device": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "browser": "Chrome152.0.7977.83",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "candidate": {
+    "executed": true,
+    "fallback_observed": false
+  },
+  "correctness": {
+    "status": "passed",
+    "scope": "Actual explicit quarter-second integer linear crossfade between two96000sample monoS16/48kFLAC sources: 41 unaffected coded subframes copied,26368 aligned edge source samples decoded,14368 bridge samples encoded. Variable absolute frame headers and STREAMINFO rebuilt. All180000 output samples exactly match independent full decode/mix/encode oracle in host and Chrome; six libFLAC sample seeks and four native encoded seeks, render, EOF and owner cleanup pass. Wrong no-crossfade and source identity controls detected. Five alternating complete cold index/isolate/decode/mix/encode/reindex/reheader/write/consume jobs469.695ms vs full-render212.307ms ratio2.21234 fails0.9. Reduced processed samples are not a latency improvement."
+  },
+  "performance": {
+    "status": "failed"
+  },
+  "decision": "stop_current_profile",
+  "limits": "Stop this Python/subprocess selective bridge profile on cost. A fused lower-overhead implementation or substantially longer unchanged spans can reopen with a new matched workload. This is actual audio component evidence only: no preserved-video queue mapping, MSE/Wasm integration, caption overlap or production admission claim.",
+  "reused_evidence": [
+    "research/shared/tooling/audio-stage-probes/flac_smart_cut.py",
+    "research/shared/tooling/audio-stage-probes/flac_bits.py"
+  ],
+  "commands_log": "research/shared/runs/20260919T235558Z-flac-crossfade/commands.log"
+}

@@ -2,28 +2,12 @@
 
 # Checkpoint PNG Paeth row state
 
-Full identity: `R319.checkpoint-png-paeth-row-state.report-continuity`. Original rank: 216.
+Disposition: **inconclusive**. correctness: **passed**, performance: **failed**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Implemented native Paeth row checkpoints on actual512x512RGBA PNG filtered rows. Originalpixels independently verified by FFmpeg PNGdecode; ten16-row bands in forward/backward order match exactly. Checkpoints every64rows retain16384activeprior-row bytes and4096workingrow bytes, bound toinputidentity; corrupt checkpoint andchangedsource controls exit5/6 beforeanyoutput. Candidate pays a full512-row checkpoint preparation within each task, thenbandreplays; totalreconstructedrows768 versus2880 fromrow-zero baseline. FullIDATinflate remainsrequired andwasmeasuredseparately(mean0.422ms,1049088bytes); no compressedPNG random-access/byte-saving claim. Nine alternating wholeprocess input-read/setup/preparation/reconstruction/output/exit pairs: baseline59.229ms,candidate52.799ms,saving10.86%,95%[-12.967955806661259, 35.90579791820241], fails10%lower-boundgate. Largeconcurrenthost/IO variability retained rather than rerun untilpositive; fewer reconstructedrows do not establish a whole-taskwin. Internalcheckpoint checksums detect mutation withintrustedowner, not authentication against malicious pairedmetadata. Nativecomponent only, no generalPNG filters/browserintegration claim.
 
-Current byte readers do not expose inflated PNG rows or a PNG filter decoder. Prior-row checkpoints reduce post-inflate Paeth replay only; ordinary compressed-file random access still needs independent inflate state.
+Next: Reopen with a representative repeated-band owner and stable cost evidence that includes checkpointpreparation and whole-fileinflation. Preserve source/priorrowstate identity and exactbytes; do not claim compressedPNG range-seeking from an already-inflated rowcheckpoint.
 
-No matching candidate/reference/control execution for this exact gate. Already-inflated PNG row/checkpoint component and changed-prior-row control; full DEFLATE seek state separately accounted.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T223002Z-png-paeth/analysis.md)
 
-Next action: On already-inflated rows, compare band reconstruction with checkpoint versus row-zero replay and changed-prior-row rejection; account separately for full-file inflate. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Already-inflated PNG row/checkpoint component and changed-prior-row control; full DEFLATE seek state separately accounted. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Already-inflated PNG row/checkpoint component and changed-prior-row control; full DEFLATE seek state separately accounted. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Fixture provenance metadata amendment](../../shared/runs/20260919T230543Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

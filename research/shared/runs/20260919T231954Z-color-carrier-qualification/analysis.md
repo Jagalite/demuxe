@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual12-frame fullresolution Y/U/V420-carrier profile preserves every original plane and timestamp through native Chrome, independent host lossless oracles and explicit lane extraction. Ordinary native444 also succeeds here, so no new codec-admission opportunity claimed. Wrong plane order is detected; all frames/owners close. Initial geometry guard confused coded allocation with visible image and was corrected without relaxing pixel oracle. Seven alternating full cold pack/encode/index/binaryHTTP/decode/materialize jobs:78.96%fewer coded bytes but median6.24%slower,95%cost-saving interval−32.98%to16.25%, misses5%gate. Synthetic-plane component only, no general color-display/HDR/physical-hardware claim.

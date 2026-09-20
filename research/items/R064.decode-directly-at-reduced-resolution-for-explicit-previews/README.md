@@ -2,28 +2,12 @@
 
 # Decode directly at reduced resolution for explicit previews
 
-Full identity: `R064.decode-directly-at-reduced-resolution-for-explicit-previews`. Original rank: 156.
+Disposition: **stop_current_profile**. correctness: **failed**, performance: **not_applicable**.
 
-Current decision: **blocked** (reconciled from **DEFER_SETUP**). No new media execution.
+Completed the second codec explicitly requested by the source proposal: twelve progressive720p MPEG2 frames at decoder lowres2 versus full decode plus area-scale320x180. The same predeclared30dB every-frame RGB preview contract fails11 of12 frames,30.24→25.99dB, maximum channel difference224. The earlier MJPEG test also failed11 of12,30.28→28.60dB. Installed max_lowres is3 for both,0 for H264/HEVC/AV1; explicit-intent and unsupported-codec admission guards pass. These are actual reduced-detail quality failures, not unavailable adapters. No performance, reverse-preview or full-resolution restoration qualification follows a failed output contract. No quality tolerance was relaxed. Failure is scoped to this quarter-resolution preview profile, not every possible approximate-preview design.
 
-No preview/economy decode policy exists; software decoder options only set resource bounds. Lowres is codec-specific and intentional quality change, not permission from small display size.
+Next: Reopen a materially different explicitly requested quality/scale profile or reconstruction satisfying the original30dB every-frame threshold, then complete reversal/restoration and timing. Do not use lowres for ordinary exact playback.
 
-No matching candidate/reference/control execution for this exact gate. Explicit reduced-detail profile and codec-specific lowres candidate/oracle; no permission inferred from display size.
+[Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T215357Z-mpeg2-lowres/analysis.md)
 
-Next action: Once explicit preview intent exists, query compiled MJPEG/MPEG2 max_lowres and compare one frame with full-decode scaling; unsupported codec must retain full decode and report pixel differences. Compare the smallest bounded component with its independent output oracle; production API absence alone does not preclude the experiment.
-
-## Stages
-
-| Stage | Status | Basis |
-| --- | --- | --- |
-| define | passed | Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run. |
-| prepare | blocked | Unperformed setup gate: Explicit reduced-detail profile and codec-specific lowres candidate/oracle; no permission inferred from display size. |
-| screen | passed | Existing source/prerequisite/experimental screen reviewed; scientific verdict preserved at its exact scope. |
-| correctness | blocked | No matching candidate/reference/control execution for this exact gate. Explicit reduced-detail profile and codec-specific lowres candidate/oracle; no permission inferred from display size. |
-| performance | blocked | No relevant candidate correctness pass; no performance inference from source reports or existing-owner counters. |
-| results | passed | Referenced evidence read and byte-pinned; historical claims remain imported, no new experiment inferred. |
-| decision | passed | Normalized disposition preserves prior scoped scientific verdict and names the next missing gate. |
-
-[Reconciliation](../../shared/runs/20260919T202508Z-r101-250-stage-reconciliation/run.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
-
-Setup/fixture/environment blocks are not experimental failures. Integration and release qualification remain separate; historical definitions and bytes are retained.
+[Fixture provenance metadata amendment](../../shared/runs/20260919T220430Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.

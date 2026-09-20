@@ -1,0 +1,46 @@
+{
+  "stage": "decision",
+  "status": "complete_bounded_research",
+  "commands": [
+    "node research/shared/tooling/compressed-texture-rotation.mjs research/shared/runs/20260920T003218Z-bc-rotation",
+    "node research/shared/tooling/compressed-texture-rotation-lifecycle.mjs research/shared/runs/20260920T003244Z-bc-owner-rotation"
+  ],
+  "analysis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim. Initial run static epoch check was strengthened to actual in-flight GPU result supersession. Its cold-job wording was inaccurate: device/pipelines are prepared and shared. No claim of steady speed improvement from noisy timings.",
+  "decisions": [
+    {
+      "key": "R227.rotate-and-rearrange-texture-video-while-keeping-its-blocks-compressed",
+      "disposition": "inconclusive",
+      "evidence_level": "actual-route screen",
+      "new_media_execution": true,
+      "reason": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim.",
+      "next_action": "Research profile complete; revisit only with an actual consumer requiring rewritten blocks rather than cheaper coordinate rotation, or larger representative workloads.",
+      "stages": {
+        "prepare": {
+          "status": "passed",
+          "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "Actual BC1 and BC3 compressed-block90degree rotation exactly matches independent GPU-coordinate rotation for every RGBA texel, including both alpha endpoint orders. Omitted selector rotation gives wrong output, partial-block extent rejects, asynchronous stale-owner result rejects; all GPU resources close. Nine paired32request jobs include fresh zlib inflate, transform/upload/submit/fullreadback/cleanup; prepared device/pipelines shared. Median cost ratio0.9953, bootstrap95[0.4968,1.5714] fails reliable-gain gate. Raw block bytes64/128 remainunchanged in size; explicit zlib input66/127bytes. No general texture-video-container or network claim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T003337Z-bc-rotation-qualification",
+  "recorded_at_utc": "2026-09-20T00:33:37.605187+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "7975c1c42a11158567cab3c4294585787647daf0",
+    "dirty_diff_sha256": "d45c7fe00386d89ab5bfbf1ff65898af582e797092ae9d345a5f426de4abd0e0",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}
