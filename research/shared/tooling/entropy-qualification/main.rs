@@ -1,0 +1,2 @@
+// SPDX-License-Identifier: Apache-2.0
+fn main(){let a:Vec<String>=std::env::args().collect();let d=std::fs::read(&a[1]).unwrap();if a.get(3).is_some_and(|s|s=="signature"){println!("{}",oxideav_h264::research_translate::syntax_signature(&d));return;}let t=std::time::Instant::now();let (v,m,n)=oxideav_h264::research_translate::translate(&d,a.get(3).is_some_and(|s|s=="corrupt"));let us=t.elapsed().as_micros();std::fs::write(&a[2],v).unwrap();println!("macroblocks={m} nonzero_coefficients={n} elapsed_us={us}");}

@@ -1,0 +1,36 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/powermetrics",
+        "-n",
+        "1",
+        "-i",
+        "100",
+        "--samplers",
+        "cpu_power,gpu_power"
+      ],
+      "exit": 1,
+      "stderr": "powermetrics must be invoked as the superuser"
+    },
+    {
+      "argv": [
+        "ioreg",
+        "-a",
+        "-r",
+        "-c",
+        "AppleSmartBattery",
+        "-d",
+        "1"
+      ],
+      "selected_fields": {
+        "ExternalConnected": true,
+        "IsCharging": false,
+        "Voltage": 12046,
+        "Amperage": 0,
+        "InstantAmperage": 0
+      }
+    }
+  ],
+  "interpretation": "No energy inferred from these probes; not used as a blocking or negativeexperimental result. Costdecision uses measuredownedChromeCPU."
+}

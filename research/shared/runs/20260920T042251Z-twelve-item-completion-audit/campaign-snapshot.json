@@ -1,0 +1,261 @@
+{
+  "schema": 1,
+  "updated_at_utc": "2026-09-20T04:19:12.443889+00:00",
+  "scope": "All twelve scoped research profiles concluded. Positive results are research qualification, not production integration or release qualification. The 27 permanent source closures and 32 older inconclusive findings remain separate.",
+  "items": [
+    "R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility",
+    "R076.definition-not-recovered",
+    "R077.definition-not-recovered",
+    "R078.definition-not-recovered",
+    "R079.definition-not-recovered",
+    "R080.definition-not-recovered",
+    "R081.definition-not-recovered",
+    "R101.keep-decoded-video-on-the-native-overlay-display-path",
+    "R120.entropy-only-transcoding",
+    "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+    "R169.make-custom-presentation-aware-of-display-cadence",
+    "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition"
+  ],
+  "results": [
+    {
+      "key": "R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility",
+      "title": "Make streaming representation choices aware of complete-plan feasibility",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "1.012\u00d7 cost versus the fair selective-owner baseline; 14/31 pairs faster. No declared 5% benefit.",
+      "scope": "24 SDR VP8/VP9 segments, selected PCM/cues, rollback, cancellation and seeks; research controller, not shipping HLS/DASH.",
+      "evidence": [
+        "research/shared/runs/20260920T035424Z-baseline-interpretation-audit/run.json"
+      ],
+      "next_action": "Retain selective track ownership and complete-plan validation as prototype correctness findings. Reopen prefilter optimization on a workload with demonstrated fallback cost or plan-feasibility variability; productionHLS/HDR remains unqualified."
+    },
+    {
+      "key": "R076.definition-not-recovered",
+      "title": "Reduce video frame rate before decoding",
+      "decision": "pursue",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "passed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "0.808\u00d7 full-job cost; all 7 pairs faster (19.25% median saving).",
+      "scope": "720p closed-GOP H264; 107 of 240 frames retained with exact pixels and original PTS. Not arbitrary constant-frame-rate conversion.",
+      "evidence": [
+        "research/shared/runs/20260920T034332Z-recovered-video-qualification/run.json"
+      ],
+      "next_action": "Integrate an explicit opt-in policy only for identified nonreference pictures; rerun native/WebCodecs/audio synchronization and other reference structures before broader use."
+    },
+    {
+      "key": "R077.definition-not-recovered",
+      "title": "Frame-accurate video editing with only local re-encoding",
+      "decision": "pursue",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "passed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "0.657\u00d7 full-job cost; all 7 pairs faster (34.29% median saving).",
+      "scope": "Uniform lossless H264: 46 edge frames re-encoded and 60 interior frames copied. Mixed lossy/lossless splice failed and is excluded.",
+      "evidence": [
+        "research/shared/runs/20260920T034332Z-recovered-video-qualification/run.json"
+      ],
+      "next_action": "Implement eligibility validation for uniform lossless profile; investigate mixed-profile splice divergence before any claim for arbitrary lossy sources, Bframes, openGOP or audio."
+    },
+    {
+      "key": "R078.definition-not-recovered",
+      "title": "Play texture-native video without a conventional video decoder",
+      "decision": "pursue",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "passed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "0.839\u00d7 full-job cost; all 9 pairs faster; 8\u00d7 smaller texture upload/storage.",
+      "scope": "32-frame Hap/BC1 profile, visible WebGPU canvas. RGB error at most one level, exact alpha; strict bit-exact profile failed.",
+      "evidence": [
+        "research/shared/runs/20260920T034332Z-recovered-video-qualification/run.json"
+      ],
+      "next_action": "Add container/format eligibility and fidelitypolicy before integration; qualify Snappy, other BC modes, dimensions, audio sync and realworldlong streams separately. Never advertise strict CPUdecode bitexactness."
+    },
+    {
+      "key": "R079.definition-not-recovered",
+      "title": "Preserve floating-point audio through an integer-only codec",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "20.286\u00d7 decode/reconstruction cost versus float WAV.",
+      "scope": "96,000 finite Float32 samples preserved and rendered exactly. Codec payload smaller, but native float WAV already works; no all-format claim.",
+      "evidence": [
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
+      ],
+      "next_action": "Reopen if an integer-only transport is mandatory and bandwidth/storage benefit offsets custom reconstruction; qualify streaming, rate/layout variation and special floats separately."
+    },
+    {
+      "key": "R080.definition-not-recovered",
+      "title": "Reconstruct unsupported visual properties from ordinary video streams",
+      "decision": "pursue",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "passed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "Alpha capability passed; prepared first-frame API job 0.242\u00d7 tested correct native load/seek baseline.",
+      "scope": "Three 32\u00d732 frames, exact alpha, bounded premultiplied RGB, actual canvas and decoder lifecycle controls. Not a general playback or physical-display speedup; prefer suitable native alpha.",
+      "evidence": [
+        "research/shared/runs/20260920T035424Z-baseline-interpretation-audit/run.json"
+      ],
+      "next_action": "Use only for destinations needing explicit reconstructedalpha. Prefer existing native transparency whenit meetsoutputneeds. Measure equivalentpresented largercontinuousworkloads before claiming playback speedup."
+    },
+    {
+      "key": "R081.definition-not-recovered",
+      "title": "Move part of a software video decoder onto the GPU",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "GPU slower in every larger-profile pair: cold 1.888\u20132.079\u00d7, reused device 1.656\u20131.818\u00d7.",
+      "scope": "Actual MPEG2 entropy parsing included; 256\u00d7256 and 512\u00d7512, 33 pictures each, exact FFmpeg oracle. Browser startup excluded from both paths.",
+      "evidence": [
+        "research/items/R081.definition-not-recovered/evidence/20260920T050000Z-scaled-partial-decoder/run.json"
+      ],
+      "next_action": "Stop the measured DC-only-I/integer-motion-P CPU-visible-output profile. Reopen for materially different faithful codec work, kernels or GPU-resident output contract that passes independent all-picture correctness and a matched end-to-end cost gate; do not extrapolate this result to arbitrary codecs or production routing."
+    },
+    {
+      "key": "R101.keep-decoded-video-on-the-native-overlay-display-path",
+      "title": "Keep decoded video on the native overlay/display path",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "Final A/V CPU median 0.838\u00d7; 8/9 pairs faster, worst 1.109\u00d7. Failed the predeclared every-pair-faster gate.",
+      "scope": "Native CALayer and all 73 source IDs measured at WindowServer; A/V cue and UI lifecycle checks passed. Not proof of hardware-plane promotion, photons, energy or physical speaker latency.",
+      "evidence": [
+        "research/shared/runs/20260920T041733Z-native-surface-qualification/run.json"
+      ],
+      "next_action": "Reopen with an independently predeclared longer/representative confirmatory cost study; keep all appearance, actualsource delivery and audio-engine alignment controls. Do not change automaticrouting from this result."
+    },
+    {
+      "key": "R120.entropy-only-transcoding",
+      "title": "Entropy-only transcoding",
+      "decision": "pursue",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "passed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "0.824\u00d7 complete-job cost; all 8 pairs faster (17.58% median saving).",
+      "scope": "CABAC to CAVLC syntax translation; 78 independently decoded pictures exact across four progressive 8-bit 4:2:0 I/P profiles. No browser-tier claim.",
+      "evidence": [
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
+      ],
+      "next_action": "Retain as a qualified restricted research operation. Production integration requires explicit admission checks and broader decoder/content/browser validation; only extend codec tools with new exact syntax and picture oracles."
+    },
+    {
+      "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+      "title": "Sidecars that let decoding start halfway through an entropy-coded slice",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "1.477\u00d7 complete-job cost; checkpoint records 5.55 MB versus 63.4 KB source.",
+      "scope": "Fresh-process complete CABAC state restoration and full independent picture reconstruction. Prefix reconstruction costs included; not a standalone DPB capsule.",
+      "evidence": [
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
+      ],
+      "next_action": "Stop the measured JSON/full-prefix-syntax profile. Reopen only for a compact complete-state representation or real repeated partial-entropy workload that can beat full decoding after charging preparation, retained references, serialization and complete-picture correctness."
+    },
+    {
+      "key": "R169.make-custom-presentation-aware-of-display-cadence",
+      "title": "Make custom presentation aware of display cadence",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "0.103% median improvement in primary p95 phase error; required 15%.",
+      "scope": "Actual WindowServer display timestamps and identifying source pixels, not predicted Chrome feedback. Six normal trials retained all 72 frames.",
+      "evidence": [
+        "research/shared/runs/20260920T035123Z-cadence-qualification/run.json"
+      ],
+      "next_action": "Reopen for a materially different phase policy, source/display cadence, or presentation owner with a fresh predeclared primary gate. Production retained/mpv and audio integration require their own independent correctness and cost tests."
+    },
+    {
+      "key": "R295.preserve-hardware-overlay-eligibility-through-subtitle-and-ui-composition",
+      "title": "Preserve hardware-overlay eligibility through subtitle and UI composition",
+      "decision": "stop_current_profile",
+      "stages": {
+        "define": "passed",
+        "prepare": "passed",
+        "screen": "passed",
+        "correctness": "passed",
+        "performance": "failed",
+        "results": "passed",
+        "decision": "passed"
+      },
+      "measurement": "Final A/V CPU median 0.838\u00d7; 8/9 pairs faster. Same shared robustness failure as R101.",
+      "scope": "Matched captions, controls, scrolling, resizing, fullscreen and multivideo checks. Native-surface eligibility only; hardware promotion and system energy remain unqualified.",
+      "evidence": [
+        "research/shared/runs/20260920T041733Z-native-surface-qualification/run.json"
+      ],
+      "next_action": "Reopen with an independently predeclared longer/representative confirmatory cost study; keep all appearance, actualsource delivery and audio-engine alignment controls. Do not change automaticrouting from this result."
+    }
+  ]
+}

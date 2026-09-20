@@ -27,3 +27,9 @@ that verifier reports them missing until restored. The recorded campaign audit
 predates storage exclusions and describes the complete local evidence set at
 that time, not a fresh-clone verification. This checkout also relies on existing
 external toolchains and archived sources documented by the individual runs.
+
+Some historical manifests reference production paths that later commits changed.
+The [source-drift audit](shared/runs/20260920T042500Z-historical-source-drift/analysis.md)
+recovers the exact original bytes from Git without rewriting old manifests or
+current source. The live-path verifier continues to report those differences;
+the audit maps each to its byte-verified historical snapshot.

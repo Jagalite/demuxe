@@ -1,0 +1,18 @@
+{
+  "stage": "historical_source_identity_audit",
+  "status": "reconciled_exact_historical_source_drift",
+  "commands": [
+    "python3 research/shared/tooling/audit-historical-source-drift.py /tmp/demuxe-twelve-run-verification.json /Volumes/seed2/Projects/demuxe/research/shared/runs/20260920T042500Z-historical-source-drift c5a82ca0346d1e27be8f8007d4a68585ababcb75"
+  ],
+  "analysis": "# Historical source drift reconciliation\n\nThe captured verification sweep reported **14 hash/size failure rows**, covering **7 artifact references in 6 historical manifests**, for **3 production source files**. These are recoverable committed-source drift, not missing or corrupted historical byte evidence.\n\nAll expected SHA-256 identities and byte counts match exact Git blobs at historical commit `c5a82ca0346d1e27be8f8007d4a68585ababcb75`. Byte-for-byte snapshots are retained under `snapshots/src/`; `mapping.json` maps each unchanged old manifest/path/expected hash to its precise commit, Git blob and snapshot. The matching commit proves availability of the historical bytes; it is not claimed as the original experiment execution revision.\n\nAt audit time all three live files exactly match committed HEAD `5694e2e48d3bcae572614f8a1fa19233d1620e37`; no uncommitted source edit is being excused. Production commits `7baf76570e2c5708ab0f8107c86803fa864efada` and `5694e2e48d3bcae572614f8a1fa19233d1620e37` account for the later source versions. Per-path change history, current hashes and sizes are recorded in the mapping.\n\nThe original verifier output is preserved unchanged and still says `passed: false` for live-path verification. This audit does not rewrite old manifests, repair their hashes in place, modify production files, rerun media tests or transfer old qualification to current production code. It supplies exact immutable historical-source identities for narrow reconciliation. All manifest hashes and live source bytes were checked unchanged after the audit.\n\nA separate historical metadata discrepancy is retained explicitly: four old manifest references label `src/internal/playback-plans.ts` GPL-3.0-or-later, while the exact expected historical bytes carry an **Apache-2.0 SPDX header**. The new snapshot preserves that original header and Apache license; those old metadata entries remain unchanged. The two player source snapshots retain GPL-3.0-or-later headers. Both license texts are included.\n",
+  "decisions": [],
+  "schema": 1,
+  "run_id": "20260920T042500Z-historical-source-drift",
+  "recorded_at_utc": "2026-09-20T04:20:53.971957+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+    "dirty_diff_sha256": "272921acf066b44cee785c8db1c61d39f42d20041a73d06e4ebc704adffc1458",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "stage": "decision",
+  "campaign": "remaining-twelve-full-qualification",
+  "commands": [
+    "xcrun swiftc -parse-as-library research/shared/tooling/display-attribution/capture.swift -o /tmp/demuxe-display-capture",
+    "xcrun swiftc research/shared/tooling/display-attribution/foreground.swift -o /tmp/demuxe-display-foreground (measured version precedes privacy-only minimization; see snapshot-provenance.json)",
+    "python3 research/shared/tooling/display-attribution/prepare-identity.py <fresh run directory>",
+    "Run fresh child directories in order: 00-timer, 01-raf, 02-raf, 03-timer, 04-timer, 05-raf, 06-wrong-order, 07-wrong-speed, 08-cancel; reuse generated source.ivf",
+    "CAPTURE=1 node research/shared/tooling/display-attribution/custom-cadence.mjs <child directory> <timer|raf|wrong-order|wrong-speed|cancel>",
+    "ffmpeg -v error -i 00-timer/source.ivf -f rawvideo -pix_fmt rgb24 pipe:1; sample declared 32x18 source grid into independent-ffmpeg-oracle.json",
+    "Extract SOURCE-* user-timing events from each recorded trace.json without changing original observations",
+    "python3 research/shared/tooling/display-attribution/analyze-capture.py <each child directory>",
+    "Exploratory xctrace/source-token probes are retained separately; exact intermediate helpers were not all snapshotted and are not final qualification inputs."
+  ],
+  "analysis": "# R169: actual displayed-source qualification\n\nCompleted scoped R169 research with an actual WebCodecs-decoded custom presenter and physical WindowServer output measurements. Three paired timer-versus-rAF trials displayed all 72 original 24fps source frames in order, identified against an independent host FFmpeg pixel oracle; maximum mean grid error was 0.5 luma levels and minimum separation from a wrong frame was 12.8125. ScreenCaptureKit supplied completed-frame displayTime, so the verdict does not rely on rAF/rVFC counts or Chrome's predicted display feedback. Wrong-frame-order and 20% speed-change controls were rejected; cancellation displayed exactly 12 frames and released all issued/source frames, ended the track and cleared the output. Median paired p95 cadence-phase improvement was 0.1026%, below the predeclared 15% gate (individual improvements 0.1026%, 0.02145%, 49.853%). The rAF variant reduced p95 issue-to-display latency to 24.81\u201324.93ms from 33.74\u201334.30ms, a recorded secondary finding that does not override the cadence gate. Stop this implementation/profile; this is a negative performance result, not a missing physical-measurement prerequisite. The scope is this isolated video-only 24fps custom presenter on the selected approximately 60Hz display with equal capture overhead. It is not retained/mpv integration, audio/AV-sync, hardware-overlay promotion, photon timing, energy, or general scheduling qualification.\n\n## Evidence limits\n\nScreenCaptureKit observes completed WindowServer composition for the owned browser window on the selected display. It does not measure photons or hardware overlay promotion. Its observer cost is shared by both variants. The fixed-rate video-only candidate is a faithful isolated custom scheduler, not the production retained/mpv owner. The first six frames are predeclared cadence warmup. The short cancellation control is an ownership/clearance test, not a playback-rate benchmark; its six-frame post-warmup endpoint slope is quantized by display refresh and is not used for performance.\n\nFull raw Chrome/Instruments captures remain historical observations; only generated fixture media is marked regenerable. Compact source timing events allow metric recomputation without parsing full traces. Foreground inventories were minimized before registration to omit unrelated windows. Exact source snapshots and reconstruction limitations are in snapshot-provenance.json.\n\n## External API/source audit\n\nApple documents SCStreamFrameInfo.displayTime as when WindowServer displays the frame: https://developer.apple.com/documentation/screencapturekit/scstreamframeinfo/displaytime . Exact installed Chrome revision 79460ebecaa5625e57a5fb679a735659e73dc687 computes GetDisplaytime from a display-link/latch heuristic and sets feedback flags at commit; those predicted timestamps were explicitly rejected as the physical oracle. Original BSD source and LICENSE are retained under chromium-source-audit/.\n\nReopen for a materially different phase policy, source/display cadence, or presentation owner with a fresh predeclared primary gate. Production retained/mpv and audio integration require their own independent correctness and cost tests.",
+  "decisions": [
+    {
+      "key": "R169.make-custom-presentation-aware-of-display-cadence",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual-route qualification with completed WindowServer output",
+      "candidate_executed": true,
+      "fallback": false,
+      "new_execution": true,
+      "reason": "Completed scoped R169 research with an actual WebCodecs-decoded custom presenter and physical WindowServer output measurements. Three paired timer-versus-rAF trials displayed all 72 original 24fps source frames in order, identified against an independent host FFmpeg pixel oracle; maximum mean grid error was 0.5 luma levels and minimum separation from a wrong frame was 12.8125. ScreenCaptureKit supplied completed-frame displayTime, so the verdict does not rely on rAF/rVFC counts or Chrome's predicted display feedback. Wrong-frame-order and 20% speed-change controls were rejected; cancellation displayed exactly 12 frames and released all issued/source frames, ended the track and cleared the output. Median paired p95 cadence-phase improvement was 0.1026%, below the predeclared 15% gate (individual improvements 0.1026%, 0.02145%, 49.853%). The rAF variant reduced p95 issue-to-display latency to 24.81\u201324.93ms from 33.74\u201334.30ms, a recorded secondary finding that does not override the cadence gate. Stop this implementation/profile; this is a negative performance result, not a missing physical-measurement prerequisite. The scope is this isolated video-only 24fps custom presenter on the selected approximately 60Hz display with equal capture overhead. It is not retained/mpv integration, audio/AV-sync, hardware-overlay promotion, photon timing, energy, or general scheduling qualification.",
+      "next_action": "Reopen for a materially different phase policy, source/display cadence, or presentation owner with a fresh predeclared primary gate. Production retained/mpv and audio integration require their own independent correctness and cost tests.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "Original R169 source contract retained; predeclared fixed-rate custom scheduler profile, one source clock, original frames, independent source pixel identity, cadence gate and exclusions recorded before six comparison trials."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Generated 72 source-identity VP8 frames; real WebCodecs decode, independent host FFmpeg RGB oracle, native ScreenCaptureKit completed-display timing, exact helper snapshots, wrong-order/speed/cancel controls, owned foreground verification and reproducible commands prepared."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual custom timer and display-opportunity presenters ran. Source-to-predicted Chrome feedback was audited and rejected as physical evidence; actual source-labelled WindowServer captured output resolves the previous measurement prerequisite."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "All six normal trials identified all72 original frames in order against independent FFmpeg pixels, <=0.5 mean luma-grid error and >=12.8125 wrong-frame margin. All met <=2% playback-rate slope gate. Wrong-order and20% speed-change controls rejected; cancellation ownership and finalblack output passed."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "Three paired trials, first6 frames warmup: median paired p95 completed-display cadence-phase improvement0.1026% versus predeclared15%; no cadence qualification. Secondary p95 issue-to-display latency improvement retained, not substituted for primary gate. No energy, physicaloverlay, audio or productionintegration claim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T035123Z-cadence-qualification",
+  "recorded_at_utc": "2026-09-20T04:01:41.311900+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+    "dirty_diff_sha256": "18673e5b830397fd083024f4c541a63c70fd1eddb75a3e01dc256b0d1cc765c7",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

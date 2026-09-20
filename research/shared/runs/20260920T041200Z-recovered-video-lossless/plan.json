@@ -1,0 +1,13 @@
+{
+  "provenance": "Contracts independently derived from recovered titles; not recovered original reports.",
+  "R076": {
+    "profile": "H264 closed GOP 30fps, bframes=2,b-pyramid=none, drop only nonreference pictures before decoder reconstruction; retain original display PTS. Full decode then same PTS selection is oracle/baseline. Also no-B fallback, random access, wrong reference removal.",
+    "correctness": "All kept decoded YUV bytes and source timestamps exact, nonreference drop reduces pictures, invalid reference drop detected; stream reopen/seek/cancellation no stale output.",
+    "performance": "7 alternating paired fresh-process jobs to full output; >=5% median total wall saving, every pair <1; include launch, demux/decode, output serialization and teardown. No realtime/energy claim."
+  },
+  "R077": {
+    "profile": "Video-only 640x360 LOSSLESS H264 closed GOP/no B at30fps. Cut [7,113) of120; lossless reencode boundary GOP portions [7,30),[90,113), packetcopy complete interior GOPs[30,90). Output standalone AnnexB remuxed MP4.",
+    "correctness": "106 exact decoded frames in order vs full decode trim, rebased monotonic timestamps, interior encoded slice packets byte-preserved, wrong earlier start detected, random seek/reopen/cancel.",
+    "performance": "7 alternating full jobs versus full trimmed lossless reencode, including extraction, boundary decode+encode, file I/O, concat and mux. >=5% median saving and every pair faster; source preparation excluded equally."
+  }
+}

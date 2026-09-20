@@ -1,0 +1,122 @@
+{
+  "stage": "qualification and decision",
+  "items": [
+    "R076.definition-not-recovered",
+    "R077.definition-not-recovered",
+    "R078.definition-not-recovered"
+  ],
+  "commands": [
+    "python3 research/shared/tooling/recovered-video/register.py"
+  ],
+  "analysis": "All three recovered-title hypotheses have explicit bounded research qualifications. Original reports were not fabricated. Preserve failed mixed-profile splice and strictBC1bitexact variants alongside qualified scopes. See results.json and each canonical contract; qualification is research-only, not production admission. Runfolder clocklabel error is explicitly documented in each exploratory record.",
+  "decisions": [
+    {
+      "key": "R076.definition-not-recovered",
+      "disposition": "pursue",
+      "category": "qualified_scoped_research_profile",
+      "evidence_level": "actual_route_qualification",
+      "candidate_executed": true,
+      "new_execution": true,
+      "reason": "Dependency-safe predecode thinning qualified on declared720p software H264 profile:107/240 pictures retained exact and19.25% median total walltime saving. Variable cadence and reference structure constrain applicability.",
+      "profile": "H264 closed-GOP no B-pyramid nonreference pictures dropped before reconstruction, retaining all reference pictures and original variable PTS. 1280x720 240frame profile qualified; 360p setup-dominated variant inconsistent across repeats. No target constantfps guarantee.",
+      "next_action": "Integrate an explicit opt-in policy only for identified nonreference pictures; rerun native/WebCodecs/audio synchronization and other reference structures before broader use.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "H264 closed-GOP no B-pyramid nonreference pictures dropped before reconstruction, retaining all reference pictures and original variable PTS. 1280x720 240frame profile qualified; 360p setup-dominated variant inconsistent across repeats. No target constantfps guarantee."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Synthetic generation, independent oracle, exactcommands/runtimehashes and wrongoutput controls recorded; preserveddiagnostics included."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual candidate executed, no conventionaldecode fallback hidden; scoped admissibility and failures recorded."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "107 retained frames exact against full decoder output indexed by matching source PTS; key-only wrongselection detected, no-Bfallback exact, five seek/reopen cases exact order/count, subprocess cancel and freshowner verified."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Seven alternating complete fresh-process jobs, median ratio 0.807506, every pair faster, >=5% median threshold met. Includes output serialization and teardown; no physical energy claim."
+        }
+      }
+    },
+    {
+      "key": "R077.definition-not-recovered",
+      "disposition": "pursue",
+      "category": "qualified_scoped_research_profile",
+      "evidence_level": "actual_route_qualification",
+      "candidate_executed": true,
+      "new_execution": true,
+      "reason": "Uniform lossless H264 smart cut qualified:46of106frames reencoded,60slice payloads preserved, exact output/timestamps and34.29% median walltime saving. Mixed-profile variant is a retained correctness failure, not qualified.",
+      "profile": "Lossless H264 video-only640x36030fps closed-GOP noB source. Frameaccurate cut[7,113): reencode46 boundary frames losslessly, copy60 interior VCL slices, remux rebased106frames. Mixed lossyinterior/losslessedge concatenation failed pixelcontract and remains excluded.",
+      "next_action": "Implement eligibility validation for uniform lossless profile; investigate mixed-profile splice divergence before any claim for arbitrary lossy sources, Bframes, openGOP or audio.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "Lossless H264 video-only640x36030fps closed-GOP noB source. Frameaccurate cut[7,113): reencode46 boundary frames losslessly, copy60 interior VCL slices, remux rebased106frames. Mixed lossyinterior/losslessedge concatenation failed pixelcontract and remains excluded."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Synthetic generation, independent oracle, exactcommands/runtimehashes and wrongoutput controls recorded; preserveddiagnostics included."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual candidate executed, no conventionaldecode fallback hidden; scoped admissibility and failures recorded."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "All106 decoded YUV frames exact against independent source-full-decode trim, timestamps exactlyrebased, all60interiorVCL hashes preserved, wrongstart detected; seek/reopen/sourcechange/termination pass."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Seven alternating complete edit jobs, median ratio 0.657081, every pair faster; >=5% median threshold met. Includes demux, edge decode/encode, I/O/concat/mux, setup and teardown. Source fixture preparation excluded equally."
+        }
+      }
+    },
+    {
+      "key": "R078.definition-not-recovered",
+      "disposition": "pursue",
+      "category": "qualified_scoped_research_profile",
+      "evidence_level": "actual_route_qualification",
+      "candidate_executed": true,
+      "new_execution": true,
+      "reason": "Texture-native browser playback qualified for declared Hap1 BC1 bounded-fidelity profile; visiblecanvas max1LSB RGB, exactalpha, lifecycle/timingcontrols,16.09% median job saving and8x less textureupload/storage. Strict byte-exact CPU/GPU profile remains failed.",
+      "profile": "32frame30fps128x128 opaque Hap1 BC1 AVI, bounded container parser, compressed GPU texture upload and visiblecanvas presentation without conventional decoder. Revised profile RGBerror<=1/255 and alphaexact versus FFmpeg; original strictbyteexact profile failed GPUinterpolation and is not qualified.",
+      "next_action": "Add container/format eligibility and fidelitypolicy before integration; qualify Snappy, other BC modes, dimensions, audio sync and realworldlong streams separately. Never advertise strict CPUdecode bitexactness.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "32frame30fps128x128 opaque Hap1 BC1 AVI, bounded container parser, compressed GPU texture upload and visiblecanvas presentation without conventional decoder. Revised profile RGBerror<=1/255 and alphaexact versus FFmpeg; original strictbyteexact profile failed GPUinterpolation and is not qualified."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Synthetic generation, independent oracle, exactcommands/runtimehashes and wrongoutput controls recorded; preserveddiagnostics included."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Actual candidate executed, no conventionaldecode fallback hidden; scoped admissibility and failures recorded."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "All32candidateframes and all32baselineframes checked; candidate max1LSB RGB and exactalpha. Wrongframe/corruptselector/truncated/codec/EOF controls; seeks, epochcancel, freshdevices; wallclock sequence32frames, actualcanvas screenshot validates lastframe independently."
+        },
+        "performance": {
+          "status": "passed",
+          "basis": "Nine alternating fresh-device32frame jobs incl parsing,pipeline,uploads,render,fullreadback andteardown; median ratio 0.839050, allpairs faster, >=5% median threshold met.8x less upload/source texture storage, not8x totalGPU memory. Visiblecanvas timeline separately verified; no physicalscanout claim."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T034332Z-recovered-video-qualification",
+  "recorded_at_utc": "2026-09-20T03:43:32.919719+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+    "dirty_diff_sha256": "7d6c94d512af68d6573e6de2fa64cfad8b0a9172c07b6a3815e04c8209f760cd",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

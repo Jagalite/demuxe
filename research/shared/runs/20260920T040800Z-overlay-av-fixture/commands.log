@@ -1,0 +1,1 @@
+ffmpeg -y -v error -i research/shared/runs/20260920T035400Z-overlay-fixture/source.mp4 -f lavfi -i "aevalsrc=0.15*sin(2*PI*(500+1000*floor(t*2))*t):s=48000:d=4" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -movflags +faststart research/shared/runs/20260920T040800Z-overlay-av-fixture/source.mp4

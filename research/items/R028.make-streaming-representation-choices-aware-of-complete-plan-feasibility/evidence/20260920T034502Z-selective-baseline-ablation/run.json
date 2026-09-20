@@ -1,0 +1,33 @@
+{
+  "stage": "performance_baseline_ablation",
+  "status": "concluded",
+  "commands": [
+    "node research/items/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility/tests/adaptive-ablation.mjs research/items/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility/evidence/20260920T034502Z-selective-baseline-ablation research/items/R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility/evidence/20260920T033830Z-adaptive-owner"
+  ],
+  "analysis": "Actual adaptive owner remains correct for24VP8/VP9segments with selectedPCM/cues and transactional controls. Stronger31pair ablation compares identical selective-owner retention under bandwidth-firstvalidatedfallback versus complete-plan-prefilter: median ratio1.012422, only14/31candidatejobsfaster; no predeclared5%costbenefit. Bothpathscreate13videoowners butdecodeaudioonlyonce, preservingidentical output. Prior0.702ratio primarily measured avoidingall-trackrebuild, not addedplanfiltervalue; prior wallMs excluded finalteardown. This ablation includes teardown. Complete-planvalidation remains necessary for correctness, but prefilter adds no measuredbenefit over cheapestcorrect testedcontroller.",
+  "decisions": [
+    {
+      "key": "R028.make-streaming-representation-choices-aware-of-complete-plan-feasibility",
+      "disposition": "stop_current_profile",
+      "evidence_level": "actual_route_experiment",
+      "reason": "Actual adaptive owner remains correct for24VP8/VP9segments with selectedPCM/cues and transactional controls. Stronger31pair ablation compares identical selective-owner retention under bandwidth-firstvalidatedfallback versus complete-plan-prefilter: median ratio1.012422, only14/31candidatejobsfaster; no predeclared5%costbenefit. Bothpathscreate13videoowners butdecodeaudioonlyonce, preservingidentical output. Prior0.702ratio primarily measured avoidingall-trackrebuild, not addedplanfiltervalue; prior wallMs excluded finalteardown. This ablation includes teardown. Complete-planvalidation remains necessary for correctness, but prefilter adds no measuredbenefit over cheapestcorrect testedcontroller.",
+      "candidate_executed": true,
+      "next_action": "Retain selective track ownership and complete-plan validation as prototype correctness findings. Reopen prefilter optimization on a workload with demonstrated fallback cost or plan-feasibility variability; productionHLS/HDR remains unqualified.",
+      "stages": {
+        "performance": {
+          "status": "failed",
+          "basis": "Actual adaptive owner remains correct for24VP8/VP9segments with selectedPCM/cues and transactional controls. Stronger31pair ablation compares identical selective-owner retention under bandwidth-firstvalidatedfallback versus complete-plan-prefilter: median ratio1.012422, only14/31candidatejobsfaster; no predeclared5%costbenefit. Bothpathscreate13videoowners butdecodeaudioonlyonce, preservingidentical output. Prior0.702ratio primarily measured avoidingall-trackrebuild, not addedplanfiltervalue; prior wallMs excluded finalteardown. This ablation includes teardown. Complete-planvalidation remains necessary for correctness, but prefilter adds no measuredbenefit over cheapestcorrect testedcontroller."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T034502Z-selective-baseline-ablation",
+  "recorded_at_utc": "2026-09-20T03:48:00.405866+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+    "dirty_diff_sha256": "c43867818334200b80929ff7947a0eec8d7cdacd461a4d58fdd49e9acbdef7ed",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

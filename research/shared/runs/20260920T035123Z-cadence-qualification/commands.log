@@ -1,0 +1,9 @@
+xcrun swiftc -parse-as-library research/shared/tooling/display-attribution/capture.swift -o /tmp/demuxe-display-capture
+xcrun swiftc research/shared/tooling/display-attribution/foreground.swift -o /tmp/demuxe-display-foreground (measured version precedes privacy-only minimization; see snapshot-provenance.json)
+python3 research/shared/tooling/display-attribution/prepare-identity.py <fresh run directory>
+Run fresh child directories in order: 00-timer, 01-raf, 02-raf, 03-timer, 04-timer, 05-raf, 06-wrong-order, 07-wrong-speed, 08-cancel; reuse generated source.ivf
+CAPTURE=1 node research/shared/tooling/display-attribution/custom-cadence.mjs <child directory> <timer|raf|wrong-order|wrong-speed|cancel>
+ffmpeg -v error -i 00-timer/source.ivf -f rawvideo -pix_fmt rgb24 pipe:1; sample declared 32x18 source grid into independent-ffmpeg-oracle.json
+Extract SOURCE-* user-timing events from each recorded trace.json without changing original observations
+python3 research/shared/tooling/display-attribution/analyze-capture.py <each child directory>
+Exploratory xctrace/source-token probes are retained separately; exact intermediate helpers were not all snapshotted and are not final qualification inputs.

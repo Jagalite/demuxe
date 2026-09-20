@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/Volumes/seed2/Projects/demuxe/research/shared/tooling/entropy-qualification/extra_controls.py", line 9, in <module>
+    cp=d/f'boundary-{boundary}';run(base/'input.h264',d/f'capture-{boundary}.h264',cp,'capture',boundary);p=run(base/'input.h264',d/f'restore-{boundary}.h264',cp,'restore',boundary);assert (d/f'restore-{boundary}.h264').read_bytes()==(base/'translated.h264').read_bytes();assert p.stderr.count('RESTORE source=')==24;results.append({'boundary':boundary,'slices':24,'complete_stream_exact':True,'retained_bytes':sum(x.stat().st_size for x in cp.glob('*.json'))})
+                                                                                                            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/seed2/Projects/demuxe/research/shared/tooling/entropy-qualification/extra_controls.py", line 6, in run
+    env={'DEMUXE_CP_DIR':str(cp),'DEMUXE_CP_MODE':mode,'DEMUXE_CP_MB':str(mb)};args=[b,str(src),str(dst)];p=subprocess.run(args,env=dict(os.environ,**env),capture_output=True,text=True);logs.append({'command':args,'env':env,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});assert p.returncode==0,p.stderr;return p
+                                                                                                                                                                                                                                                                                                 ^^^^^^^^^^^^^^^
+AssertionError: RESTORE source=44a146db302d15046f515f6d99fa4872c7e3819c96d1db95f1990f2b32706aed mb=95 bit=35342 prefix_bins_skipped=57625
+RESTORE source=a357d1bd240af6a360b488da82fea4edcbf63e0779b9d0fb6c8eaa4bd2936484 mb=95 bit=19743 prefix_bins_skipped=26868
+RESTORE source=184e09b649b29ce221f8405d008d365556228eaab23e7eeb9262f2d931275257 mb=95 bit=18199 prefix_bins_skipped=24857
+RESTORE source=819cb4c354a1eb85cc50be109569940a6703d78479996703426e1c55c5d15ced mb=95 bit=23018 prefix_bins_skipped=31693
+RESTORE source=d413b80f30b7cf27e8ebe7fcf261203b52beacce357c9f122cde411a52f1ec15 mb=95 bit=21037 prefix_bins_skipped=29701
+RESTORE source=3200bda8506efadab4d2f8680ad361693d52a6d140a8967a700ff06d0a84b448 mb=95 bit=19812 prefix_bins_skipped=26943
+RESTORE source=4ad096a86adb5b940c2103dcee9a8cac298d6b03140c4ea7949507270620f112 mb=95 bit=22349 prefix_bins_skipped=31035
+RESTORE source=48708564fb9768055faff04b262cdae7712612f75cf8740bcbf637e57299c5ca mb=95 bit=17253 prefix_bins_skipped=22929
+RESTORE source=5b4cc9f9a4f4fc32016ab86450f347e611eb3c705caaf4a2f11e9fde267c0ee7 mb=95 bit=16825 prefix_bins_skipped=23001
+RESTORE source=132e7c2e865b2d385bdfec94c26faf0d8738bb02e2b8c9d30778c14b03c8a758 mb=95 bit=21060 prefix_bins_skipped=28992
+RESTORE source=d9e4a23d8f16533afeff1ac5e5f19f729b3e933b778bf3a69c72511afdcebe02 mb=95 bit=19652 prefix_bins_skipped=27319
+RESTORE source=d3411269ae9be4821502a066fe11ee33ddfd69a03cc6b3b127e30acbfb355c1a mb=95 bit=17441 prefix_bins_skipped=23977
+RESTORE source=22f6f9b19f8b05b6184c38f89d478656cf006e95453406614a798be1a8cbc560 mb=95 bit=41645 prefix_bins_skipped=69989
+RESTORE source=4897dc5c67c6be16fa9d91ce71cfeeeef984b75ad0d401163484d21ba6c5c2f4 mb=95 bit=19168 prefix_bins_skipped=27171
+RESTORE source=57c106770bbffa3a02b1f83dc9ee754bb510801e25b432b414947fe84b2f3680 mb=95 bit=15508 prefix_bins_skipped=21074
+RESTORE source=ba11e3d4bc3ab08b32fe009ec49969a3304ada536b5f78ab1e4bbf6b6e888069 mb=95 bit=18971 prefix_bins_skipped=25674
+RESTORE source=6f4528bfa7d50d4088af564e4f44b96d25a8ab1e6a8a8c24c5a5eb2837ef886c mb=95 bit=20256 prefix_bins_skipped=28450
+RESTORE source=70593cde45cfbe95ca09ab3a7ed0e22469841d795d42db957de3ebffc3faeb0d mb=95 bit=15057 prefix_bins_skipped=19970
+RESTORE source=35276235a18bef004d5f04b3a8889aa18f336c0db1be8eba188b624c3f556178 mb=95 bit=19757 prefix_bins_skipped=27795
+RESTORE source=5dffd62560df9108af15750c5cb047c7bd968ae51e03368909fa28fe1f64f099 mb=95 bit=19953 prefix_bins_skipped=28255
+RESTORE source=6c688f41a6f447da816d56d3bf3ba82cc42d2db81ee245a1270f92db4af6388e mb=95 bit=18398 prefix_bins_skipped=24862
+
+thread 'main' panicked at src/bitstream.rs:61:77:
+assertion failed: byte_pos < data.len() && bit_pos < 8
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+

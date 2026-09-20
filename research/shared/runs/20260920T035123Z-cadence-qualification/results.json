@@ -1,0 +1,53 @@
+{
+  "item": "R169.make-custom-presentation-aware-of-display-cadence",
+  "scope": "Owned foreground Chrome152 on builtin display, original72x24fps VP8 identity frames decoded by real WebCodecs then custom timer versus rAF-scheduled generated native video stream; video-only one performance.now master clock, originalPTS; no interpolation or playback-rate changes. Separate from retained/mpv canvas owner.",
+  "allSixNormalTrialsCorrect": true,
+  "allSixCleanupPassed": true,
+  "wrongOrderRejected": true,
+  "wrongSpeedRejected": true,
+  "cancellationPassed": true,
+  "pairedPerformance": [
+    {
+      "timer": 0,
+      "raf": 1,
+      "baselinePhaseP95Ms": 8.362916625976563,
+      "candidatePhaseP95Ms": 8.354333312988281,
+      "improvementFraction": 0.0010263540068808918,
+      "candidateLatencyChangeMs": -0.7696250000000013
+    },
+    {
+      "timer": 3,
+      "raf": 2,
+      "baselinePhaseP95Ms": 8.3524375,
+      "candidatePhaseP95Ms": 8.350645812988281,
+      "improvementFraction": 0.0002145106756823445,
+      "candidateLatencyChangeMs": -0.5663958129882793
+    },
+    {
+      "timer": 4,
+      "raf": 5,
+      "baselinePhaseP95Ms": 8.343041687011718,
+      "candidatePhaseP95Ms": 4.183770812988281,
+      "improvementFraction": 0.4985317142186293,
+      "candidateLatencyChangeMs": -1.2294583435058613
+    }
+  ],
+  "medianPairedPhaseImprovementFraction": 0.0010263540068808918,
+  "requiredImprovementFraction": 0.15,
+  "performanceGatePassed": false,
+  "nativeOutputPixelOracle": "Host FFmpeg VP8 decode to RGB24 grid; every emitted source has identity index and PTS. Source stream remains original decoded frames, no interpolation.",
+  "maxMeanPixelGridError": 0.5,
+  "minWrongFrameSeparation": 12.8125,
+  "disposition": "stop_current_profile",
+  "secondaryResult": "Candidate p95 submission-to-WindowServer-display latency is ~24.81\u201324.93ms versus baseline33.74\u201334.30ms; this is recorded but does not override the declared cadence acceptance gate.",
+  "limitations": [
+    "24fps original grayscale identity fixture on builtin60Hz display only",
+    "ScreenCaptureKit measures actual completed WindowServer composition; not photon timing or hardware overlay promotion",
+    "Capture overhead is included equally in both comparison routes; no unobserved energy claim",
+    "Custom WebCodecs/MediaStream presenter is new isolated faithful candidate, not integration or qualification of retained/mpv presenter",
+    "Warm steady-state cadence metric after first6frames; no whole-browser startup or audio/AV-sync benefit claimed",
+    "Three short paired runs distinguish current declared profile; no broad claim against display-aware scheduling"
+  ],
+  "source_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+  "ffmpeg_version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+}

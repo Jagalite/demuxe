@@ -2,10 +2,24 @@
 
 # R283.definition-not-recovered
 
-Current decision: **blocked — missing definition**.
+Full identity: `R283.definition-not-recovered`.
 
-Fresh bounded source recovery inspected 716 current local files and attached text members, both explicit user ZIP bundles, and all 60 registered source hashes (all matched). No exact definition recovered for these 33 placeholder full keys. Only two authoritative backward mentions of R80 describe alpha/HDR auxiliary reconstruction; they do not supply its full definition or source identity. Derived placeholders/indexes are not source definitions. No runtime negative inferred and no unrelated same-number mechanism substituted.
+Current decision: **closed_source_unavailable** (user_supplied_source_recovery).
 
-Next: Supply an attributed original definition/report/export for this exact missing identity; preserve its bytes and hash, establish descriptive stable key with migration note, and only then define experiments. Repeated searching of the unchanged containers is not useful.
+User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed.
 
-[Current source-recovery evidence](../../shared/runs/20260920T010147Z-missing-definition-source-audit/analysis.md) · [Stages](item.json) · [History](history.jsonl)
+Next action: None. Permanently closed at user direction; reopen only if the user explicitly reverses this closure.
+
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | not_applicable | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+| prepare | not_applicable | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+| screen | passed | Source disposition recorded; not a candidate feasibility pass. |
+| correctness | not_applicable | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+| performance | not_applicable | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+| results | passed | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+| decision | passed | User explicitly closed this identity because its source is permanently unavailable. Administrative closure only; no mechanism inferred, candidate executed, or experimental failure claimed. |
+
+[New run](../../shared/runs/20260920T032644Z-user-source-recovery/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

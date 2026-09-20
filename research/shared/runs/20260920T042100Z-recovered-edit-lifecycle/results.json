@@ -1,0 +1,87 @@
+{
+  "cancelExit": 255,
+  "ownerProcessTerminated": true,
+  "freshReopenExact": true,
+  "sourceChangeOtherDimensionsFrames": [
+    320,
+    180,
+    30
+  ],
+  "backToEditedSourceSeekExact": true,
+  "editedFrameCount": 106,
+  "outputSha256": "8ba7b54c375959a724cede5206df6a508aac64110b25df2675d6b4934ee6d91c",
+  "commands": [
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "research/shared/runs/20260920T041200Z-recovered-video-lossless/no-b-edit.mp4",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-re",
+      "-stream_loop",
+      "-1",
+      "-i",
+      "research/shared/runs/20260920T041200Z-recovered-video-lossless/candidate.mp4",
+      "-f",
+      "null",
+      "-"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "research/shared/runs/20260920T041200Z-recovered-video-lossless/candidate.mp4",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "research/shared/runs/20260920T041200Z-recovered-video-lossless/no-b.mp4",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-ss",
+      "1",
+      "-i",
+      "research/shared/runs/20260920T041200Z-recovered-video-lossless/candidate.mp4",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ]
+  ],
+  "scope": "Host FFmpeg separate process ownership; not browser MediaSource lifecycle."
+}

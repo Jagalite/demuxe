@@ -1,20 +1,20 @@
 {
   "schema": 1,
   "key": "R079.definition-not-recovered",
-  "title": "R079.definition-not-recovered",
+  "title": "Preserve floating-point audio through an integer-only codec",
   "definition": {
     "key": "R079.definition-not-recovered",
     "legacy_id": "R79",
     "legacy_number": 79,
-    "identity_branch": "unresolved",
-    "title": null,
-    "definition_status": "DEFINITION_NOT_RECOVERED",
-    "definition_source": null,
-    "source_excerpt": null,
+    "identity_branch": "user_bundle_recovered_title",
+    "title": "Preserve floating-point audio through an integer-only codec",
+    "definition_status": "RECOVERED_TITLE_WITH_AUTHORED_TEST_CONTRACT",
+    "definition_source": "research/shared/runs/20260920T032644Z-user-source-recovery/RECOVERED_R076_R081.md",
+    "source_excerpt": "Preserve floating-point audio through an integer-only codec",
     "related_reports": [],
     "scope_hash": null,
     "legacy_guide_aliases": [],
-    "family": "source-recovery",
+    "family": "audio",
     "impact": null,
     "impact_basis": "Unknown until the missing definition is recovered; never fabricate a priority score.",
     "screen_effort": "E0",
@@ -22,104 +22,116 @@
     "priority_band": null,
     "initial_rank": null,
     "local_screen_state": "UNSCREENED_SOURCE_GATE",
-    "default_next_action": "One bounded, authorized recovery attempt for the missing definition; then HOLD_SOURCE and continue. Do not recreate a plausible card from its number.",
-    "minimum_probe": "Search the supplied source register and explicitly authorized local export paths; do not scan unrelated personal data or retry protected folders.",
-    "primary_metric": "Definition and source identity recovery, not runtime performance.",
-    "evidence_level": "NONE",
+    "default_next_action": "Reopen if an integer-only transport is mandatory and bandwidth/storage benefit offsets custom reconstruction; qualify streaming, rate/layout variation and special floats separately.",
+    "minimum_probe": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering.",
+    "primary_metric": "Output fidelity and measured equivalent-job cost in linked protocol; no universal codec/playback claim.",
+    "evidence_level": "ACTUAL_ROUTE_EXPERIMENT",
     "reopen_condition": "The actual definition and source content become available.",
-    "initial_screen": "One source-recovery action; no implementation is possible until meaning is known.",
-    "scope_contract": "Unknown",
+    "initial_screen": "Actual candidate and independent baseline/oracle tested under explicit title-derived scoped contract.",
+    "scope_contract": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering.",
     "negative_control": "Reject a same-number report with a different mechanism.",
     "related_keys": [],
     "target_relevance": "unknown",
-    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit.",
+    "recovery_note": "Legacy placeholder key retained to preserve indexed history and immutable evidence links. This bundle attributes the title to prior chat; original chat/report not supplied."
   },
   "stages": {
     "define": {
-      "status": "blocked",
-      "basis": "Exact definition unavailable after fresh bounded search of current sources and both supplied ZIP bundles; no mechanism invented.",
+      "status": "passed",
+      "basis": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Exact definition unavailable after fresh bounded search of current sources and both supplied ZIP bundles; no mechanism invented.",
+      "status": "passed",
+      "basis": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Bounded source-recovery review completed and immutable search evidence recorded; not an experimental verdict.",
+      "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Exact definition unavailable after fresh bounded search of current sources and both supplied ZIP bundles; no mechanism invented.",
+      "status": "passed",
+      "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Exact definition unavailable after fresh bounded search of current sources and both supplied ZIP bundles; no mechanism invented.",
+      "status": "failed",
+      "basis": "Predeclared paired job gate; median candidate/baseline ratio 20.285715. Scope and excluded costs are explicit in the protocol and raw rows.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Bounded source-recovery review completed and immutable search evidence recorded; not an experimental verdict.",
+      "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Bounded source-recovery review completed and immutable search evidence recorded; not an experimental verdict.",
+      "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode.",
       "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
+        "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "updated-source-recovery",
-    "record": {
-      "key": "R079.definition-not-recovered",
-      "stage": "decision",
-      "recorded_at_utc": "2026-09-20T01:01:47.688440+00:00",
-      "disposition": "blocked",
-      "state": "blocked",
-      "blocker_category": "definition",
-      "evidence_level": "bounded_source_recovery",
-      "candidate_executed": false,
-      "new_execution": false,
-      "run_ids": [
-        "20260920T010147Z-missing-definition-source-audit"
-      ],
-      "reason": "Fresh bounded source recovery inspected 716 current local files and attached text members, both explicit user ZIP bundles, and all 60 registered source hashes (all matched). No exact definition recovered for these 33 placeholder full keys. Only two authoritative backward mentions of R80 describe alpha/HDR auxiliary reconstruction; they do not supply its full definition or source identity. Derived placeholders/indexes are not source definitions. No runtime negative inferred and no unrelated same-number mechanism substituted.",
-      "next_action": "Supply an attributed original definition/report/export for this exact missing identity; preserve its bytes and hash, establish descriptive stable key with migration note, and only then define experiments. Repeated searching of the unchanged containers is not useful.",
-      "evidence": [
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/run.json",
-        "research/shared/runs/20260920T010147Z-missing-definition-source-audit/results.json"
-      ]
-    }
+    "key": "R079.definition-not-recovered",
+    "disposition": "stop_current_profile",
+    "evidence_level": "actual_route_experiment",
+    "candidate_executed": true,
+    "reason": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode.",
+    "next_action": "Reopen if an integer-only transport is mandatory and bandwidth/storage benefit offsets custom reconstruction; qualify streaming, rate/layout variation and special floats separately.",
+    "stages": {
+      "define": {
+        "status": "passed",
+        "basis": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering."
+      },
+      "prepare": {
+        "status": "passed",
+        "basis": "Stereo48kHz finite float32 via4channel16bitFLAC transport and custom unpacking; no direct ordinaryFLAC playback claim. NaN/Inf/subnormal patterns only tested in integer packing, not actual audio rendering."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "Actual browser FLAC integer16 limb transport reconstructs all96000 finite float32 stereo samples bit-exact, including magnitudes above1; offline output exact and lifecycle closes. Ordinary FLAC changes86488samples; swapped limbs change95998. Initial symmetric integer normalization failed37212samples; diagnostic preserved, sign-dependent normalization resolves it. Candidate decode+reconstruction median paired ratio 20.286x vs float WAV; payload338857 vs384092bytes. Capability works at this profile, but direct float WAV is already available and much cheaper to decode."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Predeclared paired job gate; median candidate/baseline ratio 20.285715. Scope and excluded costs are explicit in the protocol and raw rows."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T03:36:15.629328+00:00",
+    "run_ids": [
+      "20260920T033221Z-float-limb-codec"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/items/R079.definition-not-recovered/evidence/20260920T033221Z-float-limb-codec/run.json"
+    ]
   },
-  "next_action": "Supply an attributed original definition/report/export for this exact missing identity; preserve its bytes and hash, establish descriptive stable key with migration note, and only then define experiments. Repeated searching of the unchanged containers is not useful.",
+  "next_action": "Reopen if an integer-only transport is mandatory and bandwidth/storage benefit offsets custom reconstruction; qualify streaming, rate/layout variation and special floats separately.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_correctness_pass_performance_gate_failed",
+    "scope": "96,000 finite Float32 samples preserved and rendered exactly. Codec payload smaller, but native float WAV already works; no all-format claim.",
+    "production_integration": false,
+    "not_shipping_or_release_qualification": true
   }
 }

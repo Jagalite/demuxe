@@ -1,0 +1,53 @@
+{
+  "stage": "scaled_full_route_correctness_and_cost",
+  "status": "concluded",
+  "commands": [
+    "python3 research/items/R081.definition-not-recovered/tests/prepare-scaled.py research/items/R081.definition-not-recovered/evidence/20260920T050000Z-scaled-partial-decoder/256 256",
+    "python3 research/items/R081.definition-not-recovered/tests/prepare-scaled.py research/items/R081.definition-not-recovered/evidence/20260920T050000Z-scaled-partial-decoder/512 512",
+    "node research/items/R081.definition-not-recovered/tests/qualify-scaled.mjs research/items/R081.definition-not-recovered/evidence/20260920T050000Z-scaled-partial-decoder"
+  ],
+  "analysis": "# Scaling the actual partial decoder beyond 64 x 64\n\nBoth new profiles use actual compressed MPEG 2 syntax: one DC-only I picture and 32\nmotion-only P pictures, with chroma-aligned motion and exact independent FFmpeg\npictures. The 256 x 256 stream has 1,536 parsed DC blocks and 8,192 P macroblocks; the\n512 x 512 stream has 6,144 DC blocks and 32,768 P macroblocks. A separate Python observer\nand the timed browser entropy parser agree. The browser reconstructs from these\nquantized coefficients and motion symbols; no FFmpeg-decoded pixel plane feeds\neither timed candidate or baseline.\n\nThe CPU baseline uses typed-array fills for inverse DC and coalesces adjacent\nsame-motion macroblocks into contiguous row copies. It is materially cheaper\nthan the old pixel-by-pixel integer-arithmetic reference. The persistent CPU\nbaseline reuses both picture buffers, matching the GPU's opportunity to retain\nits device/pipelines/buffers. Both modes include fresh entropy parsing per job.\nGPU reference pictures stay resident across all 32 predictive reconstructions;\nonly the required final CPU-visible YUV output is read back in timed jobs.\n\nAll 33 pictures match independently decoded FFmpeg output at each size, not merely\nthe last frame. Wrong DC and wrong motion change output; a new valid source\nexecution restores exact pixels after each wrong state; dimension mismatch and\nclosed owners reject. All 88 timed CPU/GPU final outputs are exact. Existing\n64 x 64 results remain unchanged.\n\nPerformance fails at both sizes and both ownership lifetimes. Every one of 44 GPU\njobs is slower than its matched CPU job. Median cold GPU/CPU ratio is 2.078947 at\n256 x 256 and 1.887640 at 512 x 512. Persistent warm medians are 1.656250 and 1.818182;\ncharging device/setup plus all 11 jobs and final teardown gives total ratios\n1.704023 and 1.783516. Median CPU/GPU job costs are 3.6/7.5 ms and 8.4/16.9 ms cold,\n3.2/5.2 ms and 8.0/14.6 ms persistent. Explicit GPU allocations retained 1,251,840 and\n5,005,824 bytes versus 196,608 and 786,432 CPU picture-buffer bytes; shared parsed\nsyntax/JS runtime allocations are additional and not included in those buffer\ncounts.\n\nChrome 152.0.7977.83 used the ordinary Apple Metal 3 WebGPU adapter. Tests ran in a\ncoordinated quiet team GPU/CPU window, headless and without activating a display\nwindow. Prepared source/oracle loading and browser startup are common excluded\nsetup, while cold GPU adapter/device/pipelines, metadata preparation/transfer,\nall reconstruction, synchronized final readback and explicit owner teardown are\ncharged. Persistent warm rows never substitute for the charged total.\n\nDecision: stop this restricted partial-decode reconstruction profile. Scaling\nfrom 64 to 256 and 512 pixels per dimension and retaining a GPU owner did not reverse\nthe negative result against a reasonable optimized CPU implementation. This is\nnot a universal statement about GPU video decoding: arbitrary AC transforms,\nfractional prediction, B pictures, higher resolutions, other output contracts,\nGPU-resident presentation and integrated production routing remain unqualified.\nThe precise reopening condition is a materially different faithful workload or\nkernel/output contract that clears independent full-picture correctness and the\nmatched end-to-end cost gate.\n\nMeasurement boundary clarification: per-fixture preparation elapsed time is saved\nin preparation.json. Browser startup is excluded common setup and was not timed\nseparately, despite the protocol's planned separate setup reporting. The cold\ncomparison means a fresh GPU adapter/device/pipelines inside an already running\nbrowser. This omission cannot support an application-startup claim; it does not\nturn any observed slower GPU job into a performance benefit. Buffer destruction\nand CPU reference release are API-level teardown, not measured physical-memory\nreclamation or forced garbage collection.\n",
+  "decisions": [
+    {
+      "key": "R081.definition-not-recovered",
+      "disposition": "stop_current_profile",
+      "state": "stop_current_profile",
+      "evidence_level": "actual_compressed_decode_route_with_independent_picture_oracle",
+      "candidate_executed": true,
+      "new_execution": true,
+      "reason": "Strengthened beyond the prior 64x64 screen: actual 256x256 and 512x512 MPEG2 DC-I plus 32 chroma-aligned motion-only P pictures now parse from compressed bytes in both timed browser paths. All 33 independently FFmpeg-decoded pictures per size and all 88 timed outputs match exactly. Wrong DC/motion, restored source state, mismatched dimensions and closed owners are checked. Optimized CPU uses coalesced typed-array row copies, with reusable buffers in the persistent case. Cold median GPU/CPU ratios are 2.078947 and 1.887640; persistent warm medians 1.656250 and 1.818182, and setup+11jobs+teardown totals 1.704023 and 1.783516. Zero GPU-faster pairs in all four 11-pair sets. This is a measured scoped negative for actual software entropy plus GPU partial reconstruction, not a postdecode-copy substitution or universal GPU-decoder conclusion.",
+      "next_action": "Stop the measured DC-only-I/integer-motion-P CPU-visible-output profile. Reopen for materially different faithful codec work, kernels or GPU-resident output contract that passes independent all-picture correctness and a matched end-to-end cost gate; do not extrapolate this result to arbitrary codecs or production routing.",
+      "stages": {
+        "define": {
+          "status": "passed",
+          "basis": "Authored restricted contract from recovered R081 title, now explicitly scaled to 256x256 and 512x512; actual compressed input, optimized CPU comparator, equivalent final planar output, cold and amortized persistent gates predeclared."
+        },
+        "prepare": {
+          "status": "passed",
+          "basis": "Generated actual MPEG2 streams; separate Python/JS entropy observers agree; host FFmpeg provides 33 independent decoded pictures per size. Regeneration paths, licenses and identities captured."
+        },
+        "screen": {
+          "status": "passed",
+          "basis": "Strengthened beyond the prior 64x64 screen: actual 256x256 and 512x512 MPEG2 DC-I plus 32 chroma-aligned motion-only P pictures now parse from compressed bytes in both timed browser paths. All 33 independently FFmpeg-decoded pictures per size and all 88 timed outputs match exactly. Wrong DC/motion, restored source state, mismatched dimensions and closed owners are checked. Optimized CPU uses coalesced typed-array row copies, with reusable buffers in the persistent case. Cold median GPU/CPU ratios are 2.078947 and 1.887640; persistent warm medians 1.656250 and 1.818182, and setup+11jobs+teardown totals 1.704023 and 1.783516. Zero GPU-faster pairs in all four 11-pair sets. This is a measured scoped negative for actual software entropy plus GPU partial reconstruction, not a postdecode-copy substitution or universal GPU-decoder conclusion."
+        },
+        "correctness": {
+          "status": "passed",
+          "basis": "All 33 CPU/GPU pictures per size and all 88 timed outputs exact versus independent FFmpeg. Wrong DC and motion change output; valid replay restores state; dimension mismatch, closed owner and truncated syntax reject."
+        },
+        "performance": {
+          "status": "failed",
+          "basis": "11 alternating cold pairs and 11 alternating persistent pairs per size in quiet coordinated window. Actual source entropy parse and required final readback charged. Cold ratios 2.078947/1.887640; warm 1.656250/1.818182; persistent including setup and teardown totals 1.704023/1.783516. No faster GPU pair, failing <=0.95 and >=9/11 gates."
+        }
+      }
+    }
+  ],
+  "schema": 1,
+  "run_id": "20260920T050000Z-scaled-partial-decoder",
+  "recorded_at_utc": "2026-09-20T04:11:24.867027+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "environment": {
+    "git_revision": "5694e2e48d3bcae572614f8a1fa19233d1620e37",
+    "dirty_diff_sha256": "fec261fdc621fa749872fa9adabb05626ed4e0fe25d90097aa3e57f7d376887a",
+    "os_device": "Darwin Jagas-Air 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:26:46 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T8103 arm64"
+  }
+}

@@ -47,93 +47,104 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Restricted actual 4:2:0 I/P CABAC input, exact quantized syntax and independently reconstructed output contract, adverse controls and <=0.9 whole-job threshold declared before measurement.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice.md"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Residual-only logical ABI and fixture prepared/executed; complete macroblock/slice restart schema remains unimplemented.",
+      "status": "passed",
+      "basis": "Pinned MIT parser, original writer/checkpoint extensions, independent FFmpeg oracle, four generated profiles and cold clean locked build verified.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Actual restricted CABAC residual-block checkpoint foundation passed: eight 4x4 non-DC luma blocks after coded-block flag restore in a fresh Wasm module using 1604-byte pointer-free records plus source-bound RBSP. Complete binary-symbol traces, coefficients, arithmetic registers, all 1024 contexts and all 120 neighbor bytes match uninterrupted parser state; independent host decoding confirms 30 full pictures unchanged. Corrupt context/neighbor checks and wrong-source imports reject; deliberately omitted neighbor state changes all eight post-state oracles. Five alternating cold component cost pairs, charging initial prefix decode/sidecar generation, serialization, source retention, new module restoration, ten replay sets and cleanup, cost 1.410x baseline (range 1.218\u20132.196), failing the predeclared <=0.9 threshold. This is one-block residual syntax continuation, not full mid-slice macroblock grammar or reconstructed-picture restart. The full target remains a setup block, not an experimental codec failure.",
+      "basis": "Real quantized CABAC syntax translated to CAVLC and full mid-slice macroblock parsing restarted in new processes; no fallback or pixel encoding in translation.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "Residual component passed complete trace/state and full ordinary-picture checks. Full restarted slice syntax/pictures and lifecycle not yet implemented.",
+      "status": "passed",
+      "basis": "78 exact independently decoded pictures and matching original quantized syntax; fresh-process complete-slice restores, multiple boundaries, wrong coefficient/state/source and interruption controls passed.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Residual-only workload failed cost threshold; full target correctness and equivalent full-slice cost remain unavailable.",
+      "status": "failed",
+      "basis": "Final rebuilt eight alternating equivalent complete-job pairs, predeclared <=0.9 median ratio: 1.477290; observed range 1.074346\u20131.958123; initial generation and four restores charged.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Actual component execution, controls, complete preparation cost, limitations and remaining setup captured.",
+      "basis": "Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Full target remains setup-blocked; component is correct but fails this bounded cost profile.",
+      "basis": "Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged.",
       "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "logical-cabac-checkpoint-foundation",
-    "record": {
-      "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
-      "recorded_at_utc": "2026-09-20T00:58:00.598289+00:00",
-      "stage": "decision",
-      "disposition": "blocked",
-      "state": "blocked",
-      "blocker_category": "setup",
-      "run_ids": [
-        "20260920T005800Z-cabac-logical-checkpoint"
-      ],
-      "evidence_level": "actual_logical_residual_checkpoint",
-      "candidate_executed": true,
-      "new_execution": true,
-      "reason": "Actual restricted CABAC residual-block checkpoint foundation passed: eight 4x4 non-DC luma blocks after coded-block flag restore in a fresh Wasm module using 1604-byte pointer-free records plus source-bound RBSP. Complete binary-symbol traces, coefficients, arithmetic registers, all 1024 contexts and all 120 neighbor bytes match uninterrupted parser state; independent host decoding confirms 30 full pictures unchanged. Corrupt context/neighbor checks and wrong-source imports reject; deliberately omitted neighbor state changes all eight post-state oracles. Five alternating cold component cost pairs, charging initial prefix decode/sidecar generation, serialization, source retention, new module restoration, ten replay sets and cleanup, cost 1.410x baseline (range 1.218\u20132.196), failing the predeclared <=0.9 threshold. This is one-block residual syntax continuation, not full mid-slice macroblock grammar or reconstructed-picture restart. The full target remains a setup block, not an experimental codec failure.",
-      "next_action": "Implement an explicit complete macroblock-boundary schema covering macroblock position, prediction/motion/reference/QP and neighbor caches, then continue complete slice syntax and reconstruct suffix pictures independently. Include non-RAP/reference dependencies, source change/cancel, and whole-job preparation/retention cost. Do not reuse the residual-only timing as a full-slice performance verdict.",
-      "component_stages": {
-        "prepare": "passed",
-        "correctness": "passed",
-        "performance": "failed"
+    "key": "R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice",
+    "campaign": "remaining-twelve-full-qualification",
+    "disposition": "stop_current_profile",
+    "state": "stop_current_profile",
+    "evidence_level": "actual_full_stream_entropy_translation_and_full_slice_restart",
+    "candidate_executed": true,
+    "new_execution": true,
+    "reason": "Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged.",
+    "next_action": "Stop the measured JSON/full-prefix-syntax profile. Reopen only for a compact complete-state representation or real repeated partial-entropy workload that can beat full decoding after charging preparation, retained references, serialization and complete-picture correctness.",
+    "scope": "Native progressive single-slice 8-bit 4:2:0 CABAC I/P, no subpartitions/8x8-transform/FMO/constrained intra; independent FFmpeg full-sequence reconstruction. No production route or hardware tier claim.",
+    "stages": {
+      "define": {
+        "status": "passed",
+        "basis": "Restricted actual 4:2:0 I/P CABAC input, exact quantized syntax and independently reconstructed output contract, adverse controls and <=0.9 whole-job threshold declared before measurement."
       },
-      "evidence": [
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/run.json",
-        "research/shared/runs/20260920T005800Z-cabac-logical-checkpoint/browser-result.json"
-      ]
-    }
+      "prepare": {
+        "status": "passed",
+        "basis": "Pinned MIT parser, original writer/checkpoint extensions, independent FFmpeg oracle, four generated profiles and cold clean locked build verified."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Real quantized CABAC syntax translated to CAVLC and full mid-slice macroblock parsing restarted in new processes; no fallback or pixel encoding in translation."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "78 exact independently decoded pictures and matching original quantized syntax; fresh-process complete-slice restores, multiple boundaries, wrong coefficient/state/source and interruption controls passed."
+      },
+      "performance": {
+        "status": "failed",
+        "basis": "Final rebuilt eight alternating equivalent complete-job pairs, predeclared <=0.9 median ratio: 1.477290; observed range 1.074346\u20131.958123; initial generation and four restores charged."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T03:46:22.018600+00:00",
+    "run_ids": [
+      "20260920T040000Z-entropy-full-slice"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
+    ]
   },
-  "next_action": "Implement an explicit complete macroblock-boundary schema covering macroblock position, prediction/motion/reference/QP and neighbor caches, then continue complete slice syntax and reconstruct suffix pictures independently. Include non-RAP/reference dependencies, source change/cancel, and whole-job preparation/retention cost. Do not reuse the residual-only timing as a full-slice performance verdict.",
+  "next_action": "Stop the measured JSON/full-prefix-syntax profile. Reopen only for a compact complete-state representation or real repeated partial-entropy workload that can beat full decoding after charging preparation, retained references, serialization and complete-picture correctness.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_correctness_pass_performance_gate_failed",
+    "scope": "Fresh-process complete CABAC state restoration and full independent picture reconstruction. Prefix reconstruction costs included; not a standalone DPB capsule.",
+    "production_integration": false,
+    "not_shipping_or_release_qualification": true
   }
 }

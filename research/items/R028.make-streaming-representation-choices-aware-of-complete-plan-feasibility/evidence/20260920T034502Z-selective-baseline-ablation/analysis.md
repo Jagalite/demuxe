@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+Actual adaptive owner remains correct for24VP8/VP9segments with selectedPCM/cues and transactional controls. Stronger31pair ablation compares identical selective-owner retention under bandwidth-firstvalidatedfallback versus complete-plan-prefilter: median ratio1.012422, only14/31candidatejobsfaster; no predeclared5%costbenefit. Bothpathscreate13videoowners butdecodeaudioonlyonce, preservingidentical output. Prior0.702ratio primarily measured avoidingall-trackrebuild, not addedplanfiltervalue; prior wallMs excluded finalteardown. This ablation includes teardown. Complete-planvalidation remains necessary for correctness, but prefilter adds no measuredbenefit over cheapestcorrect testedcontroller.

@@ -81,7 +81,9 @@ item/campaign rather than introducing a global percentage or endurance threshold
 ## Decisions and evidence levels
 
 Use `pursue`, `stop_current_profile`, `already_implemented`, `inconclusive`, or
-`blocked` for new normalized dispositions. Add the precise blocker category
+`blocked` for new normalized dispositions. Explicit user-directed permanent source closures use
+`closed_source_unavailable`; these are administrative closures, counted separately
+from concluded research and experimental negatives. Add the precise blocker category
 (definition, fixture, setup, environment) where relevant. Retain the original
 decision vocabulary verbatim in historical imports; do not reinterpret its scope.
 An optional regression-only recommendation must say so explicitly.

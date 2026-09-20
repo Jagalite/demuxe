@@ -1,0 +1,153 @@
+[
+  {
+    "argv": [
+      "ffmpeg",
+      "-version"
+    ],
+    "exit": 0,
+    "seconds": 0.11871879099635407,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1280x720:rate=30:duration=8",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-threads",
+      "1",
+      "-preset",
+      "medium",
+      "-crf",
+      "18",
+      "-g",
+      "30",
+      "-keyint_min",
+      "30",
+      "-sc_threshold",
+      "0",
+      "-x264-params",
+      "bframes=2:b-pyramid=none:open-gop=0",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4"
+    ],
+    "exit": 0,
+    "seconds": 8.300595208012965,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-i",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4",
+      "-an",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    "exit": 0,
+    "seconds": 0.8052475840086117,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-select_streams",
+      "v",
+      "-show_frames",
+      "-show_entries",
+      "frame=best_effort_timestamp_time,pict_type,key_frame",
+      "-of",
+      "json",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4"
+    ],
+    "exit": 0,
+    "seconds": 1.4666197919868864,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-skip_frame",
+      "noref",
+      "-i",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4",
+      "-an",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    "exit": 0,
+    "seconds": 0.323069584032055,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-skip_frame",
+      "noref",
+      "-select_streams",
+      "v",
+      "-show_frames",
+      "-show_entries",
+      "frame=best_effort_timestamp_time,pict_type,key_frame",
+      "-of",
+      "json",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4"
+    ],
+    "exit": 0,
+    "seconds": 0.6779947920003906,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-i",
+      "research/shared/runs/20260920T041900Z-recovered-temporal-720p/bframes.mp4",
+      "-vf",
+      "select=eq(n\\,0)+eq(n\\,1)+eq(n\\,2)+eq(n\\,5)+eq(n\\,6)+eq(n\\,8)+eq(n\\,9)+eq(n\\,11)+eq(n\\,14)+eq(n\\,15)+eq(n\\,18)+eq(n\\,21)+eq(n\\,23)+eq(n\\,26)+eq(n\\,28)+eq(n\\,29)+eq(n\\,30)+eq(n\\,32)+eq(n\\,34)+eq(n\\,37)+eq(n\\,38)+eq(n\\,41)+eq(n\\,43)+eq(n\\,46)+eq(n\\,49)+eq(n\\,52)+eq(n\\,55)+eq(n\\,58)+eq(n\\,59)+eq(n\\,60)+eq(n\\,63)+eq(n\\,66)+eq(n\\,69)+eq(n\\,72)+eq(n\\,75)+eq(n\\,78)+eq(n\\,81)+eq(n\\,84)+eq(n\\,87)+eq(n\\,89)+eq(n\\,90)+eq(n\\,93)+eq(n\\,96)+eq(n\\,99)+eq(n\\,102)+eq(n\\,105)+eq(n\\,108)+eq(n\\,109)+eq(n\\,112)+eq(n\\,113)+eq(n\\,115)+eq(n\\,117)+eq(n\\,119)+eq(n\\,120)+eq(n\\,123)+eq(n\\,126)+eq(n\\,127)+eq(n\\,128)+eq(n\\,130)+eq(n\\,132)+eq(n\\,135)+eq(n\\,137)+eq(n\\,139)+eq(n\\,141)+eq(n\\,143)+eq(n\\,146)+eq(n\\,148)+eq(n\\,149)+eq(n\\,150)+eq(n\\,152)+eq(n\\,154)+eq(n\\,156)+eq(n\\,158)+eq(n\\,161)+eq(n\\,163)+eq(n\\,165)+eq(n\\,168)+eq(n\\,171)+eq(n\\,174)+eq(n\\,177)+eq(n\\,179)+eq(n\\,180)+eq(n\\,183)+eq(n\\,186)+eq(n\\,189)+eq(n\\,192)+eq(n\\,195)+eq(n\\,198)+eq(n\\,201)+eq(n\\,204)+eq(n\\,207)+eq(n\\,209)+eq(n\\,210)+eq(n\\,213)+eq(n\\,216)+eq(n\\,219)+eq(n\\,221)+eq(n\\,223)+eq(n\\,225)+eq(n\\,228)+eq(n\\,231)+eq(n\\,233)+eq(n\\,234)+eq(n\\,235)+eq(n\\,237)+eq(n\\,238)+eq(n\\,239)",
+      "-an",
+      "-pix_fmt",
+      "yuv420p",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "-"
+    ],
+    "exit": 244,
+    "seconds": 0.055905083019752055,
+    "stderr": "[Parsed_select_0 @ 0x8610203c0] Error while parsing expression 'eq(n,0)+eq(n,1)+eq(n,2)+eq(n,5)+eq(n,6)+eq(n,8)+eq(n,9)+eq(n,11)+eq(n,14)+eq(n,15)+eq(n,18)+eq(n,21)+eq(n,23)+eq(n,26)+eq(n,28)+eq(n,29)+eq(n,30)+eq(n,32)+eq(n,34)+eq(n,37)+eq(n,38)+eq(n,41)+eq(n,43)+eq(n,46)+eq(n,49)+eq(n,52)+eq(n,55)+eq(n,58)+eq(n,59)+eq(n,60)+eq(n,63)+eq(n,66)+eq(n,69)+eq(n,72)+eq(n,75)+eq(n,78)+eq(n,81)+eq(n,84)+eq(n,87)+eq(n,89)+eq(n,90)+eq(n,93)+eq(n,96)+eq(n,99)+eq(n,102)+eq(n,105)+eq(n,108)+eq(n,109)+eq(n,112)+eq(n,113)+eq(n,115)+eq(n,117)+eq(n,119)+eq(n,120)+eq(n,123)+eq(n,126)+eq(n,127)+eq(n,128)+eq(n,130)+eq(n,132)+eq(n,135)+eq(n,137)+eq(n,139)+eq(n,141)+eq(n,143)+eq(n,146)+eq(n,148)+eq(n,149)+eq(n,150)+eq(n,152)+eq(n,154)+eq(n,156)+eq(n,158)+eq(n,161)+eq(n,163)+eq(n,165)+eq(n,168)+eq(n,171)+eq(n,174)+eq(n,177)+eq(n,179)+eq(n,180)+eq(n,183)+eq(n,186)+eq(n,189)+eq(n,192)+eq(n,195)+eq(n,198)+eq(n,201)+eq(n,204)+eq(n,207)+eq(n,209)+eq(n,210)+eq(n,213)+eq(n,216)+eq(n,219)+eq(n,221)+eq(n,223)+eq(n,225)+eq(n,228)+eq(n,231)+eq(n,233)+eq(n,234)+eq(n,235)+eq(n,237)+eq(n,238)+eq(n,239)'\n[AVFilterGraph @ 0x860808180] Error initializing filters\nError opening output file -.\nError opening output files: Cannot allocate memory\n"
+  }
+]

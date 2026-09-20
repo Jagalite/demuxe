@@ -2,10 +2,24 @@
 
 # Sidecars that let decoding start halfway through an entropy-coded slice
 
-Current decision: **blocked — full restart setup**. Actual residual component: correctness passed, cost failed.
+Full identity: `R134.sidecars-that-let-decoding-start-halfway-through-an-entropy-coded-slice`.
 
-Actual restricted CABAC residual-block checkpoint foundation passed: eight 4x4 non-DC luma blocks after coded-block flag restore in a fresh Wasm module using 1604-byte pointer-free records plus source-bound RBSP. Complete binary-symbol traces, coefficients, arithmetic registers, all 1024 contexts and all 120 neighbor bytes match uninterrupted parser state; independent host decoding confirms 30 full pictures unchanged. Corrupt context/neighbor checks and wrong-source imports reject; deliberately omitted neighbor state changes all eight post-state oracles. Five alternating cold component cost pairs, charging initial prefix decode/sidecar generation, serialization, source retention, new module restoration, ten replay sets and cleanup, cost 1.410x baseline (range 1.218–2.196), failing the predeclared <=0.9 threshold. This is one-block residual syntax continuation, not full mid-slice macroblock grammar or reconstructed-picture restart. The full target remains a setup block, not an experimental codec failure.
+Current decision: **stop_current_profile** (actual_full_stream_entropy_translation_and_full_slice_restart).
 
-Next: Implement an explicit complete macroblock-boundary schema covering macroblock position, prediction/motion/reference/QP and neighbor caches, then continue complete slice syntax and reconstruct suffix pictures independently. Include non-RAP/reference dependencies, source change/cancel, and whole-job preparation/retention cost. Do not reuse the residual-only timing as a full-slice performance verdict.
+Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged.
 
-[Executed foundation](../../shared/runs/20260920T005800Z-cabac-logical-checkpoint/analysis.md) · [Current stages](item.json) · [History](history.jsonl)
+Next action: Stop the measured JSON/full-prefix-syntax profile. Reopen only for a compact complete-state representation or real repeated partial-entropy workload that can beat full decoding after charging preparation, retained references, serialization and complete-picture correctness.
+
+## Stages
+
+| Stage | Status | Basis |
+|---|---|---|
+| define | passed | Restricted actual 4:2:0 I/P CABAC input, exact quantized syntax and independently reconstructed output contract, adverse controls and <=0.9 whole-job threshold declared before measurement. |
+| prepare | passed | Pinned MIT parser, original writer/checkpoint extensions, independent FFmpeg oracle, four generated profiles and cold clean locked build verified. |
+| screen | passed | Real quantized CABAC syntax translated to CAVLC and full mid-slice macroblock parsing restarted in new processes; no fallback or pixel encoding in translation. |
+| correctness | passed | 78 exact independently decoded pictures and matching original quantized syntax; fresh-process complete-slice restores, multiple boundaries, wrong coefficient/state/source and interruption controls passed. |
+| performance | failed | Final rebuilt eight alternating equivalent complete-job pairs, predeclared <=0.9 median ratio: 1.477290; observed range 1.074346–1.958123; initial generation and four restores charged. |
+| results | passed | Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged. |
+| decision | passed | Complete pointer-free macroblock checkpoints now restart full CABAC slice grammar in fresh processes, preserve all 78 independently reconstructed I/P pictures, and pass source/integrity/neighbor/cancellation controls. Whole-job preparation plus four restores/reconstructions costs 1.477290x uninterrupted baseline, failing <=0.9; 24 source-bound midpoint records total 5,548,281 bytes for 63,404 source bytes. This is the full entropy-restart workflow, not residual-only timing. Prefix syntax and complete reference/picture reconstruction remain charged. |
+
+[New run](../../shared/runs/20260920T040000Z-entropy-full-slice/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)

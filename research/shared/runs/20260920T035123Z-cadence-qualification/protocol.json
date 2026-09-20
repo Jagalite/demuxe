@@ -1,0 +1,14 @@
+{
+  "declared_before_trials": "2026-09-20T03:51:23.847489+00:00",
+  "profile": "Owned foreground Chrome152 on builtin display, original72x24fps VP8 identity frames decoded by real WebCodecs then custom timer versus rAF-scheduled generated native video stream; video-only one performance.now master clock, originalPTS; no interpolation or playback-rate changes. Separate from retained/mpv canvas owner.",
+  "comparison": "Three paired timer/raf trials alternating order; ScreenCaptureKit actual-display restricted to ownedwindow, same observer overhead in both. First6 sourceframes warmup; compare measuredWindowServer displayTime phase error against sourcePTS after onlyconstantoffset fit.",
+  "correctness": "Every72 sourceidentity observed in order, mean sourcepixelgrid error<=2 luma levels and nearest-wrong-frame margin>=5. No artificial speed change: duration slope within2% of source. Ownedoutputclones/sourceframes closed, track ended, source detached. Separate wrong-order, wrong-speed and cancel controls.",
+  "performance": "Candidate passes only if median paired p95 absolute physicaldisplay phase error improves>=15%, no correctness regression and source-to-display latency does not rise more than one60Hz refresh. Capture includes ownsetupobserver cost; no energy or actualnativeoverlay claim.",
+  "not_claimed": [
+    "physical photon timing",
+    "uncaptured overlay eligibility",
+    "audio masterclock/AV sync",
+    "production retained/mpv integration",
+    "generalization beyond tested24fps builtin60Hz profile"
+  ]
+}

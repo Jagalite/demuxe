@@ -1,0 +1,12 @@
+{
+  "mechanism": "Actual restricted MPEG2 compressed input entropy parsed at runtime, then inverse DC +32 predictive reference reconstructions. Source is not decoded pixels or an authored postdecode copy benchmark.",
+  "profiles": ["256x256", "512x512"],
+  "scope": "8-bit progressive420, DC-only I at precision0, AC-zero with MPEG2 mismatch contribution below rounding threshold;32 residual-free P pictures with integer luma and chroma-aligned motion. No arbitrary AC, B, interlace or fractional profile.",
+  "correctness": "All33 CPU and GPU decoded planar pictures exactly equal independent host FFmpeg; browser entropy parser coefficients and vectors match separate Python observer; every timed final picture exact. Wrong initial DC, state-recovery, source dimensions and closed-owner controls.",
+  "cpu_baseline": "Inverse DC by typed-array fill, derive coalesced contiguous same-motion runs from actual macroblock syntax, native typed-array row copies. Two8-bit picture buffers. Persistent branch reuses these buffers. No slow per-pixel arithmetic reference as performance baseline.",
+  "gpu_candidate": "Compute inverse DC and32resident reference predictions, one32-bit storage value per sample, final CPU-visible planar output via synchronized readback. Persistent branch reuses device/pipelines/buffers. Output remains equivalent; GPU-resident-only output not substituted.",
+  "cold_cost": "Each job includes actual compressed entropy parse, CPU or fresh adapter/device/pipelines/buffers, metadata flatten/upload,32predictions, finalreadback/cast and explicit GPU teardown. Common browser startup, prepared source/oracle loading and generated fixture creation excluded and reported separately.",
+  "persistent_cost": "Alternating complete-job rows include source entropy parse and full reconstruction/required readback. Setup and final teardown separately measured and added to aggregate11-job cost; warm median alone is secondary.",
+  "sampling": "11alternating pairs cold,11alternating pairs persistent per size, after independent all-picture correctness. Exclusive quiet GPU+CPU window coordinated with other agents; headless Chrome.",
+  "gate": "Performance benefit requires candidate/baseline median<=0.95 and at least9/11faster pairs for cold claim; persistent claim additionally requires setup+all11jobs+teardown total ratio<=0.95. Report results per size/mode, no extrapolation to arbitrary video or physical display/hardware decode tier."
+}

@@ -47,81 +47,104 @@
   "stages": {
     "define": {
       "status": "passed",
-      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "basis": "Restricted actual 4:2:0 I/P CABAC input, exact quantized syntax and independently reconstructed output contract, adverse controls and <=0.9 whole-job threshold declared before measurement.",
       "evidence": [
-        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R120.entropy-only-transcoding.md"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "prepare": {
-      "status": "blocked",
-      "basis": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
+      "status": "passed",
+      "basis": "Pinned MIT parser, original writer/checkpoint extensions, independent FFmpeg oracle, four generated profiles and cold clean locked build verified.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.",
+      "basis": "Real quantized CABAC syntax translated to CAVLC and full mid-slice macroblock parsing restarted in new processes; no fallback or pixel encoding in translation.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "correctness": {
-      "status": "blocked",
-      "basis": "No original-syntax-preserving translated bitstream yet.",
+      "status": "passed",
+      "basis": "78 exact independently decoded pictures and matching original quantized syntax; fresh-process complete-slice restores, multiple boundaries, wrong coefficient/state/source and interruption controls passed.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "performance": {
-      "status": "blocked",
-      "basis": "Requires faithful translated output correctness first.",
+      "status": "passed",
+      "basis": "Final rebuilt eight alternating equivalent complete-job pairs, predeclared <=0.9 median ratio: 0.824175; observed range 0.792708\u20130.846725.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "results": {
       "status": "passed",
-      "basis": "Pinned source interfaces and blockers captured.",
+      "basis": "Actual restricted CABAC-to-CAVLC syntax translation preserves 117,746 nonzero coefficients and all 78 independently decoded I/P pictures. Final clean-build complete-job cost is 0.824175x lossless pixel decode/reencode baseline (8 alternating pairs); 70,639 versus 153,570 output bytes. This establishes a restricted native entropy-conversion operation, not passthrough savings, Baseline-only hardware compatibility or a playback-tier increase.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Setup block; not negative codec finding.",
+      "basis": "Actual restricted CABAC-to-CAVLC syntax translation preserves 117,746 nonzero coefficients and all 78 independently decoded I/P pictures. Final clean-build complete-job cost is 0.824175x lossless pixel decode/reencode baseline (8 alternating pairs); 70,639 versus 153,570 output bytes. This establishes a restricted native entropy-conversion operation, not passthrough savings, Baseline-only hardware compatibility or a playback-tier increase.",
       "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
+        "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
       ]
     }
   },
   "current_decision": {
-    "campaign": "exact-entropy-source-audit",
-    "record": {
-      "key": "R120.entropy-only-transcoding",
-      "recorded_at_utc": "2026-09-20T00:48:01.999042+00:00",
-      "stage": "decision",
-      "disposition": "blocked",
-      "state": "blocked",
-      "blocker_category": "setup",
-      "run_ids": [
-        "20260920T004801Z-entropy-translator-source-audit"
-      ],
-      "evidence_level": "pinned_source_review",
-      "candidate_executed": false,
-      "new_execution": false,
-      "reason": "Pinned local FFmpeg source review finds actual CABAC/CAVLC macroblock readers but no maintained entropy-only slice writer or syntax handoff. Both residual paths apply dequantization and rounding while storing sl->mb; those reconstructed intermediate values are not a demonstrated substitute for original quantized syntax. Exact export must intercept significance/levels before qmul and preserve macroblock/prediction/motion/reference/QP grammar. libx264 wrapper passes AVFrame pixel planes to x264_encoder_encode, so ordinary decode/reencode is not entropy-only translation. Installed H264 BSFs listed metadata, Annex-B and redundant-PPS transforms; none supplies this handoff. This is a precise local setup block, not a negative codec verdict or claim no external translator exists.",
-      "next_action": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
-      "evidence": [
-        "research/shared/runs/20260920T004801Z-entropy-translator-source-audit/run.json"
-      ]
-    }
+    "key": "R120.entropy-only-transcoding",
+    "campaign": "remaining-twelve-full-qualification",
+    "disposition": "pursue",
+    "state": "pursue",
+    "evidence_level": "actual_full_stream_entropy_translation_and_full_slice_restart",
+    "candidate_executed": true,
+    "new_execution": true,
+    "reason": "Actual restricted CABAC-to-CAVLC syntax translation preserves 117,746 nonzero coefficients and all 78 independently decoded I/P pictures. Final clean-build complete-job cost is 0.824175x lossless pixel decode/reencode baseline (8 alternating pairs); 70,639 versus 153,570 output bytes. This establishes a restricted native entropy-conversion operation, not passthrough savings, Baseline-only hardware compatibility or a playback-tier increase.",
+    "next_action": "Retain as a qualified restricted research operation. Production integration requires explicit admission checks and broader decoder/content/browser validation; only extend codec tools with new exact syntax and picture oracles.",
+    "scope": "Native progressive single-slice 8-bit 4:2:0 CABAC I/P, no subpartitions/8x8-transform/FMO/constrained intra; independent FFmpeg full-sequence reconstruction. No production route or hardware tier claim.",
+    "stages": {
+      "define": {
+        "status": "passed",
+        "basis": "Restricted actual 4:2:0 I/P CABAC input, exact quantized syntax and independently reconstructed output contract, adverse controls and <=0.9 whole-job threshold declared before measurement."
+      },
+      "prepare": {
+        "status": "passed",
+        "basis": "Pinned MIT parser, original writer/checkpoint extensions, independent FFmpeg oracle, four generated profiles and cold clean locked build verified."
+      },
+      "screen": {
+        "status": "passed",
+        "basis": "Real quantized CABAC syntax translated to CAVLC and full mid-slice macroblock parsing restarted in new processes; no fallback or pixel encoding in translation."
+      },
+      "correctness": {
+        "status": "passed",
+        "basis": "78 exact independently decoded pictures and matching original quantized syntax; fresh-process complete-slice restores, multiple boundaries, wrong coefficient/state/source and interruption controls passed."
+      },
+      "performance": {
+        "status": "passed",
+        "basis": "Final rebuilt eight alternating equivalent complete-job pairs, predeclared <=0.9 median ratio: 0.824175; observed range 0.792708\u20130.846725."
+      }
+    },
+    "recorded_at_utc": "2026-09-20T03:46:22.018600+00:00",
+    "run_ids": [
+      "20260920T040000Z-entropy-full-slice"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260920T040000Z-entropy-full-slice/run.json"
+    ]
   },
-  "next_action": "Implement or acquire a bounded pre-qmul syntax export plus inverse-binarization/slice writer for one restricted I/P corpus; verify original quantized levels, motion/prediction semantics and independent reconstructed frame hashes before cost. The R134 residual checkpoint component cannot serve as an entropy writer.",
+  "next_action": "Retain as a qualified restricted research operation. Production integration requires explicit admission checks and broader decoder/content/browser validation; only extend codec tools with new exact syntax and picture oracles.",
   "integration": {
     "status": "not_assessed_by_migration"
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "qualified_scoped_research_profile",
+    "scope": "CABAC to CAVLC syntax translation; 78 independently decoded pictures exact across four progressive 8-bit 4:2:0 I/P profiles. No browser-tier claim.",
+    "production_integration": false,
+    "not_shipping_or_release_qualification": true
   }
 }

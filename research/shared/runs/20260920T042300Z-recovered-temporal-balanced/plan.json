@@ -1,0 +1,8 @@
+{
+  "provenance": "Contracts independently derived from recovered titles; not recovered original reports.",
+  "R076": {
+    "profile": "1280x720 240-frame H264 closed GOP 30fps, bframes=2,b-pyramid=none, drop only nonreference pictures before decoder reconstruction; retain original display PTS. Full decode then same PTS selection is oracle/baseline. Also no-B fallback, random access, wrong reference removal.",
+    "correctness": "All kept decoded YUV bytes and source timestamps exact, nonreference drop reduces pictures, invalid reference drop detected; stream reopen/seek/cancellation no stale output.",
+    "performance": "7 alternating paired fresh-process jobs to full output; >=5% median total wall saving, every pair <1; include launch, demux/decode, output serialization and teardown. No realtime/energy claim."
+  }
+}
