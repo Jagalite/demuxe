@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "revision": "7baf76570e2c5708ab0f8107c86803fa864efada",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "tests/plain-vtt.mjs",
+        "tests/plan-admission.mjs",
+        "tests/native-selection.mjs",
+        "tests/public-api-state.mjs",
+        "tests/head-to-head/contracts.mjs"
+      ],
+      "returncode": 0,
+      "stdout": "\u2714 closed, open and suffix ranges are bounded; malformed/multiple/unsatisfiable ranges reject (0.82875ms)\n\u2714 marked audio rejects silence, missing channel, swapped channels and wrong tones (0.132833ms)\n\u2714 display oracle rejects black and stale timeline markers (1.931791ms)\n\u2714 performance requires matching passed correctness, assets, harness and exact browser profile (0.126542ms)\n\u2714 case selection fails on typo instead of silently reducing requested coverage (0.217958ms)\n\u2714 server serves byte-exact ranges and refuses symlink escapes (30.765334ms)\n\u2714 run verifier accepts retained failures but detects evidence tampering (137.257917ms)\n\u2714 live HLS serves an advancing three-segment window without a VOD end marker (0.266583ms)\n\u2714 unknown Native audio mapping is not browser incompatibility, including PCM24 regression (0.514542ms)\n\u2714 semantic admission checks selected tracks, not a static browser codec table (0.121ms)\n\u2714 required embedded subtitles remain a hard gate (0.121ms)\n\u2714 negative browser hints and unknown AAC configuration cannot veto direct discovery (0.064875ms)\n\u2714 HLS VOD permits a direct runtime trial without bypassing manifest requirements (0.172208ms)\n\u2714 plain captions preserve overlapping multiline cues and hour timestamps (1.023209ms)\n\u2714 rich or unqualified VTT never enters the plain route (0.1335ms)\n\u2714 malformed plain timing and UTF-8 reject without route fallback (0.562792ms)\n\u2714 ordinary automatic admission contains copy plans and never implicitly permits adaptation (1.536334ms)\n\u2714 finite Native ASS and gain combinations exclude missing components (0.204208ms)\n\u2714 source, deployment and filter requirements actually remove plans (0.217625ms)\n\u2714 explicit adaptation respects profile, lossy permission and manifest boundary (0.177083ms)\n\u2714 automatic lossless permission requires source evidence and never admits Opus (0.180458ms)\n\u2714 automatic FLAC inspects the selected track, known endpoints and exact PCM configuration (0.300667ms)\n\u2714 isolation admission remains structurally distinct from unsupported media (0.157584ms)\n\u2714 HLS direct admission retains controlled transport and feature boundaries (0.278709ms)\n\u2714 qualified external plain VTT retains browser A/V but never erases other requirements (0.769917ms)\n\u2714 runtime Wasm abort is asset failure; user AbortError is cancellation (1.28675ms)\n\u2714 unknown ranges are distinct from known empty and invalid ranges remain unknown (0.379958ms)\n\u2714 normal diagnostics redact auth, userinfo, signed queries and fragments (0.217625ms)\n\u2714 display geometry resolves Hybrid timing placeholders and anamorphic rotation (0.620666ms)\n\u2714 track identities are source scoped and compatible across mpv engines (0.352208ms)\n\u2714 external subtitle demuxers do not alias one another or embedded stream IDs (0.124541ms)\n\u2139 tests 31\n\u2139 suites 0\n\u2139 pass 31\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 437.303583\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "evidenceIntegrity": [
+    {
+      "run": "results/head-to-head/component-captions-01",
+      "manifestSHA256": "105bf64ff59244b19501e9947f21c15283bb1797e7158888127802300c1b1741",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-02",
+      "manifestSHA256": "7c6a9a697a57b7326e01e63cd0ef710b7aa086ccee9322e0140b759193dbc3a4",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-03",
+      "manifestSHA256": "cc2e3ecea13b394a2569caf0e4f1b7848c9b6ee1969489d41f52112bde7e56f8",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-crossing-01",
+      "manifestSHA256": "aacd14c3fb5bc6099e5b315d46b7df1da71a18308cadd93597b87af57876e163",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-playing-01",
+      "manifestSHA256": "ef4bd7d0d9be8ded6076571680dbea8594cb159e95f03fc391cbf9a17a3e52a8",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-remux-01",
+      "manifestSHA256": "1a5eca0621e48bdcbb2e43f49378f22061b0fd049175e65e31b5a866abc1b85f",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-captions-remux-crossing-01",
+      "manifestSHA256": "af708e255930d50da972747d9dcb2e87a4397bc7f5fe59b107d67f1ac8d40a41",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-catalogue-01",
+      "manifestSHA256": "43bac37cb3624472338d5d1b1fcc956e060eae35a80629f2a16752a8aa390c52",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-subtitle-regressions-01",
+      "manifestSHA256": "775f3925e2967449cebbe7c91fc68faf202f4f83dd19c99f554c228656731306",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-vtt-baseline-01",
+      "manifestSHA256": "74698e4ab26fec56e08e91aba80d00fb4a123225cd654850290c7f9f085612f1",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-vtt-candidate-01",
+      "manifestSHA256": "accc2c1791935ad92e622186271129d49d2ad5cc3049d68ae7a228a3609dca7d",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-vtt-negative-01",
+      "manifestSHA256": "a2f12af5e8f951dd61b74c571ec516ac5a518209845f312d6bc1fe1c98803407",
+      "integrityPassed": true
+    },
+    {
+      "run": "results/head-to-head/component-vtt-performance-01",
+      "manifestSHA256": "42f93bdbae194af5df198421084f1d9904ddec6d70339a6f472d22857f2567c4",
+      "integrityPassed": true
+    }
+  ],
+  "scope": "Unit/regression and evidence integrity; failed/negative run outcomes remain unchanged. Captured production source hashes match the measured candidate snapshot."
+}

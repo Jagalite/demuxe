@@ -19,6 +19,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private ass?;
     private assAssets;
     private assIndex;
+    private captionAssets;
+    private captionURLs;
     private gainContext?;
     private gainSource?;
     private gainNode?;
@@ -44,6 +46,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private emit;
     private assertActive;
     private wait;
+    private textTrackId;
     private refresh;
     get diagnostics(): {
         capability: {
@@ -114,6 +117,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     subtitleVisible(visible: boolean): Promise<void>;
     addSubtitle(asset: SubtitleAsset): Promise<void>;
     addTextTrack(source: TextTrackSource): Promise<void>;
+    private loadTextTrack;
     private shiftTextTrack;
     resize(width: number, height: number): void;
     audioDiagnostics(): {

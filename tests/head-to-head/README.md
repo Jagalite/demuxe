@@ -16,6 +16,9 @@ selection, acceptance checks, results, performance gates and limitations.
 - `explain-hybrid.py`: verify retained runs and generate per-row Native rejection/component explanations.
 - `probe-hybrid-mse.mjs`: record separate video/audio/combined MSE hints without claiming playback qualification.
 - `hls-fallback.mjs`: injected Native HLS rejection followed by real Hybrid output and cleanup.
+- `component-captions.mjs`: plain WebVTT cue, selection, cross-backend, malformed-input and lifecycle qualification (optional `remux` argument).
+- `component-caption-regressions.mjs`: review regressions for mixed browser/file track identities, trailing cue whitespace, real CSP fallback, cue-mismatch fallback, and terminal cancellation/permission controls.
+- `component-performance.mjs`: correctness-gated, three-pair whole-player baseline/candidate comparison; see [component routing](../../docs/COMPONENT-ROUTING.md) for scope and rerun commands.
 - `checks.mjs`, `contracts.mjs`: independent marker/range/identity acceptance controls.
 - `verify.mjs`: completed-run evidence integrity, without playback.
 

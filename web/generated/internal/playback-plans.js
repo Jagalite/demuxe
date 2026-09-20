@@ -22,6 +22,7 @@ export const PLAYBACK_PLANS = Object.freeze([
     { id: 'software-gain', mode: 'software', video: 'ffmpeg', audio: 'mpv+web-audio-gain', qualification: 'experimental' },
     { id: 'software', mode: 'software', video: 'ffmpeg', audio: 'mpv', qualification: 'existing' },
 ].map(plan => Object.freeze({ ...plan,
+    owners: Object.freeze({ video: plan.mode === 'native' ? 'browser-media-element' : plan.mode === 'hybrid' ? 'browser-webcodecs' : 'ffmpeg', audio: plan.mode === 'native' ? 'browser-media-element' : 'mpv-pcm-worklet', subtitle: plan.id.includes('-ass') ? 'independent-libass' : plan.mode === 'native' ? 'browser-text-track' : 'mpv', demux: plan.mode === 'native' ? (plan.id.startsWith('native-direct') ? 'browser' : 'ffmpeg-preparation') : 'mpv', presentation: plan.mode === 'native' ? 'browser-media-element' : 'demuxe-retained-frame' }),
     source: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'qualified random-access file and selected codec packaging' : plan.mode === 'native' ? 'browser-supported source and selected tracks' : 'existing mpv source/track contract',
     prerequisites: (plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'MSE, cross-origin isolation, qualified MIME' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
     subtitles: plan.id.includes('-ass') ? 'external ASS/SSA via pinned libass; container presentation only' : plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
@@ -83,8 +84,12 @@ export function planAdmission(f) {
             const prepared = plan.id.startsWith('native-remux') || flac || opus;
             if (f.audioOutput !== 'stereo')
                 reject('FEATURE_UNSUPPORTED', 'Explicit PCM layout requires mpv');
-            else if (ass !== !!f.externalFormats.length)
+            else if (ass !== f.externalFormats.some(format => format !== 'browser-vtt'))
                 reject('PLAN_NOT_REQUESTED', 'Subtitle component does not match the requested presentation');
+            else if (f.externalFormats.includes('browser-vtt') && (flac || opus))
+                reject('QUALIFICATION_REQUIRED', 'Plain file captions with adapted audio require separate qualification');
+            else if (f.externalFormats.includes('browser-vtt') && f.manifest)
+                reject('QUALIFICATION_REQUIRED', 'File captions are not qualified on manifest timelines');
             else if (ass && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa'].includes(format))))
                 reject('FEATURE_UNSUPPORTED', 'External subtitle format requires mpv or explicit Native ASS admission');
             else if (ass && f.manifest)

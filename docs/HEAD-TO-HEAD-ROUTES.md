@@ -103,7 +103,7 @@ results above. See [full evidence, blocker reasons and caveats](HEAD-TO-HEAD-CAT
 | H.264 + AAC / fragmented MP4 (single file) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 video-only / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | — |
 | H.264 + AAC + embedded SRT / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
-| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC + embedded mov_text / MP4 | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC + styled ASS / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | HEVC + AC-3 + PGS / MKV | Native · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔴 Fail | — |

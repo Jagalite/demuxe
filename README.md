@@ -60,12 +60,13 @@ See [the public API](docs/PUBLIC-API.md), [component contract](docs/PLAYER-COMPO
 ## Head-to-head media coverage
 
 The original four combinations and all 56 additional combinations now have recorded
-outcomes. Expanded run: **2026-09-19, Chrome 152, headless**.
+outcomes. Expanded base run: **2026-09-19, Chrome 152, headless**; linked route follow-ups include headed runs.
 **Screen only** means playback checks passed but surround/HDR fidelity remains
 unqualified. **Blocked** identifies unavailable fixtures, engines, or checks.
-These are bounded synthetic tests, not universal support guarantees. **% gains remain
+These are bounded synthetic tests, not universal support guarantees. **Cross-player CPU gains remain
 unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
-[why each Demuxe Hybrid row uses Hybrid](docs/HEAD-TO-HEAD-HYBRID.md).
+[the original Hybrid audit](docs/HEAD-TO-HEAD-HYBRID.md).
+[Component routing and paired before/after measurements](docs/COMPONENT-ROUTING.md) track the later WebVTT change.
 
 **Legend:** 🟢 Native-path pass · 🔵 Other-path pass · 🟣 Default failed; tested alternative passed · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)
 
@@ -105,7 +106,7 @@ unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
 | H.264 + AAC / fragmented MP4 (single file) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 video-only / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | — |
 | H.264 + AAC + embedded SRT / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
-| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC + embedded mov_text / MP4 | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC + styled ASS / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | HEVC + AC-3 + PGS / MKV | Native · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔴 Fail | — |

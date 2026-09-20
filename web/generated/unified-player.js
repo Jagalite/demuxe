@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
 import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted } from './internal/runtime-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
 import { runtimeBase } from './internal/assets.js';
@@ -230,7 +231,7 @@ export class Player extends EventTarget {
                 audioTracks: !this.current ? unknown : audio ? available : unavailable('Audio track selection is not exposed by this source/browser'),
                 subtitleTracks: !this.current ? unknown : sub ? available : unavailable('No subtitle tracks are available'),
                 audioGain: this.mode === 'native' ? (typeof AudioContext === 'undefined' ? unavailable('Web Audio is unavailable') : available) : route('hybrid'),
-                externalSubtitles: this.mode === 'native' && nativeOverlay ? available : route('hybrid'), customFonts: this.mode === 'native' && nativeOverlay ? available : route('hybrid'), videoFilters: route('software'), audioFilters: route(this.hybridAudioFilters ? 'hybrid' : 'software')
+                externalSubtitles: this.mode === 'native' ? available : route('hybrid'), customFonts: this.mode === 'native' && nativeOverlay ? available : route('hybrid'), videoFilters: route('software'), audioFilters: route(this.hybridAudioFilters ? 'hybrid' : 'software')
             } };
     }
     get mode() { return this.currentMode; }
@@ -239,7 +240,7 @@ export class Player extends EventTarget {
     get properties() { return this.current?.backend.properties ?? this.empty; }
     get capabilities() { return this.snapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
     get legacyCapabilities() {
-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: this.nativeASS || this.automatic || this.mode !== 'native', customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
+        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
     }
     get diagnostics() {
         return redact({ mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
@@ -426,7 +427,7 @@ export class Player extends EventTarget {
         const decisions = planAdmission({ automatic, ...settings,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspected.settings) : undefined,
             hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) ? `Demuxe has no browser bridge configuration contract for ${video.codec}` : undefined, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
-            adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => a.format), browserTextTracks: !!textTracks.length,
+            adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
             automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
@@ -462,7 +463,7 @@ export class Player extends EventTarget {
             const rejection = candidates.find(p => p.code === 'ISOLATION_REQUIRED') ?? candidates.find(p => p.code !== 'PLAN_NOT_REQUESTED');
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
         }
-        if (mode === 'native' && attachments.length && (!this.nativeASS || attachments.some(a => !['ass', 'ssa'].includes(a.format))))
+        if (mode === 'native' && attachments.length && !attachments.every(a => !!plainVTT(a)) && (!this.nativeASS || attachments.some(a => !['ass', 'ssa'].includes(a.format))))
             throw Error('External mpv subtitles require Hybrid or Software');
         if (mode === 'native' && this.audioOutput !== 'stereo')
             throw Error('Explicit PCM output layout requires Hybrid or Software');
@@ -768,12 +769,24 @@ export class Player extends EventTarget {
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
         }
         const errors = [];
+        let captionFailure;
         // The finite registry supplies a deterministic order. No speculative engines.
         for (let index = 0; index < this.planDecisions.length; index++) {
             this.assertOperation();
             let plan = this.planDecisions[index];
             if (pinnedMode ? plan.mode !== pinnedMode : PLAYBACK_MODES.indexOf(plan.mode) < start)
                 continue;
+            // Repackaging A/V cannot repair a failed browser caption renderer.
+            if (captionFailure && plan.mode === 'native') {
+                if (plan.eligible) {
+                    plan.eligible = false;
+                    plan.code = 'FEATURE_UNSUPPORTED';
+                    plan.reason = captionFailure;
+                    this.runtimeCapabilities.admission(this.planDecisions);
+                    this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: ${captionFailure}` });
+                }
+                continue;
+            }
             // Optional inspection and preparation are strictly after original-copy attempts.
             // Never let adaptation bypass subtitle/transport/filter semantic rejection.
             if (automatic && plan.id.startsWith('native-flac') && this.automaticLossless && !nativeReason && this.sourceInspection?.source === source && this.sourceInspection.probe.tracks.some(t => t.type === 'audio' && ['pcm_s16le', 'pcm_s24le'].includes(t.codec)) && !this.losslessInspection && source.kind === 'local') {
@@ -817,6 +830,8 @@ export class Player extends EventTarget {
                 this.record({ mode: plan.mode, outcome: 'failed', reason: `${plan.id}: ${String(error)}` });
                 if (this.destroyed || this.activeOperation?.controller.signal.aborted || !compatible)
                     throw error;
+                if (error instanceof BrowserCaptionUnsupported)
+                    captionFailure = error.message;
                 errors.push(`${plan.id}: ${String(error)}`);
             }
         }
@@ -1149,13 +1164,18 @@ export class Player extends EventTarget {
             if (this.subtitleAssets.length >= 16 || this.subtitleAssets.reduce((n, a) => n + a.bytes.byteLength, 0) + file.size > 16 * 1024 * 1024)
                 throw Error('Subtitle budget exceeded');
             const bytes = await this.interruptible(file.arrayBuffer());
-            const old = this.subtitleAssets;
+            const old = this.subtitleAssets, previousSelection = this.publicSelections.get('sub');
+            if (options.select !== false)
+                this.publicSelections.delete('sub');
             this.subtitleAssets = [...old, { bytes, format: format, label: options.label ?? file.name, language: options.language, select: options.select ?? true }];
             try {
+                plainVTT(this.subtitleAssets.at(-1));
                 await this.select(this.source, { ...this.settings, sid: options.select === false ? this.settings.sid : 'auto' }, true, this.nativeTracks);
             }
             catch (error) {
                 this.subtitleAssets = old;
+                if (previousSelection !== undefined)
+                    this.publicSelections.set('sub', previousSelection);
                 throw error;
             }
         });

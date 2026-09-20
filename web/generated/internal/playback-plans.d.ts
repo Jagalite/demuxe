@@ -2,6 +2,13 @@
 import type { PlaybackMode } from '../types.js';
 /** Finite execution plans; qualification is local to a feature, not a browser claim. */
 export declare const PLAYBACK_PLANS: readonly Readonly<{
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -14,6 +21,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "original";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -26,6 +40,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "packet-copy";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -38,6 +59,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -50,6 +78,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -62,6 +97,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "flac-lossless";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -74,6 +116,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "flac-lossless+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -86,6 +135,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "original";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -98,6 +154,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "original+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -110,6 +173,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "packet-copy";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -122,6 +192,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "packet-copy+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -134,6 +211,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "flac-lossless";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -146,6 +230,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "flac-lossless+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -158,6 +249,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "opus-lossy";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -170,6 +268,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "opus-lossy+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -182,6 +287,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "mpv";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -194,6 +306,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "mpv-filter";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -206,6 +325,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "mpv+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -218,6 +344,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "mpv-filter+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -230,6 +363,13 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     audio: "mpv+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -250,6 +390,13 @@ export declare function featureRejection(mode: PlaybackMode, features: {
     hybridAudioFilters?: boolean;
 }): string | undefined;
 export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number, nativeASS?: boolean): Readonly<{
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -262,6 +409,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "original";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -274,6 +428,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "packet-copy";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -286,6 +447,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -298,6 +466,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -310,6 +485,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "flac-lossless";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -322,6 +504,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "flac-lossless+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -334,6 +523,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "original";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -346,6 +542,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "original+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -358,6 +561,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "packet-copy";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -370,6 +580,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "packet-copy+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -382,6 +599,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "flac-lossless";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -394,6 +618,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "flac-lossless+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -406,6 +637,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "opus-lossy";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -418,6 +656,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "opus-lossy+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -430,6 +675,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv";
     qualification: "existing";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -442,6 +694,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv-filter";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -454,6 +713,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -466,6 +732,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv-filter+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
@@ -478,6 +751,13 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     audio: "mpv+web-audio-gain";
     qualification: "experimental";
 } | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "browser-media-element" | "mpv-pcm-worklet";
+        subtitle: "mpv" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
     source: "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
     subtitles: "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";

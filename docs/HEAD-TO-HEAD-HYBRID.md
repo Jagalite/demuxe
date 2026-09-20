@@ -2,6 +2,8 @@
 
 # Why Demuxe selected Hybrid
 
+This is the **before-change** 17-case audit. The later [component-routing report](COMPONENT-ROUTING.md) records plain external WebVTT moving to Native and preserves the remaining gates.
+
 All **17 current Hybrid rows** are qualified below: seven audio-related, seven subtitle-related, and three manifest/timeline-related. Reasons describe the tested browser and exact source snapshots; they are not universal format-support claims.
 
 ## What Hybrid owns

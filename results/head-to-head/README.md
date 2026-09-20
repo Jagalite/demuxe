@@ -2,6 +2,30 @@
 
 # Maintained head-to-head evidence
 
+## Caption review fixes
+
+- `component-caption-review-fixes-02`: direct/remux mixed-track identity and whitespace checks pass; CSP/cue mismatch fall back to Hybrid, cancellation/permission remain terminal.
+- `component-caption-review-fixes-01`: retained failed first correction, exposing the Native-remux retry after a caption-component failure.
+- `component-caption-fixed-lifecycle-01`, `component-caption-fixed-remux-01`: final lifecycle passes, including playing attachment and cross-backend identity.
+- `component-caption-fixed-playback-01`: final headless marked-output pass used by the main catalogue.
+- `component-caption-fix-validation-01`: frozen changed source and integrity verification for the correction evidence.
+- The revised snapshot is `assets-component-vtt-review-fix-02`. Earlier performance measurements remain tied to the pre-review snapshot.
+
+## Component routing follow-up
+
+[Architecture, per-case ownership and paired results](../../docs/COMPONENT-ROUTING.md).
+Plain external WebVTT now keeps Native A/V; embedded/rich subtitle and audio/manifest gates remain intact.
+
+- `component-vtt-baseline-01`, `component-vtt-candidate-01`: headed marked A/V, subtitle, seek/rewind, rate, EOF and cleanup passes on identical media.
+- `component-captions-playing-01`, `component-captions-remux-crossing-01`: final direct/remux cue, selection, playing attachment, cross-backend identity, malformed-input, replacement and cleanup passes.
+- `component-subtitle-regressions-01`: embedded SRT, mov_text and styled ASS remain passing Hybrid paths.
+- `component-vtt-negative-01`: expected missing-subtitle failure with captions hidden.
+- `component-catalogue-01`: matching-profile headless four-case follow-up used by the README table.
+- `component-routing-validation-01`: 31 unit/state/contract passes, source hashes and evidence-integrity record.
+- `component-vtt-performance-01`: three alternating full-player pairs; raw CPU, RSS, startup, seek, renderer and worker evidence. Shared-host exploratory measurements; total copy bytes and isolated Wasm CPU unavailable.
+- `component-captions-01`: retained initial failed cue-verification attempt (disabled browser tracks hide their cue lists); later runs retain the correction and expanded checks.
+
+
 ## Expanded catalogue (latest outcomes)
 
 All **56 additional combinations** were processed across four default players.

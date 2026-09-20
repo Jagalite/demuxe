@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout } from './runtime-capability.js';
 import { PlayerError } from './errors.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
@@ -19,6 +20,8 @@ export class NativePlayer extends EventTarget {
     ass;
     assAssets = [];
     assIndex = -1;
+    captionAssets = new Map();
+    captionURLs = new Set();
     gainContext;
     gainSource;
     gainNode;
@@ -148,8 +151,14 @@ export class NativePlayer extends EventTarget {
             }
         });
     }
+    // File captions have their own ID range; DOM insertion order must not reassign
+    // IDs of URL-backed browser tracks when a session replays both kinds.
+    textTrackId(track) {
+        const caption = this.captionAssets.get(track);
+        return caption ? String(200000 + caption.index) : String(Array.from(this.video.textTracks).filter(t => !this.captionAssets.has(t)).indexOf(track) + 1);
+    }
     refresh() {
-        const tracks = Array.from(this.video.textTracks, (t, i) => ({ id: String(i + 1), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing' }));
+        const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.captionAssets.has(t) ? { external: true, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
         tracks.push(...this.assAssets.map((a, i) => ({ id: String(100001 + i), type: 'sub', codec: a.format, title: a.label, lang: a.language, external: true, 'external-index': i + 1, selected: (this.selectedSub === 'auto' || Number(this.selectedSub) === 100001 + i) && this.assIndex === i })));
         const audio = this.video.audioTracks;
         if (this.remux?.tracks)
@@ -524,14 +533,14 @@ export class NativePlayer extends EventTarget {
             Array.from(audio).forEach((t, i) => { t.enabled = i === Number(id) - 1; });
         }
         else {
-            if (Number(id) >= 100001) {
+            if (Number(id) >= 100001 && Number(id) < 200001) {
                 const index = Number(id) - 100001;
                 if (!this.assAssets[index])
                     throw Error('Unknown Native ASS track');
                 await this.ass.load(this.assAssets[index]);
                 this.assIndex = index;
             }
-            if (!['auto', 'no'].includes(id) && !this.assAssets[Number(id) - 100001] && !this.video.textTracks[Number(id) - 1])
+            if (!['auto', 'no'].includes(id) && !this.assAssets[Number(id) - 100001] && !Array.from(this.video.textTracks).some(t => this.textTrackId(t) === id))
                 throw new Error('Unknown native subtitle track');
             this.selectedSub = id;
             this.applySubtitles();
@@ -539,14 +548,43 @@ export class NativePlayer extends EventTarget {
         this.refresh();
     }
     applySubtitles() {
-        this.ass?.visible(this.assIndex >= 0 && this.subsVisible && this.selectedSub !== 'no' && (this.selectedSub === 'auto' || Number(this.selectedSub) >= 100001));
+        this.ass?.visible(this.assIndex >= 0 && this.subsVisible && this.selectedSub !== 'no' && (this.selectedSub === 'auto' || (Number(this.selectedSub) >= 100001 && Number(this.selectedSub) < 200001)));
         const preferred = this.video.querySelector('track[default]')?.track;
-        const autoIndex = Math.max(0, Array.from(this.video.textTracks).findIndex(t => t === preferred));
-        Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !(this.assIndex >= 0 && this.selectedSub === 'auto') && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : i === Number(this.selectedSub) - 1) ? 'showing' : 'disabled'; });
+        const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
+        Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !(this.assIndex >= 0 && this.selectedSub === 'auto') && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
     }
     async subtitleVisible(visible) { this.assertActive(); this.subsVisible = visible; this.applySubtitles(); this.refresh(); }
     async addSubtitle(asset) {
         this.assertActive();
+        const cues = plainVTT(asset);
+        if (cues) {
+            const url = URL.createObjectURL(new Blob([asset.bytes], { type: 'text/vtt' }));
+            this.captionURLs.add(url);
+            try {
+                const track = await this.loadTextTrack({ src: url, label: asset.label, language: asset.language, default: false }, true);
+                // Disabled tracks hide their cue list; inspect before restoring selection.
+                track.track.mode = 'hidden';
+                const loaded = Array.from(track.track.cues ?? []), bias = this.remux?.timelineBias ?? 0;
+                if (loaded.length !== cues.length || loaded.some((c, i) => Math.abs(c.startTime - bias - cues[i].start) > 1e-6 || Math.abs(c.endTime - bias - cues[i].end) > 1e-6 || c.text !== cues[i].text)) {
+                    track.remove();
+                    throw new BrowserCaptionUnsupported('Browser WebVTT cue fidelity verification failed');
+                }
+                this.captionAssets.set(track.track, { asset, index: this.captionAssets.size + 1 });
+                if (asset.select) {
+                    for (const old of Array.from(this.video.querySelectorAll('track')))
+                        old.default = false;
+                    track.default = true;
+                }
+                this.applySubtitles();
+                this.refresh();
+                return;
+            }
+            catch (error) {
+                URL.revokeObjectURL(url);
+                this.captionURLs.delete(url);
+                throw error;
+            }
+        }
         if (this.adapted && this.audioAdaptation === 'opus')
             throw Error('Native Opus plus ASS is not qualified');
         if (!this.nativeASS || !['ass', 'ssa'].includes(asset.format))
@@ -575,7 +613,8 @@ export class NativePlayer extends EventTarget {
         this.applySubtitles();
         this.refresh();
     }
-    async addTextTrack(source) {
+    async addTextTrack(source) { await this.loadTextTrack(source); }
+    async loadTextTrack(source, ownedCaption = false) {
         this.assertActive();
         const url = new URL(source.src, location.href);
         if (!['http:', 'https:', 'blob:'].includes(url.protocol))
@@ -594,7 +633,7 @@ export class NativePlayer extends EventTarget {
             else
                 resolve(); };
             const loaded = () => { this.shiftTextTrack(track); finish(); };
-            const failed = () => finish(new Error('Native text track failed to load'));
+            const failed = () => finish(ownedCaption ? new BrowserCaptionUnsupported('Browser cannot load the owned WebVTT caption') : new Error('Native text track failed to load'));
             const cancel = (error) => finish(error);
             const timer = setTimeout(() => finish(new Error('Native text track load timed out')), 15000);
             this.cancelers.add(cancel);
@@ -606,6 +645,7 @@ export class NativePlayer extends EventTarget {
         });
         this.applySubtitles();
         this.refresh();
+        return track;
     }
     shiftTextTrack(track) {
         if (!this.remux)
@@ -639,6 +679,10 @@ export class NativePlayer extends EventTarget {
             await this.gainContext.close();
         this.listeners.forEach(remove => remove());
         this.listeners = [];
+        for (const url of this.captionURLs)
+            URL.revokeObjectURL(url);
+        this.captionURLs.clear();
+        this.captionAssets.clear();
         this.video.pause();
         this.video.removeAttribute('src');
         this.video.replaceChildren();

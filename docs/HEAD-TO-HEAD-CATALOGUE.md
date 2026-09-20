@@ -22,6 +22,8 @@ Latest outcome per player/combination is shown. Supplemental runs replace only t
 - [Supplement expanded-live-01](../results/head-to-head/expanded-live-01/REPORT.md): 4 cases, source `8666434920cd4f4fc35a5c099901826e03be8916`; exact asset/harness identities are retained separately.
 - [Supplement demuxe-with-engines-01](../results/head-to-head/demuxe-with-engines-01/REPORT.md): 56 cases, source `8666434920cd4f4fc35a5c099901826e03be8916`; exact asset/harness identities are retained separately.
 - [Supplement demuxe-auto-hls-fix-01](../results/head-to-head/demuxe-auto-hls-fix-01/REPORT.md): 4 cases, source `01611bdaa2d9a21903bd2f1086fe0d786df6d5d1`; exact asset/harness identities are retained separately.
+- [Supplement component-catalogue-01](../results/head-to-head/component-catalogue-01/REPORT.md): 4 cases, source `7baf76570e2c5708ab0f8107c86803fa864efada`; exact asset/harness identities are retained separately.
+- [Supplement component-caption-fixed-playback-01](../results/head-to-head/component-caption-fixed-playback-01/REPORT.md): 1 cases, source `7baf76570e2c5708ab0f8107c86803fa864efada`; exact asset/harness identities are retained separately.
 
 ## Reading the results
 
@@ -162,19 +164,19 @@ Latest outcome per player/combination is shown. Supplemental runs replace only t
 | H.264 video-only / MP4 | movi | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/movi.default.h264-silent/result.json) |
 | H.264 video-only / MP4 | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.h264-silent/result.json) |
 | H.264 + AAC + embedded SRT / MKV | video | Native · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-srt/result.json) |
-| H.264 + AAC + embedded SRT / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.h264-srt/result.json) |
+| H.264 + AAC + embedded SRT / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-srt/result.json) |
 | H.264 + AAC + embedded SRT / MKV | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-srt/result.json) |
 | H.264 + AAC + embedded SRT / MKV | libmedia | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-srt/result.json) |
 | H.264 + AAC + external WebVTT / MP4 | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-vtt/result.json) |
-| H.264 + AAC + external WebVTT / MP4 | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.h264-vtt/result.json) |
+| H.264 + AAC + external WebVTT / MP4 | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/component-caption-fixed-playback-01/demuxe.auto.h264-vtt/result.json) |
 | H.264 + AAC + external WebVTT / MP4 | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-vtt/result.json) |
 | H.264 + AAC + external WebVTT / MP4 | libmedia | Custom · fail | page.evaluate: Error: [packages/avplayer/src/AVPlayer.ts][line 1483] [fatal]: analyze stream failed, ret: -2 | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-vtt/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | video | Native · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-movtext/result.json) |
-| H.264 + AAC + embedded mov_text / MP4 | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.h264-movtext/result.json) |
+| H.264 + AAC + embedded mov_text / MP4 | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-movtext/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-movtext/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | libmedia | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-movtext/result.json) |
 | H.264 + AAC + styled ASS / MKV | video | Native · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-ass/result.json) |
-| H.264 + AAC + styled ASS / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.h264-ass/result.json) |
+| H.264 + AAC + styled ASS / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-ass/result.json) |
 | H.264 + AAC + styled ASS / MKV | movi | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-ass/result.json) |
 | H.264 + AAC + styled ASS / MKV | libmedia | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-ass/result.json) |
 | HEVC + AC-3 + PGS / MKV | video | Native · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-subtitles-01/video.default.hevc-pgs/result.json) |

@@ -96,12 +96,13 @@ def render(run, supplements=(), alternatives=()):
     a = s.index('\n\n', s.index('## Head-to-head media coverage')) + 2
     b = s.index('| Media format |', a)
     intro = f'''The original four combinations and all 56 additional combinations now have recorded
-outcomes. Expanded run: **{summary['startedAt'][:10]}, Chrome 152, headless**.
+outcomes. Expanded base run: **{summary['startedAt'][:10]}, Chrome 152, headless**; linked route follow-ups include headed runs.
 **Screen only** means playback checks passed but surround/HDR fidelity remains
 unqualified. **Blocked** identifies unavailable fixtures, engines, or checks.
-These are bounded synthetic tests, not universal support guarantees. **% gains remain
+These are bounded synthetic tests, not universal support guarantees. **Cross-player CPU gains remain
 unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
-[why each Demuxe Hybrid row uses Hybrid](docs/HEAD-TO-HEAD-HYBRID.md).
+[the original Hybrid audit](docs/HEAD-TO-HEAD-HYBRID.md).
+[Component routing and paired before/after measurements](docs/COMPONENT-ROUTING.md) track the later WebVTT change.
 
 {LEGEND}
 

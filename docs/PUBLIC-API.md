@@ -256,3 +256,7 @@ and browser prerequisites. The experimental adaptation option remains explicit-o
 automatic FLAC uses the separate lossless policy above. Route ranking
 does not use prototype benchmark percentages. Explicit mode selection remains
 authoritative. In-place gain updates refresh plan diagnostics without rerouting.
+
+### Plain external WebVTT
+
+`addSubtitle(file, {select, label, language})` can retain Native A/V for plain UTF-8 WebVTT on file presentations. Admission excludes cue settings, markup, CSS, regions, identifiers and timestamp maps; richer files use the existing admitted renderer. Malformed admitted plain cue timing and invalid UTF-8 reject without replacing the working source. Browser-loaded cue count, text and timestamps are verified. Captions retain external track identities and are cleared on source replacement. Manifest timelines and adapted-audio combinations require separate qualification. See [component routing and evidence](COMPONENT-ROUTING.md).
