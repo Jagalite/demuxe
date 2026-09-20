@@ -19,6 +19,19 @@ export function losslessAdaptationRejection(probe, settings) {
     if (!Number.isFinite(probe.duration) || probe.duration <= 0)
         return 'Automatic FLAC requires a finite duration';
 }
+/** A browser-owned HLS VOD attempt may preserve default selection. Explicit
+ * rendition/track contracts and live timelines still require mpv inspection.
+ * This admits a trial, not support: runtime output evidence owns acceptance. */
+export function nativeManifestRejection(source, settings) {
+    if (source.demuxer || source.format !== 'hls')
+        return 'Manifest track requirements require mpv inspection';
+    if (source.streaming?.live)
+        return 'Live manifest timelines require mpv inspection';
+    if (source.streaming?.maxBandwidth !== undefined || source.streaming?.representation !== undefined)
+        return 'Explicit manifest rendition selection requires mpv inspection';
+    if (!['auto', 'no'].includes(settings.aid) || (settings.subtitles && !['auto', 'no'].includes(settings.sid)))
+        return 'Explicit manifest track selection requires mpv inspection';
+}
 export function nativeRejection(probe, settings, _video) {
     const selected = (type, id = 'auto') => { const tracks = probe.tracks.filter(t => t.type === type && !t.attachedPicture); return id === 'no' ? undefined : id === 'auto' ? (tracks.find(t => t.default) || tracks[0]) : tracks.find(t => t.id === id); };
     // Browser text-track exposure cannot reliably prove embedded subtitle delivery.

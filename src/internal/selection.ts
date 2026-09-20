@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {PlaybackMode} from '../types.js';
+import type {PlaybackMode, RemoteSource} from '../types.js';
 export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
 export type Probe = {tracks: ProbeTrack[]; duration: number; format?:string; identity?: {size: string; etag?: string}};
 /** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
@@ -15,6 +15,16 @@ export function losslessAdaptationRejection(probe:Probe,settings:{aid:string;sid
  if(Math.abs(v.startTime!-a.startTime!)>.05||Math.abs(v.endTime!-a.endTime!)>.05)return 'Automatic FLAC selected-track offsets or tails exceed qualification';
  if(!Number.isFinite(probe.duration)||probe.duration<=0)return 'Automatic FLAC requires a finite duration';
 }
+/** A browser-owned HLS VOD attempt may preserve default selection. Explicit
+ * rendition/track contracts and live timelines still require mpv inspection.
+ * This admits a trial, not support: runtime output evidence owns acceptance. */
+export function nativeManifestRejection(source:RemoteSource,settings:{aid:string;sid:string;subtitles:boolean}):string|undefined {
+ if(source.demuxer||source.format!=='hls')return 'Manifest track requirements require mpv inspection';
+ if(source.streaming?.live)return 'Live manifest timelines require mpv inspection';
+ if(source.streaming?.maxBandwidth!==undefined||source.streaming?.representation!==undefined)return 'Explicit manifest rendition selection requires mpv inspection';
+ if(!['auto','no'].includes(settings.aid)||(settings.subtitles&&!['auto','no'].includes(settings.sid)))return 'Explicit manifest track selection requires mpv inspection';
+}
+
 export type SelectionAttempt = {mode: PlaybackMode | 'probe'; outcome: 'skipped' | 'failed' | 'selected'; reason: string};
 export function nativeRejection(probe: Probe, settings: {aid: string; sid: string; subtitles: boolean}, _video?: HTMLVideoElement): string | undefined {
  const selected=(type:string,id='auto')=>{const tracks=probe.tracks.filter(t=>t.type===type&&!t.attachedPicture);return id==='no'?undefined:id==='auto'?(tracks.find(t=>t.default)||tracks[0]):tracks.find(t=>t.id===id);};

@@ -52,6 +52,49 @@ version, generator commands, fixture stream metadata and video-packet identity.
 Regeneration on another FFmpeg version may produce different media bytes: compare
 only runs using the same prepared manifest, not just the same fixture name.
 
+## Compare an explicit Demuxe path
+
+The catalogue defaults to Demuxe auto selection. `--demuxe-mode native` (or
+`hybrid` / `software`) pins its public mode without changing production routing.
+Case IDs include the mode, so alternative results remain separate from defaults:
+
+```sh
+node tests/head-to-head/run.mjs \
+  --assets build/head-to-head/assets-with-engines-01 \
+  --catalogue --demuxe-mode native \
+  --cases demuxe.native.hls-fmp4,demuxe.native.hls-hevc \
+  --output results/head-to-head/demuxe-native-hls-01
+```
+
+Use a fresh output directory for each run. This reuses the same explicit HLS source
+metadata, fixture bytes, and correctness checks as the auto-mode comparison.
+Do not replace auto-mode failures with pinned-mode passes in aggregate counts.
+
+The [recorded Native HLS run](../results/head-to-head/demuxe-native-hls-01/REPORT.md)
+passed both cases. Add `--alternative results/head-to-head/demuxe-native-hls-01`
+to the catalogue renderer alongside the existing primary/supplement arguments.
+It verifies the alternative evidence and matching asset/browser identities, marks
+confirmed alternatives purple, and preserves default-mode outcome totals.
+
+## Verify automatic HLS routing and fallback
+
+The [routing-fix run](../results/head-to-head/demuxe-auto-hls-fix-01/REPORT.md)
+uses `build/head-to-head/assets-native-hls-fix-01` and the four
+`demuxe.auto.hls-ts,demuxe.auto.hls-fmp4,demuxe.auto.hls-hevc,demuxe.auto.hls-live`
+cases with `--catalogue`. All four passed; the VOD cases now select Native.
+
+The separate compatibility fallback regression is rerunnable:
+
+```sh
+node tests/head-to-head/hls-fallback.mjs \
+  build/head-to-head/assets-native-hls-fix-01 \
+  results/head-to-head/demuxe-hls-fallback-new
+```
+
+It injects a Native compatibility rejection and requires actual Hybrid marked
+video/audio plus cleanup. It is fault-injection evidence, not a default playback
+result, and uses its own hash inventory. Keep its totals separate.
+
 ## Refresh engines without changing the media
 
 The recorded [clean build](../results/head-to-head/engine-build-01/README.md) and
@@ -276,3 +319,31 @@ correctness outcomes, the negative control, harness corrections and validation
 limits. It contains no new performance measurements.
 The [player-by-media route table](HEAD-TO-HEAD-ROUTES.md) shows the observed paths
 and outcomes for each configuration, with links to the individual records.
+
+## Qualify why a case uses Hybrid
+
+[The current report](HEAD-TO-HEAD-HYBRID.md) covers all 17 Hybrid rows. Correctness
+snapshots retain `selectionTrace`, `nativeVerificationFailures`, `mediaTracks`
+and `audioParams`. Native failure observation preserves the original return/error
+and is enabled only for correctness, never performance.
+
+The audio/packaging hint probe and component report are rerunnable:
+
+```sh
+node tests/head-to-head/probe-hybrid-mse.mjs \
+  results/head-to-head/demuxe-with-engines-01 \
+  results/head-to-head/hybrid-mse-probes-new
+python3 tests/head-to-head/explain-hybrid.py \
+  --run results/head-to-head/demuxe-original-with-engines-01 \
+  --run results/head-to-head/demuxe-with-engines-01 \
+  --run results/head-to-head/demuxe-auto-hls-fix-01 \
+  --run results/head-to-head/demuxe-hybrid-audit-01 \
+  --run results/head-to-head/demuxe-hybrid-original-audit-01 \
+  --probes results/head-to-head/hybrid-mse-probes-new \
+  --output results/head-to-head/hybrid-qualification-new
+```
+
+Use fresh output directories. The report generator verifies run hashes and
+requires actual Native audio-failure evidence for audio-driven rows; it does not
+treat an admission-policy rejection as a browser codec failure. The exact browser
+rerun commands and case selections are retained in each audit's `summary.json`.

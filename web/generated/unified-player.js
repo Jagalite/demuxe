@@ -5,7 +5,7 @@ import { runtimeBase } from './internal/assets.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
-import { nativeRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
+import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
@@ -693,7 +693,7 @@ export class Player extends EventTarget {
         this.sourceInspection = undefined;
         if (start === 0 && !(settings.vf || settings.af || this.toneMapping !== 'off')) {
             if ((source.kind === 'local' && source.input?.demuxer) || (source.kind === 'remote' && (source.options.demuxer || (source.options.format && source.options.format !== 'file')))) {
-                nativeReason = 'Manifest track requirements require mpv inspection';
+                nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings) : 'Manifest track requirements require mpv inspection';
             }
             else {
                 const controller = this.inspection = new AbortController();

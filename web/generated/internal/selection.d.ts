@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { PlaybackMode } from '../types.js';
+import type { PlaybackMode, RemoteSource } from '../types.js';
 export type ProbeTrack = {
     id: string;
     index: number;
@@ -30,6 +30,14 @@ export type Probe = {
 /** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
  * The runtime still verifies packets, samples, actual MSE output and work bounds. */
 export declare function losslessAdaptationRejection(probe: Probe, settings: {
+    aid: string;
+    sid: string;
+    subtitles: boolean;
+}): string | undefined;
+/** A browser-owned HLS VOD attempt may preserve default selection. Explicit
+ * rendition/track contracts and live timelines still require mpv inspection.
+ * This admits a trial, not support: runtime output evidence owns acceptance. */
+export declare function nativeManifestRejection(source: RemoteSource, settings: {
     aid: string;
     sid: string;
     subtitles: boolean;

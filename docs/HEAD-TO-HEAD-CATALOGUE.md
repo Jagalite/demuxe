@@ -11,7 +11,7 @@ All 56 planned combinations were processed against four default players. 51 gene
 | Player | Passed | Failed | Blocked |
 | --- | ---: | ---: | ---: |
 | video | 26 | 20 | 10 |
-| demuxe | 38 | 4 | 14 |
+| demuxe | 40 | 2 | 14 |
 | movi | 10 | 40 | 6 |
 | libmedia | 22 | 21 | 13 |
 
@@ -21,6 +21,7 @@ Latest outcome per player/combination is shown. Supplemental runs replace only t
 - [Supplement expanded-subtitles-02](../results/head-to-head/expanded-subtitles-02/REPORT.md): 6 cases, source `8666434920cd4f4fc35a5c099901826e03be8916`; exact asset/harness identities are retained separately.
 - [Supplement expanded-live-01](../results/head-to-head/expanded-live-01/REPORT.md): 4 cases, source `8666434920cd4f4fc35a5c099901826e03be8916`; exact asset/harness identities are retained separately.
 - [Supplement demuxe-with-engines-01](../results/head-to-head/demuxe-with-engines-01/REPORT.md): 56 cases, source `8666434920cd4f4fc35a5c099901826e03be8916`; exact asset/harness identities are retained separately.
+- [Supplement demuxe-auto-hls-fix-01](../results/head-to-head/demuxe-auto-hls-fix-01/REPORT.md): 4 cases, source `01611bdaa2d9a21903bd2f1086fe0d786df6d5d1`; exact asset/harness identities are retained separately.
 
 ## Reading the results
 
@@ -245,15 +246,15 @@ Latest outcome per player/combination is shown. Supplemental runs replace only t
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | movi | Blocked (fixture) | No Dolby Vision profile 8.1 metadata authoring/marked sample and reference output oracle are available. | [record](../results/head-to-head/expanded-matrix-01/movi.default.dv81/result.json) |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | libmedia | Blocked (fixture) | No Dolby Vision profile 8.1 metadata authoring/marked sample and reference output oracle are available. | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.dv81/result.json) |
 | H.264 + AAC / HLS VOD (TS segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-ts/result.json) |
-| H.264 + AAC / HLS VOD (TS segments) | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.hls-ts/result.json) |
+| H.264 + AAC / HLS VOD (TS segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-ts/result.json) |
 | H.264 + AAC / HLS VOD (TS segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-ts/result.json) |
 | H.264 + AAC / HLS VOD (TS segments) | libmedia | Custom · fail | Error: EOF timeline did not settle | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-ts/result.json) |
 | H.264 + AAC / HLS VOD (fMP4 segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-fmp4/result.json) |
-| H.264 + AAC / HLS VOD (fMP4 segments) | demuxe | Hybrid · fail | Error: seek deadline | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.hls-fmp4/result.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-fmp4/result.json) |
 | H.264 + AAC / HLS VOD (fMP4 segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-fmp4/result.json) |
 | H.264 + AAC / HLS VOD (fMP4 segments) | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-fmp4/result.json) |
 | HEVC + AAC / HLS VOD (fMP4 segments) | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.hls-hevc/result.json) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | demuxe | Hybrid · fail | page.evaluate: PlayerError: Command timed out | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.hls-hevc/result.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-hevc/result.json) |
 | HEVC + AAC / HLS VOD (fMP4 segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.hls-hevc/result.json) |
 | HEVC + AAC / HLS VOD (fMP4 segments) | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.hls-hevc/result.json) |
 | H.264 + AAC / DASH VOD (fMP4 segments) | video | Custom · fail | page.evaluate: NotSupportedError: Failed to load because no supported source was found. | [record](../results/head-to-head/expanded-matrix-01/video.default.dash-h264/result.json) |
@@ -265,6 +266,6 @@ Latest outcome per player/combination is shown. Supplemental runs replace only t
 | AV1 + Opus / DASH VOD (WebM segments) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/movi.default.dash-av1/result.json) |
 | AV1 + Opus / DASH VOD (WebM segments) | libmedia | Custom · fail | page.waitForFunction: Timeout 7000ms exceeded. | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.dash-av1/result.json) |
 | H.264 + AAC / HLS live (sliding window) | video | Native · fail | Error: Playback-rate progression outside bounded tolerance | [record](../results/head-to-head/expanded-live-01/video.default.hls-live/result.json) |
-| H.264 + AAC / HLS live (sliding window) | demuxe | Hybrid · pass | Bounded live-window progression only; long-running recovery and discontinuities not covered. | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.hls-live/result.json) |
+| H.264 + AAC / HLS live (sliding window) | demuxe | Hybrid · pass | Bounded live-window progression only; long-running recovery and discontinuities not covered. | [record](../results/head-to-head/demuxe-auto-hls-fix-01/demuxe.auto.hls-live/result.json) |
 | H.264 + AAC / HLS live (sliding window) | movi | Custom · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-live-01/movi.default.hls-live/result.json) |
 | H.264 + AAC / HLS live (sliding window) | libmedia | Custom · fail | Error: Live audio missing/wrong across playlist updates | [record](../results/head-to-head/expanded-live-01/libmedia.default.hls-live/result.json) |

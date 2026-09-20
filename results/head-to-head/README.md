@@ -5,8 +5,8 @@
 ## Expanded catalogue (latest outcomes)
 
 All **56 additional combinations** were processed across four default players.
-After the subtitle/live follow-ups and the fresh Demuxe engine build, the latest
-224 outcomes are **96 passed, 85 failed, 43 blocked**. Fifty-one combinations had generated fixtures;
+After the subtitle/live follow-ups, fresh engines and HLS auto-routing fix, the latest
+224 outcomes are **98 passed, 83 failed, 43 blocked**. Fifty-one combinations had generated fixtures;
 five remained fixture-blocked. The original four-fixture study below is separate.
 
 [Detailed outcomes and blockers](../../docs/HEAD-TO-HEAD-CATALOGUE.md) ·
@@ -14,7 +14,8 @@ five remained fixture-blocked. The original four-fixture study below is separate
 [Subtitle selection / bitmap follow-up](expanded-subtitles-01/REPORT.md) ·
 [AVPlayer subtitle follow-up](expanded-subtitles-02/REPORT.md) ·
 [Live marked-output follow-up](expanded-live-01/REPORT.md) ·
-[Demuxe with freshly built engines](demuxe-with-engines-01/REPORT.md)
+[Demuxe with freshly built engines](demuxe-with-engines-01/REPORT.md) ·
+[Automatic HLS routing fix](demuxe-auto-hls-fix-01/REPORT.md)
 
 The prepared snapshots are `build/head-to-head/assets-expanded-02/` and
 `assets-expanded-03/`; both capture source revision `8666434` and the dirty player
@@ -26,14 +27,15 @@ Atmos, and Dolby Vision profiles 5 and 8.1.
 The clean [engine build](engine-build-01/README.md) installed fresh Hybrid and
 Software artifacts. `assets-with-engines-01` reuses all fixture bytes from
 `assets-expanded-03`, with parent-manifest and individual fixture hash verification.
-The Demuxe follow-up recorded **38 passed, 4 failed, 14 blocked**: nine successful
+The initial engine follow-up recorded **38 passed, 4 failed, 14 blocked**: nine successful
 surround/HDR screens still need fidelity qualification, and five fixtures remain
 unavailable. There are **no missing-engine blockers** in the latest Demuxe rows.
 Observed paths include Native, Native remux, Hybrid and Software.
 
-The four Demuxe failures are the marked PGS subtitle drawing, HLS/fMP4 seeking,
-HLS/HEVC command timeout and DASH/H.264 command timeout. They are recorded failures,
-not codec-support conclusions. Other players retain their earlier exact outcomes.
+That run recorded failures for the marked PGS subtitle drawing, HLS/fMP4 seeking,
+HLS/HEVC command timeout and DASH/H.264 command timeout. The later auto-routing
+fix resolves both HLS cases. Latest Demuxe totals are **40 passed, 2 failed,
+14 blocked**; the remaining failures are PGS and DASH/H.264. Other players retain their earlier exact outcomes.
 No CPU or percentage-gain measurements ran.
 
 Preserved validation runs:
@@ -48,6 +50,55 @@ AVPlayer's first subtitle-selection follow-up reset the active renderer; the nex
 follow-up avoids that reset and preserves both attempts. Initial text rendering
 can pass while post-seek text is absent. Do not pool pilots or repeated follow-ups
 into the latest-outcome totals, and do not treat missing assets as codec failures.
+
+## HLS Native-mode follow-up
+
+[demuxe-native-hls-01](demuxe-native-hls-01/REPORT.md) tested the two HLS/fMP4
+combinations that passed plain Native but failed Demuxe auto: H.264/AAC and
+HEVC/AAC. Both **passed** with Demuxe explicitly set to Native, and both recorded
+`native-direct`. The test reused `assets-with-engines-01` unchanged, including
+explicit HLS metadata and the playback, marked audio/video, pause/resume, rate,
+seek, EOF and cleanup checks. Evidence integrity verified.
+
+This initial pinned-mode run did not change automatic routing. Its findings led
+to the automatic routing fix below; the pinned run remains historical evidence.
+This demonstrates a passing route for these two fixtures, not general HLS
+qualification or a fix for the Hybrid timeout causes.
+
+## Automatic HLS routing fix
+
+[demuxe-auto-hls-fix-01](demuxe-auto-hls-fix-01/REPORT.md) passed all four HLS cases:
+TS, H.264/fMP4 and HEVC/fMP4 now automatically use `native-direct`; live HLS keeps
+Hybrid. The new `assets-native-hls-fix-01` snapshot retains identical fixture bytes
+and captures the changed routing source. The two former HLS failures are now
+Native passes in the default table and counts.
+
+Automatic HLS VOD can attempt unchanged browser playback with default track and
+rendition selection. Custom demuxers, live streams, explicit track/rendition
+selection and controlled transport requirements retain their gates. Runtime output
+verification still owns acceptance and compatibility fallback.
+
+A separate [fault-injection check](demuxe-hls-fallback-01/README.md) deliberately
+rejected the Native HLS trial and verified real Hybrid video/audio and cleanup.
+Twenty-two focused selection, plan-admission and streaming tests passed, as did
+TypeScript compilation and license checks. No CPU measurements were taken.
+
+## Hybrid component qualification
+
+[The per-row audit](../../docs/HEAD-TO-HEAD-HYBRID.md) covers all 17 remaining
+Hybrid combinations: seven audio-related, seven subtitle-related, three
+manifest/timeline-related. Fresh runs are [16 catalogue rows](demuxe-hybrid-audit-01/REPORT.md)
+and [the original PCM/ASS row](demuxe-hybrid-original-audit-01/REPORT.md).
+Together they recorded 11 passes, two failures and four limited-fidelity screens;
+no prior status changed. [Component MSE hints](hybrid-mse-probes-01/README.md) are
+kept separate from playback proof, and [structured explanations](hybrid-qualification-01/analysis.json)
+retain exact source-record hashes and scope limits.
+
+The adapter now records Native output-verification failures before recovery resets
+the current diagnostics, plus the selection event sequence. It observes and
+rethrows errors without changing routing. This identifies failed Native audio
+with presented video, rather than mistaking a later forced-remux policy message
+for the original cause. No additional product routing changes were made by this audit.
 
 ## Original combinations: refreshed Demuxe auto results
 

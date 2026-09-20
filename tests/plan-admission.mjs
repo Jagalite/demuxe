@@ -54,3 +54,12 @@ test('isolation admission remains structurally distinct from unsupported media',
  const ass=planAdmission({...facts,isolated:false,nativeASS:true,externalFormats:['ass']});
  assert.equal(ass.find(p=>p.id==='native-direct-ass').code,'ISOLATION_REQUIRED');
 });
+
+test('HLS direct admission retains controlled transport and feature boundaries',()=>{
+ assert.deepEqual(eligible({manifest:true}),['native-direct','hybrid','software']);
+ assert.deepEqual(eligible({manifest:true,requiresRemux:true}),['hybrid','software']);
+ assert.deepEqual(eligible({manifest:true,nativeRemux:'always'}),['hybrid','software']);
+ assert.deepEqual(eligible({manifest:true,vf:'hflip'}),['software']);
+ assert.ok(!eligible({manifest:true,audioOutput:'5.1'}).includes('native-direct'));
+ assert.ok(!eligible({manifest:true,nativeASS:true,externalFormats:['ass']}).some(p=>p.startsWith('native')));
+});

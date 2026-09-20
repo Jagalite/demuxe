@@ -64,7 +64,8 @@ outcomes. Expanded run: **2026-09-19, Chrome 152, headless**.
 **Screen only** means playback checks passed but surround/HDR fidelity remains
 unqualified. **Blocked** identifies unavailable fixtures, engines, or checks.
 These are bounded synthetic tests, not universal support guarantees. **% gains remain
-unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md).
+unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
+[why each Demuxe Hybrid row uses Hybrid](docs/HEAD-TO-HEAD-HYBRID.md).
 
 **Legend:** 🟢 Native-path pass · 🔵 Other-path pass · 🟣 Default failed; tested alternative passed · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)
 
@@ -124,9 +125,9 @@ unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md).
 | HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
-| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
-| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
-| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
+| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
+| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
 | H.264 + AAC / DASH VOD (fMP4 segments) | Custom · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
 | AV1 + Opus / DASH VOD (WebM segments) | Custom · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC / HLS live (sliding window) | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |

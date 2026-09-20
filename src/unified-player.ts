@@ -8,7 +8,7 @@ import {freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './in
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, FeatureAvailability, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
-import {nativeRejection,losslessAdaptationRejection,remuxRejection} from './internal/selection.js';
+import {nativeRejection,nativeManifestRejection,losslessAdaptationRejection,remuxRejection} from './internal/selection.js';
 import type {Probe, SelectionAttempt} from './internal/selection.js';
 import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions, ResourceLimits, MediaInputOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, TrackType, PlaybackEvent} from './types.js';
 import type {Backend, Session} from './internal/backend.js';
@@ -471,7 +471,7 @@ export class Player extends EventTarget {
     this.losslessInspection=undefined;this.sourceInspection=undefined;
     if(start===0&&!(settings.vf||settings.af||this.toneMapping!=='off')){
       if((source.kind==='local'&&source.input?.demuxer)||(source.kind==='remote'&&(source.options.demuxer||(source.options.format&&source.options.format!=='file')))){
-        nativeReason='Manifest track requirements require mpv inspection';
+        nativeReason=source.kind==='remote'?nativeManifestRejection(source.options,settings):'Manifest track requirements require mpv inspection';
       }else{
         const controller=this.inspection=new AbortController();
         try{

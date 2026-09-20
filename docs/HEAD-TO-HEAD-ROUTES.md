@@ -11,6 +11,9 @@ Movi 0.4.0 and libmedia AVPlayer 1.3.1 are the pinned comparison versions.
 
 [Run summary](../results/head-to-head/matrix-01/summary.json) · [rerun guide](HEAD-TO-HEAD.md)
 
+[Per-component reasons for all 17 Hybrid rows](HEAD-TO-HEAD-HYBRID.md) distinguish
+audio output, subtitle integration and manifest policy from video decoding.
+
 ## Default configurations
 
 The four Demuxe auto cells were refreshed with the newly built engines in
@@ -35,7 +38,10 @@ Each player cell shows **observed path · correctness result**. Gain means Demux
 Purple marks the three original Movi defaults whose tested native-first
 configuration passed in `matrix-01`. The ASS alternative includes the explicit
 host libass overlay; it is not a pass for Movi's built-in ASS renderer.
-Expanded rows have no alternative-path reruns yet and retain their recorded status.
+The [pinned Native HLS follow-up](../results/head-to-head/demuxe-native-hls-01/REPORT.md)
+led to the [automatic routing fix](../results/head-to-head/demuxe-auto-hls-fix-01/REPORT.md).
+Both HLS/fMP4 rows now pass Native automatically and are green. Other expanded
+rows have no alternative-path reruns.
 
 ## Configured alternatives
 
@@ -51,7 +57,7 @@ These are separate configurations from the defaults above. ASS uses the same hos
 ## Expanded catalogue results
 
 The 56 additional combinations were processed in `expanded-matrix-01` on 2026-09-19, with the explicitly linked follow-up runs:
-96 passed, 85 failed, 43 blocked across four default players.
+98 passed, 83 failed, 43 blocked across four default players.
 5 combinations could not produce the required fixture; their rows are blocked,
 not playback failures. **Screen only** means the bounded playback check succeeded
 but discrete surround or reference HDR fidelity remains unqualified. **—** means
@@ -122,9 +128,9 @@ results above. See [full evidence, blocker reasons and caveats](HEAD-TO-HEAD-CAT
 | HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | — |
-| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
-| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
-| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
+| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
+| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
+| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
 | H.264 + AAC / DASH VOD (fMP4 segments) | Custom · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | — |
 | AV1 + Opus / DASH VOD (WebM segments) | Custom · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |
 | H.264 + AAC / HLS live (sliding window) | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | — |

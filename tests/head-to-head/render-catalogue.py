@@ -31,7 +31,7 @@ def color_status_cells(text):
         lines.append(line)
     return '\n'.join(lines) + '\n'
 
-def render(run, supplements=()):
+def render(run, supplements=(), alternatives=()):
     run = run.resolve()
     subprocess.run(['node', str(ROOT / 'tests/head-to-head/verify.mjs'), str(run)], check=True)
     summary = json.loads((run / 'summary.json').read_text())
@@ -59,6 +59,22 @@ def render(run, supplements=()):
     counts=Counter(c['status'] for c in cases)
     runs=[run,*[p.resolve() for p in supplements]]
 
+    alternative_passes = {}
+    for alternative in alternatives:
+        alternative = alternative.resolve()
+        subprocess.run(['node', str(ROOT / 'tests/head-to-head/verify.mjs'), str(alternative)], check=True)
+        proof = json.loads((alternative / 'summary.json').read_text())
+        assert proof['kind'] == 'correctness' and proof['browserIdentity'] == summary['browserIdentity']
+        for candidate in proof['cases']:
+            key = candidate['fixture'], candidate['player']
+            assert key in lookup
+            default = lookup[key]
+            origin = json.loads((sources[default['id']] / 'summary.json').read_text())
+            assert proof['assetsSHA256'] == origin['assetsSHA256'], 'Alternative must use identical assets'
+            assert candidate['lane'] != default['lane'], 'Alternative must use a distinct lane'
+            if default['status'] == 'failed' and candidate['status'] == 'passed':
+                alternative_passes[key] = candidate['lane']
+
     def cell(c):
         if c['status'] == 'blocked' and not c.get('screenPassed'):
             if fixtures[c['fixture']].get('blockedReason'): return 'Blocked (fixture)'
@@ -67,6 +83,8 @@ def render(run, supplements=()):
         state = c.get('initial') or c.get('failureState') or {}
         route = {'native-direct':'Native','native-remux':'Native remux','hybrid':'Hybrid','software':'Software','mse':'MSE','custom':'Custom'}.get(state.get('route'), state.get('route') or 'Unknown')
         status = 'screen only' if c['status']=='blocked' and c.get('screenPassed') else 'pass' if c['status']=='passed' else 'fail'
+        if (c['fixture'], c['player']) in alternative_passes:
+            status = '🟣 Fail; ' + alternative_passes[c['fixture'], c['player']] + ' pass'
         return route + ' · ' + status
     replacements = {}
     for key, f in fixtures.items():
@@ -82,7 +100,8 @@ outcomes. Expanded run: **{summary['startedAt'][:10]}, Chrome 152, headless**.
 **Screen only** means playback checks passed but surround/HDR fidelity remains
 unqualified. **Blocked** identifies unavailable fixtures, engines, or checks.
 These are bounded synthetic tests, not universal support guarantees. **% gains remain
-unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md).
+unmeasured.** See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
+[why each Demuxe Hybrid row uses Hybrid](docs/HEAD-TO-HEAD-HYBRID.md).
 
 {LEGEND}
 
@@ -121,6 +140,9 @@ results above. See [full evidence, blocker reasons and caveats](HEAD-TO-HEAD-CAT
         counts=Counter(c['status'] for c in cases if c['player']==player)
         lines.append(f'| {player} | {counts["passed"]} | {counts["failed"]} | {counts["blocked"]} |')
     lines += ['', 'Latest outcome per player/combination is shown. Supplemental runs replace only their exact rows; the original blocked records remain in the primary run.', '']
+    for alternative in alternatives:
+        rel='../'+str(alternative.resolve().relative_to(ROOT))
+        lines.append(f'- [Tested alternative {alternative.name}]({rel}/REPORT.md): shown in purple where the default failed; default outcome totals are unchanged.')
     for extra in runs[1:]:
         extra_summary=json.loads((extra/'summary.json').read_text())
         extra_rel='../'+str(extra.relative_to(ROOT))
@@ -147,5 +169,6 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run',type=Path)
     parser.add_argument('--supplement',type=Path,action='append',default=[])
+    parser.add_argument('--alternative',type=Path,action='append',default=[])
     args=parser.parse_args()
-    render(args.run,args.supplement)
+    render(args.run,args.supplement,args.alternative)

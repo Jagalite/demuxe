@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {nativeRejection} from '../web/generated/internal/selection.js';
+import {nativeRejection,nativeManifestRejection} from '../web/generated/internal/selection.js';
 const settings={aid:'auto',sid:'auto',subtitles:true};
 const v={id:'1',index:0,type:'video',codec:'h264'},a={id:'1',index:1,type:'audio',codec:'aac',aacObject:2,default:true};
 const reason=(tracks,s={})=>nativeRejection({tracks,duration:10},{...settings,...s});
@@ -24,4 +24,16 @@ test('negative browser hints and unknown AAC configuration cannot veto direct di
  const browser={canPlayType:()=>{throw Error('Semantic admission must not query the browser');}};
  assert.equal(nativeRejection({tracks:[v,a],duration:1},settings,browser),undefined);
  assert.equal(nativeRejection({tracks:[v,{...a,aacObject:0}],duration:1},settings,{canPlayType:()=>''}),undefined);
+});
+
+test('HLS VOD permits a direct runtime trial without bypassing manifest requirements',()=>{
+ const source={url:'https://media.test/video.m3u8',format:'hls'};
+ assert.equal(nativeManifestRejection(source,settings),undefined);
+ assert.equal(nativeManifestRejection({...source,streaming:{live:false}},settings),undefined);
+ assert.equal(nativeManifestRejection(source,{...settings,aid:'no',sid:'no'}),undefined);
+ for(const extra of [{format:'dash'},{demuxer:'hls'},{streaming:{live:true}},{streaming:{maxBandwidth:1000000}},{streaming:{representation:'low'}}]){
+  assert.match(nativeManifestRejection({...source,...extra},settings),/mpv inspection/);
+ }
+ assert.match(nativeManifestRejection(source,{...settings,aid:'2'}),/track selection/);
+ assert.match(nativeManifestRejection(source,{...settings,sid:'2'}),/track selection/);
 });

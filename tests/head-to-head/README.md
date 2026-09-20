@@ -13,6 +13,9 @@ selection, acceptance checks, results, performance gates and limitations.
 - `render-catalogue.py`: refresh README/detailed tables from verified complete outcomes and explicit supplements.
 - `adapters.mjs`: public player APIs and correctness-only audio observation.
 - `run.mjs`: serial runner, fresh outputs, per-case outcomes and gated performance.
+- `explain-hybrid.py`: verify retained runs and generate per-row Native rejection/component explanations.
+- `probe-hybrid-mse.mjs`: record separate video/audio/combined MSE hints without claiming playback qualification.
+- `hls-fallback.mjs`: injected Native HLS rejection followed by real Hybrid output and cleanup.
 - `checks.mjs`, `contracts.mjs`: independent marker/range/identity acceptance controls.
 - `verify.mjs`: completed-run evidence integrity, without playback.
 
