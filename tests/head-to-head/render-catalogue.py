@@ -9,13 +9,24 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 
-LEGEND = "**Legend:** 🟢 Pass · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)"
+LEGEND = "**Legend:** 🟢 Native-path pass · 🔵 Other-path pass · 🟣 Default failed; tested alternative passed · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)"
 
 def color_status_cells(text):
     lines = []
     for line in text.splitlines():
+        if line.startswith('**Legend:**'):
+            line = LEGEND
         if line.startswith('| '):
-            line = line.replace(' · pass', ' · 🟢 Pass').replace(' · fail', ' · 🔴 Fail').replace(' · screen only', ' · 🟡 Screen only')
+            cells = line.split('|')
+            for i, cell in enumerate(cells):
+                route, separator, status = cell.partition(' · ')
+                if separator and status.strip() in ('pass', '🟢 Pass', '🔵 Pass'):
+                    marker = '🟢' if route.strip().startswith('Native') else '🔵'
+                    cells[i] = route + ' · ' + marker + ' Pass '
+                elif separator and status.strip().startswith('fail; '):
+                    cells[i] = route + ' · 🟣 Fail; ' + status.strip()[6:] + ' '
+            line = '|'.join(cells)
+            line = line.replace(' · fail', ' · 🔴 Fail').replace(' · screen only', ' · 🟡 Screen only')
             line = line.replace('| Blocked', '| ⚪ Blocked')
         lines.append(line)
     return '\n'.join(lines) + '\n'
@@ -97,7 +108,7 @@ results above. See [full evidence, blocker reasons and caveats](HEAD-TO-HEAD-CAT
     s=s.replace('These four\nfixtures do not cover', 'The original four\nfixtures do not cover')
     s=s.replace('This is a static view of `matrix-01`. A future run has separate route evidence;', 'The original tables are a static view of `matrix-01`; the expanded tables identify their separate run. A future run has separate route evidence;')
     s=s.replace('snapshot. No player tests were rerun to create this document.', 'snapshot. The expanded catalogue was executed separately; original results were preserved.')
-    if LEGEND not in s:
+    if '**Legend:**' not in s:
         s = s.replace("## Default configurations\n", "## Default configurations\n\n" + LEGEND + "\n")
     routes.write_text(color_status_cells(s))
     rel='../'+str(run.relative_to(ROOT))
