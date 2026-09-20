@@ -69,80 +69,74 @@ subsystem or requirement determines a route. The
 [head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
 combinations and their exact evidence.
 
-The original four combinations and all 56 additional combinations now have recorded
-outcomes. Expanded base run: **2026-09-19, Chrome 152, headless**; linked route follow-ups include headed runs.
-**Screen only** means playback checks passed but surround/HDR fidelity remains
-unqualified. **Blocked** identifies unavailable fixtures, engines, or checks.
-These are bounded synthetic tests, not universal support guarantees. **Cross-player CPU baseline:** the values below compare Demuxe separately against each player; N/A means no qualified comparison. See [evidence and limitations](docs/HEAD-TO-HEAD-CATALOGUE.md) and
-[the original Hybrid audit](docs/HEAD-TO-HEAD-HYBRID.md).
-[Component routing and paired before/after measurements](docs/COMPONENT-ROUTING.md) track the later WebVTT change.
+The table uses the recorded CPU campaign and its matching playback checks. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
 
-**Legend:** 🟢 Native-path pass · 🔵 Other-path pass · 🟣 Default failed; tested alternative passed · 🔴 Fail · 🟡 Screen only (fidelity unqualified) · ⚪ Blocked (not tested)
+Each player is compared with native video: `100 × (native CPU − player CPU) / native CPU`. Positive means lower CPU; negative means higher. Medians use three matched rounds. `(Pass)` means the round range includes zero, not proven equivalence; native is its own reference. `(Fail)` means default playback correctness failed. N/A includes absent or rejected performance evidence; it does not imply equal CPU. Green = lower CPU, orange = higher, blue = Pass, red = Fail, yellow = fidelity-limited, white = unavailable comparison. Pinned Chrome/macOS shared-host synthetic evidence; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
-**CPU gain order:** Native video / Movi / AVPlayer. `100 × (baseline CPU − Demuxe CPU) / baseline CPU`; positive means lower Demuxe CPU, negative means higher. Values are medians of three matched-round reductions on a shared host; N/A is not zero. [Raw CPU baseline, ranges and exclusions](results/head-to-head/cpu-baseline-report-02/REPORT.md) · [Measurement protocol and limits](docs/CPU-BASELINE.md).
+[Raw values, ranges and exclusions](results/head-to-head/cpu-native-reference-01/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
-| Media format | Native video | Demuxe (auto) | Movi | AVPlayer | CPU gain % |
-| --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟣 Fail; native-first pass | Custom · 🔵 Pass | +7.5% / N/A / +42.9% |
-| H.264 + AAC / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🟣 Fail; native-first pass | Custom · 🔵 Pass | N/A / N/A / +41.4% |
-| H.264 + PCM24 / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔴 Fail | -2.3% / N/A / N/A |
-| H.264 + PCM24 / MKV + ASS | Native + host ASS · 🟢 Pass | Hybrid · 🔵 Pass | Custom · 🟣 Fail; native-first + host ASS pass | Custom · 🔴 Fail | -72.9% / N/A / N/A |
-| H.264 + AAC 5.1 / MP4 | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| H.264 + MP3 stereo / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | -0.9% / N/A / +39.0% |
-| H.264 + AC-3 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| H.264 + E-AC-3 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| H.264 + DTS core 5.1 / MKV | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| H.264 + FLAC stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | -3.5% / N/A / +33.7% |
-| H.264 + FLAC 5.1 / MKV | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| H.264 + Opus stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | +3.3% / N/A / +39.3% |
-| H.264 + PCM16 stereo / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔴 Fail | +1.9% / N/A / N/A |
-| H.264 + PCM24 5.1 / MKV | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🟡 Screen only | Custom · 🔴 Fail | N/A / N/A / N/A |
-| HEVC Main 8-bit + AAC / MP4 (hvc1) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +2.5% / N/A / +36.0% |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +34.3% |
-| HEVC Main 10-bit SDR + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +33.8% |
-| HEVC Main 10-bit SDR + AC-3 / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +17.0% |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +16.3% |
-| HEVC Main 10-bit SDR + DTS core / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +20.7% |
-| AV1 8-bit + AAC / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | -4.1% / N/A / +38.9% |
-| AV1 10-bit SDR + Opus / MKV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +1.6% / N/A / +35.1% |
-| AV1 + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +0.0% / N/A / +38.6% |
-| VP9 8-bit + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +4.8% / N/A / +42.5% |
-| VP9 10-bit SDR + Opus / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Unknown · 🔴 Fail | +0.6% / N/A / N/A |
-| VP8 + Vorbis / WebM | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +1.8% / N/A / +39.2% |
-| H.264 + AAC / MPEG-TS | Custom · 🔴 Fail | Native remux · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / +36.9% |
-| MPEG-2 video + AC-3 / MPEG-TS | Custom · 🔴 Fail | Software · 🔵 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | N/A / N/A / N/A |
-| MPEG-2 video + MP2 / MPEG-PS | Custom · 🔴 Fail | Software · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| MPEG-4 Part 2 + MP3 / AVI | Custom · 🔴 Fail | Software · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| ProRes + PCM / MOV | Native · 🔴 Fail | Software · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| H.264 + AAC / fragmented MP4 (single file) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | -1.0% / N/A / N/A |
-| H.264 video-only / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | -8.3% / +37.8% / +29.7% |
-| H.264 + AAC + embedded SRT / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| H.264 + AAC + external WebVTT / MP4 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | -0.4% / N/A / N/A |
-| H.264 + AAC + embedded mov_text / MP4 | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| H.264 + AAC + styled ASS / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| HEVC + AC-3 + PGS / MKV | Native · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| H.264 + AC-3 + VobSub / MKV | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| AAC audio-only / M4A | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | -3.6% / N/A / +27.0% |
-| MP3 audio-only / MP3 | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔴 Fail | +1.7% / N/A / N/A |
-| FLAC audio-only / FLAC | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔵 Pass | +6.8% / N/A / +28.3% |
-| Opus audio-only / Ogg | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔴 Fail | -2.0% / N/A / N/A |
-| Vorbis audio-only / Ogg | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | -3.5% / N/A / N/A |
-| PCM16 audio-only / WAV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Custom · 🔴 Fail | +0.7% / N/A / N/A |
-| PCM24 audio-only / WAV | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔵 Pass | Unknown · 🔴 Fail | +6.6% / N/A / N/A |
-| HEVC Main 10 + E-AC-3 / MKV (HDR10) | Native · 🔴 Fail | Hybrid · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| HEVC Main 10 + AAC / MP4 (HLG) | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| AV1 10-bit + Opus / WebM (HDR10) | Native · 🟡 Screen only | Native · 🟡 Screen only | Custom · 🔴 Fail | Custom · 🟡 Screen only | N/A / N/A / N/A |
-| HEVC + TrueHD 7.1 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | N/A / N/A / N/A |
-| HEVC + DTS-HD MA 7.1 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | N/A / N/A / N/A |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | N/A / N/A / N/A |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | N/A / N/A / N/A |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | ⚪ Blocked (fixture) | N/A / N/A / N/A |
-| H.264 + AAC / HLS VOD (TS segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | +4.4% / N/A / N/A |
-| H.264 + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | +1.6% / N/A / +40.2% |
-| HEVC + AAC / HLS VOD (fMP4 segments) | Native · 🟢 Pass | Native · 🟢 Pass | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / N/A |
-| H.264 + AAC / DASH VOD (fMP4 segments) | Custom · 🔴 Fail | Hybrid · 🔴 Fail | Custom · 🔴 Fail | Custom · 🔵 Pass | N/A / N/A / N/A |
-| AV1 + Opus / DASH VOD (WebM segments) | Custom · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
-| H.264 + AAC / HLS live (sliding window) | Native · 🔴 Fail | Hybrid · 🔵 Pass | Custom · 🔴 Fail | Custom · 🔴 Fail | N/A / N/A / N/A |
+| Media format | Native video | Demuxe (auto) | Movi | AVPlayer |
+| --- | --- | --- | --- | --- |
+| H.264 + AAC / MP4 | 🔵 (Pass) | 🟢 (+7.5%) | 🔴 (Fail) | 🟠 (-64.3%) |
+| H.264 + AAC / MKV | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| H.264 + PCM24 / MKV | 🔵 (Pass) | 🟠 (-2.3%) | ⚪ (N/A) | 🔴 (Fail) |
+| H.264 + PCM24 / MKV + ASS | 🔵 (Pass) | 🟠 (-72.9%) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC 5.1 / MP4 | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + MP3 stereo / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-65.3%) |
+| H.264 + AC-3 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + E-AC-3 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + DTS core 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + FLAC stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-56.9%) |
+| H.264 + FLAC 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| H.264 + Opus stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🟠 (-59.4%) |
+| H.264 + PCM16 stereo / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + PCM24 5.1 / MKV | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-56.7%) |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| HEVC Main 10-bit SDR + AAC / MP4 | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| AV1 8-bit + AAC / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-78.2%) |
+| AV1 10-bit SDR + Opus / MKV | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-58.6%) |
+| AV1 + Opus / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-76.2%) |
+| VP9 8-bit + Opus / WebM | 🔵 (Pass) | 🟢 (+4.8%) | 🔴 (Fail) | 🟠 (-62.1%) |
+| VP9 10-bit SDR + Opus / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| VP8 + Vorbis / WebM | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-61.2%) |
+| H.264 + AAC / MPEG-TS | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| ProRes + PCM / MOV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / fragmented MP4 (single file) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 video-only / MP4 | 🔵 (Pass) | 🟠 (-8.3%) | 🟠 (-74.1%) | 🟠 (-54.2%) |
+| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + external WebVTT / MP4 | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| AAC audio-only / M4A | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🟠 (-28.8%) |
+| MP3 audio-only / MP3 | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
+| FLAC audio-only / FLAC | 🔵 (Pass) | 🟢 (+6.8%) | ⚪ (N/A) | 🟠 (-29.6%) |
+| Opus audio-only / Ogg | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
+| Vorbis audio-only / Ogg | 🔵 (Pass) | 🟠 (-3.5%) | ⚪ (N/A) | 🔴 (Fail) |
+| PCM16 audio-only / WAV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
+| PCM24 audio-only / WAV | 🔵 (Pass) | 🔵 (Pass) | ⚪ (N/A) | 🔴 (Fail) |
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| HEVC Main 10 + AAC / MP4 (HLG) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| AV1 10-bit + Opus / WebM (HDR10) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) | 🟡 (N/A) |
+| HEVC + TrueHD 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| HEVC + DTS-HD MA 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| H.264 + AAC / HLS VOD (TS segments) | 🔵 (Pass) | 🟢 (+4.4%) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | 🔵 (Pass) | 🔵 (Pass) | 🔴 (Fail) | 🟠 (-64.5%) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | ⚪ (N/A) | ⚪ (N/A) | 🔴 (Fail) | ⚪ (N/A) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | ⚪ (N/A) |
+| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | ⚪ (N/A) | 🔴 (Fail) | 🔴 (Fail) |
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

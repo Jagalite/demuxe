@@ -36,8 +36,6 @@ def comparison(demuxe, baseline):
             'baselineMedianCPU':statistics.median(p['baselineOneCorePercent'] for p in pairs),'pairs':pairs}
 
 def render(args):
-    if args.update_readme and '| CPU gain % |' not in (ROOT/'README.md').read_text():
-        raise ValueError('Legacy CPU column is absent; use render-native-cpu-table.py for the compact native-reference table')
     assets=Path(args.assets).resolve();out=Path(args.output).resolve();out.mkdir(parents=True,exist_ok=False)
     fixtures={k:{'label':v} for k,v in BASE_LABELS.items()}
     fixtures.update(json.loads((assets/'fixtures/catalogue.json').read_text()))
