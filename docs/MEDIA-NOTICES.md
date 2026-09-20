@@ -41,3 +41,22 @@ source/hash record in `fixtures/assets.lock.json` when redistributing it.
 The npm runtime package includes the font and its notice, but no test movie or
 result screenshot. The source companion includes tracked fixtures and excludes
 `results/`; the Git repository has a broader media surface than the npm runtime.
+
+## Specialist codec test sources
+
+The specialist screens use locally downloaded technical test streams from the
+[FFmpeg FATE suite](https://fate-suite.ffmpeg.org/truehd/),
+[FFmpeg sample collection](https://samples.ffmpeg.org/A-codecs/DTS/dts/),
+[Dolby developer media](https://media.developer.dolby.com/Atmos/MP4/shattered-3Mb.mp4),
+and [Dolby Laboratories' Dolby Vision contents repository](https://github.com/DolbyLaboratories/dolby-vision-contents).
+The Dolby Vision imagery is **Sol Levante / Netflix** as identified by the source
+repository and title card. The Dolby Atmos demonstration is **Shattered**.
+
+Exact URLs, byte counts and SHA-256 identities are retained in
+`tests/head-to-head/specialist-sources.json` and each run's `fixtures.json`.
+No license grant is inferred from public sample hosting: these streams and
+movie-derived screenshots are **NOASSERTION**, retain their original rights,
+and are not covered by Demuxe's CC BY report-data grant. Downloaded and derived
+media stay under ignored `build/`; they are not shipped with the runtime.
+Adaptations include bounded excerpts, compressed-packet repetition for short
+audio regressions, remuxing, generated companion audio/video and test captions.

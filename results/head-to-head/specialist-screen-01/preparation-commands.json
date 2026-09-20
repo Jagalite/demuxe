@@ -1,0 +1,299 @@
+[
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "warning",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/source-hevc10.mkv",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/repeated-truehd.thd",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-t",
+      "8",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-truehd.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-truehd.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-xerror",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-truehd.mkv",
+      "-f",
+      "null",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "warning",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/source-hevc10.mkv",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/specialist-samples-01/dtshd.dts",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-t",
+      "8",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-dtshd.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-dtshd.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-xerror",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-dtshd.mkv",
+      "-f",
+      "null",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "warning",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/source-hevc10.mkv",
+      "-ss",
+      "20",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/specialist-samples-01/atmos.mp4",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-t",
+      "8",
+      "-tag:v",
+      "hvc1",
+      "-movflags",
+      "+faststart",
+      "-strict",
+      "unofficial",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-atmos.mp4"
+    ],
+    "exit": 0,
+    "stderr": "[mp4 @ 0x75ac14780] track 1: codec frame size is not set\n"
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-atmos.mp4"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-xerror",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/hevc-atmos.mp4",
+      "-f",
+      "null",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "warning",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/specialist-samples-01/dv5.mp4",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.15*sin(2*PI*440*t)|0.15*sin(2*PI*880*t):s=48000:d=8:c=stereo",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "eac3",
+      "-b:a",
+      "384k",
+      "-t",
+      "8",
+      "-tag:v",
+      "hev1",
+      "-movflags",
+      "+faststart",
+      "-strict",
+      "unofficial",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv5.mp4"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv5.mp4"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-xerror",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv5.mp4",
+      "-f",
+      "null",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "warning",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/specialist-samples-01/dv81.mp4",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.15*sin(2*PI*440*t)|0.15*sin(2*PI*880*t):s=48000:d=8:c=stereo",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "eac3",
+      "-b:a",
+      "384k",
+      "-t",
+      "8",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv81.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv81.mkv"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-nostdin",
+      "-v",
+      "error",
+      "-xerror",
+      "-i",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-specialist-screen-01/fixtures/specialist/dv81.mkv",
+      "-f",
+      "null",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  }
+]

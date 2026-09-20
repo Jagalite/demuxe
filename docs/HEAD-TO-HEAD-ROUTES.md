@@ -2,6 +2,12 @@
 
 # Player paths and planned media coverage
 
+## Specialist Software alternatives (2026-09-20)
+
+The [specialist/library report](../results/head-to-head/specialist-report-01/REPORT.md) records current headed Chrome default routes and separate forced-Software checks. HEVC + DTS-HD MA passes both Hybrid and explicit Software. Both simpler Dolby Vision 5/8.1 files and both DV + E-AC-3/JOC + ASS combinations pass bounded Software playback, including ordinary seeks, EOF and cleanup. They still fail the default comparison because Native preparation or Hybrid timing fails. These Software passes do not qualify DV color/RPU application, Atmos objects, discrete channels or losslessness. Both HDR10 + TrueHD/DTS-HD + PGS cases lose their subtitle marker after seeking in either mode.
+
+The older table below retains its original fixture and snapshot scope.
+
 Recorded run: **2026-09-19**, **chromium/152.0.7977.83/chrome/headless**. This table describes
 the actual paths observed on the generated test fixtures, not a universal routing
 policy or a promise about other browsers and media.

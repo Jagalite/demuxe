@@ -69,11 +69,11 @@ subsystem or requirement determines a route. The
 [head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
 combinations and their exact evidence.
 
-The table uses the recorded CPU campaign and its matching playback checks, plus catalogue playback screening for fidelity-limited rows excluded from that campaign. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
+The table uses the recorded CPU campaign and its matching playback checks, plus catalogue and real-bitstream playback screening for fidelity-limited rows excluded from that campaign. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
 
-Every numeric cell shows that player’s actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest measured median for that media case. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` means historical playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU measurement is claimed. `(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS shared-host synthetic evidence; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
+Every numeric cell shows that player’s actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest measured median for that media case. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` means bounded playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU measurement is claimed. `(Fail)` means default playback correctness failed. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate from the synthetic CPU campaign; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
-[Raw values, ranges and exclusions](results/head-to-head/cpu-actual-usage-01/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
+[Raw values, ranges and exclusions](results/head-to-head/cpu-specialist-usage-02/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
 | Media format | Native video | Demuxe (auto) | Movi | AVPlayer |
 | --- | --- | --- | --- | --- |
@@ -126,20 +126,31 @@ Every numeric cell shows that player’s actual median CPU usage as a percentage
 | HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | **🟢 (Pass)\*** |
 | HEVC Main 10 + AAC / MP4 (HLG) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🔴 (Fail) | **🟢 (Pass)\*** |
 | AV1 10-bit + Opus / WebM (HDR10) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🔴 (Fail) | **🟢 (Pass)\*** |
-| HEVC + TrueHD 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| HEVC + DTS-HD MA 7.1 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) | ⚪ (N/A) |
+| HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | **🟢 (Pass)\*** |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)\*** |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)\*** |
 | H.264 + AAC / HLS VOD (TS segments) | 🟠 24.2% CPU | **🟢 23.3% CPU** | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC / HLS VOD (fMP4 segments) | 🟠 25.0% CPU | **🟢 24.4% CPU** | 🔴 (Fail) | 🟠 40.8% CPU |
 | HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 🔴 (Fail) | **🟢 37.5% CPU** |
 | H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | **🟢 (Pass)** |
 | AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | **🟢 (Pass)** | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 + AAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** |
+| HEVC Main 10 + FLAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🔴 (Fail) | **🟢 (Pass)\*** |
+| HEVC Main 10 + Opus / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** |
+| HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).
+
+The [specialist and library screen](results/head-to-head/specialist-report-01/REPORT.md) also tests explicit Software mode: all four Dolby Vision combinations pass its bounded playback checks, despite failing automatic selection or Hybrid lifecycle checks above. This does not qualify Dolby Vision color or Atmos object rendering. Both HDR10+PGS combinations still lose subtitles after seeking in Hybrid and Software.
 
 ## Release and licensing
 

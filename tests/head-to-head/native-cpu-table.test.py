@@ -10,6 +10,34 @@ spec.loader.exec_module(m)
 
 
 class NativeBaseline(unittest.TestCase):
+    def test_specialist_screen_is_bounded_not_a_cpu_measurement(self):
+        import tempfile, json, hashlib
+        with tempfile.TemporaryDirectory(dir=m.ROOT / 'build') as d:
+            run=Path(d);(run/'files').mkdir()
+            fixture={'f':{'file':'f.mkv','sha256':'media','label':'New library case'}}
+            assets={'files':{'fixtures/f.mkv':{'sha256':'media'}}}
+            (run/'assets-manifest.json').write_text(json.dumps(assets))
+            cases=[{'fixture':'f','player':p,'lane':'auto' if p=='demuxe' else 'default',
+                    'status':'passed','screenPassed':True,'checks':['check']*5,
+                    'cleanup':{'remainingSurfaces':0,'workers':0,'contexts':['closed']},
+                    'browserExit':{'remainingProcessIDs':[]}} for p,_ in m.PLAYERS]
+            summary={'kind':'specialist-basic-screen','finishedAt':'now','cases':cases,
+                     'qualificationLimit':'Fidelity unqualified','assetsSHA256':hashlib.sha256((run/'assets-manifest.json').read_bytes()).hexdigest()}
+            (run/'summary.json').write_text(json.dumps(summary));(run/'fixtures.json').write_text(json.dumps(fixture))
+            (run/'files/specialist-screen.mjs').write_text('// captured')
+            def seal():
+                (run/'manifest.json').write_text(json.dumps({'sha256':{str(p.relative_to(run)):hashlib.sha256(p.read_bytes()).hexdigest() for p in run.rglob('*') if p.is_file() and p.name!='manifest.json'}}))
+            seal()
+            records,identity=m.load_specialist_screen(run)
+            self.assertEqual(m.cell(records[('f','demuxe')],'demuxe'),'🟢 (Pass)*')
+            self.assertNotIn('playerMedianCPU',records[('f','demuxe')])
+            self.assertEqual(identity['additionalLabels'],{'f':'New library case'})
+            (run/'summary.json').write_text('{}')
+            with self.assertRaises(AssertionError):m.load_specialist_screen(run)
+            summary['cases'][0]['lane']='software'
+            (run/'summary.json').write_text(json.dumps(summary));seal()
+            with self.assertRaises(AssertionError):m.load_specialist_screen(run)
+
     def evidence(self, native=(10, 10, 10), player=(20, 20, 20)):
         identity = {'assetsSHA256': 'assets', 'harnessSHA256': 'harness', 'browserIdentity': 'browser'}
         correctness = {('f', p): (dict(identity), {'status': 'passed'}) for p in ['video', 'libmedia']}

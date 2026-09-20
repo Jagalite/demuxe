@@ -53,7 +53,7 @@ def generate(fixtures, run, duration):
         ('hdr10-hevc', 'mkv', 'hdr10', 'eac3'),
         ('hlg-hevc', 'mp4', 'hlg', 'aac'),
         ('hdr10-av1', 'webm', 'av1hdr', 'libopus'),
-        ('hevc-truehd', 'mkv', 'hevc10', 'truehd', 8),
+        ('hevc-truehd', None, None, None),
         ('hevc-dtshd', None, None, None),
         ('hevc-atmos', None, None, None),
         ('dv5', None, None, None),
@@ -66,6 +66,7 @@ def generate(fixtures, run, duration):
         ('hls-live', 'm3u8', 'copy', 'aac'),
     ]
     blockers = {
+        'hevc-truehd': 'Installed TrueHD encoder supports at most 5.1; 7.1 requires a validated external bitstream. See prepare-specialist-fixtures.py for separate basic screening.',
         'hevc-dtshd': 'Installed FFmpeg has DTS core encoding but no DTS-HD MA encoder; no licensed marked sample is available.',
         'hevc-atmos': 'Installed E-AC-3 encoder does not generate Atmos objects/metadata; no licensed marked sample is available.',
         'dv5': 'No Dolby Vision profile 5 encoder/marked sample and reference Dolby Vision output oracle are available.',
