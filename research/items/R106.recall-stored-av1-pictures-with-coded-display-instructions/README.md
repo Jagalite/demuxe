@@ -23,3 +23,11 @@ Next action: Research profile complete. Reuse only with explicitly bounded dicti
 | decision | passed | Legal authored AV1 show_existing recalls retain showable non-key pictures in slots1/2. All203pictures exactly match independently authored lossless source in host and Chrome, including nonconsecutive repeats and timestamp identity. Missing dictionary and wrong key-slot recalls are permissively decoded by host but produce wrong pictures and are detected; reset without rebuilding dictionary rejects in Chrome. Prepared recall9868bytes vsordinary161065 (93.87%smaller). Seven browser comparisons plus measured cold encoding give median1.0265times cheapest application-frame-cache cost, within1.10gate, observed1.009–1.298times. No physical-memory claim; ordinary encoder profile is lag0/order-hint-disabled/lossless, not every AV1 encoder. |
 
 [New run](../../shared/runs/20260919T224816Z-av1-dictionary-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D56 — Preserve an explicit cadence with coded picture recalls**: stop/negative. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

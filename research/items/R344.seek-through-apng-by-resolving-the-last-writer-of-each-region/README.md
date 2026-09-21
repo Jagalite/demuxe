@@ -9,3 +9,11 @@ Implemented actual bounded APNG CRC/sequence/geometry validated SOURCE/NONE oper
 Next: Stop currenttiny APNGlastwriter implementation: exact and8vs24 standaloneimages butnative APNGdecoder is cheaper. Reopen for representative sparse largeranimations and explicit retention budget where measurednative baseline is insufficient; retain fullselectedimage decode and index costs.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T235353Z-apng-normal-oracle/analysis.md)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D25 — Cold APNG seeks using native PNG subframe views and disposal-aware plans**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

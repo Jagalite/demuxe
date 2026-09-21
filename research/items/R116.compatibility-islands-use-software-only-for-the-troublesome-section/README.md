@@ -23,3 +23,11 @@ Next action: Reopen only with an actual destination-ineligible bounded section a
 | decision | passed | The proposed troublesome AVC4:4:4 section is already accepted by actual Chrome152 WebCodecs, along with surrounding AVC4:2:0. All9 full native-API picture planes and timestamps match independent FFmpeg across420→444→420 configure/reset epochs, with every output closed. Thus this tested profile has no software-island opportunity. No custom island candidate executed; do not infer physical hardware decoding, unsupported-codec coverage, or general software-island correctness. |
 
 [New run](../../shared/runs/20260919T235115Z-compatibility-islands/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D06 — Source-defined compatibility islands, without claiming handoff**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

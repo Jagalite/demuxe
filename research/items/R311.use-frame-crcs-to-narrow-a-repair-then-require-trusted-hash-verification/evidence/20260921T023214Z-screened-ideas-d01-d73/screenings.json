@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D18",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "A decoding success is not an integrity verdict",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R311.use-frame-crcs-to-narrow-a-repair-then-require-trusted-hash-verification",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D18 — A decoding success is not an integrity verdict\n\n**Question.** Can Demuxe leave decode browser-owned while retaining an explicit integrity contract? Adjacent work: R311, R192/R222 and D05/D12.\n\nThe controls were: a frame-CRC-only change; an incorrect STREAMINFO MD5; and a changed PCM sample with a recomputed valid frame CRC but the original, now-invalid MD5.\n\n| Control | Browser whole-file decoder | Scoped frame-CRC guard | Independent libFLAC integrity test | Trusted expected source SHA-256 |\n|---|---|---|---|---|\n| Valid source | Accepted | Accepted | Accepted | Matched |\n| Wrong frame CRC | Accepted, same PCM | Rejected | Rejected | Rejected |\n| Wrong stream MD5 | Accepted, same PCM | Accepted | Rejected | Rejected |\n| Changed sample, valid frame CRC | Accepted, changed PCM | Accepted | Rejected | Rejected |\n\nThe independent framing/CRC parser reads the constructed constant/verbatim profile; it does not expand PCM. It is not a generic FLAC validator and a CRC is not authentication. The trusted digest in the test belongs to the known authored reference, not an arbitrary digest supplied alongside untrusted input.\n\n**Decision:** keep decoder admission separate from structural validity and trusted content identity. Do not describe this browser behavior as a security vulnerability or assume it applies to every decoder. Production verification cost and streaming resource bounds were not measured.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "batch": "D14-D20",
+  "repository": "Jagalite/demuxe",
+  "reviewed_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+  "execution_scope": "standalone component screens; no maintained Demuxe execution or modifications",
+  "performance_qualified": false,
+  "verification": {
+    "checks": 101,
+    "passed": 101,
+    "unexpected_failures": 0
+  },
+  "items": [
+    {
+      "id": "D14",
+      "question": "Jointly declare selected tracks before first append",
+      "disposition": "pursue_scoped",
+      "related_work": "R032/R028; D07/D11",
+      "observed": "A late-added audio lane fails while jointly declared AVC MP4 and Vorbis WebM lanes play.",
+      "next_gate": "Exact A/V output and end trimming, source replacement, maintained planner integration."
+    },
+    {
+      "id": "D15",
+      "question": "Preserve Opus gain and trimming independently of packet identity",
+      "disposition": "pursue_webm_profile_reject_tested_mp4_equivalence",
+      "related_work": "R095/R094/R320; D13",
+      "observed": "All packets preserved; Ogg/WebM whole-file PCM identical at three gains; tested MP4 adds 792 frames.",
+      "next_gate": "Streaming-MSE PCM, seeks, gain-once and exact end semantics."
+    },
+    {
+      "id": "D16",
+      "question": "Build an actual constant/verbatim integer-PCM FLAC carrier",
+      "disposition": "feasible_do_not_adopt_unconditionally",
+      "related_work": "R102/R243",
+      "observed": "Independent integer oracles pass; output 3.49x/11.45x/8.63x tested conventional level-0 size.",
+      "next_gate": "Like-for-like maintained implementation complete-cost benchmark after integration correctness."
+    },
+    {
+      "id": "D17",
+      "question": "Change only audio codec while retaining application video ownership",
+      "disposition": "pursue_scoped_not_gapless",
+      "related_work": "R032 and track-continuity family",
+      "observed": "Opus-to-Vorbis live append retains video SourceBuffer; wrong offset detected; 21ms extra tail remains.",
+      "next_gate": "Sample-level seam/tail, rollback, source-bound transition and cancellation."
+    },
+    {
+      "id": "D18",
+      "question": "Keep structural validation and source integrity separate from decoding",
+      "disposition": "pursue_correctness",
+      "related_work": "R311/R192/R222; D05/D12",
+      "observed": "Browser accepts all three integrity negatives; strict libFLAC and trusted digest detect them.",
+      "next_gate": "Bounded production parser, trusted origin, invalid data publication and resource limits."
+    },
+    {
+      "id": "D19",
+      "question": "Promote restricted S16 FLAC to S24 by wasted-bit metadata for an explicit float contract",
+      "disposition": "pursue_restricted",
+      "related_work": "R174/R010; D16",
+      "observed": "376 added bytes retain 387444 sample payload bytes and produce 384000 exact normalized Float32 values.",
+      "next_gate": "Fixed/LPC excluded; intended numerical contract, authoritative source integrity, MD5 policy and integration."
+    },
+    {
+      "id": "D20",
+      "question": "Preserve known color semantics across direct and MSE routes",
+      "disposition": "pursue_authoritative_metadata_only",
+      "related_work": "Native-route fidelity and D13",
+      "observed": "Untagged same-packet routes differ in RGB; declared 601 and 709 each match across paths without changing coded pictures.",
+      "next_gate": "Conflicting/missing metadata, range/transfer/HDR, cross-browser and display qualification."
+    }
+  ]
+}

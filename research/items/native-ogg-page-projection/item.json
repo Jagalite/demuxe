@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "native-ogg-page-projection",
+  "title": "Select an Ogg logical stream by retaining its original pages",
+  "definition": {
+    "hypothesis": "Select an Ogg logical stream by retaining its original pages",
+    "scope_contract": "## D65 — Select an Ogg logical stream by retaining its original pages\n\n### Question and boundaries\n\nAn initial finite-file probe found that both ordinary raw FLAC and single-stream Ogg FLAC already decode in this browser. Consequently, “unwrap Ogg FLAC because the browser cannot decode it” was not a useful hypothesis here.\n\nThe actual experiment instead requests **one selected logical stream from a concurrent two-stream Ogg source**. It is not a mix, a chained-stream concatenation, a surround downmix, a live switch, or an attempt to preserve every source track in the selected output.\n\nOgg associates each page with a logical-stream serial number and interleaves complete pages. That allows this restricted projection to retain complete original pages, including their existing packet segmentation, granules, and checksums.\n\n### Construction and independent checks\n\nTwo independently authored S24 stereo, 48 kHz sources each contain 60,013 frames. FFmpeg encodes FLAC and multiplexes both streams into one 510,419-byte Ogg source. The adapter parses actual Ogg page boundaries and checks CRC, sequence, continuation, BOS/EOS state, caller-supplied source identity, and explicit single-stream selection. It has finite file/page/stream limits; it is not a hardened general-purpose Ogg validator or a proof of every codec's granule semantics.\n\n| Selected logical stream | Retained pages | Retained codec packets | Selected file bytes | Complete output |\n|---|---:|---:|---:|---|\n| First | 7 | 14 | 243,512 | 60,013 stereo frames exact |\n| Second | 7 | 14 | 266,907 | 60,013 stereo frames exact |\n\nEvery selected page and packet is unchanged. Complete FFmpeg S32 output matches both the authored source integers and independent selection through FFmpeg's own demuxer. Browser whole-file decoding matches each browser-decoded raw-FLAC reference, totaling **240,052 checked channel values** across both selections. This is endpoint-relative browser equality plus independent integer equality; it is not an assertion that every decoder uses identical Float32 scaling.\n\nThe unmodified multiplexed file's whole-file browser decode returns the first stream. Against an explicit request for the second stream, **120,025 of 120,026 values differ**, even though length and format match. The tested media element does not expose an audioTracks selection API.\n\nA separate browser construction builds each selected URL as a Blob of **seven original source-page views**, rather than a new combined application ArrayBuffer. Its materialized byte hash matches the independently constructed selected file. Both views pass two media-element seek-time checks and reach EOF at the expected rounded duration (1.250271 s).\n\nWhole-file PCM equality and media-element lifecycle are separate tests. The media-element run does not independently capture every audible sample or qualify exact audio output after seeks. Blob construction does not prove browser-internal zero-copy behavior. The harness reads and hashes the complete source, including the unselected pages, and retains reference buffers; selected byte size is not a measured network or total-memory saving.\n\n### Decisive controls and next step\n\nCorrupted CRC, truncation, a missing page, missing EOS, wrong source identity, unknown serial, and a mix-all request are rejected. A valid but wrong stream is decodable and is caught only by the requested-output comparison.\n\nNext: identify a real selected-track consumer, inspect existing demux ownership, and compare page projection against the cheapest correct existing selection path. A maintained adapter must bind the user's track choice to the current source and preserve cancellation/source replacement. Do not create an Ogg-to-raw-FLAC converter merely to play a single Ogg FLAC track that already works.\n\nEvidence: [construction](evidence/ogg_manifest.json), [browser decode and lifecycle](evidence/browser_ogg.json), [browser page views](evidence/browser_page_views.json), [initial destination probe](evidence/initial_audio_probe.json).",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch15_D65-D67/demuxe_batch15/REPORT.md",
+      "sha256": "eebebc5ef7f4d3064a42f89a2c06727db35fb5d961090be49efd252054e024c6"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/native-ogg-page-projection/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/native-ogg-page-projection/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/native-ogg-page-projection/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/native-ogg-page-projection/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D65"
+      ],
+      "path": "research/items/native-ogg-page-projection/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

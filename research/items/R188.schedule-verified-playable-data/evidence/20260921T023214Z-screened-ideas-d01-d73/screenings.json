@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R188.schedule-verified-playable-data",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D38",
+      "batch": 7,
+      "range": "D36–D39",
+      "title": "Admit a useful seek GOP without waiting for earlier GOPs",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R188.schedule-verified-playable-data",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch07_D36-D39.zip",
+      "report_section": "## D38 — Admit a useful seek GOP without waiting for earlier GOPs\n\n### Question and overlap\n\nCan the browser consume whole independently decodable fragmented intervals in arrival order while their authored timestamps preserve presentation order?\n\nNearest existing work: `R188.schedule-verified-playable-data` establishes bounded dependency closure and trusted digest checks. This batch tests a **destination behavior** after complete GOPs are available. It does not implement another network scheduler or establish trusted verification of arbitrary live data.\n\n### Candidate\n\nAn authored four-second, 80-picture AVC source has B pictures, closed one-second GOPs and four complete fMP4 fragments. Each fragment retains its original packet order, initialization configuration and authored decode-time header. This is **not arbitrary reordering of compressed dependent pictures inside a GOP**.\n\nThe source's presentation starts at 0.1 s because of the authored decode/composition timing, and the MSE presentation ends at 4.1 s. The candidate preserves that mapping; it does not silently normalize it to zero.\n\nTested orders:\n\n- Reference: 0, 1, 2, 3.\n- Permutation: 2, 0, 3, 1.\n- Reverse fragment delivery: 3, 2, 1, 0.\n- Target-first: 3, seek to the target, then 0, 1, 2.\n- Duplicate delivery: 0, 1, 1, 2, 3.\n\n### Observations\n\nAll five valid cases match **ten timestamp/picture/geometry witnesses** from the chronological baseline, retain the same JavaScript MediaSource/SourceBuffer objects, and reach EOF with duration 4.1 s. This does not reveal whether the browser internally recreates a decoder.\n\nFor the target-first case, the browser receives only **781 initialization bytes plus the 18,855-byte last GOP** before a seek request at 3.225 s displays the correct picture timestamped 3.2 s. The earlier three GOPs have not been supplied to that presentation. Its only buffered interval is [3.1, 4.1]. After backfilling the earlier GOPs, backward seeks match the baseline.\n\nThis is an actual browser supply-order test, not measured HTTP/P2P network latency or a maintained Demuxe planner implementation.\n\n### Controls\n\nWith `SourceBuffer.mode = \"sequence\"`, the same permuted bytes are laid out by append order: the video reaches EOF, but **all ten baseline comparisons fail**, and duration becomes four seconds. It is playable but is the wrong presentation.\n\nA wrong decode-time header on the final fragment overwrites/repositions content, leaves duration 3.1 s and makes the requested later picture unavailable. Six earlier observations are recorded, of which only four match the baseline.\n\nThe duplicate-append result establishes output equivalence at the checked points, not free/idempotent processing internally. General overlaps, malformed dependencies, memory eviction, audio and active decoder transitions remain outside scope.\n\n### Next gate\n\nRoute one real seek through the maintained source identity/verification/dependency planner and append owner. Qualify cross-track timing, eviction, cancellation and source replacement. Count requests and bytes separately from elapsed network latency and decoding work. Stop an integration variant if it only duplicates an already-implemented seek path.\n\nEvidence: `order_manifest.json`, `ordered_component.json`, `browser_ordered.json`, `order_comparison.json`.\n\n---",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

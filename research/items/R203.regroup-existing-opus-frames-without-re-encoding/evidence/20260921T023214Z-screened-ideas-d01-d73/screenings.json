@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R203.regroup-existing-opus-frames-without-re-encoding",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D31",
+      "batch": 6,
+      "range": "D31–D35",
+      "title": "Change packet grouping after startup rather than imposing one latency policy",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R203.regroup-existing-opus-frames-without-re-encoding",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch06_D31-D35.zip",
+      "report_section": "## D31 — Change packet grouping after startup rather than imposing one latency policy\n\n**Relation:** phase-adaptive extension of `R203.regroup-existing-opus-frames-without-re-encoding`. The existing record already proves fixed grouping; the question here is whether the startup representation can remain fine-grained while steady-state packets become larger.\n\n**Construction:** A 2.137-second mono 48 kHz source is encoded into 856 single-frame, 2.5 ms Opus packets. The candidate retains the first 32 packets (80 ms of coded duration, not 80 ms of post-preskip audible output), then groups the remaining compatible frames eight at a time. Actual libopus repacketizer calls construct output packets. Splitting the result back yields byte-identical original single-frame packets. Mixed configuration and unsupported policy/empty-packet cases reject. Ogg headers retain pre-skip and final granule; an FFmpeg packet-copy remux supplies WebM.\n\n| Representation | Codec packets | Ogg bytes | WebM bytes |\n|---|---:|---:|---:|\n| Original FFmpeg-muxed source | 856 | 24,833 | Not generated |\n| One-packet-per-page unbatched control | 856 | 47,837 | 29,406 |\n| Adaptive: first 32 unchanged, then groups of eight | 135 | 27,738 | 25,273 |\n| Uniform groups of eight | 107 | 26,958 | 25,113 |\n\nThe fair same-writer comparison reduces packet count from 856 to 135. The adaptive Ogg remains **larger than the originally muxed Ogg**, so a packet-count reduction is not an unconditional bandwidth win. WebM sizes compare the same FFmpeg muxer policy.\n\nAll output variants preserve **102,576 whole-file decoded mono samples** in host libopus execution and browser decodeAudioData, including the Ogg and WebM destinations. The wrong-final-granule control removes 120 samples and fails the same equivalence test. Thus a granule error cannot hide behind preserved constituent codec frames.\n\nActual WebM MSE playback seeks to 0.25 and 0.85 seconds, replays from 0.01, produces a non-silent captured signal, and reaches EOF for all three variants. However, MSE reports **2.1405 s** for the unbatched control and **2.141 s** for both grouped versions. The decoded audio is 2.137 s. The **0.5 ms between representations is retained as a strict streaming-presentation gap**, not waved away because PCM is exact at a different API boundary. Timecode quantization is a follow-up hypothesis, not a diagnosed cause.\n\nThe first 32 packets need no grouping wait. Under serial just-in-time delivery, the first frame in a full 20 ms group would wait up to an additional **17.5 ms** for its peers. This follows from the chosen packet durations; end-to-end startup/latency was not benchmarked. Fewer codec packets also do not prove fewer JavaScript MSE append calls, since an append can carry many packets.\n\n**Next smallest gate:** a real packet-submit or mux-owner workload with an explicit latency budget; exact WebM timestamp/tail audit; only then paired complete-cost measurements. Do not create a new generic repacketizer subsystem or revive a bandwidth claim unsupported by these files.\n\n**Evidence:** `opus_component.json`, `browser_decode.json:opus`, `browser_opuslife.json`, `scripts/opus_group.py`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

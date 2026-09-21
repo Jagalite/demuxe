@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "native-audio-sample-window-scheduling",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D35",
+      "batch": 6,
+      "range": "D31–D35",
+      "title": "Preserve exact edits by moving selection to the native audio scheduler",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "native-audio-sample-window-scheduling",
+      "classification": "new_candidate",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch06_D31-D35.zip",
+      "report_section": "## D35 — Preserve exact edits by moving selection to the native audio scheduler\n\n**Question:** When edit metadata fails a sample-exact contract, must audio decoding and scheduling move into a custom software engine?\n\nThis is a scoped use of standard AudioBufferSourceNode scheduling, not a newly invented codec mechanism. It is adjacent to the existing browser-native audio-graph direction (`R061`), but it tests source selection and joins rather than channel permutations.\n\nThe browser first decodes the original AAC or FLAC source once. A bounded plan validates mono, matching 48 kHz sample rate, integer in-range source windows and a maximum output size. Each node references the **same source AudioBuffer** and uses sample-derived start/offset/duration values; the candidate does not build a new concatenated sample buffer before scheduling. The independent oracle does concatenate source slices for comparison after rendering.\n\nOfflineAudioContext output matches **every sample** for both the 55,545-frame single edit and the 46,422-frame two-part edit, for both source codecs: **four exact results, 203,934 scalar values checked**. Shifting the requested source offset by one sample makes every compared value differ. Out-of-range windows, fractional sample positions and a different output sample rate are rejected by the scoped guard.\n\nThe source AudioBuffer contains **102,576 mono Float32 frames**, a logical payload of **410,304 bytes**, even when the requested output is shorter. The offline result buffer and other engine allocations are additional. Shared JavaScript object identity does not prove internal zero-copy or zero-allocation behavior. Complete source decode and retention may make this inappropriate for long streaming media.\n\n**Decision:** pursue for already-decoded or deliberately bounded audio workflows, where native decode plus native scheduling fits the requested semantics. Do not replace a cheaper working compressed direct/MSE path by default. Live scheduling, physical playback, A/V synchronization, source replacement, pause/replay and long-running memory remain untested.\n\n**Evidence:** `browser_schedule.json`, `scripts/browser.js:scheduled`, and guards in `validateWindows`.",
+      "mapping_basis": "Source-bound decoded sample-window scheduling is distinct from R061 channel processing and R094 compressed trim metadata.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

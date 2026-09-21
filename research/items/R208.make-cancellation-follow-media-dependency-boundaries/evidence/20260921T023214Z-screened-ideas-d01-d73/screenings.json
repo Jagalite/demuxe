@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R208.make-cancellation-follow-media-dependency-boundaries",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D12",
+      "batch": 2,
+      "range": "D08–D13",
+      "title": "A validated packet still needs a current source owner before publication",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R208.make-cancellation-follow-media-dependency-boundaries",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch02_D08-D13.zip",
+      "report_section": "## D12 — A validated packet still needs a current source owner before publication\n\n**Question.** Can a correctly decompressed, checksum-valid packet finish too late and be published after its source was replaced or cancelled?\n\n**Relation.** R208 cancellation plus D05/R358 packet validation. This extends the commit predicate from validation alone to validation **and** current-source ownership.\n\nThe browser actually decompresses a real 2,937-byte AVC packet. Controlled scheduling holds completion before input, after output, or after validation. In source-replacement cases, a new epoch's valid packet finishes before the older job is released.\n\n**Observed.** In three supersession cases and one cancellation-after-validation case, a validity-only publication counter would accept all **2,937 stale bytes**. The epoch/cancellation guard accepts **zero** stale bytes. Each replacement case separately accepts the new 2,937-byte packet with the expected hash. A normal packet passes. A bad-checksum packet fails validation and never commits. Retained chunk references are released in all cases.\n\n**Decision: pursue as adapter correctness work.** These are real decompression plus a simulated publication boundary; no actual Demuxe decoder queue was involved. This does not prove prompt cancellation of native decompression, a total-memory cap, safe epoch reuse, or integration teardown. The 64 KiB cap is only a retained-quarantine limit, not a browser-internal memory bound. Do not present publication counters as measured decode savings.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

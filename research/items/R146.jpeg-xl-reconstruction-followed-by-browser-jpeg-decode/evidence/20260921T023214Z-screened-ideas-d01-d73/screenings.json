@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D34",
+      "batch": 6,
+      "range": "D31–D35",
+      "title": "Recover original JPEG bytes from JPEG-origin JPEG XL, then use browser JPEG decoding",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch06_D31-D35.zip",
+      "report_section": "## D34 — Recover original JPEG bytes from JPEG-origin JPEG XL, then use browser JPEG decoding\n\n**Relation:** bounded advance of `R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode`. The existing record specifically asks for a genuine JPEG-origin fixture, reconstruction API, exact JPEG identity and controls. This batch establishes the **host** part, not the Wasm API artifact.\n\nActual libjxl encoding creates reversible JPEG-origin JXL files from four authored JPEGs. Actual libjxl decoding subscribes to JPEG reconstruction, supplies a bounded JPEG output buffer, and requests **no raster output buffer**. It reconstructs the original JPEG byte stream before that JPEG is passed to the browser image decoder.\n\n| Fixture | Original JPEG | JXL | Recovered JPEG identity | Browser picture comparison |\n|---|---:|---:|---|---|\n| Baseline RGB, 160 x 96 | 8,024 B | 6,563 B | Byte exact | Exact |\n| Progressive RGB, 191 x 113 | 10,317 B | 9,018 B | Byte exact | Exact |\n| Grayscale, 127 x 73 | 3,347 B | 3,035 B | Byte exact | Exact |\n| JPEG with orientation and sRGB ICC metadata | 8,666 B | 6,847 B | Byte exact | Exact; displayed 96 x 160 |\n\nAll four JXL files are rejected by the tested browser's native image route. All four recovered JPEGs decode and have the same Canvas-visible dimensions/hash as their original JPEGs. Byte identity also preserves the original ancillary JPEG metadata in these fixtures; it does not certify arbitrary color-management behavior on every display.\n\nThe API test rejects a JPEG-origin JXL encoded **without reconstruction metadata**, a truncated JXL, and a 128-byte output cap for each fixture. Output is not published until API completion. The cap bounds the supplied JPEG output buffer, **not all internal libjxl memory**. Missing reconstruction metadata requires another route, not invented JPEG data. This does not provide an arbitrary JXL-to-JPEG lossless converter: the narrow source must have the needed reversible-JPEG representation.\n\n**Why it remains interesting:** compatibility work can terminate at another compressed format that the browser already decodes. The application need not request a full JXL raster in this pathway. Nevertheless, libjxl reconstruction still performs work, and adding browser JPEG decoding has a cost. It is not a zero-work wrapper or a measured win.\n\n**Next smallest gate:** build/expose the reconstruction-only API in the actual supported browser/Wasm environment, repeat these hash/output/negative cases there, then compare total initialization, reconstruction, intermediate JPEG retention and browser decode against full software JXL raster output. No existing Wasm export or Demuxe integration is claimed.\n\n**Evidence:** `jxl_component.json`, `browser_images.json`, `jxl_stdout.txt`, `jxl_stderr.txt`, `scripts/jxl_bridge.py`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

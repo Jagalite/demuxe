@@ -17,3 +17,12 @@ Current decision: **pursue**. Legal source-authored avc3 SPS/PPS epochs change 3
 Next/reopen: Bounded AVC component worth pursuing. Reopen for maintained integration or independently scoped hev1 source/destination; preserve exact configuration admission and qualify real source replacement/audio separately before production.
 
 [Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D27 — Configuration changes without an automatic player rebuild**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+- **D44 — Try an unchanged native destination before projecting sample descriptions**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

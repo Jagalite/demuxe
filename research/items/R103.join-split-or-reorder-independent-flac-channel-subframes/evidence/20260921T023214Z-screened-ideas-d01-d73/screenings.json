@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R103.join-split-or-reorder-independent-flac-channel-subframes",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D23",
+      "batch": 4,
+      "range": "D21–D25",
+      "title": "Select independent FLAC channels without decoding their samples",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R103.join-split-or-reorder-independent-flac-channel-subframes",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch04_D21-D25.zip",
+      "report_section": "## D23 — Select independent FLAC channels without decoding their samples\n\n**Question.** For a request to select two original channels, can the producer copy those channels' coded subframes rather than decoding six channels and re-encoding two?\n\n**Relationship.** This advances a restricted subcase of R103. It does not implement general residual/LPC parsing, decorrelated stereo, arbitrary layouts or the full original four-channel gate.\n\n**Execution.** The input is the pinned six-channel, 24-bit, 48 kHz constant/verbatim FLAC fixture from batch 3. Its SHA-256 is `4dda3107436a418e842f4836a03687facb8a0025027fa0b56b56388b6e57ecf3`; it is included under `inputs/` so no external file is needed. There are 192,000 samples per channel in 188 frames.\n\nThe parser validates its narrow frame layout and CRCs, locates complete independent subframe byte ranges, copies source channels 0 and 1, changes the channel declaration and frame/header checksums, and clears the now-invalid output PCM MD5 to the defined unknown value. It does not reconstruct any sample values. It still reads and validates the source; it does not avoid all work on discarded input bytes.\n\nOutput size fell from **1,746,608 to 583,524 bytes**. The candidate copied **581,166 sample-payload bytes**. Independent host decoding reproduced all **384,000 selected scalar integer samples** exactly. Browser decoding returned 192,000 stereo sample frames with channel hashes exactly matching the first two channels of the six-channel browser reference.\n\nChoosing the wrong pair or reversing the pair failed the requested-channel comparison. Guards rejected a preserve-surround request, a downmix request, duplicate channel indices and a truncated frame. Two requested source channels are not a stereo mix of all six channels.\n\n**Evidence.** `scripts/channel_projection.py`, `evidence/channel_host.json`, browser audio records, host command logs and the selected-channel fixtures.\n\n**Decision.** Pursue for explicit channel extraction, analysis, or a suitably defined playback request. It must not silently replace full multichannel playback or a downmix. Extend predictive subframe parsing only with independent integer oracles; preserve exact layout meaning and format changes. An unknown output MD5 is not a successful integrity check: retain independent trusted construction evidence or compute a valid new MD5 when required. No source-decoder cost elimination for unrelated codecs or runtime CPU reduction is established.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

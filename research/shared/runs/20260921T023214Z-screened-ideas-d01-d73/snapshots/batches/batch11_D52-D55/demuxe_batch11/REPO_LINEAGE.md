@@ -1,0 +1,11 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+# Pinned research lineage
+
+Read using the user's connected GitHub repository, `Jagalite/demuxe`, at commit `0060c26c23290d20041f8433452e2eb088b31f59` (20 September 2026). No maintained code was run. This package contains summaries and links, not imported production code.
+
+* D52 relates to [R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples](https://github.com/Jagalite/demuxe/blob/0060c26c23290d20041f8433452e2eb088b31f59/research/items/R243.carry-exact-silence-through-the-pipeline-without-allocating-its-samples/README.md). The prior post-filter scan/descriptor/materialized-ring profile is stopped on full cost. Its named reopening conditions include upstream certified intervals or a consumer that avoids ring materialization. D52 uses that different endpoint; it does not overturn the cost result.
+* D53 is a boundary regression for [R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media](https://github.com/Jagalite/demuxe/blob/0060c26c23290d20041f8433452e2eb088b31f59/research/items/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media/README.md). This policy is already implemented. No duplicate eviction mechanism should be proposed.
+* D54 is not the cue-windowing optimization from [R048.keep-only-the-relevant-native-caption-cues-instantiated](https://github.com/Jagalite/demuxe/blob/0060c26c23290d20041f8433452e2eb088b31f59/research/items/R048.keep-only-the-relevant-native-caption-cues-instantiated/README.md). That whole-player profile is stopped on measured benefit/cost criteria. D54 concerns explicit cut/repeat semantics with seven final cues, not scaling cue retention.
+* D55 combines a bounded finite-input dependency question with an actual browser channel-tail witness. It is not evidence that an existing general resampler, recursive-filter or parallel-worker item has been implemented. Duplicate-check under the current catalogue before assigning an R-id.
+
+Earlier D16/D52-style formatter utilities and D36-style fragment-based editing share well-known primitives. The meaningful claims here are the specific tested consumer, operation and negative controls, not invention of FLAC constant subframes, MSE removal, interval arithmetic, native text tracks, or finite convolution.

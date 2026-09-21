@@ -17,3 +17,11 @@ Current decision: **pursue**. Restricted single-zlib/unlaced static Matroska can
 Next/reopen: Pursue only strict finite static zlib profile. Production integration must preserve fail-closed admission and enforce per-track contracts, cancellation during validation and budget policy. Reopen broader configurations only with corresponding independent fidelity and hostile controls.
 
 [Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D05 — Publish decompressed packets only after complete validation**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

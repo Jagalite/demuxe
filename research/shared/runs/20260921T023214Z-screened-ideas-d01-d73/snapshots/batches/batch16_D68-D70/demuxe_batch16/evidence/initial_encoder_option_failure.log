@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/mnt/data/demuxe_batch16/scripts/build_caf.py", line 112, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/mnt/data/demuxe_batch16/scripts/build_caf.py", line 87, in main
+    cmd(FF+['-i',F/'opus_input.wav','-c:a','libopus','-b:a','128k','-application','restricted_lowdelay','-frame_duration','20',F/'opus_ref.ogg'])
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/demuxe_batch16/scripts/common.py", line 14, in cmd
+    if check and p.returncode:raise RuntimeError(p.stderr.decode(errors='replace'))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: [libopus @ 0x55dedb432d40] [Eval @ 0x7ffcfb9557e0] Undefined constant or missing '(' in 'restricted_lowdelay'
+[libopus @ 0x55dedb432d40] Unable to parse option value "restricted_lowdelay"
+[libopus @ 0x55dedb432d40] Error setting option application to value restricted_lowdelay.
+[aost#0:0/libopus @ 0x55dedb43a380] Error applying encoder options: Invalid argument
+Error opening output file /mnt/data/demuxe_batch16/fixtures/opus_ref.ogg.
+Error opening output files: Invalid argument
+

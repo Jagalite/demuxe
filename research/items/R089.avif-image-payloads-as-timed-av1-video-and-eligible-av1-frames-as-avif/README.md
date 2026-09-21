@@ -11,3 +11,11 @@ Next: Reopen only with output conversion that meets original exact image/video p
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T231029Z-avif-default-range/analysis.md)
 
 [Nonexecuted harness diagnostic](evidence/20260919T233728Z-nonexecuted-syntax-diagnostic/analysis.md); original bytes and stage decisions preserved.
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D39 — Reuse AVIF coded images as timed AV1 samples, with a presentation gate**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

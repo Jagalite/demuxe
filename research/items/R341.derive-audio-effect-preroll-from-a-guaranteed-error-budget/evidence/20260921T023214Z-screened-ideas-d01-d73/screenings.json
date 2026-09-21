@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D58",
+      "batch": 12,
+      "range": "D56–D58",
+      "title": "Give a native IIR filter only enough history for a declared error budget",
+      "report_commit": "0060c26c23290d20041f8433452e2eb088b31f59",
+      "key": "R341.derive-audio-effect-preroll-from-a-guaranteed-error-budget",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch12_D56-D58.zip",
+      "report_section": "## D58 — Give a native IIR filter only enough history for a declared error budget\n\n### Contract and bound\n\nTest the actual browser IIRFilterNode, not a custom filter pretending to represent it:\n\n`y[n] = (1-r) x[n] + r y[n-1]`, with `0 < r < 1`, known zero initial state and `|x[n]| ≤ 1`.\n\nBecause the recurrence is a convex combination, the historical state remains bounded by 1 in real arithmetic. Resetting the candidate to zero and processing P preceding samples bounds its omitted-state contribution at the first requested output by `r^(P+1)`. The prototype chooses P with an analytic budget of 2.5e−6 and declares total absolute tolerance **1e−5**. The remaining 7.5e−6 is an experimentally checked numerical allowance, **not a formal browser-arithmetic proof**.\n\n| Pole r | Chosen preceding frames P |\n|---|---:|\n| 0.8 | 58 |\n| 0.98 | 639 |\n| 0.999 | 12,893 |\n\nSource amplitude/finite-value scans are actually performed and remain charged as work. Invalid coefficients, invalid tolerance and excessive history reject. An external trusted bound/index is not assumed free.\n\n### Executed test\n\nTwo independently authored stereo inputs of 120,013 frames cover noise/tones/zero spans and a worst-case signed DC reversal. Each pole is tested at four irregular output intervals, giving **24 bounded native jobs**. The native filter uses explicit two-channel/discrete handling and no resampling.\n\nAll **40,560 requested scalar values** fall within the declared tolerance against both complete browser filtering and an independent NumPy float64 recurrence rounded to Float32. The worst observed absolute error is **2.5033950805664062e−6**. Complete-source browser/reference comparisons also pass the declared tolerance; tiny subnormal/zero differences are not relabeled bit-exact.\n\nThe largest job feeds 14,892 stereo frames to the native node instead of 120,013 for the full source. The complete source and reference remain in the harness; repeated context setup and scanning may erase any useful saving.\n\nAll 18 nonzero-start zero-history controls fail the tolerance. All 18 corresponding one-eighth-history controls also fail. Requests at source zero naturally do not need preceding history and are not counted as failures.\n\n### Decision and next gate\n\nPursue a real bounded preview consumer with an explicit opt-in error budget. This is not a transparent replacement for exact source playback or arbitrary effects. Near-unit poles can require a large history and are capped. R341's existing Q24 integer proof/performance result is a different numerical implementation; this browser screen does not inherit it. To qualify a broad guarantee, browser arithmetic needs its own proof or a appropriately narrower contract. Live scheduling, A/V sync, filtering after decoder seeks, source replacement and full-cost measurements remain untested.\n\nEvidence: `iir_manifest.json`, `browser_iir.json`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

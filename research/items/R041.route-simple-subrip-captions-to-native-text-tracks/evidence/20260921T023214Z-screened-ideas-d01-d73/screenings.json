@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R041.route-simple-subrip-captions-to-native-text-tracks",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D54",
+      "batch": 11,
+      "range": "D52–D55",
+      "title": "Project source subtitles onto an edited native timeline",
+      "report_commit": "0060c26c23290d20041f8433452e2eb088b31f59",
+      "key": "R041.route-simple-subrip-captions-to-native-text-tracks",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch11_D52-D55.zip",
+      "report_section": "## D54 — Project source subtitles onto an edited native timeline\n\n### Question and scope\n\nCan ordinary native text cues remain correctly synchronized when an edit cuts through cues or repeats part of a source, without burning captions into video or introducing a custom subtitle renderer?\n\nThe explicit rate-1 edit is source `[0,2)` followed by `[4,6)` followed by `[0,2)` again. The same coded GOPs are used, with only their fragment decode times reassigned. All **150 host-decoded output pictures** match that requested ordering exactly. This is a bounded closed-GOP edit, not arbitrary cutting.\n\nFive authored plain-text source cues include a long cue crossing cuts, short boundary-crossing cues, an omitted middle-region cue, and literal `&` and `<literal>` text. The candidate intersects each cue with each selected source interval and translates the intersection into presentation time, creating **seven** native `VTTCue` instances. Each repeated occurrence has its own identity. The candidate escapes text as WebVTT text rather than letting literal markup-like content disappear in the parser.\n\n### Results and controls\n\n* At **18 query positions**, including backward seeks and positions close to cuts, the actual browser active cue set and interpreted text matched an independent query-time oracle. That oracle maps the current presentation time back to source time rather than using the candidate's generated cue list.\n* Three repeat/backseek screenshot comparisons have **zero differing color components**. A caption-hidden screenshot of the same paused picture differs, confirming that the screenshot witness contains visible subtitle rendering.\n* The unclipped cue projection fails **17 of 18** active-set checks. It leaks cues across cuts and can show duplicate text.\n* Unescaped literal input fails **14 of 18** checks because `<literal>` is treated as markup rather than visible characters.\n* Overlapping destination intervals, a negative source boundary, a non-unit rate, and fractional millisecond boundaries are rejected by the restricted constructor.\n* All three tested presentations reach EOF with an unchanged media source URL; cues and media owners are cleaned up.\n\n### Decision and restrictions\n\nPursue as a small **edited-timeline/plain-text operation**, not a memory optimization. R048's stopped large-cue-windowing cost experiment is not reopened: this test has only seven final cues and does not attempt cue virtualization.\n\nNo ASS positioning, karaoke, region layout, mixed language shaping comparison, timed inline markup, physical display semantics, continuous-frame subtitle correctness, or user source-replacement protocol was qualified. Source-map authority is assumed by the authored edit request, not inferred from damaged media.\n\nEvidence: `captions_manifest.json`, `browser_captions.json`, `caption_*.png`, and screenshot/guard summaries in `analysis.json`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

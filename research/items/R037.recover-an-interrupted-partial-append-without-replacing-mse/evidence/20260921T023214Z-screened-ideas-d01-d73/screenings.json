@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R037.recover-an-interrupted-partial-append-without-replacing-mse",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D28",
+      "batch": 5,
+      "range": "D26–D30",
+      "title": "Reset parsing and reject stale completions before retry",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R037.recover-an-interrupted-partial-append-without-replacing-mse",
+      "classification": "regression_only",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch05_D26-D30.zip",
+      "report_section": "## D28 — Reset parsing and reject stale completions before retry\n\n**Relation:** an adversarial extension/reproduction of `R037.recover-an-interrupted-partial-append-without-replacing-mse`, not a new recovery mechanism. It also composes the earlier D12 generation concept with the actual MSE append boundary.\n\n**Construction:** Three half-second video fragments. The middle fragment is interrupted either inside its `mdat` header or at 60% of its payload. The latter has already made media buffered through **0.75 s**, demonstrating that a partial append may have committed complete samples before the interruption.\n\n| Sequence | Header interruption | Payload interruption |\n|---|---|---|\n| Uninterrupted baseline | Pass | Pass |\n| Reappend complete fragment without abort | Append error | Append error |\n| Abort, then retry complete random-access fragment | Exact checked pictures + EOF | Exact checked pictures + EOF |\n| Abort, publish abandoned old suffix, then retry | Incomplete buffered range / picture timeout | Append error |\n| Abort, reject old-generation suffix, then retry | Exact checked pictures + EOF | Exact checked pictures + EOF |\n\nFour seek-picture hashes/times match the uninterrupted baseline for each successful recovery, and playback reaches EOF with the original SourceBuffer retained. No new MediaSource or media element is created.\n\n`abort()` is **not rollback of previously buffered media**. The experiment retries a complete independently decodable fragment and checks the resulting timeline. It does not prove arbitrary mid-GOP retry, A/V synchronization, indefinite retries, or all parser states. The late suffix is really supplied to MSE in the negative control; the generation check is still simulated in the prototype rather than tested in maintained Demuxe workers.\n\n**Decision:** carry this real stale-suffix negative into a maintained-owner test. No reason to expand this into a separate recovery subsystem before inspecting the current owner.\n\n**Evidence:** `browser_recovery.json`, `recovery.js`, fixture fragment files and `manifest.json`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Run the imported adverse case against the maintained owner as a regression; add production logic only if that execution reveals an actual gap.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

@@ -23,3 +23,12 @@ Next action: Reopen only for an authorized repeated-use workload that amortizes 
 | decision | passed | Bounded two-recipe offline search actually executed AVC/AAC packet-copy faststart and fragmented MP4 candidates. Full decoded video/audio plus packet timing/side-data/configuration admit faststart and reject fragmented output with altered audio/timing; deliberate missing-audio control rejects. Native faststart preserves four sought full pictures and all288000decoded audio samples. Five alternating single-use startup/seek pairs including measured435.0ms complete cold search fail cost gate: median complete task3.672times baseline (range1.303–4.034). Mechanism works as an offline validator, but on-demand search is not worth it for this short source; repeated-use amortization not inferred. |
 
 [New run](../../shared/runs/20260919T223731Z-representation-search-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D07 — Let a native sink expose minimal repair sets, but not define validity**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+- **D11 — Require a complete set of repairs before deciding a route is impossible**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

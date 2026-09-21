@@ -17,7 +17,7 @@
       "line_end": 187,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Follow-on recovery optimization \u00b7 P1 \u00b7 extends R04, R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. On a same-source seek during partial media delivery, retire obsolete input, reset only the affected parser state, and start a valid segment near the new target while preserving unrelated accepted buffers. New question versus prior work. This combines partial transport with seek recovery. It tests whether an incomplete mdat forces full presentation replacement, not whether a corrupted source should be ignored. Source primitive. MSE defines abort/parser-reset behavior and a subsequent random-access requirement. Reset may process complete buffered frames before discarding remaining input bytes. [S3]",
+    "source_excerpt": "Follow-on recovery optimization · P1 · extends R04, R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. On a same-source seek during partial media delivery, retire obsolete input, reset only the affected parser state, and start a valid segment near the new target while preserving unrelated accepted buffers. New question versus prior work. This combines partial transport with seek recovery. It tests whether an incomplete mdat forces full presentation replacement, not whether a corrupted source should be ignored. Source primitive. MSE defines abort/parser-reset behavior and a subsequent random-access requirement. Reset may process complete buffered frames before discarding remaining input bytes. [S3]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -81,7 +81,7 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "ActualMSE finiteAVC B/P source,24distinctfulltargetimage hashes equalfreshnativepresentation. Abortin incomplete secondmdat retainsfirst0\u20131sGOP, retriescompleteRAP packetwindow; stalegeneration delayedtail refused beforeappend. All media/URLs released. HistoricalA/Vscreen remainsseparate; newperfprofile video-only. Maintainedcontroller/asyncremotesource ownership notqualified.",
+      "basis": "ActualMSE finiteAVC B/P source,24distinctfulltargetimage hashes equalfreshnativepresentation. Abortin incomplete secondmdat retainsfirst0–1sGOP, retriescompleteRAP packetwindow; stalegeneration delayedtail refused beforeappend. All media/URLs released. HistoricalA/Vscreen remainsseparate; newperfprofile video-only. Maintainedcontroller/asyncremotesource ownership notqualified.",
       "evidence": [
         "research/items/R037.recover-an-interrupted-partial-append-without-replacing-mse/evidence/20260919T214200Z-recovery-acceptance/run.json",
         "research/items/R037.recover-an-interrupted-partial-append-without-replacing-mse/evidence/20260919T214200Z-recovery-acceptance/manifest.json"
@@ -130,7 +130,7 @@
       ],
       "next_test": "Keepboundedabortcapability andscopepointcostresult; integrateactualgeneration/reader owner onlywith independent output/lifecycle tests. A representativeprofile andcredibleinterval excludingzero are needed beforestablelatencyclaim.",
       "reopen_condition": "Keepboundedabortcapability andscopepointcostresult; integrateactualgeneration/reader owner onlywith independent output/lifecycle tests. A representativeprofile andcredibleinterval excludingzero are needed beforestablelatencyclaim.",
-      "scope": "ActualMSE finiteAVC B/P source,24distinctfulltargetimage hashes equalfreshnativepresentation. Abortin incomplete secondmdat retainsfirst0\u20131sGOP, retriescompleteRAP packetwindow; stalegeneration delayedtail refused beforeappend. All media/URLs released. HistoricalA/Vscreen remainsseparate; newperfprofile video-only. Maintainedcontroller/asyncremotesource ownership notqualified.",
+      "scope": "ActualMSE finiteAVC B/P source,24distinctfulltargetimage hashes equalfreshnativepresentation. Abortin incomplete secondmdat retainsfirst0–1sGOP, retriescompleteRAP packetwindow; stalegeneration delayedtail refused beforeappend. All media/URLs released. HistoricalA/Vscreen remainsseparate; newperfprofile video-only. Maintainedcontroller/asyncremotesource ownership notqualified.",
       "new_experiment": false,
       "prior_decision": {
         "campaign": "r101-250-stage-reconciliation",
@@ -179,5 +179,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D28"
+      ],
+      "path": "research/items/R037.recover-an-interrupted-partial-append-without-replacing-mse/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
 }

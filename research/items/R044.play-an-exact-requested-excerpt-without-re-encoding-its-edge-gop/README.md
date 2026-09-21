@@ -17,3 +17,11 @@ Current decision: **stop_current_profile**. Hostindexed excerpt remains fullpict
 Next/reopen: Reopenwith presentation-onlyend suppression preservingcodeddependencies and explicitsample-accurateaudio outputwindow; do not use codedframe removal totruncate B-frame output. Thenvalidatepause/replay/cancel andfullendpoint fidelity beforecost. Keep hostextractor positive andbrowserrecipe negative distinct.
 
 [Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D30 — Trimming presentation must not delete decode prerequisites**: stop/negative. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

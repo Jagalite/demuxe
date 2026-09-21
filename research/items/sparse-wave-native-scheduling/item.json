@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "sparse-wave-native-scheduling",
+  "title": "Sparse audio can be scheduled without expanding its held spans",
+  "definition": {
+    "hypothesis": "Sparse audio can be scheduled without expanding its held spans",
+    "scope_contract": "## D57 — Sparse audio can be scheduled without expanding its held spans\n\n### Source semantics\n\nThe original IBM/Microsoft WAVE specification allows a `LIST` of type `wavl`, containing `data` and `slnt` chunks. Despite the name, a later `slnt` span holds the last sample value, rather than necessarily inserting zeros. The first span in this fixture has no prior value and starts at zero. The requested seek semantics preserve the values of uninterrupted source playback, including the last known per-channel value.\n\nThe source is stereo S16 at 48 kHz and contains:\n\n- 257 initial zero frames;\n- 1,003 explicit data frames, ending at left +0.25 / right −0.375 after normalization;\n- 48,003 held frames;\n- 2,051 new data frames, ending at left −0.5 / right +0.125;\n- 7,211 held frames.\n\nTotal: **58,525 stereo frames**, 117,050 scalar sample values. The corrected source, including its required `fact` chunk, is **12,328 bytes**. Dense S16 WAVE is 234,144 bytes. Browser decoding/direct playback and host FFmpeg reject the sparse source in this environment.\n\n### Actual adapter and independent references\n\nTwo restricted parsers (Python and JavaScript) validate RIFF/chunk extents, the admitted format, frame alignment, mandatory sample count and total duration cap. The JavaScript candidate creates ordinary AudioBuffers only for explicit `data` intervals. For a held interval it schedules one ConstantSourceNode per channel through a channel merger. A seek into a held span uses the parsed source history to recover the held values without decoding the preceding data into an AudioBuffer.\n\nThe independent reference is authored from the source-generation plan, not the parser's result. The declared numerical interpretation is **S16 / 32768**. Full native offline scheduling matches all 117,050 values exactly. Four additional irregular windows also match, for **124,116 positive scalar comparisons** in total. Two windows entirely within held spans create no input AudioBuffer at all.\n\nThe complete sparse render allocates 24,432 bytes of input AudioBuffer sample payload, versus 468,200 bytes for an expanded stereo Float32 source. It also creates native nodes; the output render buffer and reference source remain allocated. These are explicit input-sample storage counts, **not total-memory or speed measurements**.\n\nA dense Float32 WAVE reference representing the same /32768 values decodes exactly in the browser. In contrast, browser decoding of dense S16 WAVE differs at 58,243 scalar values, maximum approximately 1.58e−5. This known endpoint-normalization distinction is retained: the candidate is not a promise to preserve the browser's prior S16-WAVE scaling.\n\n### Controls and source correction\n\nTreating all holds as zero fails 55,214 values per channel. Swapping held channel values also fails. Missing `fact`, inconsistent `fact`, truncation, unsupported format, excessive duration and invalid output-window controls reject.\n\nThe initial authored fixture omitted the mandatory `fact` chunk. The original output was saved as `initial_without_fact_*` and is **excluded from source-admission evidence**. The source and both parsers were corrected, and browser/host checks were rerun. The corrected source still fails those monolithic endpoints; the native scheduling adapter still passes. `sparse_without_fact.wav` remains an explicit negative, reproducible by the final builder.\n\n### Decision and next gate\n\nPursue only with a real sparse/held-audio consumer. Check the existing source worker before adding a parser. This does not generalize to compressed WAVE, cue/playlists, changed sample rates, arbitrary channel layouts, live scheduling, gapless playback or A/V synchronization. DC holds here follow the source's intended sample semantics; do not invent held values for lost data.\n\nEvidence: `sparse_manifest.json`, `browser_sparse.json`, and separately marked initial invalid-source results.",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/REPORT.md",
+      "sha256": "ffe6bd6e72bda5f762ec1421c5f97c1c973ade638cde1f69e2eb5692648b30ec"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/sparse-wave-native-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/sparse-wave-native-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/sparse-wave-native-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/sparse-wave-native-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D57"
+      ],
+      "path": "research/items/sparse-wave-native-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

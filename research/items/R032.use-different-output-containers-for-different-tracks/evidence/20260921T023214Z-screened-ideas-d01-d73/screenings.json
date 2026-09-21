@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R032.use-different-output-containers-for-different-tracks",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D14",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "Jointly declare selected tracks before beginning native playback",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R032.use-different-output-containers-for-different-tracks",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D14 — Jointly declare selected tracks before beginning native playback\n\n**Question.** Can a route that appears unsupported actually be failing because the player initializes one track before declaring the other? Adjacent work: R032 mixed-container lanes, R028 complete-plan feasibility, and D07/D11 composition.\n\nAn authored four-second source carries AVC video plus independently marked stereo Vorbis audio. The video was also supplied as fragmented MP4, and the exact same Vorbis packet sequence as WebM. One MediaSource and one media element owned the separate video/audio SourceBuffers.\n\nDeclaring the Vorbis buffer only after appending video failed with `QuotaExceededError`, even though both MIME probes were true. Declaring both buffers first, then appending the same media, played, executed two seeks and reached EOF. A combined AVC/Vorbis MP4 MIME query was unsupported. This is a setup-order result in this browser, not a measurement of exhausted memory or a rule that all implementations behave identically.\n\nFour audio bursts authored at 0.5, 1.5, 2.5 and 3.5 seconds appeared within **22.7 ms** of those positions at the test's audio-graph/media-clock witness. The deliberately wrong 400 ms audio offset produced a **417.4 ms** maximum marker-start error and failed the same 100 ms coarse gate. This is not sample-accurate synchronization: ScriptProcessor scheduling, its capture block and the media clock are part of the observation. Physical speakers were not tested.\n\nThe original full local Matroska source also played through native-direct. Therefore this is useful for a *controlled split-track consumer*, not grounds to replace working direct playback. The split presentation reported **4.025 s**, not an exactly four-second tail. Whole-file Vorbis decoding also differed by representation (Ogg 192,576 frames; WebM 192,000), so neither representation should be promoted to a universal oracle. The authored source markers establish the coarse timing test; full priming/trim remains open.\n\n**Next gate:** current Demuxe admission sequencing, declared track selection, source replacement/cancellation, independent sample-level A/V capture, and exact end semantics. Do not retry a late-add quota exception indefinitely or globally blacklist the codec because of that one failed graph state.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

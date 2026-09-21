@@ -4,7 +4,7 @@
 
 Start with the [item directory](ITEMS.md), using its full stable key. Each item
 owns its definition, stages, current decision, history and evidence index.
-The [identity index](index.json) covers all 425 records, including missing
+The [identity index](index.json) covers all 433 records, including missing
 definitions and distinct mechanisms with reused R-numbers.
 
 The [current stage summary](STATUS.md) and [latest advancement campaign](campaigns/2026-09-19-stage-advancement.md) distinguish new execution from evidence reconciliation.
@@ -16,6 +16,8 @@ new work. Existing item metadata is authoritative; do not rerun the import to
 update an item.
 
 Campaigns are selections of item homes:
+
+- [Screened ideas D01–D73](campaigns/screened-ideas-d01-d73.md) — 73 imported screens, mapped by mechanism with original evidence and scoped retest gates.
 
 - [Local screening](campaigns/local-screening.md)
 - [Full catalogue v4](campaigns/full-catalogue-v4.md)

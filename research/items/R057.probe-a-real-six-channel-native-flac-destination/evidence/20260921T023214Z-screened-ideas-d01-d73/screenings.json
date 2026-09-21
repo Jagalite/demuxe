@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R057.probe-a-real-six-channel-native-flac-destination",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D04",
+      "batch": 1,
+      "range": "D01–D07",
+      "title": "Strengthen six-channel native FLAC to whole-buffer 24-bit exactness",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R057.probe-a-real-six-channel-native-flac-destination",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch01_D01-D07.zip",
+      "report_section": "## D04 — Strengthen six-channel native FLAC to whole-buffer 24-bit exactness\n\n**Hypothesis.** A lossless browser-compatible audio destination can preserve all requested integer audio samples while video remains on an unchanged browser route. That destination should be qualified on more than channel-count/tone identity.\n\n**Relationship.** R057 already qualified six identifiable channel signals at a Web Audio boundary but explicitly did not establish whole-PCM sample exactness. This screen adds a different, stronger boundary check for one 24-bit profile; it does not replace its streaming-channel tests.\n\n**Execution and result.** Generated four seconds of deterministic six-channel, 48 kHz, 24-bit signed integer PCM, including extreme and single-bit values. Host FLAC encoding plus browser decoding recovered **192,000 samples per channel: 1,152,000 scalar samples, exactly**. Channel order is part of the interleaved hash. H.264+FLAC fMP4 also passed MSE seeks/EOF, with unchanged video output at the qualified sample points. A deliberately wrong 44.1 kHz decode context failed the exactness contract and returned 176,399 samples per channel.\n\n**Restrictions.** Whole-file decoded-buffer exactness and MSE playback are separate observations. No claim of six physical speakers, exact streaming audio across seeks, acoustic output, or optimal latency. This is destination feasibility, not a measured existing-player route upgrade. FLAC encoding can cost more than it saves for some workloads; its cost cannot be omitted or compared to an already-native source unfairly.\n\n**Next gate.** Exercise complete maintained-player audio conversion, real music/film fixtures, long-duration drift, unusual speaker layouts, priming, seeks, and repeated playback. Include input decode, FLAC encode, buffering, output decode, and complete playback in the performance denominator.\n\nEvidence: `browser_audio.json`, `manifest.json`, `sixch.i32le`, `verification.json`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

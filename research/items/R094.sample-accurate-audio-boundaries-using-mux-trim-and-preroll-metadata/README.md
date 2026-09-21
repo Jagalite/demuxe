@@ -29,3 +29,11 @@ Next action: Qualify minimal retained preroll and concatenated playback only if 
 [Shared run](../../shared/runs/20260919T200716Z-ogg-crop/run.json) · [Browser results](../../shared/runs/20260919T200716Z-ogg-crop/browser-result.json) · [Analysis](../../shared/runs/20260919T200716Z-ogg-crop/analysis.md) · [Manifest](../../shared/runs/20260919T200716Z-ogg-crop/manifest.json) · [Current metadata](item.json) · [History](history.jsonl) · [Evidence index](evidence/index.json)
 
 Historical definitions and evidence remain preserved. Production integration and release qualification are separate.
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D63 — Native clipping of lossless audio at individual sample boundaries**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch14_D62-D64/demuxe_batch14/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

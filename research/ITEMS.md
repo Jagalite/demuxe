@@ -2,7 +2,7 @@
 
 # Research item directory
 
-Current derived view of 425 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
+Current derived view of 433 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
 
 | Rank | Item | Current decision | Prepare | Correctness | Performance | Whole-player follow-up |
 |---:|---|---|---|---|---|---|
@@ -431,3 +431,11 @@ Current derived view of 425 item homes, ranked by the original catalogue. Open e
 | — | [R286.definition-not-recovered](items/R286.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [R287.definition-not-recovered](items/R287.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [R288.definition-not-recovered](items/R288.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
+| — | [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [native-fir-window-rendering](items/native-fir-window-rendering/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [native-ogg-page-projection](items/native-ogg-page-projection/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) | pursue | pending | pending | pending | not_measured |

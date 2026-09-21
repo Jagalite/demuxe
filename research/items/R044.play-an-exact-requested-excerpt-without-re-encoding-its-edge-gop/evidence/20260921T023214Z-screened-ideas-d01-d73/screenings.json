@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D30",
+      "batch": 5,
+      "range": "D26–D30",
+      "title": "Trimming presentation must not delete decode prerequisites",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop",
+      "classification": "stop/negative",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch05_D26-D30/demuxe_batch5/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch05_D26-D30.zip",
+      "report_section": "## D30 — Trimming presentation must not delete decode prerequisites\n\n**Relation:** adds the requested browser append-window negative to `R044.play-an-exact-requested-excerpt-without-re-encoding-its-edge-gop`. It does not complete the public excerpt implementation or its end-boundary gate.\n\nA three-second, 25 fps AVC fixture contains B pictures and one-second random-access spacing. The requested opening is **0.36 seconds on the native presentation timeline**. References and candidates are compared through the same MSE route; host FFprobe timestamp origin is not assumed interchangeable with the browser's presentation origin.\n\n| Method | Buffered presentation interval | Observed behavior |\n|---|---|---|\n| Keep decode preroll, then seek | [0, 3] | Correct pictures at 0.36, 0.60 and 1.20 s; EOF |\n| `appendWindowStart = 0.36` | [1, 3] | Requested opening unavailable; picture wait times out |\n| `timestampOffset = -0.36`, default window start 0 | [0.64, 2.64] | Reaches EOF, but early seeks land on 0.64 rather than the requested opening; wrong first two picture identities |\n\nThe last candidate's later picture does match the expected shifted reference. Thus it has not simply broken all decoding: it has **silently removed the beginning** while passing an EOF test. The MSE coded-frame algorithm explicitly permits dropping pre-window frames and requiring a new random-access point; append windows are not a general exact video-edit primitive.\n\nThe retained-preroll variant is deliberately the unmodified reference path, not a newly invented optimization. It shows that the browser can display the correct requested starting frame when supplied with required history. Start suppression, exact public zero-based timeline, end suppression, audio, pause/replay and maintained lifecycle remain separate gates.\n\n**Decision:** stop naive append-window/negative-offset clipping. Pursue a presentation-boundary contract that keeps decoder prerequisites available. No re-encoding saving is quantified.\n\n**Evidence:** `browser_clip.json`, `clip.js`, `bframes.mp4.probe.json`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Retain this scoped negative. Reopen only for a changed destination, source profile or explicit contract that addresses the recorded failure; do not implement the failed variant by default.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

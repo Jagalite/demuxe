@@ -9,3 +9,11 @@ Real48-frame16x16 GIF89a withglobal/localpalettes, transparency, interlace, disp
 Next: ActualGIF postdisposalcheckpoint component passes exactrandomseek and fullcost gates for boundedrestrictedprofile with6144Bcheckpointpayload. GeneralLZW andproductionanimatedowner integration remainseparate; retain wrongpre-disposalcheckpoint regression.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260920T001739Z-real-gif-checkpoints/analysis.md)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D67 — Native image decoding with a source-derived animation seek plan**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch15_D65-D67/demuxe_batch15/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

@@ -1,0 +1,130 @@
+{
+  "prefix_frames": 12,
+  "suffix_frames": 24,
+  "prefix_exact_original": true,
+  "suffix_exact_original": true,
+  "software_middle_frames": 12,
+  "software_middle_format": "yuv444p10le",
+  "software_middle_sha256": "d1416e5ac569373ff6241eb760b392498800fe7dd51a6aaaa524ef6d5fb72fcb",
+  "timeline": [
+    {
+      "interval_seconds": [
+        0.16666666666666666,
+        1.1666666666666667
+      ],
+      "file": "island_prefix.mp4",
+      "owner": "native candidate",
+      "audio": "not included"
+    },
+    {
+      "interval_seconds": [
+        1.1666666666666667,
+        2.1666666666666665
+      ],
+      "file": "island_high444.mp4",
+      "owner": "software candidate",
+      "presentation_offset_seconds": 1,
+      "audio": "not included"
+    },
+    {
+      "interval_seconds": [
+        2.1666666666666665,
+        4.166666666666667
+      ],
+      "file": "island_suffix.mp4",
+      "owner": "native candidate",
+      "audio": "not included"
+    }
+  ],
+  "seamless_handoff": "NOT RUN; no Demuxe runtime, stable audio owner, or secure-context WebCodecs available",
+  "commands": [
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/video.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_prefix.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_suffix.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_high444.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv444p10le",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ]
+}

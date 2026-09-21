@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "native-g711-wave-rewrap",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D32",
+      "batch": 6,
+      "range": "D31–D35",
+      "title": "Rewrap G.711 telephony audio rather than decoding it in application code",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "native-g711-wave-rewrap",
+      "classification": "new_candidate",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch06_D31-D35.zip",
+      "report_section": "## D32 — Rewrap G.711 telephony audio rather than decoding it in application code\n\n**Question:** Is the missing capability the compressed audio itself, or its AU file wrapper?\n\nThe prototype parses finite AU headers for mono/stereo G.711 mu-law or A-law, checks the declared rate, byte count and sample alignment, and constructs a WAVE header (`fmt`, `fact`, `data`). The coded sample bytes are copied intact; the adapter never expands or recompresses them. It is not an AU general-purpose converter and does not preserve arbitrary annotation metadata.\n\nFor each of two 8 kHz mono fixtures:\n\n- Original AU: **10,728 bytes**, rejected by browser whole-file decoding and the direct media element.\n- Wrapped WAVE: **10,754 bytes**, with all **10,696 coded bytes** unchanged.\n- Host decode of both representations matches exactly; an independently implemented G.711 lookup calculation also reproduces every source integer sample.\n- Browser decoded output matches the corresponding host-decoded-to-PCM-WAVE browser reference for all **10,696 samples**.\n- Direct playback seeks to 0.25 and 0.85 s, produces the expected nonzero audio signal and reaches EOF at a reported 1.337 s.\n\nAn additional 771-sample fixture covers all **256 companded byte values** for each law. It matches the browser PCM-WAVE reference exactly and matches the manual integer oracle in host decoding. The wrong-law label still decodes, but all 10,696 signal samples differ. Unknown length, truncation and unsupported encoding guards reject.\n\n### Numerical boundary and streaming restrictions\n\nA stricter `signed_integer / 32768` Float32 contract **does not match** this browser destination for every positive sample: 382 mu-law and 386 A-law values differ in the 771-value fixtures; maximum absolute errors are approximately **2.99e-5** and **3.00e-5**. The browser's PCM-WAVE control shows the same values as the companded WAVE route. This is reference-relative browser equivalence, not universal normalization equality.\n\nAll four tested streaming MIME strings (`audio/wav`, two law-specific WAVE strings, `audio/basic`) return false from MSE support queries. IMA-WAVE and Microsoft ADPCM WAVE fixtures also fail the initial whole-file destination screen, while the PCM-WAVE control succeeds. Do not generalize the G.711 result to arbitrary WAVE codecs or a unified MSE A/V path.\n\n**Next smallest gate:** real bounded AU/call-recording sources, metadata policy and stream/seek behavior on intended platforms. Use finite browser audio where it fits; keep the fallback for unsupported ADPCM and live/unbounded forms. This is not a physical-speaker or sample-exact post-seek capture qualification.\n\n**Evidence:** `audio_destination_probe.json`, `au_component.json`, `browser_decode.json:pcm_*`, `browser_aulife.json`, `scripts/au_wrap.py`.",
+      "mapping_basis": "Finite AU G.711 to WAVE admission rewrap; R310 instead changes coded-domain processing operations, and R010 is a float destination contract.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

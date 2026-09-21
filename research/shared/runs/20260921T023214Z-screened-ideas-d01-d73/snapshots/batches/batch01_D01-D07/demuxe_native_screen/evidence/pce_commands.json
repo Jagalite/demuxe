@@ -1,0 +1,168 @@
+[
+  {
+    "argv": [
+      "ffmpeg",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.1*sin(2*PI*997*t)|0.12*sin(2*PI*1481*t):s=48000:d=4",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-aac_pce",
+      "1",
+      "-movflags",
+      "+frag_keyframe+empty_moov+default_base_moof",
+      "/mnt/data/demuxe_native_screen/fixtures/pce_audio.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.1*sin(2*PI*997*t)|0.12*sin(2*PI*1481*t):s=48000:d=4",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-aac_pce",
+      "0",
+      "-movflags",
+      "+frag_keyframe+empty_moov+default_base_moof",
+      "/mnt/data/demuxe_native_screen/fixtures/standard_audio.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_native_screen/fixtures/video.mp4",
+      "-i",
+      "/mnt/data/demuxe_native_screen/fixtures/pce_audio.mp4",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c",
+      "copy",
+      "-movflags",
+      "+frag_keyframe+empty_moov+default_base_moof",
+      "/mnt/data/demuxe_native_screen/fixtures/av_pce.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "s24le",
+      "-ar",
+      "48000",
+      "-ac",
+      "6",
+      "-channel_layout",
+      "5.1",
+      "-i",
+      "/mnt/data/demuxe_native_screen/fixtures/sixch.s24le",
+      "-c:a",
+      "aac",
+      "-aac_pce",
+      "1",
+      "-b:a",
+      "256k",
+      "-movflags",
+      "+frag_keyframe+empty_moov+default_base_moof",
+      "/mnt/data/demuxe_native_screen/fixtures/sixch_pce.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_native_screen/fixtures/av_pce.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_native_screen/fixtures/av_pce.mp4",
+      "-map",
+      "0:a:0",
+      "-f",
+      "f32le",
+      "-c:a",
+      "pcm_f32le",
+      "pipe:1"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_native_screen/fixtures/av_pce_canonical.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_native_screen/fixtures/av_pce_canonical.mp4",
+      "-map",
+      "0:a:0",
+      "-f",
+      "f32le",
+      "-c:a",
+      "pcm_f32le",
+      "pipe:1"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  }
+]

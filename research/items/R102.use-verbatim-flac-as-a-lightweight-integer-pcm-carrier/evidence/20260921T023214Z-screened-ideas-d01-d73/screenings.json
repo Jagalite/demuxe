@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R102.use-verbatim-flac-as-a-lightweight-integer-pcm-carrier",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D16",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "A true simple FLAC carrier: feasible, not automatically cheaper",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R102.use-verbatim-flac-as-a-lightweight-integer-pcm-carrier",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D16 — A true simple FLAC carrier: feasible, not automatically cheaper\n\n**Question.** Can a small formatter replace general FLAC encoding when software-decoded integer PCM must be handed to a browser audio destination? Adjacent work: R102 and R243. R102 explicitly still needed a real formatter and like-for-like output-cost controls at the reviewed commit.\n\nThe prototype writes actual fixed-block FLAC headers, CRC-8/CRC-16, STREAMINFO and constant/verbatim subframes. It covers 48 kHz S16 stereo, S24 six-channel and S32 stereo fixtures, 192,000 sample frames each. It does not use FFmpeg to encode its candidate audio. FFmpeg only muxes the S16 FLAC packets alongside video for the A/V destination screen.\n\nAll candidate and conventional level-0/level-5 outputs reproduced the original integer PCM through independent FFmpeg decoding and passed libFLAC's integrity test. Each candidate's browser output also matched the corresponding conventional-encoder browser output. The S24 browser comparison was exact against all **1,152,000** authored normalized sample values. S16's separate float-conversion issue belongs to D19, not a failed FLAC bitstream. The S16 candidate played with video through MSE and seeks/EOF.\n\nHowever, the output-size tradeoff is material:\n\n| Authored profile | All-verbatim bytes | Constant-aware bytes | Conventional level-0 bytes | Constant-aware / level 0 |\n|---|---:|---:|---:|---:|\n| S16 stereo, half-duration silence | 770,358 | 389,802 | 111,536 | 3.49× |\n| S24 six-channel ramps, half-duration silence | 3,459,110 | 1,746,608 | 152,534 | 11.45× |\n| S32 stereo low-order variation | 1,538,358 | 1,538,358 | 178,252 | 8.63× |\n\nThese are intentionally simple synthetic signals, not a representative compression corpus. Constant-aware output approximately halves the all-verbatim size on the first two fixtures, but conventional FLAC remains substantially smaller. The input PCM was fully materialized and scanned: **no zero-allocation silence propagation was demonstrated**. A simple Python implementation is not a meaningful production speed comparison.\n\n**Decision:** do not adopt this unconditionally. A future candidate must beat the maintained encoder on complete cost—formatting, copies, delivery bytes, browser decode, startup and retention. It does not eliminate decoding of an otherwise unsupported source codec.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D17",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "Keep video ownership stable through an audio codec change",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R138.one-sourcebuffer-different-codec-and-container.report-continuity",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D17 — Keep video ownership stable through an audio codec change\n\n**Question.** Can an audio-specific format change stay audio-specific? Adjacent work: R032 and the track-change/continuity family. This is not R116's software island orchestration.\n\nThe presentation has four seconds of AVC video, a two-second Opus audio section and a two-second Vorbis section with distinguishable left/right frequency identities. After playback began, the prototype called `changeType` on the audio SourceBuffer and appended the second section at its declared future position. The media element and video SourceBuffer were retained; video was appended once and was not replaced by application code.\n\nThe operation occurred around **0.653 s** of playback. The second audio identity appeared at the graph witness around **2.021 s**, near the requested 2 s boundary. Both segment identities, two seeks and EOF were observed. An intentional 300 ms early audio offset moved the boundary witness to **1.731 s**, failing the same 100 ms coarse window.\n\nThe explicit-color version matched **100** observed picture ordinals against the tagged direct reference. This verifies the observed video pictures and JavaScript object ownership, **not the identity or lifetime of the browser's internal decoder sessions**.\n\nThe presentation ended at **4.021 s**. The 21 ms tail and unqualified overlap/priming behavior prevent a gapless or exact-seam claim. No software-to-native handback, damaged media recovery, long-running playback or playback-rate changes were tested.\n\n**Next gate:** exact seam PCM, overlap/gap handling, source epoch checks, mid-append failure and cancellation. Test in the maintained player without recreating the healthy video path as a fallback shortcut.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

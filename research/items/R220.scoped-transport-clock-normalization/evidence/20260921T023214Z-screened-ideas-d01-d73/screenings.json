@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R220.scoped-transport-clock-normalization",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D50",
+      "batch": 10,
+      "range": "D48–D51",
+      "title": "Reduce an epoch while timestamps are still integers",
+      "report_commit": "efd9e1537666b3120936ed24a34431645506e953",
+      "key": "R220.scoped-transport-clock-normalization",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch10_D48-D51/demuxe_batch10/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch10_D48-D51/demuxe_batch10/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch10_D48-D51.zip",
+      "report_section": "## D50 — Reduce an epoch while timestamps are still integers\n\n### Question and contract\n\nFor an explicitly zero-based view of a timestamped fragmented source, should a large integer epoch be removed before converting timestamps to floating-point seconds or forwarding them to MSE?\n\nThe constructor adds a common integer origin to each version-1 `tfdt`; all other fragment bytes and coded payloads remain unchanged. Origins are `2^32+137`, `2^53+137`, and `2^62+137`, in 90 kHz ticks. The two largest are deliberately unrealistic clock-range stress cases, NOT typical movie timestamps or evidence of common-format prevalence.\n\nThree approaches are compared: MSE `timestampOffset` applied to original large timestamps; exact integer subtraction in fragment metadata; and deliberately lossy double-precision subtraction followed by writing integers back.\n\n### Results\n\n| Origin | Native seconds offset | Exact integer rebase | Lossy subtraction |\n|---|---|---|---|\n| 4,294,967,433 ticks (~13.26 h) | All selected pictures/times, duration 3 s and EOF match. | Matches, but unnecessary for this profile. | Also matches. |\n| 9,007,199,254,741,129 ticks | Plays but buffered interval and duration shifted by 5 microseconds. | Exact 3 s reference restored. | This fixture's particular subtraction happens to restore the exact deltas. |\n| 4,611,686,018,427,388,041 ticks | Append error despite offset. | Exact 3 s reference restored. | Plays the same pictures at shifted times; duration **3.002488 s**. |\n\nAt the largest origin, lossy subtraction changes the three fragment decode origins from `[0,90000,180000]` to `[0,90112,180224]` ticks. The browser displays the expected checked picture hashes but their timestamps after the first fragment are shifted by 1.244 ms and 2.488 ms. Checking pictures and EOF alone would miss the changed timeline.\n\nPython's integer constructor restores all nine original fragments byte for byte. An actual browser JavaScript adapter using `DataView.getBigUint64`, `BigInt` subtraction and `setBigUint64` independently returns the exact same reference fragment hashes. These are the same bytes whose MSE outcomes were recorded. It rejects seven tests covering source digest mismatch, missing precise origin, negative result, overflow, truncation, missing `tfdt`, and unsupported `tfdt` version. The digest and origin are supplied by the authored trusted manifest; the adapter cannot infer which origin is semantically correct for an arbitrary source.\n\n### Decision\n\nUse as a bounded precision/ownership regression at real integer-to-browser-time boundaries, not as an unconditional normalization layer. The modest-offset source already works untouched with `timestampOffset`. R220 already handles its scoped transport rollover and should not acquire a second post-demux normalizer.\n\nOnly one video track, one `traf`, version-1 `tfdt`, relative sample addressing, no edit lists, no indexes needing updates, no encryption, and a declared common origin are tested. Audio/video relative offsets, composition offsets, mixed timescales, subtitle clocks, `sidx`/`prft`/events and discontinuity policy need a fuller contract before broad adaptation. Large artificial failures are not a performance or market-coverage result.\n\nEvidence: [clock_manifest.json](evidence/clock_manifest.json), [browser_clock.json](evidence/browser_clock.json), [browser_rebase.json](evidence/browser_rebase.json). Code: `scripts/rebase.js`, `scripts/build.py`, `scripts/run_clock.py`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

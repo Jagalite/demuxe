@@ -23,3 +23,11 @@ Next action: Research profile complete at software component boundary. Reopen pe
 | decision | passed | Actual periodic intra-refresh AVC source advertises exact_match=1/recovery_frame_cnt=8 at cuts30/60/90/120. Fresh showall software decoders expose wrong warmup pictures; all first permanent exact suffixes begin at offset8 and conservative admission at9 preserves every remaining picture. Immediate-admission falsifier fails. Nine alternating cold four-target jobs charge source reads, SEI/config parsing, temporary packet-prefix writing, fresh decode and target extraction against shortest ordinary IDR prefix: median9.92%slower, observed154.25%slower to60.17%faster; cost gate inconclusive. Closed independent subprocess owners; no native/browser recovery admission or shared persistent decoder claim. |
 
 [New run](../../shared/runs/20260919T225103Z-recovery-window-qualification/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D45 — A recovery point is not necessarily a native cold-start point**: stop/negative. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

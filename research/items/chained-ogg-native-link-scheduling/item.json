@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "chained-ogg-native-link-scheduling",
+  "title": "Chained audio needs independent configuration, trimming, and decoder state",
+  "definition": {
+    "hypothesis": "Chained audio needs independent configuration, trimming, and decoder state",
+    "scope_contract": "## D42 — Chained audio needs independent configuration, trimming, and decoder state\n\n### Mechanism\n\nA chained Ogg resource concatenates complete logical streams, not one perpetual codec instance with one global header. The parser walks actual pages, verifies their CRCs and sequence/continuation structure, and separates links only at valid BOS/EOS boundaries. Multiplexing, missing EOS, truncation, and reused stream serials reject within this profile. Each emitted link is an **unchanged byte slice**, including its own headers, pre-skip, gain, packets, and final granule.\n\nThis builds on D35's bounded native scheduling but adds a real container/link parser and independent decode lifetimes. A repository keyword search did not return a chained-stream item; that is not proof that no existing code handles it.\n\n### Authored chain\n\n| Link | Output frames/channel | Pre-skip | Header gain |\n|---|---:|---:|---:|\n| 1 | 50,003 | 312 | 0 dB |\n| 2 | 37,001 | 120 | +3 dB |\n| 3 | 68,009 | 312 | −6 dB |\n\nTotal: **155,013 stereo frames**, **3.2294375 seconds**, **81,593 source bytes**.\n\nThe browser's monolithic whole-file decode returned the correct total frame count but differed from independent-link output at **every subsequent sample in each channel after frame 50,003**: 105,010 mismatches per channel. The host monolithic libopus decode also diverged after the first link. The experiment changes gain and encoder delay across links; it does not fully isolate the contribution of every codec-state/configuration factor.\n\nNative-direct playback reported **1.423354 seconds**. Requested seeks to 1.7 and 2.5 seconds were clamped to that value. The element reached EOF, which does not make this a correct complete-chain presentation.\n\nEach parsed link decodes exactly like its standalone source. The candidate decodes the extracted `splitN.opus` files independently, then schedules three AudioBufferSourceNodes at integer-sample boundaries in OfflineAudioContext. All **310,026 scalar output samples** match the independently concatenated link reference. A deliberate one-sample scheduling shift fails. Flattening all packets under the first header produces the wrong samples and **157,128 frames**, rather than 155,013.\n\nThe candidate retains **1,240,104 bytes of source Float32 sample storage**, before output and other allocations. This is not compressed-only playback, live streaming, or a proof of lower peak memory. The demonstrated benefit is correctness while retaining browser-owned decoding/scheduling, not a measured CPU reduction.\n\nEvidence: [component and index](evidence/chain_component.json), [browser decode and scheduling](evidence/browser_chain.json), [native-direct limitation](evidence/browser_chainlife.json).\n\n### Next gate\n\nIntegrate a bounded per-link owner with cancellation and source identity. Use actual link boundaries rather than blindly concatenating compressed packets. Test seek into a later link, changed channel layout, live scheduling across boundaries, and eventual A/V synchronization. Benchmark only against an already-correct chain reference.",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch08_D40-D43/demuxe_batch8/REPORT.md",
+      "sha256": "b0802c549789cb8dce59a17907c32107849dd50e3827cba8719c06c216f1acfb"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/chained-ogg-native-link-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/chained-ogg-native-link-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/chained-ogg-native-link-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/chained-ogg-native-link-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D42"
+      ],
+      "path": "research/items/chained-ogg-native-link-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D02",
+      "batch": 1,
+      "range": "D01–D07",
+      "title": "Same-size selected-track fMP4 projection",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch01_D01-D07.zip",
+      "report_section": "## D02 — Same-size selected-track fMP4 projection\n\n**Hypothesis.** When audio is explicitly disabled or handled by a separately qualified owner, an unsupported audio track should not force supported video into the software route. A metadata-only view might remove the inactive track from the native parser while preserving media offsets and all media payloads.\n\n**Relationship.** Extension of R059's selected-track ordinary-MP4 view to fragmented initialization plus repeated movie fragments; also adjacent to R013. This is not another claim that selected-track views were just invented.\n\n**Execution and result.** A genuine H.264+ALAC fragmented MP4 failed the tested AVC MSE admission path. Replacing the unselected audio `trak`, its `trex`, and its four `traf` box types with same-size `free` boxes produced a browser-playable video-only view. The coherent variant writes **24 tag bytes**, changes **17 actual byte values**, keeps the **139,818-byte file size**, and retains every complete `mdat` byte unchanged. All 48 selected video packets/timestamps and all 48 host-decoded pictures match. The final browser harness confirmed expected presentation timestamps and matching canvas pixels at 0.5 and 2.5 seconds, then reached EOF.\n\n**Restrictions.** This is **not full A/V playback**: the contract explicitly excludes the ALAC audio. Requested audio cannot be dropped to manufacture a native pass. A hybrid audio owner has not been integrated. Unselected data remains in the file, so this is not redaction or bandwidth reduction. The prototype builds byte arrays; it does not prove a zero-copy runtime implementation.\n\n**Next gate.** Validate track-reference relationships, movie-fragment defaults, indexing, selected-track enable flags, remote range views, and multiple fragment layouts. Reject cross-track dependencies and unsupported addressing profiles until handled. Benchmark against equivalent video-only work, not full audio+video fallback.\n\nEvidence: `browser_projection.json`, `verification.json`, `build_fixtures.py`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

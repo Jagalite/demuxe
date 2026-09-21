@@ -23,3 +23,11 @@ Next action: Qualify the bounded extractor and renderer in maintained production
 | decision | passed | Five alternating fresh-browser whole-player pairs completed with matching hash-verified prior headed output/lifecycle proofs, observed route identity, continuous frame progression, seeks, EOF, player cleanup and observed Chrome process exit. Median paired steady Chrome CPU delta -49.8371%; startup delta -28.1707%; peak summed steady RSS delta -4.1220%; renderer main-thread task delta -77.4947%. All-pairs-lower plus median10% CPU-reduction gate passed. RSS can double-count shared pages; five pairs do not establish population confidence. Authored36second H264/AAC h264-srt fixture in headed Chrome152/macOS on frozen assets-component-isolation-01; Hybrid versus explicit Native A/V plus bounded JS embedded SRT extraction and browser text tracks. Not current-HEAD production equivalence, automatic routing, arbitrary subtitles, hardware-unit CPU, server CPU, physical energy or release qualification. The measured gain belongs to this whole route combination, not independently to each extraction/rendering mechanism. |
 
 [New run](../../shared/runs/20260920T121637Z-prioritized-whole-player/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D54 — Project source subtitles onto an edited native timeline**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

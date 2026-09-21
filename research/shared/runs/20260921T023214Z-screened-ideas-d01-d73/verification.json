@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "scope": "Research incorporation only; no imported media harness execution.",
+  "checks": [
+    {
+      "command": "python3 research/shared/tooling/verify-screened-ideas.py",
+      "exit_code": 0,
+      "output": "{\n  \"passed\": true,\n  \"screens\": 73,\n  \"batches\": 17,\n  \"owners\": 60,\n  \"new_items\": 8,\n  \"pinned_files\": 1095,\n  \"archive_members\": 2984,\n  \"preserved_history_prefixes\": 52,\n  \"scope\": \"Import integrity and organization; no media execution.\"\n}\n"
+    },
+    {
+      "command": "python3 scripts/research.py verify",
+      "exit_code": 1,
+      "output": "{\n  \"items\": 434,\n  \"archived_artifacts\": 988,\n  \"historical_hash_mismatches_retained\": 3,\n  \"failures\": [\n    \"Changed/missing new evidence: web/range-reader.js\",\n    \"Changed/missing new evidence: web/native-remux-source-worker.js\"\n  ],\n  \"passed\": false,\n  \"scope\": \"Research organization and captured byte identity only; no playback, build, or performance tests.\"\n}\n"
+    },
+    {
+      "command": "python3 scripts/check-licenses.py",
+      "exit_code": 0,
+      "output": "Core dependency boundary verified (29 source/output files)\nLicense boundaries, SPDX headers and preserved notices verified\n"
+    }
+  ],
+  "preservation": {
+    "existing_owners": 52,
+    "current_decisions": "unchanged",
+    "stages": "unchanged",
+    "next_actions": "unchanged"
+  },
+  "whitespace_check": {
+    "command": "git diff --check -- research",
+    "exit_code": 0
+  },
+  "known_repository_failures": "The full research verifier reports hash mismatches for web/range-reader.js and web/native-remux-source-worker.js. Both were already dirty at task start and neither was modified by this import. Their pinned evidence hashes are preserved."
+}

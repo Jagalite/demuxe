@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D19",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "Match the numerical contract without expanding the samples",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R174.flac-bit-depth-promotion-without-sample-reconstruction",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D19 — Match the numerical contract without expanding the samples\n\n**Question.** Can a different lossless representation preserve a required Float32 convention while avoiding a larger per-sample carrier? Adjacent work: R174 and R010. This is a new restricted subcase, not a general FLAC predictor transformation.\n\nThe explicit oracle normalizes S16 by 2^15. The browser's S16 FLAC result differed from that oracle in **95,996 of 384,000 scalar samples**, with maximum absolute difference **8.37445×10⁻⁶**. Both the candidate formatter and conventional FLAC controls showed the same behavior, so changing encoders did not fix it. This is a small numerical-convention difference, not an asserted audible defect.\n\nAn explicit S16-to-S24 lift (sample values multiplied by 256) produced the required normalized Float32 output exactly, but a naive wider carrier grew to **583,524 bytes**. A second prototype instead promotes the stream's declared bit depth and adds **eight wasted bits per subframe**, retaining the original 16-bit constant/verbatim sample payload bytes.\n\nThat byte-level transform copied **387,444 sample-payload bytes** across **188 frames** without PCM expansion. The complete file grew only **376 bytes**, from **389,802 to 390,178 bytes**. Independent host decoding recovered the correct shifted integers, and browser decoding matched all **384,000** requested float values exactly. Already-24-bit, invalid-frame-CRC and truncated-input controls were rejected.\n\nChanging the integer representation changes its PCM MD5. The prototype deliberately marks output STREAMINFO MD5 **unknown (zero)** rather than copying a false digest. Full output correctness was established separately by the independent decode oracle. A production contract requiring a verified output MD5 needs a valid new digest; it must not mistake the unknown field for verified integrity. Input content identity is also separate from frame CRC validity.\n\nA separate S32 control demonstrates the hard boundary: the browser result matched correctly rounded Float32, yet **380,977 of 384,000** original integer values were no longer exactly recoverable; maximum integer error was **64**. This is expected representational loss at a Float32 boundary, not faulty FLAC decoding.\n\n**Decision:** pursue the compact restricted lift only for an explicit numerical contract. Do not silently change ordinary playback semantics or route exact S32 export/analysis through a Float32-only boundary. General LPC/fixed-predictor promotion, existing wasted bits, new channel layouts and arbitrary bit depths remain unqualified.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

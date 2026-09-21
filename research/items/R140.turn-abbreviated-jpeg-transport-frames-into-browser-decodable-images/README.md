@@ -9,3 +9,12 @@ Implemented truthful header reconstruction from18 actual RFC2435 RTP/JPEG packet
 Next: Scoped truthful RTP/JPEG header capability verified. Preserve explicit quantization/completeness/source identity, unchangedentropy and existingdecodercolor limits. Restartmarkers/implicitquantization/othergeometry/streamtiming require separate contracts before admission.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T223355Z-rtp-eoi-boundary/analysis.md)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D21 — Source-bound reconstruction of abbreviated JPEG frames**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+- **D59 — Native JPEG decoding for restricted TIFF pages and regions**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch13_D59-D61/demuxe_batch13/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R144.compile-simple-ass-animations-into-reusable-timeline-programs",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D70",
+      "batch": 16,
+      "range": "D68–D70",
+      "title": "Give native text the syllable timeline rather than repainting it in JavaScript",
+      "report_commit": "ee7fe7774270fe34fe617cb0dd5adb9d9e9f689e",
+      "key": "R144.compile-simple-ass-animations-into-reusable-timeline-programs",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch16_D68-D70/demuxe_batch16/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch16_D68-D70/demuxe_batch16/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch16_D68-D70.zip",
+      "report_section": "## D70 — Give native text the syllable timeline rather than repainting it in JavaScript\n\n### Question and explicit contract\n\nCan the step-highlight schedule from a restricted `\\k` source be expressed by WebVTT inline timestamp objects and native `:future` styling? The source has three lines with three, four, and three syllable groups; its duration is in centiseconds. The converter admits only positive `\\k` durations and literal text, with explicit line boundaries. It rejects sweeps (`\\kf`, `\\K`), movement, zero durations, and mismatched total duration.\n\nThe requested output uses a **chosen native caption style**. This is not a promise to preserve arbitrary ASS fonts, placement, outlines, shadows, geometry, or libass pixels. The timing/text contract is compared with separately authored native snapshot cues, not with the candidate's self-reported schedule.\n\n### Actual construction\n\nThe source event strings are parsed and checked against a separately spelled-out timeline truth. Three native cues contain escaped literal text inside `<c>` elements, with absolute inline timestamps between syllable groups. The media element applies native styling: current/completed text uses the highlight color; future spans remain white. No application timer changes syllable colors during playback.\n\nThe independent reference has ten separate cue intervals, each with the full text and explicit already-highlighted/future classes. Screenshots compare complete 640×360 rendered video elements, using a static authored video backdrop and the same native font/style contract.\n\n### Execution\n\n- All 23 seek queries, including backward seeks and queries either side of boundaries, have pixel-identical output between three-cue candidate and ten-cue reference.\n- Eight shifted/repeated queries also match when both outer cue times and inner timestamps are rebased by six seconds.\n- Running naturally from 0.23 s and pausing around 1.285 s yields the correct independently referenced highlighted state.\n- Running a second interval at 2× playback rate yields the correct state at the observed media time around 2.598 s.\n- The video source URL stays unchanged and the presentation reaches EOF; eight object URLs are revoked.\n\nThe natural-speed tests do not instrument or certify the exact wall-clock instant of every boundary. Static native/reference comparisons establish requested state at the checked media times, not a complete real-time latency distribution. Audio was not included in this caption fixture; no independent audio/caption synchronization claim follows.\n\n### Falsifiers\n\n- Leaving text outside internal `<c>` elements causes 14/23 screenshot failures: valid timestamp text alone is insufficient for the chosen `:future` selector behavior.\n- Moving the internal timestamps by 100 ms causes 6/23 failures.\n- Moving only the outer cue start/end while leaving inner times in the original timeline causes 6/8 repeated-output failures.\n- Literal `A & <B> waits` remains literal, not interpreted as a supported formatting request.\n\n### Decision and next gate\n\nPursue this timing-only/native-style profile within the existing subtitle owner. Compare with Shaka's/native text support before adding a new owner. Do not rewrite full ASS files to this representation unless the requested native-style output explicitly permits the styling change. Many richer subtitle effects remain out of scope; R144's opacity-template result and failed cost gate remain separate.\n\nEvidence: `evidence/karaoke_manifest.json`, `evidence/browser_karaoke.json`, representative screenshots.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

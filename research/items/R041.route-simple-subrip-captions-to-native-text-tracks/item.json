@@ -17,7 +17,7 @@
       "line_end": 275,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New subtitle-component candidate \u00b7 P1 \u00b7 extends R19 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. For a deliberately small supported subset of simple SubRip captions, convert timing/text to WebVTT or VTTCue objects and keep video/audio Native instead of loading a rich renderer or changing the playback engine. New question versus prior work. R19 preserves embedded rich ASS through libass. This is a cheaper plain-text path, not an ASS-to-text approximation. External SubRip can be tested entirely in JavaScript; embedded extraction is a separate host-FFmpeg screen. Source primitive. WebVTT defines timed cues and a restricted markup vocabulary; HTML provides native text-track integration. [S10, S9]",
+    "source_excerpt": "New subtitle-component candidate · P1 · extends R19 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. For a deliberately small supported subset of simple SubRip captions, convert timing/text to WebVTT or VTTCue objects and keep video/audio Native instead of loading a rich renderer or changing the playback engine. New question versus prior work. R19 preserves embedded rich ASS through libass. This is a cheaper plain-text path, not an ASS-to-text approximation. External SubRip can be tested entirely in JavaScript; embedded extraction is a separate host-FFmpeg screen. Source primitive. WebVTT defines timed cues and a restricted markup vocabulary; HTML provides native text-track integration. [S10, S9]",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 140,
         "line_end": 153,
         "source_kind": "report",
-        "reported_heading": "Simple SRT \u2192 native cues"
+        "reported_heading": "Simple SRT → native cues"
       }
     ],
     "scope_hash": "89c4dfdb9c5899e1674e1321cdd5eba8508d8fa7f54d9e711c89ecbd32d310d1",
@@ -65,7 +65,7 @@
     },
     "prepare": {
       "status": "passed",
-      "basis": "Actual strictplain SRT\u2192VTT\u2192native showingTextTrack owner comparedwith real libassfont/ASS/bitmapoverlay owner on same nativevideo. Existing hand-authored interval/text contract retained: multiline/overlap activecues exact at5forward/backwardseeks; threeparsernegativesreject. Generatedrichbaselineprogram exactlymatches handauthoredASS and its4distinct glyphstates matchuntimed reference. This is plaintext/timing equivalence, not identicalglyphstyle or anASS-to-text approximation. Wholecoldsubtitle/videoBlob/load/font/worker/sourceconvert/5seek+rAF/render/check/teardown task: native84.963ms vsrich164.954ms, saving48.49% bootstrap95[44.63261769425173, 52.13569119591346], passeslower9510%gate. Native0richworkers vsbaseline1; no totalmemory/CPUenergyclaim. Existing actualnative-direct/remux timelinebias correctness retained; embedded/styled captions excluded.",
+      "basis": "Actual strictplain SRT→VTT→native showingTextTrack owner comparedwith real libassfont/ASS/bitmapoverlay owner on same nativevideo. Existing hand-authored interval/text contract retained: multiline/overlap activecues exact at5forward/backwardseeks; threeparsernegativesreject. Generatedrichbaselineprogram exactlymatches handauthoredASS and its4distinct glyphstates matchuntimed reference. This is plaintext/timing equivalence, not identicalglyphstyle or anASS-to-text approximation. Wholecoldsubtitle/videoBlob/load/font/worker/sourceconvert/5seek+rAF/render/check/teardown task: native84.963ms vsrich164.954ms, saving48.49% bootstrap95[44.63261769425173, 52.13569119591346], passeslower9510%gate. Native0richworkers vsbaseline1; no totalmemory/CPUenergyclaim. Existing actualnative-direct/remux timelinebias correctness retained; embedded/styled captions excluded.",
       "evidence": [
         "research/items/R041.route-simple-subrip-captions-to-native-text-tracks/evidence/20260919T212910Z-plain-owner/results.json",
         "research/items/R041.route-simple-subrip-captions-to-native-text-tracks/evidence/20260919T212910Z-plain-owner/analysis.md",
@@ -74,7 +74,7 @@
     },
     "screen": {
       "status": "passed",
-      "basis": "Actual strictplain SRT\u2192VTT\u2192native showingTextTrack owner comparedwith real libassfont/ASS/bitmapoverlay owner on same nativevideo. Existing hand-authored interval/text contract retained: multiline/overlap activecues exact at5forward/backwardseeks; threeparsernegativesreject. Generatedrichbaselineprogram exactlymatches handauthoredASS and its4distinct glyphstates matchuntimed reference. This is plaintext/timing equivalence, not identicalglyphstyle or anASS-to-text approximation. Wholecoldsubtitle/videoBlob/load/font/worker/sourceconvert/5seek+rAF/render/check/teardown task: native84.963ms vsrich164.954ms, saving48.49% bootstrap95[44.63261769425173, 52.13569119591346], passeslower9510%gate. Native0richworkers vsbaseline1; no totalmemory/CPUenergyclaim. Existing actualnative-direct/remux timelinebias correctness retained; embedded/styled captions excluded.",
+      "basis": "Actual strictplain SRT→VTT→native showingTextTrack owner comparedwith real libassfont/ASS/bitmapoverlay owner on same nativevideo. Existing hand-authored interval/text contract retained: multiline/overlap activecues exact at5forward/backwardseeks; threeparsernegativesreject. Generatedrichbaselineprogram exactlymatches handauthoredASS and its4distinct glyphstates matchuntimed reference. This is plaintext/timing equivalence, not identicalglyphstyle or anASS-to-text approximation. Wholecoldsubtitle/videoBlob/load/font/worker/sourceconvert/5seek+rAF/render/check/teardown task: native84.963ms vsrich164.954ms, saving48.49% bootstrap95[44.63261769425173, 52.13569119591346], passeslower9510%gate. Native0richworkers vsbaseline1; no totalmemory/CPUenergyclaim. Existing actualnative-direct/remux timelinebias correctness retained; embedded/styled captions excluded.",
       "evidence": [
         "research/items/R041.route-simple-subrip-captions-to-native-text-tracks/evidence/20260919T212910Z-plain-owner/results.json",
         "research/items/R041.route-simple-subrip-captions-to-native-text-tracks/evidence/20260919T212910Z-plain-owner/analysis.md",
@@ -176,5 +176,16 @@
     "status": "measured_lab_benefit",
     "tier_effect": "Hybrid -> Native A/V + browser subtitles",
     "production_admission_changed": false
-  }
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D54"
+      ],
+      "path": "research/items/R041.route-simple-subrip-captions-to-native-text-tracks/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
 }

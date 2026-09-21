@@ -17,7 +17,7 @@
       "line_end": 55,
       "source_kind": "report"
     },
-    "source_excerpt": "Used JxlEncoderAddJPEGFrame, reconstruction metadata, and the actual installed libjxl reconstruction API. No original JPEG is stored outside the JXL input as a reconstruction shortcut. The reconstructed bytes are emitted by libjxl, then independently decoded by Chromium\u2019s JPEG image path. These public reconstruction APIs explicitly support returning the original JPEG codestream rather than a pixel reconstruction [S1, S2]. All four original/reconstructed browser RGBA comparisons have zero changed values. Missing reconstruction metadata, truncation, and non-JPEG input are rejected. A too-small fixed reconstruction output buffer initially failed to make progress; the final pilot uses an explicit 1 MiB bound for these small fixtures. That harness development failure is not a codec-format failure.",
+    "source_excerpt": "Used JxlEncoderAddJPEGFrame, reconstruction metadata, and the actual installed libjxl reconstruction API. No original JPEG is stored outside the JXL input as a reconstruction shortcut. The reconstructed bytes are emitted by libjxl, then independently decoded by Chromium’s JPEG image path. These public reconstruction APIs explicitly support returning the original JPEG codestream rather than a pixel reconstruction [S1, S2]. All four original/reconstructed browser RGBA comparisons have zero changed values. Missing reconstruction metadata, truncation, and non-JPEG input are rejected. A too-small fixed reconstruction output buffer initially failed to make progress; the final pilot uses an explicit 1 MiB bound for these small fixtures. That harness development failure is not a codec-format failure.",
     "related_reports": [],
     "scope_hash": "3b97d32c3f7858eb9e38cffd05895cd8e8934ced2c9f45d4da0427f3ce421814",
     "legacy_guide_aliases": [],
@@ -136,5 +136,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D34"
+      ],
+      "path": "research/items/R146.jpeg-xl-reconstruction-followed-by-browser-jpeg-decode/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
 }

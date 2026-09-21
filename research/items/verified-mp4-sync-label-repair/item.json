@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "verified-mp4-sync-label-repair",
+  "title": "Destination-specific recovery of mislabeled random-access samples",
+  "definition": {
+    "hypothesis": "Destination-specific recovery of mislabeled random-access samples",
+    "scope_contract": "## D60 — Destination-specific recovery of mislabeled random-access samples\n\n### Hypothesis\n\nSome seek failures may be metadata failures rather than decoder incompatibility. For a known closed-GOP AVC profile, can false non-sync flags be corrected using actual slice types and source-bound packet identity?\n\n### Construction and controls\n\nThe source is a four-second, 80-picture AVC presentation, with B pictures and four closed GOPs. All four first samples contain IDR slices; the other 76 samples do not. The candidate operates on existing `trun` first-sample-flags fields. It preserves byte positions and all coded packets and timestamps. It checks NAL framing and first-VCL types and uses the supplied source-bound packet hashes; it is **not a general proof of arbitrary corrupted access-unit completeness or SPS/PPS dependency closure**.\n\nA damaged variant sets each first sample to dependent/non-sync. The repair clears that false non-sync classification and restores independent-sample classification. Exactly **eight byte values** change across four four-byte fields. The repaired canonical file is byte-identical to the original canonical file. Full host decoding of original, damaged, and repaired files produces the same 80 pictures.\n\nThe final fixture uses signed composition offsets so that both tested browser endpoints report a four-second timeline. The FFmpeg encoder's trailing `mfra` index is omitted identically from all three canonical variants; this prevents an index-presence confound. Its unmodified encoder output is retained separately.\n\n### Actual browser outcomes\n\n| Route | Original | Damaged flags | Repaired |\n|---|---|---|---|\n| Direct Blob URL | 10 seek witnesses and EOF pass | Loads, then first tested seek fails with FFmpegDemuxer seek error | Same 10 picture/dimension/timestamp witnesses and EOF as direct reference |\n| MSE complete presentation | 10 witnesses and EOF pass | Same 10 witnesses and EOF pass | Same 10 witnesses and EOF pass |\n| MSE cold start from third GOP | Four witnesses and EOF pass | Same four witnesses and EOF pass | Same four witnesses and EOF pass |\n\n**The repair is unnecessary for the tested MSE destination.** A production choice should not add a parser/patcher if an already-qualified unchanged route meets the request. Conversely, the direct-seek result shows a legitimate destination-specific reason to investigate the adapter.\n\nThe actual guard is exercised against all 76 genuine dependent sample payloads and rejects them as IDR candidates. It also rejects malformed NAL lengths and incorrect expected packet identity. No non-IDR picture is relabeled as an IDR by this experiment.\n\n### Important fidelity limit\n\nThe final original direct and original MSE routes do **not** have identical pixel hashes at their ten common requested positions. Their timelines and dimensions match, but the experiment did not isolate the cross-endpoint rendering cause. The adapter qualification compares each route to **its own unchanged-source reference**. This does not authorize a silent exact-pixel switch from direct playback to MSE. This known differential is retained in `analysis.json`, not counted as a successful cross-endpoint comparison.\n\n### Initial fixture record\n\nAn initial unsigned-composition-offset fixture produced MSE [0.1, 4.1] versus direct [0, 4] timelines. Its records and files remain under `evidence/initial_video/` and `fixtures/initial_video/`. The final reference was authored with signed composition offsets; that was a fixture correction, not a new timing-repair mechanism or a reason to erase the initial observation.\n\n**Decision:** conditional direct-seek repair or regression for malformed metadata. Demonstrate affected real sources and inspect current admission/index ownership before integration. No corpus prevalence, broad keyframe-repair safety, video-only-to-A/V extension, decoder acceleration, or cost benefit is established.\n\nEvidence: `evidence/video_manifest.json`, `evidence/browser_video.json`, `evidence/analysis.json`.",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch13_D59-D61/demuxe_batch13/REPORT.md",
+      "sha256": "fae8f6b05dd27c17066e1f18f33b13236f1eb97034aff2e04340041c8916b9dc"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/verified-mp4-sync-label-repair/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/verified-mp4-sync-label-repair/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/verified-mp4-sync-label-repair/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/verified-mp4-sync-label-repair/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D60"
+      ],
+      "path": "research/items/verified-mp4-sync-label-repair/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

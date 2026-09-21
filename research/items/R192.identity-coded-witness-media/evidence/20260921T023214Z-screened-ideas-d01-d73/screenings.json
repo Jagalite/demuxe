@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R192.identity-coded-witness-media",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D13",
+      "batch": 2,
+      "range": "D08–D13",
+      "title": "A route needs track-output and timing witnesses, not only video and EOF",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R192.identity-coded-witness-media",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch02_D08-D13.zip",
+      "report_section": "## D13 — A route needs track-output and timing witnesses, not only video and EOF\n\n**Question.** Can a seemingly successful native presentation, or a packet-preserving remux, violate the requested output while passing a weaker test?\n\n**Relation.** Acceptance/oracle follow-up related to R192/R222 and current head-to-head qualification, not a novel codec mechanism.\n\n### Counterexample A: native-direct video without requested audio\n\nThe explicit-rate input passes the four direct-Blob video seek witnesses and reaches EOF. Yet a separate unmuted media-element capture yields **zero signal on both channels**, with no media error reported in that capture. The compatible control and normalized MSE candidate produce their distinct expected channel tones through the same capture harness. The harness mutes only after capturing the audio graph, not at the media element.\n\nThe video/EOF-only gate would label the explicit-rate file a pass. An A/V contract must not. This is also why D08's direct video success is not considered a sufficient alternative route.\n\n### Counterexample B: unchanged coded packets, changed audio tail\n\nThe host stream-copy remux used to create the absolute-address fixture preserves all coded payloads and FFprobe packet summaries. However, direct parsing finds the audio track's final decode-time end changing from **200,000 to 200,512 ticks** at 48 kHz. Browser whole-file decoded output changes from **193,024 to 193,536 stereo sample frames**: an additional 512 frames, approximately 10.67 ms.\n\nThe metadata-only D09/D11 adapters preserve their **own** absolute-addressed source timing and output. They are not incorrectly compared to the shorter-tail control. The complete decoded host PCM hash alone also does not catch this distinction in these fixtures.\n\n**Decision: pursue stronger qualification witnesses.** Check every requested track's actual output and container timing, including tail/priming behavior, in addition to packet identity. For naturally silent material, absence of signal is not itself a failure: the test uses a known non-silent coded witness. One startup tone capture is not complete streaming-audio qualification.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

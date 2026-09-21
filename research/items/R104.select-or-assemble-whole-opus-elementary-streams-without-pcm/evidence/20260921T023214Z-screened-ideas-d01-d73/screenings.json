@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D40",
+      "batch": 8,
+      "range": "D40–D43",
+      "title": "Select whole Opus elementary streams rather than reconstructing every channel",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R104.select-or-assemble-whole-opus-elementary-streams-without-pcm",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch08_D40-D43/demuxe_batch8/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch08_D40-D43/demuxe_batch8/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch08_D40-D43.zip",
+      "report_section": "## D40 — Select whole Opus elementary streams rather than reconstructing every channel\n\n### Mechanism and novelty boundary\n\nA multistream Opus packet contains independent mono or coupled stereo components. All but the final component use self-delimiting framing. A requested entire component can be repackaged as an ordinary mono or stereo stream while retaining its compressed frame bytes. This is not extraction of half a coupled stereo pair and not a downmix.\n\nThe existing repository item **R104.select-or-assemble-whole-opus-elementary-streams-without-pcm** was blocked on a real component parser/selector with truthful layout, pre-skip, and comparison controls. This prototype advances that bounded setup; it does not implement general mapping families or update the repo item.\n\n`scripts/multistream.py` implements a restricted parser for code-0, one-frame, 20 ms packets. The authored six-channel mapping-family-1 fixture contains four elementary streams, two coupled. Its source mapping is explicitly checked. The selector preserves gain, pre-skip, final granule, and the selected component's configuration. Unsupported packet packing, half-pair selection, downmix requests, mismatched pre-skip, and truncated component lengths reject.\n\n### Results\n\nThe six-channel Ogg source is **124,513 bytes**, with **108 packets**, **312 samples of pre-skip**, and **102,576 output frames per channel**.\n\n| Explicit request | Output Ogg bytes | Output WebM bytes | Values compared per container | Result |\n|---|---:|---:|---:|---|\n| Original front left/right pair | 35,195 | 33,246 | 205,152 | Exact selected samples |\n| Original center channel | 22,814 | 20,945 | 102,576 | Exact selected samples |\n| Original rear left/right pair | 72,102 | 70,023 | 205,152 | Exact selected samples |\n\nHost FFmpeg with explicit libopus decoding agrees sample-for-sample with the requested channels of its full-source decode. Chromium's Ogg and WebM whole-file outputs agree independently with the requested channels of its full-source decode. The adapter itself does not reconstruct PCM; host decoding is a test oracle.\n\nThe three WebM outputs play through MSE, complete seeks to 0.25 and 1.25 seconds, produce nonzero output on the expected number of captured channels, and reach EOF. That capture is not a complete sample alignment oracle. The MSE presentations report **2.161 seconds**, whereas the exact whole-file PCM is **2.137 seconds**. Exact MSE tail and seek semantics therefore remain unqualified.\n\nThe wrong-component comparison fails. The three byte counts are selection-specific, not universal compression ratios and not CPU improvements. Full six-channel browser decoding already works here; this is an explicit-operation optimization opportunity, not a missing-decoder fix.\n\nEvidence: [host/component](evidence/multistream_component.json), [browser exact output](evidence/browser_multi.json), [MSE lifecycle](evidence/browser_multilife.json).\n\n### Next gate\n\nCheck the maintained selected-output contract and caller first. Extend packet packing only with independent length/duration controls, then integrate one explicit pair or center selection. Compare against full six-channel native decode plus the already available channel-selection graph, including parser/copy/mux/destination cost. Do not discard surround channels for an ordinary stereo-downmix request.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

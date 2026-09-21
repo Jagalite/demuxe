@@ -1,0 +1,853 @@
+[
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=s=160x96:r=25:d=4",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-threads",
+      "1",
+      "-pix_fmt",
+      "yuv420p",
+      "-preset",
+      "ultrafast",
+      "-crf",
+      "18",
+      "-g",
+      "25",
+      "-bf",
+      "0",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "f32le",
+      "-ar",
+      "48000",
+      "-ac",
+      "2",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/markers.f32",
+      "-c:a",
+      "libvorbis",
+      "-q:a",
+      "5",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.ogg",
+      "-c:a",
+      "copy",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.ogg",
+      "-map",
+      "0:v",
+      "-map",
+      "1:a",
+      "-c",
+      "copy",
+      "/mnt/data/demuxe_batch3/fixtures/av_vorbis.mkv"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.ogg",
+      "-map",
+      "0:v",
+      "-map",
+      "1:a",
+      "-c",
+      "copy",
+      "-strict",
+      "-2",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/av_vorbis.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.15*sin(2*PI*701*t)|0.11*sin(2*PI*901*t):s=48000:d=2",
+      "-c:a",
+      "libopus",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_batch3/fixtures/first_opus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.15*sin(2*PI*1709*t)|0.11*sin(2*PI*1909*t):s=48000:d=2",
+      "-c:a",
+      "libvorbis",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_batch3/fixtures/second_vorbis.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "aevalsrc=0.07*sin(2*PI*997*t)|0.055*sin(2*PI*1481*t):s=48000:d=2.137",
+      "-c:a",
+      "libopus",
+      "-b:a",
+      "128k",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.ogg",
+      "-c",
+      "copy",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.ogg",
+      "-c",
+      "copy",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.ogg",
+      "-c",
+      "copy",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.ogg",
+      "-c",
+      "copy",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.ogg",
+      "-c",
+      "copy",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.ogg",
+      "-c",
+      "copy",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=2",
+      "--bps=16",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-0",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s16_level0.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s16.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=2",
+      "--bps=16",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-5",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s16_level5.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s16.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-t",
+      "-s",
+      "/mnt/data/demuxe_batch3/fixtures/s16_sparse.flac"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=6",
+      "--bps=24",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-0",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s24_level0.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s24.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=6",
+      "--bps=24",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-5",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s24_level5.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s24.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-t",
+      "-s",
+      "/mnt/data/demuxe_batch3/fixtures/s24_sparse.flac"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=2",
+      "--bps=32",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-0",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s32_level0.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s32.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-f",
+      "-s",
+      "--force-raw-format",
+      "--endian=little",
+      "--sign=signed",
+      "--channels=2",
+      "--bps=32",
+      "--sample-rate=48000",
+      "--blocksize=1024",
+      "--no-padding",
+      "-5",
+      "-o",
+      "/mnt/data/demuxe_batch3/fixtures/s32_level5.flac",
+      "/mnt/data/demuxe_batch3/fixtures/s32.pcm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "-t",
+      "-s",
+      "/mnt/data/demuxe_batch3/fixtures/s32_sparse.flac"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/s16_sparse.flac",
+      "-map",
+      "0:v",
+      "-map",
+      "1:a",
+      "-c",
+      "copy",
+      "-strict",
+      "-2",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/av_sparse.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/vorbis.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/av_vorbis.mkv"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/av_vorbis.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/first_opus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/second_vorbis.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/av_sparse.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_zero.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_plus.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.ogg"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.webm"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_packets",
+      "-show_data_hash",
+      "sha256",
+      "-of",
+      "json",
+      "/mnt/data/demuxe_batch3/fixtures/opus_minus.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "date",
+      "-u",
+      "+%Y-%m-%dT%H:%M:%SZ"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-version"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "flac",
+      "--version"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "chromium",
+      "--version"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4",
+      "-map",
+      "0:v",
+      "-c",
+      "copy",
+      "-bsf:v",
+      "h264_metadata=colour_primaries=6:transfer_characteristics=6:matrix_coefficients=6:video_full_range_flag=0",
+      "-color_primaries",
+      "smpte170m",
+      "-color_trc",
+      "smpte170m",
+      "-colorspace",
+      "smpte170m",
+      "-color_range",
+      "tv",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/video_601.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-y",
+      "-v",
+      "error",
+      "-i",
+      "/mnt/data/demuxe_batch3/fixtures/video.mp4",
+      "-map",
+      "0:v",
+      "-c",
+      "copy",
+      "-bsf:v",
+      "h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0",
+      "-color_primaries",
+      "bt709",
+      "-color_trc",
+      "bt709",
+      "-colorspace",
+      "bt709",
+      "-color_range",
+      "tv",
+      "-movflags",
+      "+empty_moov+frag_keyframe+default_base_moof",
+      "/mnt/data/demuxe_batch3/fixtures/video_709.mp4"
+    ],
+    "returncode": 0,
+    "stderr": ""
+  }
+]

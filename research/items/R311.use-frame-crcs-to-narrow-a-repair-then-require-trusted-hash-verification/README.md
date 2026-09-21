@@ -23,3 +23,11 @@ Next action: Retain explicit single-bit/known-extent model and independently tru
 | decision | passed | Actual1033-byte FLAC frame under explicit single-bit corruption model: CRC16 syndrome map nominates locations, then only separately trusted SHA256 identity admits a temporary repaired view. All12 damaged cases repair to original full bytes; two-bit, CRC-valid/hash-invalid, missing-identity and wrong-identity controls reject. Repaired fullFLAC yields all2048 host PCM samples and native Chrome audio samples exactly. Seven paired12-repair jobs, including fresh syndrome-table construction, cost median0.19645x direct SHA256 candidate enumeration (range0.0881–0.3621). Pursue bounded offline repair; CRC never becomes admission authority. |
 
 [New run](../../shared/runs/20260920T000413Z-crc-repair/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D18 — A decoding success is not an integrity verdict**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

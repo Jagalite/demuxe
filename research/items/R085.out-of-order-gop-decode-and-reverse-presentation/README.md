@@ -9,3 +9,11 @@ Implemented bounded independent-region decode/cache/reverse presentation for fou
 Next: Scoped bounded reverse-preview capability verified. Reopen separately for larger byte budgets, B/openGOP dependencies, media-element capture, physical display or production scheduling; retain historical missingframe stressnegative.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T222505Z-bounded-regions/analysis.md)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D71 — Compressed-only reverse views of independently decodable video**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch17_D71-D73/demuxe_batch17/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

@@ -1,0 +1,155 @@
+{
+  "prefix_frames": 12,
+  "suffix_frames": 24,
+  "prefix_exact_original": true,
+  "suffix_exact_original": true,
+  "software_middle_frames": 12,
+  "software_middle_format": "yuv420p",
+  "software_middle_sha256": "ada3723cbd992dce327fbf1ddca1901ed15c4d8da444fb65ca0151d0b818fd0f",
+  "timeline": [
+    {
+      "interval_seconds": [
+        0.16666666666666666,
+        1.1666666666666667
+      ],
+      "file": "island_prefix.mp4",
+      "owner": "native candidate",
+      "audio": "not included"
+    },
+    {
+      "interval_seconds": [
+        1.1666666666666667,
+        2.1666666666666665
+      ],
+      "file": "island_mpeg2.mp4",
+      "owner": "software candidate",
+      "source_start_time_seconds": 0.083333,
+      "presentation_offset_seconds": 1.0833336666666666,
+      "audio": "not included"
+    },
+    {
+      "interval_seconds": [
+        2.1666666666666665,
+        4.166666666666667
+      ],
+      "file": "island_suffix.mp4",
+      "owner": "native candidate",
+      "audio": "not included"
+    }
+  ],
+  "seamless_handoff": "NOT RUN; no Demuxe runtime, stable audio owner, or secure-context WebCodecs available",
+  "commands": [
+    {
+      "argv": [
+        "ffmpeg",
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=160x96:rate=12:duration=1",
+        "-an",
+        "-c:v",
+        "mpeg2video",
+        "-g",
+        "12",
+        "-bf",
+        "2",
+        "-movflags",
+        "+frag_keyframe+empty_moov+default_base_moof",
+        "/mnt/data/demuxe_native_screen/fixtures/island_mpeg2.mp4"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/video.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_prefix.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_suffix.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "/mnt/data/demuxe_native_screen/fixtures/island_mpeg2.mp4",
+        "-map",
+        "0:v:0",
+        "-pix_fmt",
+        "yuv420p",
+        "-vsync",
+        "0",
+        "-threads",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ]
+}

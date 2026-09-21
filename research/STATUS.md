@@ -2,21 +2,21 @@
 
 # Current research status
 
-Derived from all 425 canonical item homes at 2026-09-20T13:56:45.559202+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
+Derived from all 433 canonical item homes at 2026-09-21T02:55:16.765170+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
 
-398 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 0 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
+398 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 8 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
 
-425 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
+433 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
 
 | Stage | Passed | Failed | Blocked | Pending | Not applicable |
 |---|---:|---:|---:|---:|---:|
-| define | 398 | 0 | 0 | 0 | 27 |
-| prepare | 308 | 0 | 0 | 0 | 117 |
-| screen | 425 | 0 | 0 | 0 | 0 |
-| correctness | 275 | 27 | 0 | 0 | 123 |
-| performance | 89 | 122 | 0 | 0 | 214 |
-| results | 425 | 0 | 0 | 0 | 0 |
-| decision | 425 | 0 | 0 | 0 | 0 |
+| define | 406 | 0 | 0 | 0 | 27 |
+| prepare | 308 | 0 | 0 | 8 | 117 |
+| screen | 433 | 0 | 0 | 0 | 0 |
+| correctness | 275 | 27 | 0 | 8 | 123 |
+| performance | 89 | 122 | 0 | 8 | 214 |
+| results | 433 | 0 | 0 | 0 | 0 |
+| decision | 433 | 0 | 0 | 0 | 0 |
 
 A passed screen or decision records a scoped finding, not production readiness. Passed correctness applies only to the stated run profile. Blocked prerequisites and failed outputs are distinct.
 
@@ -32,10 +32,17 @@ Whole-player qualification is a separate follow-up: earlier scoped research comp
 | correctness_failed | 2 |
 | deferred_integration_not_prioritized | 1 |
 | measured_lab_benefit | 3 |
-| not_measured | 137 |
+| not_measured | 145 |
 | not_required_by_current_scoped_decision | 277 |
 
-No defined items have pending or blocked research gates at their recorded scope. This does not complete deferred whole-player integration.
+- Rank None: [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [native-fir-window-rendering](items/native-fir-window-rendering/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [native-ogg-page-projection](items/native-ogg-page-projection/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
 
 ## Permanently closed source gaps
 

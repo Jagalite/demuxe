@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D05",
+      "batch": 1,
+      "range": "D01–D07",
+      "title": "Publish decompressed packets only after complete validation",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R358.unwrap-matroska-track-compression-before-choosing-a-decoder",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch01_D01-D07.zip",
+      "report_section": "## D05 — Publish decompressed packets only after complete validation\n\n**Hypothesis.** Native decompression can be reused without allowing malformed compressed input or excessive expansion to contaminate downstream media state. A packet-sized quarantine should commit only after stream completion and validation.\n\n**Relationship.** R358 explicitly leaves malformed compression and resource bounds unqualified. This component guard addresses that gap; it does not qualify a full Matroska parser or JSPI bridge.\n\n**Execution.** Compressed a real AVC packet with zlib. Fed browser DecompressionStream valid, bad-checksum, truncated, and 4 MiB expansion fixtures in 7-, 64-, and 4,096-byte input chunk profiles. The script's legacy `bad_crc` filename denotes a zlib Adler-32 checksum error, not a CRC algorithm.\n\n**Observed.** All three valid profiles recovered the exact 2,937-byte packet. The bad-checksum and truncated profiles could emit **all 2,937 bytes before reporting the error**. Immediate forwarding would therefore violate a verify-before-publication contract. All nine negative profiles were rejected by the bounded commit guard and published zero bytes. The accumulated quarantine stayed at or below **65,536 bytes**; the expansion control was cancelled when the next chunk would exceed it.\n\n**Important memory boundary.** This is a cap on accumulated quarantine chunks, not measured total browser/native memory. An oversized output chunk is already visible when checked; input buffers, joined output, internal decompressor allocations, and cancellation latency are additional costs. No claim that native code could not internally allocate or decompress more than this cap. The script does not actually submit invalid bytes to a codec.\n\n**Next gate.** Integrate a real bounded sink and per-track/source aggregate budget, enforce packet atomicity across cancellation/reconfiguration, fuzz checksums/headers/nesting, and measure cancellation plus native memory behavior. Keep transactional publication even where a more incremental decompressor replaces DecompressionStream.\n\nEvidence: `browser_inflate.json`, packet fixtures, `browser_tests.js`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

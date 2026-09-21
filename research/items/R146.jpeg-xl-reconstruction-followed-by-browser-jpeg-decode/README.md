@@ -9,3 +9,11 @@ The actual pinned libjxl encoder accepts four existing grayscale/color JPEGs thr
 Next: Scoped reconstruction and browser-image gates are complete. A browser/Wasm deployment, larger reconstruction limits or a compression/cost claim requires its own bounded contract; retain rejection of JXL files without original-JPEG reconstruction metadata.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T233157Z-jxl-jpeg-reconstruction/analysis.md)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D34 — Recover original JPEG bytes from JPEG-origin JPEG XL, then use browser JPEG decoding**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

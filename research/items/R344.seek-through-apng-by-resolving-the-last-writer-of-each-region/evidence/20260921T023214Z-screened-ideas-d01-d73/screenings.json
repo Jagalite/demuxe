@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D25",
+      "batch": 4,
+      "range": "D21–D25",
+      "title": "Cold APNG seeks using native PNG subframe views and disposal-aware plans",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R344.seek-through-apng-by-resolving-the-last-writer-of-each-region",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch04_D21-D25/demuxe_batch4/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch04_D21-D25.zip",
+      "report_section": "## D25 — Cold APNG seeks using native PNG subframe views and disposal-aware plans\n\n**Question.** Can seeking decode only the image frames that contribute to the requested displayed result, while leaving their compressed image streams intact?\n\n**Relationship.** This is a bounded alternative within R344, not its complete region-last-writer solver. It combines safe full-canvas anchors with disposal-based elimination and native PNG image decoding. It does not compare against the repository's retained checkpoint implementation or establish a memory-matched speed advantage.\n\n**Execution.** A real 12-frame RGBA8 APNG was authored with separate non-animation default-image data, split fdAT chunks, overlapping transparent SOURCE/OVER regions, NONE/BACKGROUND/PREVIOUS disposal, varying delays including denominator-zero semantics, and a full-canvas SOURCE frame that disposes to PREVIOUS.\n\nA bounded parser validates chunk CRCs, sequence numbers, dimensions and frame counts. Each animation frame's compressed bytes are copied into a standalone PNG view without decompression. The source's non-animation default image is excluded. The cold-seek planner starts from a safe full-canvas source frame. Before the requested target, a PREVIOUS frame need not be decoded because it leaves no persistent change; a BACKGROUND frame can be replaced with its clear operation. The target itself is always rendered.\n\nAll **12 targets**, requested in non-monotonic order with a fresh Canvas each time, matched Pillow's independently decoded APNG RGBA output exactly. A separate authored binary-alpha composition oracle also matched Pillow. The final target required **five native PNG decodes rather than twelve** under a naïve full-prefix image-decode count. The adapter still performs indexing, image-wrapper construction, clears and composition; this is not a 58% speed claim.\n\n**Decisive negatives.** Treating a full SOURCE/PREVIOUS frame as a persistent anchor for a later frame produced **19,584 wrong color/alpha components**. Ignoring disposal in another target produced **1,972** wrong components. CRC corruption, sequence gaps with corrected CRC, out-of-bounds geometry with corrected CRC, truncation and frame-budget violations were rejected.\n\nA full-file `createImageBitmap` call returned the first animation picture, not the separate magenta static default image. This destination observation is recorded separately; the initially named `poster` field was renamed to avoid falsely identifying that result as the static poster.\n\n**Evidence.** `scripts/apng_view.py`, `scripts/animation_browser.js`, `evidence/animation_manifest.json`, browser image records, `evidence/apng_default_image_observation.json`, and original/per-frame/oracle fixtures.\n\n**Decision.** Pursue an isolated seek/index adapter for the qualified profile. The exact test uses binary-alpha patches; arbitrary fractional-alpha composition, color metadata, interlace, palette APNGs, region-optimal planning, remote reads, cache ownership and timed animation playback remain unqualified. All candidate bitmaps are closed after use; physical allocation reclamation or a leak-free maintained player is not demonstrated.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R095.fixed-opus-gain-through-codec-container-headers",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D15",
+      "batch": 3,
+      "range": "D14–D20",
+      "title": "A remux must retain both gain and end trimming",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R095.fixed-opus-gain-through-codec-container-headers",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch03_D14-D20/demuxe_batch3/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch03_D14-D20.zip",
+      "report_section": "## D15 — A remux must retain both gain and end trimming\n\n**Question.** Does selecting a browser-supported container retain the Opus presentation semantics, not just the coded audio? Adjacent work: R095, R094, R320 and D13.\n\nThree authored Opus sources use identical **108 coded packets** and header gains of 0, +6 and −6 dB. Header checksums were updated. Each was stream-copied to WebM and fragmented MP4. Ogg/WebM/MP4 retained the same ordered coded-packet hashes; this does not assert identical container timestamps.\n\nFor each gain, Ogg and WebM produced identical whole-file browser Float32 output and exactly **102,576 stereo sample frames**. The measured gain ratios were **1.995127** and **0.501154**, within the 0.1% check of the requested factors. The zero-gain variant served as a deliberately wrong output for the nonzero-gain contract.\n\nThe tested MP4 remux retained the tested interior PCM and gain but returned **103,368 frames**, adding **792 frames = 16.5 ms**. Thus it fails complete presentation equivalence despite preserving every coded packet. This is a finding about these authored files, this muxer recipe and browser path—not a universal defect of MP4 Opus.\n\n**Decision:** a route selector should consider gain and trim separately from codec support. The WebM result is whole-file decode evidence, not full streaming-MSE PCM or seek qualification. Next test actual output through streaming seeks and EOF, investigate the MP4 tail metadata, and keep the source's requested gain exactly once.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

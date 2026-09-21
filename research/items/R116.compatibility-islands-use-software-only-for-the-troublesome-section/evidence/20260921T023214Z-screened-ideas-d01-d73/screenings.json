@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R116.compatibility-islands-use-software-only-for-the-troublesome-section",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D06",
+      "batch": 1,
+      "range": "D01–D07",
+      "title": "Source-defined compatibility islands, without claiming handoff",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R116.compatibility-islands-use-software-only-for-the-troublesome-section",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch01_D01-D07.zip",
+      "report_section": "## D06 — Source-defined compatibility islands, without claiming handoff\n\n**Hypothesis.** Restrict software ownership to independently decodable unsupported epochs and return supported epochs to a browser path instead of leaving the rest of the asset in fallback.\n\n**Relationship.** This is a bounded advancement of existing R116, whose current prerequisite calls for a source-defined supported/unsupported/supported witness. It is not a new name for R116.\n\n**Execution.** Prepared a declared three-epoch video timeline: 12 AVC prefix pictures, 12 MPEG-2 middle pictures, and 24 AVC suffix pictures. The prefix and suffix each play via separate fresh MSE presentations. Host decoding exactly matches the corresponding original AVC picture ranges. Timestamp-witnessed browser captures match the full reference. The MPEG-2 MSE codec query is unsupported here; host software decodes the 12-picture middle. Its source timestamp origin is measured and explicitly mapped in `island_component.json` rather than assumed equal to AVC.\n\n**Useful negative.** An initial high-4:4:4 10-bit AVC candidate unexpectedly played through browser MSE, so it was not a useful *unsupported* middle section. Its result is retained. That observation says nothing about hardware acceleration.\n\n**Not executed.** No single continuous player session, no native→software→native ownership transfer, no stable color owner, and no audio clock or artifact-free transition. Secure-context WebCodecs checks are recorded as blocked. The exact seamless-handoff claim remains **blocked**, even though the fixture and individual destination prerequisites advanced. Separate presentations are not a demonstrated handback.\n\n**Next gate.** Implement only the bounded three-epoch handoff using explicit random-access/configuration boundaries, a stable clock and presentation owner, and frame-ordinal oracles. Verify both transitions, then compare whole-plan cost to all-software playback.\n\nEvidence: `island_component.json`, `browser_islands.json`, `browser_decode.json`; initial candidate logs retained separately.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

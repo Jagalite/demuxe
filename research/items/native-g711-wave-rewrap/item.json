@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "native-g711-wave-rewrap",
+  "title": "Rewrap G.711 telephony audio rather than decoding it in application code",
+  "definition": {
+    "hypothesis": "Rewrap G.711 telephony audio rather than decoding it in application code",
+    "scope_contract": "## D32 — Rewrap G.711 telephony audio rather than decoding it in application code\n\n**Question:** Is the missing capability the compressed audio itself, or its AU file wrapper?\n\nThe prototype parses finite AU headers for mono/stereo G.711 mu-law or A-law, checks the declared rate, byte count and sample alignment, and constructs a WAVE header (`fmt`, `fact`, `data`). The coded sample bytes are copied intact; the adapter never expands or recompresses them. It is not an AU general-purpose converter and does not preserve arbitrary annotation metadata.\n\nFor each of two 8 kHz mono fixtures:\n\n- Original AU: **10,728 bytes**, rejected by browser whole-file decoding and the direct media element.\n- Wrapped WAVE: **10,754 bytes**, with all **10,696 coded bytes** unchanged.\n- Host decode of both representations matches exactly; an independently implemented G.711 lookup calculation also reproduces every source integer sample.\n- Browser decoded output matches the corresponding host-decoded-to-PCM-WAVE browser reference for all **10,696 samples**.\n- Direct playback seeks to 0.25 and 0.85 s, produces the expected nonzero audio signal and reaches EOF at a reported 1.337 s.\n\nAn additional 771-sample fixture covers all **256 companded byte values** for each law. It matches the browser PCM-WAVE reference exactly and matches the manual integer oracle in host decoding. The wrong-law label still decodes, but all 10,696 signal samples differ. Unknown length, truncation and unsupported encoding guards reject.\n\n### Numerical boundary and streaming restrictions\n\nA stricter `signed_integer / 32768` Float32 contract **does not match** this browser destination for every positive sample: 382 mu-law and 386 A-law values differ in the 771-value fixtures; maximum absolute errors are approximately **2.99e-5** and **3.00e-5**. The browser's PCM-WAVE control shows the same values as the companded WAVE route. This is reference-relative browser equivalence, not universal normalization equality.\n\nAll four tested streaming MIME strings (`audio/wav`, two law-specific WAVE strings, `audio/basic`) return false from MSE support queries. IMA-WAVE and Microsoft ADPCM WAVE fixtures also fail the initial whole-file destination screen, while the PCM-WAVE control succeeds. Do not generalize the G.711 result to arbitrary WAVE codecs or a unified MSE A/V path.\n\n**Next smallest gate:** real bounded AU/call-recording sources, metadata policy and stream/seek behavior on intended platforms. Use finite browser audio where it fits; keep the fallback for unsupported ADPCM and live/unbounded forms. This is not a physical-speaker or sample-exact post-seek capture qualification.\n\n**Evidence:** `audio_destination_probe.json`, `au_component.json`, `browser_decode.json:pcm_*`, `browser_aulife.json`, `scripts/au_wrap.py`.",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "sha256": "d78d298a631baabf60cfd6b319883a3c75efe325c98f2f8bd03db565453ec816"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/native-g711-wave-rewrap/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/native-g711-wave-rewrap/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/native-g711-wave-rewrap/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/native-g711-wave-rewrap/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D32"
+      ],
+      "path": "research/items/native-g711-wave-rewrap/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

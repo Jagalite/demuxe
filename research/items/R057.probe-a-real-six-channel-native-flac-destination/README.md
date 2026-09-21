@@ -23,3 +23,11 @@ Only this declared component/profile is decided. All failed variants retained. R
 | decision | passed |
 
 [Run](../../shared/runs/20260919T205039Z-six-channel-closure/run.json) · [Analysis](../../shared/runs/20260919T205039Z-six-channel-closure/analysis.md) · [Manifest](../../shared/runs/20260919T205039Z-six-channel-closure/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Imported D01–D73 screening supplement
+
+Existing decisions and stage gates above remain unchanged. These are external component findings, not a new maintained-player execution. All controls, failures and destination limits remain in the linked reports.
+
+- **D04 — Strengthen six-channel native FLAC to whole-buffer 24-bit exactness**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
+
+[Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.

@@ -1,0 +1,114 @@
+{
+  "assertion_count": 40,
+  "all_assertions_passed": true,
+  "assertions": {
+    "projection_5_whole_mdat_equal": true,
+    "projection_5_filesize_equal": true,
+    "projection_5_video_packets_timing_exact": true,
+    "projection_5_browser_seek_pixels_exact": true,
+    "projection_5_browser_eof": true,
+    "projection_7_whole_mdat_equal": true,
+    "projection_7_filesize_equal": true,
+    "projection_7_video_packets_timing_exact": true,
+    "projection_7_browser_seek_pixels_exact": true,
+    "projection_7_browser_eof": true,
+    "projection_subset_outcomes": true,
+    "project_7.mp4_host_all_video_frames_exact": true,
+    "width_2.mp4_host_all_video_frames_exact": true,
+    "width_4.mp4_host_all_video_frames_exact": true,
+    "av_flac.mp4_host_all_video_frames_exact": true,
+    "width_2_4_NAL_identity": true,
+    "width_2_4_browser_pixels": true,
+    "width_2_4_eof": true,
+    "width_mismatch_negative_rejected": true,
+    "flac_sixch_24bit_exact": true,
+    "flac_wrong_clock_rejected_by_exact_oracle": true,
+    "flac_mse_video_eof": true,
+    "flac_mse_video_seek_pixels": true,
+    "pce_packet_identity": true,
+    "pce_host_pcm_identity": true,
+    "pce_multichannel_guard": true,
+    "pce_original_mse_fails": true,
+    "pce_canonical_mse_eof": true,
+    "pce_av_pce.mp4_browser_audio_exact_host": true,
+    "pce_av_pce_canonical.mp4_browser_audio_exact_host": true,
+    "pce_video_seek_pixels": true,
+    "inflate_valid_all_exact": true,
+    "inflate_negatives_all_rejected": true,
+    "inflate_negatives_publish_zero": true,
+    "inflate_quarantine_cap": true,
+    "island_host_prefix_suffix": true,
+    "island_mse_prefix_suffix_eof": true,
+    "island_mpeg2_browser_declines": true,
+    "island_prefix_seek_pixels": true,
+    "island_suffix_seek_pixels": true
+  },
+  "measurements": {
+    "projection_5": {
+      "changed_byte_values": 15,
+      "tag_write_bytes": 20,
+      "file_bytes": 139818,
+      "video_packet_count": 48
+    },
+    "projection_7": {
+      "changed_byte_values": 17,
+      "tag_write_bytes": 24,
+      "file_bytes": 139818,
+      "video_packet_count": 48
+    },
+    "subset_search": {
+      "browser_accepting_masks": [
+        5,
+        7
+      ],
+      "minimal_accepting_masks": [
+        5
+      ],
+      "conformance_warning": "Mask 5 retains orphan audio trex; browser acceptance does not certify ISO BMFF conformance. Prefer coherent mask 7 for next qualification."
+    },
+    "widths": {
+      "nals": 49,
+      "frames": 48,
+      "payload_difference_bytes": 98,
+      "gain_percent": null
+    },
+    "flac": {
+      "channels": 6,
+      "frames_per_channel": 192000,
+      "individual_samples": 1152000,
+      "wrong_clock_frames": 176399,
+      "end_to_end_surround": "UNQUALIFIED",
+      "encoding_cost": "UNMEASURED"
+    },
+    "pce": {
+      "all_packets": 237,
+      "audio_packets": 189,
+      "video_packets": 48,
+      "pcm_frames_per_channel": 193536,
+      "pcm_individual_samples": 387072,
+      "changed_byte_values": 31,
+      "esds_before": 73,
+      "esds_after": 54,
+      "native_streaming_audio_seek_fidelity": "UNQUALIFIED"
+    },
+    "inflate": {
+      "valid_cases": 3,
+      "negative_cases": 9,
+      "packet_bytes": 2937,
+      "quarantine_cap_bytes": 65536,
+      "max_observed_retained": 65536,
+      "native_internal_allocation": "UNMEASURED",
+      "checksum_note": "zlib uses Adler-32; older fixture filename bad_crc is a historical misnomer."
+    },
+    "islands": {
+      "native_prefix_frames": 12,
+      "software_middle_frames": 12,
+      "native_suffix_frames": 24,
+      "continuous_handoff": "NOT RUN",
+      "audio_clock": "NOT RUN",
+      "hardware": "UNQUALIFIED",
+      "high444_negative_assumption": "Initial candidate was also browser-playable; it was not a useful unsupported-section fixture."
+    }
+  },
+  "qualification": "Bounded component checks only; not full player correctness/performance acceptance."
+}

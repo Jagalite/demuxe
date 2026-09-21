@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "key": "R162.compile-a-qualified-mux-configuration-into-a-small-patch-program",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D09",
+      "batch": 2,
+      "range": "D08–D13",
+      "title": "Make existing fragments relocatable by repairing their address metadata",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R162.compile-a-qualified-mux-configuration-into-a-small-patch-program",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch02_D08-D13.zip",
+      "report_section": "## D09 — Make existing fragments relocatable by repairing their address metadata\n\n**Question.** For an already-fragmented file that uses absolute sample addressing, can controlled MSE delivery be enabled without unpacking and remuxing every compressed sample?\n\n**Relation.** R009 controlled-fetch pass-through remains distinct from its stopped local-Blob case. R162 already investigates qualified patch programs. This screen adds a concrete two-track, multi-sample absolute-address-to-relative-address conversion.\n\nThe MSE ISO BMFF byte-stream note requires movie-fragment-relative addressing. The prototype removes each explicit absolute base from `tfhd`, sets `default-base-is-moof`, and recalculates `trun` offsets. In this authored layout, an eight-byte `free` box preserves each affected region's size. This is a test-specific rewrite, not a generic ISO BMFF parser.\n\n**Observed.** Absolute-addressed input fails MSE append; repaired output plays with the same four browser picture witnesses, EOF, and correct audio-channel tones. **120 byte values change in a 117,490-byte file**. All 237 packet summaries, all mdat payloads, host decoded pictures/PCM, and same-source browser whole-file audio remain unchanged. File size and payload positions stay constant. An intentionally one-byte-wrong sample offset fails the destination check.\n\n**Important negative scope.** The original absolute-addressed file already works through direct Blob playback, including the sampled audio-channel witnesses. This is a candidate for **controlled/selected-fragment MSE workflows**, not a reason to replace an already successful cheaper direct route. No actual network delivery was tested.\n\n**Decision: pursue only where the maintained application really needs MSE/controlled delivery and does not already perform equivalent work.** Validate all referenced sample spans, multiple mdats, auxiliary data, indexes, mixed addressing, overflow, cancellation, and encrypted-media boundaries before broad admission. No zero-copy or CPU-saving claim follows from the small number of changed bytes: the Python prototype copies buffers.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    },
+    {
+      "id": "D10",
+      "batch": 2,
+      "range": "D08–D13",
+      "title": "Synthesize missing decode-time headers from proven continuity",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R162.compile-a-qualified-mux-configuration-into-a-small-patch-program",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch02_D08-D13.zip",
+      "report_section": "## D10 — Synthesize missing decode-time headers from proven continuity\n\n**Question.** When a sequential fragmented source omits later `tfdt` headers, can exact per-track decode times be derived from a known start and actual sample durations, avoiding a new mux session?\n\n**Relation.** Scoped duration/continuity extension adjacent to R162 and R222, not a generic seek-index reconstruction scheme.\n\n**Construction.** Preserve each track's first decode-time anchor. Remove the six subsequent headers across three fragments and two tracks. Replace their old payload bytes with `0xA5`, so the reconstruction cannot recover the timestamps by reading old hidden values. Derive each next start from the previous start plus the applicable `trun`, `tfhd`, and `trex` durations.\n\n**Observed.** The missing-header presentation fails MSE append. All six inferred headers recreate the compatible control **byte for byte**. The repaired presentation passes the four picture witnesses, EOF, whole-file audio equality, and streaming tone checks.\n\n**Guards.** Reject an unproven source-span plan, a new/unknown continuity epoch, or the tested gapped plan. A production caller must provide an independently trusted, source-bound continuity record; deriving the expected plan from an already damaged candidate would be circular. Fragment sequence numbers alone do not establish continuity. No new seek may invent an initial decode time without its predecessor or a qualified anchor.\n\n**Direct alternative.** As with D09, the unchanged complete local file already passes the direct playback screen. The value is admission to a controlled fragment workflow, not an unconditional replacement of direct playback.\n\n**Decision: pursue the bounded continuity repair.** Test missing durations, discontinuities, multiple trafs/runs, reordered delivery, cancellation, track changes, and arbitrary seeks in the maintained reader before generalization.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

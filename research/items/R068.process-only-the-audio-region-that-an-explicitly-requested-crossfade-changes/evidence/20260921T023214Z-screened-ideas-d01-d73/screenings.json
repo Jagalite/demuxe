@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D51",
+      "batch": 10,
+      "range": "D48–D51",
+      "title": "Express a requested crossfade in the browser audio graph",
+      "report_commit": "efd9e1537666b3120936ed24a34431645506e953",
+      "key": "R068.process-only-the-audio-region-that-an-explicitly-requested-crossfade-changes",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch10_D48-D51/demuxe_batch10/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch10_D48-D51/demuxe_batch10/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch10_D48-D51.zip",
+      "report_section": "## D51 — Express a requested crossfade in the browser audio graph\n\n### Question and contract\n\nFor already-decoded, bounded source buffers, can the browser schedule a linear overlap using native gain automation instead of generating a mixed intermediate input buffer or encoding a new compressed bridge?\n\nThe contract here is explicit floating-point playback rendering: exact unchanged prefix/suffix samples and maximum absolute error <=**2e-7** in the complete output against independently indexed Float32 arithmetic. That tolerance is encoded in `scripts/audio.js` as written before the first run. This is not R068's quantized-integer compressed-export contract.\n\nTwo stereo source buffers contain 48,013 and 56,007 frames at 48 kHz. The candidate references the original buffers through two AudioBufferSourceNodes, routes them through two GainNodes, and uses a-rate `linearRampToValueAtTime`. Fade lengths are 128, 4,093 and 12,001 samples. Buffer construction is fixture generation; the candidate does not construct a concatenated/mixed input buffer.\n\n### Results\n\nAcross the three outputs, **591,676 scalar samples** are compared. The 128-sample fade is exact. The two longer fades differ in some overlap samples due to numerical arithmetic, with maximum errors of approximately 5.96e-8 and 7.45e-8. Every unchanged prefix and suffix is Float32-exact. Every positive stays within the declared 2e-7 bound.\n\nTwo controls run for every fade length:\n\n1. Start the second source one sample late. The complete comparison fails, with errors up to about 0.05446.\n2. Change gain automation to k-rate. Output fails the bound, with errors up to about 0.15852; the gain can remain incorrect beyond the overlap boundary in this fixture. Coarser control-rate automation is not the same sample-level fade.\n\n### Decision and costs not measured\n\nPursue only where decoded buffers already exist or a bounded decode consumer is justified. The two inputs retain **832,160 bytes** of Float32 sample data; the largest output retains another 831,136 sample bytes. Browser internal buffers and temporary oracle storage are additional. These are logical counts, not peak-memory measurements.\n\nNo real-time audio device, live deadlines, audible seam test, A/V clock, source cancellation or user-gesture behavior is qualified by OfflineAudioContext. No reduction in software decoding is established. This does avoid requesting a new mixed input representation at the application boundary, but it is not proof of browser-internal zero-copy or a cheaper complete route.\n\nDo not reopen R068's stopped Python/subprocess encoding profile on these results: this is a different output destination with a different numerical contract. Compare against the maintained player and an ordinary native graph before adding a new pipeline.\n\nEvidence: [browser_crossfade.json](evidence/browser_crossfade.json); code: `scripts/audio.js`.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

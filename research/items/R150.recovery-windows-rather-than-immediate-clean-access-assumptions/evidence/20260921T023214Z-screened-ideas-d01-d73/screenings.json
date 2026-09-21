@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D45",
+      "batch": 9,
+      "range": "D44–D47",
+      "title": "A recovery point is not necessarily a native cold-start point",
+      "report_commit": "015004be024fc04cb0234f523290b4c377870257",
+      "key": "R150.recovery-windows-rather-than-immediate-clean-access-assumptions",
+      "classification": "stop/negative",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch09_D44-D47.zip",
+      "report_section": "## D45 — A recovery point is not necessarily a native cold-start point\n\n### Scope\n\nA five-second AVC source uses periodic intra refresh instead of a new IDR at each one-second boundary. A restricted NAL/SEI parser verifies that the tested later boundaries have non-IDR coded slices plus a recovery message declaring `recovery_frame_cnt=8`, `exact_match=1`, `broken_link=0`. FFprobe labels their first packets as keyframes. No attempt is made to promote false keyframes or rewrite decoding dependencies.\n\nR150's current repository report already establishes a software recovery-window experiment; it explicitly does not establish browser/native admission. This batch addresses that missing destination boundary, not another performance rerun of its stopped/inconclusive small subprocess profile.\n\n### Results\n\nAt cuts one and three seconds, fresh host decoders with show-all enabled produce 20 pictures each. For both cuts, offsets 0–7 differ from the full uninterrupted decoded source, while offsets 8–19 match exactly.\n\nAn uninterrupted MSE control buffers [0,5], supplies 40 requested pictures around the two intervals, and reaches EOF. Four cold cases — early and conservative post-recovery seeks for each cut — accept the submitted bytes without a synchronous append rejection, but produce **an empty buffered range**. They are rejected before trying to present missing data. Requesting only later, theoretically recovered pictures does not change that outcome.\n\n### Decision\n\n**Stop this native cold-recovery candidate on the tested browser profile.** Decoder recoverability in a host program does not establish MSE admission. The existing ordinary source-start path remains the working native baseline. A different native endpoint or a software-prefix handoff would require its own experiment; neither was implemented here.\n\nDo not generalize the result to all recovery SEI profiles, browser versions or native decoders. This was video-only. No claimed CPU saving is attached to the eight-picture recovery window.\n\nEvidence: `refresh_manifest.json`, `browser_refresh.json`, and per-fragment probe records.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Retain this scoped negative. Reopen only for a changed destination, source profile or explicit contract that addresses the recorded failure; do not implement the failed variant by default.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

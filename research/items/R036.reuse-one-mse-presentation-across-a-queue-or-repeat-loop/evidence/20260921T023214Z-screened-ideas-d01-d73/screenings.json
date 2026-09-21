@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D64",
+      "batch": 14,
+      "range": "D62–D64",
+      "title": "Join independent FLAC selections without creating a new encoded bridge",
+      "report_commit": "6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36",
+      "key": "R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch14_D62-D64/demuxe_batch14/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch14_D62-D64/demuxe_batch14/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch14_D62-D64.zip",
+      "report_section": "## D64 — Join independent FLAC selections without creating a new encoded bridge\n\n### Hypothesis and relation to D63\n\nIf D63's clip bounds are correct, can those bounded selections be composed into a single native-owned timeline? This is a composition/lifecycle extension of D63, not another codec algorithm.\n\nThe explicit source plan is:\n\n| Interval | Source | Source sample window | Frames | Destination window |\n|---|---|---|---:|---|\n| First | A | `[1001,31002)` | 30,001 | `[0,30001)` |\n| Second | B | `[3007,28013)` | 25,006 | `[30001,55007)` |\n| Third | A | `[40009,59011)` | 19,002 | `[55007,74009)` |\n\nFor each interval, the candidate sets its destination append window and an offset `(destination_start-source_start)/48000`, then submits unchanged prepared source fragments. It does not generate a combined audio buffer, crossfade, silence patch, or newly encoded boundary.\n\n### Results\n\nThe separate materialized reference and all three candidate delivery variants produced exactly **74,009 stereo frames / 148,018 channel values**:\n\n1. All intervals prepared before playback, with source-appropriate initialization at each transition.\n2. The same scoped sources using only the first initialization.\n3. Playback starts with only the first interval appended; the remaining intervals are appended after media time reaches approximately 0.15 seconds, before the first boundary at approximately 0.625 seconds.\n\nBoth joins, all prefixes and suffixes match the independent source-slice reference. There are no inserted zero frames in the authored output. The application retains the same MediaSource, SourceBuffer and media element. This says nothing about whether the browser internally reset or retained a hardware decoder.\n\nThe source-A/source-B codec profiles are identical S24 stereo 48 kHz. The single-initialization variant is not authorization to omit initialization across arbitrary codec or layout changes. AAC/Opus state and encoder priming are separate; this does not overturn [R036's AAC queue failure](https://github.com/Jagalite/demuxe/blob/6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36/research/items/R036.reuse-one-mse-presentation-across-a-queue-or-repeat-loop/README.md).\n\n### Control\n\nShifting only the second interval's source mapping by one sample leaves the first and third intervals exact, preserves total length and EOF, but changes **50,012 channel values** in the middle interval. The comparison uses one global capture alignment, so correct outer intervals cannot hide an incorrect join.\n\nThe live-append variant reproduces in the fresh-directory run. It supplies future data before the playback boundary; it is not a late-segment, underflow, network-jitter or deadline-stress result. Whole-session memory, backward queue seeks, cancellation of pending additions and physical output continuity remain next gates.\n\nEvidence: [prebuffered variants](evidence/browser_audio_join.json), [live append and control](evidence/browser_audio_live.json), [isolated wrong-middle control](evidence/browser_audio_controls.json), [full comparisons](evidence/analysis.json).",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

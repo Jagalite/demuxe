@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "native-audio-sample-window-scheduling",
+  "title": "Preserve exact edits by moving selection to the native audio scheduler",
+  "definition": {
+    "hypothesis": "Preserve exact edits by moving selection to the native audio scheduler",
+    "scope_contract": "## D35 — Preserve exact edits by moving selection to the native audio scheduler\n\n**Question:** When edit metadata fails a sample-exact contract, must audio decoding and scheduling move into a custom software engine?\n\nThis is a scoped use of standard AudioBufferSourceNode scheduling, not a newly invented codec mechanism. It is adjacent to the existing browser-native audio-graph direction (`R061`), but it tests source selection and joins rather than channel permutations.\n\nThe browser first decodes the original AAC or FLAC source once. A bounded plan validates mono, matching 48 kHz sample rate, integer in-range source windows and a maximum output size. Each node references the **same source AudioBuffer** and uses sample-derived start/offset/duration values; the candidate does not build a new concatenated sample buffer before scheduling. The independent oracle does concatenate source slices for comparison after rendering.\n\nOfflineAudioContext output matches **every sample** for both the 55,545-frame single edit and the 46,422-frame two-part edit, for both source codecs: **four exact results, 203,934 scalar values checked**. Shifting the requested source offset by one sample makes every compared value differ. Out-of-range windows, fractional sample positions and a different output sample rate are rejected by the scoped guard.\n\nThe source AudioBuffer contains **102,576 mono Float32 frames**, a logical payload of **410,304 bytes**, even when the requested output is shorter. The offline result buffer and other engine allocations are additional. Shared JavaScript object identity does not prove internal zero-copy or zero-allocation behavior. Complete source decode and retention may make this inappropriate for long streaming media.\n\n**Decision:** pursue for already-decoded or deliberately bounded audio workflows, where native decode plus native scheduling fits the requested semantics. Do not replace a cheaper working compressed direct/MSE path by default. Live scheduling, physical playback, A/V synchronization, source replacement, pause/replay and long-running memory remain untested.\n\n**Evidence:** `browser_schedule.json`, `scripts/browser.js:scheduled`, and guards in `validateWindows`.",
+    "baseline": "Cheapest correct unchanged destination or reference declared in the imported report; compare equivalent requested output.",
+    "success_criteria": "Reproduce the report-defined output and adverse controls through a maintained consumer, then qualify affected lifecycle before performance.",
+    "stop_criteria": "Stop the current profile if output, timing or lifecycle fails, or if the maintained owner already supplies the operation without a new adapter.",
+    "primary_metric": "Output correctness at the exact imported boundary; no imported whole-player cost claim.",
+    "negative_control": "Retain all wrong-output controls and failed variants in the source report and original batch archive.",
+    "effort_limit": "One smallest maintained-owner screen before considering broader integration.",
+    "definition_source": {
+      "path": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md",
+      "sha256": "d78d298a631baabf60cfd6b319883a3c75efe325c98f2f8bd03db565453ec816"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-defined bounded contract imported verbatim.",
+      "evidence": [
+        "research/items/native-audio-sample-window-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "External component screening recorded, not executed or qualified on the maintained player.",
+      "evidence": [
+        "research/items/native-audio-sample-window-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Current-owner acceptance has not been executed; imported component evidence is preserved separately.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Original positive and negative evidence imported with byte identities.",
+      "evidence": [
+        "research/items/native-audio-sample-window-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue only the bounded maintained-owner retest; integration and benefit remain unqualified.",
+      "evidence": [
+        "research/items/native-audio-sample-window-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "evidence_level": "imported_measurement",
+      "reason": "External restricted component result warrants a maintained-owner retest; no current-player qualification inferred.",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73"
+    }
+  },
+  "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D35"
+      ],
+      "path": "research/items/native-audio-sample-window-scheduling/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ]
+}

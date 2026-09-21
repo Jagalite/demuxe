@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D53",
+      "batch": 11,
+      "range": "D52–D55",
+      "title": "A sub-millisecond eviction error can discard a full extra GOP",
+      "report_commit": "0060c26c23290d20041f8433452e2eb088b31f59",
+      "key": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+      "classification": "regression_only",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch11_D52-D55.zip",
+      "report_section": "## D53 — A sub-millisecond eviction error can discard a full extra GOP\n\n### Question\n\nDoes an apparently insignificant cutoff difference destroy retained native rewind coverage? This deliberately exercises an already implemented policy boundary, not a proposal for a second GOP-aware eviction algorithm.\n\nThe six-second, video-only AVC fixture has closed two-second GOPs, no B pictures, explicit BT.709 signaling, and three independent fragments. The playhead is first placed at 5.24 seconds.\n\n### Results\n\n| Requested removal | Actual remaining range | Requested rewind at 2.52 s |\n|---|---|---|\n| None | `[0,6]` | Correct |\n| `[0,2.0)` | `[2,6]` | Correct |\n| `[0,2.0001)` | `[4,6]` | Unavailable; frame callback timeout |\n\nThe **0.0001-second / 0.1-ms** overrun removes the next random-access picture and the following dependency interval, leaving the next usable GOP at four seconds. This is consistent with MSE's coded-frame-removal rules, not proof of a browser defect.\n\nRe-appending only the complete second GOP restores `[2,6]`. The repaired seek at 2.56 seconds and subsequent forward/backward witnesses match the uninterrupted reference, with the same SourceBuffer and EOF. Five witness records each were checked in the safe and repaired arms; all matched the corresponding baseline timestamps and picture hashes. The previously unavailable 2.52-second request is retained as a failure rather than counted as successful.\n\n### Decision\n\nR050 already uses actual random-access boundaries. Add this precision regression only around retention-budget changes or timebase mapping, and inspect actual `buffered` ranges after removal. Do not introduce a duplicate eviction policy or infer physical memory recovery from a smaller logical range.\n\nAn initial harness called `endOfStream()` redundantly in the untouched baseline, producing `InvalidStateError` after the picture checks. `browser_evict_initial.json` preserves that harness error. The corrected harness calls EOS only when open; the final three-arm run passes. This was not a failed codec candidate.\n\nEvidence: `browser_evict.json`, `browser_evict_initial.json`, the video manifest and coded fragments.",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Run the imported adverse case against the maintained owner as a regression; add production logic only if that execution reveals an actual gap.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

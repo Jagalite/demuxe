@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+  "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+  "records": [
+    {
+      "id": "D37",
+      "batch": 7,
+      "range": "D36–D39",
+      "title": "Refer to repeated coded pictures twice without storing them twice",
+      "report_commit": "01611bdaa2d9a21903bd2f1086fe0d786df6d5d1",
+      "key": "R120.repeat-media-without-repeating-mdat.report-frontier",
+      "classification": "merge_existing",
+      "evidence_level": "imported_measurement",
+      "current_owner_retest": "required_before_promotion",
+      "report": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/REPORT.md",
+      "handoff": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/LOCAL_AGENT_HANDOFF.md",
+      "original_archive": "research/shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/demuxe_all_screened_ideas_D01-D73/original_batch_archives/batch07_D36-D39.zip",
+      "report_section": "## D37 — Refer to repeated coded pictures twice without storing them twice\n\n### Question and overlap\n\nCan a finite A/B/A presentation keep one physical copy of A while giving its repeated samples distinct positions on the playback timeline?\n\nNearest existing item: `R120.repeat-media-without-repeating-mdat.report-frontier`, stopped for ordinary playback because stored-byte savings do not reduce repeated decoding. That restriction remains valid. The earlier item used repeated edit-list views; this experiment uses **sample/chunk-address aliasing**, not repeated edit-list interpretation.\n\n### Candidate and result\n\nD36's sample table writer is modified so the second occurrence of A points back to the first A payload offsets. All 60 sample records remain, with their own timestamps. The media-data payload physically contains A and B only.\n\n| Measurement | Ordinary edited view | Aliased-payload view |\n|---|---:|---:|\n| Total asset bytes | 51,344 | **34,337** |\n| Header bytes | 1,184 | 1,184 |\n| Physical packet spans | 60 | **40** |\n| Timeline samples/pictures | 60 | **60** |\n| Duration | 3 s | 3 s |\n\nThe reduction is **17,007 bytes, 33.12% of this constructed asset**. It is not a CPU, decoding, memory or network-transfer percentage.\n\nThe table contains one backward address jump. Host packet/timing checks and complete decoded YUV match D36. **580 byte-range comparisons** pass. Native Blob playback matches all **60 picture ordinals and four return seeks**, with three-second duration and EOF. The wrong-offset control remains decisive.\n\n### Limits and next gate\n\nRepeated picture payloads are still presented and decoded again; no decoded-frame cache is demonstrated. Remote clients might reread earlier ranges, so file-size savings are not an automatic transfer reduction. This is relevant to explicit finite edited/repeated assets, not evidence to replace a working queue or loop API.\n\nNext: only under an actual asset/export requirement, compare this with repeated edit-list views and normal payload layout across browsers and real range caches. Stop if the only proposed benefit is lower video decoding cost.\n\nEvidence: the shared D36 component and browser records, with `aliased` entries.\n\n---",
+      "mapping_basis": "Scoped subcase of the existing mechanism; the original report and destination-specific contract remain authoritative. This supplement does not replace the current item decision.",
+      "next_action": "Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.",
+      "maintained_player_executed_this_import": false,
+      "performance_claim_this_import": false
+    }
+  ]
+}

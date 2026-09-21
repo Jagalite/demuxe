@@ -1,0 +1,17 @@
+ASC 119056e500 17805dc01056e500
+Traceback (most recent call last):
+  File "/mnt/data/demuxe_batch2/scripts/build.py", line 217, in <module>
+    manifest={name:witness(name) for name in valid}
+                   ~~~~~~~^^^^^^
+  File "/mnt/data/demuxe_batch2/scripts/build.py", line 211, in witness
+    d=probe(name);b=(F/name).read_bytes();raw=run(['ffmpeg','-v','error','-i',F/name,'-map','0:v','-pix_fmt','yuv420p','-vsync','0','-threads','1','-f','rawvideo','pipe:1']);pcm=run(['ffmpeg','-v','error','-i',F/name,'-map','0:a','-f','f32le','-c:a','pcm_f32le','pipe:1'])
+  File "/mnt/data/demuxe_batch2/scripts/build.py", line 209, in probe
+    d=json.loads(run(['ffprobe','-v','error','-show_streams','-show_packets','-show_data_hash','sha256','-of','json',F/name]));(E/(name+'.ffprobe.json')).write_text(json.dumps(d,indent=2));return d
+                 ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/demuxe_batch2/scripts/build.py", line 11, in run
+    if p.returncode:raise RuntimeError(p.stderr.decode(errors='replace'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: [aac @ 0x556fa598af80] invalid sampling rate index 15
+    Last message repeated 2 times
+[aac @ 0x556fa5a20240] invalid sampling rate index 15
+
