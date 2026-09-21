@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions } from '../types.js';
+export interface Backend extends EventTarget {
+    previewFrame?(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
+    readonly ready: Promise<void>;
+    readonly properties: Map<string, unknown>;
+    readonly diagnostics?: object;
+    open(file: File | ArrayBuffer, options?: MediaInputOptions): Promise<void>;
+    openRemote(source: RemoteSource): Promise<void>;
+    play(): Promise<void>;
+    pause(): Promise<void>;
+    seek(seconds: number): Promise<void>;
+    rate(value: number): Promise<void>;
+    volume(value: number): Promise<void>;
+    gain?(value: number): Promise<void>;
+    selectTrack(type: TrackType, id: string): Promise<void>;
+    subtitleVisible(visible: boolean): Promise<void>;
+    resize(width: number, height: number): void;
+    command?(...args: string[]): Promise<void>;
+    addTextTrack?(track: TextTrackSource): Promise<void>;
+    addSubtitle?(subtitle: SubtitleAsset): Promise<void>;
+    startupEvidence?(): import('./runtime-capability.js').CapabilityEvidence;
+    audioDiagnostics(): object;
+    destroy(): Promise<void>;
+}
+export type Session = {
+    backend: Backend;
+    surface: HTMLCanvasElement | HTMLVideoElement;
+    error?: Error;
+    retired?: boolean;
+};

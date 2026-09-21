@@ -1,0 +1,146 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+import type { BufferingPolicy } from '../types.js';
+import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
+import type { Backend } from './backend.js';
+/** Browser media ownership, including listeners, pending loads and object URLs. */
+export declare class NativePlayer extends EventTarget implements Backend {
+    private video;
+    private remuxPolicy;
+    private assetBase;
+    private bufferedSeeks;
+    private audioAdaptation?;
+    private initialAudioTrack?;
+    private nativeASS;
+    private fonts;
+    private requestedPlan?;
+    private buffering;
+    readonly ready: Promise<void>;
+    readonly properties: Map<string, unknown>;
+    private stopped;
+    private capability;
+    private ass?;
+    private assAssets;
+    private assIndex;
+    private captionAssets;
+    private captionURLs;
+    private gainContext?;
+    private gainSource?;
+    private gainNode?;
+    private gainValue;
+    gain(value: number): Promise<void>;
+    private resumeGain;
+    private destruction?;
+    private opening;
+    private remux?;
+    private adapted;
+    private remuxSource?;
+    private directFailure?;
+    private remoteSource?;
+    private shiftedCues;
+    private sourceTime;
+    private sourceDuration;
+    private objectURL?;
+    private selectedSub;
+    private subsVisible;
+    private cancelers;
+    private listeners;
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy);
+    private emit;
+    private assertActive;
+    private wait;
+    private textTrackId;
+    private refresh;
+    get diagnostics(): {
+        buffering: {
+            settings: Record<string, unknown>;
+            requestedMemoryBudget?: number;
+            requestedProfile: import("../types.js").BufferingProfile;
+            preload: import("../types.js").PreloadPolicy;
+            backend: "browser" | "shaka" | "remux" | "mpv";
+            control: "hint" | "profile";
+            cache?: boolean;
+            forwardLimitBytes?: number;
+            backwardLimitBytes?: number;
+            forwardSeconds?: number;
+            backwardSeconds?: number;
+            notes: string[];
+        };
+        capability: {
+            apiHint?: string;
+            prepared?: boolean;
+            completedAtEOF?: boolean;
+            outputVerified?: boolean;
+            audioEvidence?: string;
+            timing?: Record<string, number>;
+            metadata?: boolean;
+            sourceBufferCreated?: boolean;
+            initAccepted?: boolean;
+            mediaAccepted?: boolean;
+            decoderOutput?: boolean;
+            videoPresented?: boolean;
+            audioProgress?: boolean;
+            audioDecoded?: boolean;
+            audioDecoderConfigured?: boolean;
+            playbackReady?: boolean;
+        };
+        path: string;
+        plan: string;
+        subtitleOverlay: {
+            renders: number;
+            bitmapUpdates: number;
+            bytes: number;
+            peakBytes: number;
+            discarded: number;
+            component: string;
+            scope: string;
+            destination: string;
+        } | undefined;
+        audioProcessing: {
+            component: string;
+            gain: number;
+            contextState: AudioContextState | undefined;
+            baseLatency: number | undefined;
+        };
+        directFailure: string | undefined;
+        remux: Record<string, unknown> | undefined;
+        position: number;
+        rendered: number;
+        dropped: number;
+        readyState: number;
+    };
+    private load;
+    private expectedOutput?;
+    /** A paused candidate may prepare current data without presenting it. Only
+     * verifyOutput can promote this evidence to executed playback. */
+    verifyStartup(expected?: {
+        video: boolean;
+        audio: boolean;
+    }, output?: boolean): Promise<void>;
+    verifyOutput(): Promise<void>;
+    private startRemux;
+    private loadPlan;
+    open(file: File | ArrayBuffer): Promise<void>;
+    openRemote(source: RemoteSource): Promise<void>;
+    private classifyDirectFailure;
+    play(): Promise<void>;
+    pause(): Promise<void>;
+    seek(seconds: number): Promise<void>;
+    private seekPresented;
+    rate(value: number): Promise<void>;
+    volume(value: number): Promise<void>;
+    selectTrack(type: TrackType, id: string): Promise<void>;
+    private applySubtitles;
+    subtitleVisible(visible: boolean): Promise<void>;
+    addSubtitle(asset: SubtitleAsset): Promise<void>;
+    addTextTrack(source: TextTrackSource): Promise<void>;
+    private loadTextTrack;
+    private shiftTextTrack;
+    resize(width: number, height: number): void;
+    audioDiagnostics(): {
+        state: string;
+        source: string;
+        decodedSampleCountersAvailable: boolean;
+    };
+    destroy(): Promise<void>;
+    private dispose;
+}

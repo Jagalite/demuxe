@@ -1,0 +1,12 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+# Reproducing the full study
+
+Use a **new unique evidence directory**, copy the full-study PLAN into it, and point `full-run.txt` at that new directory before executing builders or analyzers. Do not rerun mutating tools over a sealed run. `active-run.txt` identifies the original screen-01 frozen runtime used as the baseline; leave that pointer and evidence intact.
+
+Prerequisites are the local Emscripten 4.0.14 toolchain, FFmpeg 7.1.1 and mpv source/static archives under `build/head-to-head/engine-build-01`, Node/Playwright with headed Chrome and Firefox, host FFmpeg with libvpx/SVT-AV1 encoders, and the external user file at its recorded path. This is a machine-specific research reproduction, not a standalone source distribution. Commands and input hashes are captured in the run.
+
+Build in order: `build.py`, `build-software.py`, `build-software-v2.py`, `build-software-hevc.py`, and `fixtures.py`. Full browser trials use `browser.mjs` with explicit `VARIANT`, `SOFTWARE`, `BROWSER`, `FIXTURE`, `EXPECT`, and optional `FORCE`/`ADMISSION` environment variables. The exact timing matrices are in `run-performance.py` and `run-hevc-performance.py`; run them only after the corresponding independent picture gates pass. `run-policies.py` captures exploratory preparation/cache/recovery cases; the original failed HTTP-503 assertion is retained in this run and was subsequently corrected in the harness.
+
+For true modules: `build-dynamic.py`, generate `dynamic/required-symbols.json` from the codec's external imports minus its exports, then `build-lazy.py` and `build-lazy2.py`. `dynamic-test.mjs` expects an Annex-B H264 fixture and an independent luma-checksum oracle, both included in this run. `KIND=static`, `lazy1` and `lazy2` select the comparison; `FAULT=corrupt` is the rejection control. The first link-time-dependency host is deliberately retained as a failed laziness control.
+
+The builders append their actual compiler/linker commands and outputs. Browser trials get timestamped folders with request traces, dimensions, engine identity, output checks and cleanup. `analyze-pictures.py`, `analyze-performance.py` (`STUDY=hevc` for that follow-up), `analyze-policies.py`, `compress.mjs`, and `validate.py` generate the summaries and scoped integrity result. Preserve negative results and distinguish profile-specific acceptance from `pictures.json`'s aggregate `allPassed`, which remains false because it includes rejected/limited profiles.

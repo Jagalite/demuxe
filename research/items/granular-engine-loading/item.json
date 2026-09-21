@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "key": "granular-engine-loading",
+  "title": "Granular engine loading and lean Hybrid feasibility",
+  "definition": {
+    "hypothesis": "Qualified smaller engine bundles and deferred codec loading reduce initial work while retaining correct output and full fallback.",
+    "scope_contract": "research/items/granular-engine-loading/evidence/20260921T171411Z-full-study-02/PLAN.md and research/items/granular-engine-loading/evidence/20260921T171411Z-full-study-02/SOFTWARE-HEVC-PLAN.md",
+    "baseline": "Frozen screen-01 runtime, matched Hybrid and Software builds; matched static decoder for the side-module probe.",
+    "success_criteria": "At least 20% gzip component reduction and 10% plus 100ms median startup saving after profile-specific correctness.",
+    "stop_criteria": "Wrong output, lost fallback, or setup exceeding the bounded experiment.",
+    "primary_metric": "Compressed bytes and selection-to-verified startup milliseconds.",
+    "negative_control": "Wrong picture oracle; Firefox unsupported HEVC fallback.",
+    "effort_limit": "User-authorized full feasibility study; seven stages completed at whole-player and component levels.",
+    "definition_source": {
+      "path": "research/items/granular-engine-loading/evidence/20260921T171411Z-full-study-02/PLAN.md",
+      "sha256": "0a1ab84c7d445b7576b8ef09f304a1a3037db10ea17363366d3c574701509cc1"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Full plan and HEVC follow-up predeclared before their builds/measurements.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Frozen inputs, sources, fixtures, independent references and exact compiler/runtime records.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Admission fix, finite Software profiles and actual PIC side-module variants built and exercised.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Qualified primary profiles pass independent pictures, audio, lifecycle and fallback gates. Rejected common-v1 AV1 and baseline VP8 color limitation remain explicit; this is not all-codec release qualification.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "44 sequential paired timing trials after primary-profile gates; preparation/cache/recovery and codec-module probes separately identified.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Raw positive/negative evidence, uncertainty, hashes and FULL-REPORT.md captured.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue lean Hybrid and HEVC Software; module component feasible with remaining integration work; default-all preparation not recommended.",
+      "evidence": [
+        "evidence/20260921T171411Z-full-study-02/REPORT.md",
+        "evidence/20260921T171411Z-full-study-02/decision.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "reason": "Lean Hybrid and HEVC Software meet compressed-size and startup thresholds on qualified profiles. True deferred codec loading is component-proven; production mpv integration remains separate.",
+      "run": "research/items/granular-engine-loading/evidence/20260921T171411Z-full-study-02",
+      "report": "research/items/granular-engine-loading/evidence/20260921T171411Z-full-study-02/REPORT.md",
+      "variants": {
+        "lean_hybrid": {
+          "state": "pursue",
+          "scope": "Chrome HEVC primary; tested H264/VP9/AV1; VP8 color oracle excluded"
+        },
+        "software_common_v2": {
+          "state": "stop_current_profile",
+          "scope": "Not preferred for this HEVC target; misses 20 percent size threshold despite measured network gain"
+        },
+        "software_hevc": {
+          "state": "pursue",
+          "scope": "Firefox user HEVC file; inspected full fallback and runtime reopen prototype"
+        },
+        "lazy_codec_modules": {
+          "state": "pursue",
+          "scope": "PIC H264/parser component works in Chrome/Firefox; actual-player integration not qualified"
+        },
+        "prepare_all_default": {
+          "state": "stop_current_profile",
+          "scope": "Higher upfront cost and slow-link timeout; retain as explicit fallback-latency tradeoff"
+        }
+      }
+    }
+  },
+  "next_action": "Review and implement qualified finite engine bundles with immutable cache identities and full fallback; independently qualify any later actual-player codec-module integration.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started",
+    "scope": "Production/release qualification; bounded research gates are recorded separately."
+  },
+  "initial_definition": {
+    "hypothesis": "Avoid eagerly shipping software video decoders in a browser-video Hybrid runtime.",
+    "scope_contract": "PLAN.md; isolated builds and explicit browser trials only.",
+    "baseline": "Full Hybrid with matched link settings; shipping snapshot for metadata-only stripping.",
+    "success_criteria": "20% lower gzip Hybrid bytes plus 10% and 100ms startup gain after bounded correctness.",
+    "stop_criteria": "Wrong output, lost fallback, or setup exceeding the bounded experiment.",
+    "primary_metric": "Compressed bytes and selection-to-verified startup milliseconds.",
+    "negative_control": "Wrong picture oracle; Firefox unsupported HEVC fallback.",
+    "effort_limit": "One pruned registry build, one strip candidate, targeted tests.",
+    "definition_source": {
+      "path": "research/items/granular-engine-loading/PLAN.md",
+      "sha256": "b587d12559b3eb41179cc493486ada121824bb393c6f0a945811c8870709895a"
+    }
+  }
+}

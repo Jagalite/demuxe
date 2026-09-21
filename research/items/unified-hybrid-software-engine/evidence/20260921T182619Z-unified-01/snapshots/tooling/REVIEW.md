@@ -1,0 +1,10 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+# Integration review
+
+The full Hybrid engine already links the broad Software FFmpeg decoder archive. Existing web_decoder_enable(2) selects retained browser frames; its default zero lets mpv choose Software. A unified asset can therefore retain the current separate JavaScript presenters without adding a codec ABI or changing FFmpeg registration.
+
+The native change is mode-dependent VO behavior. The retained adapter calls subtitle/frame export only in retained mode. During Software VO initialization, a per-VO copy of the driver clears ROTATE90 so mpv inserts its existing autorotation filter. The copy is owned by the VO's talloc lifetime; the shared const driver is never mutated. Each Wasm instance has a fixed mode selected before player creation. Source replacement within an instance preserves that mode; cross-mode recovery creates a fresh instance, as before.
+
+The lab changes two worker import URLs to engine-unified and aliases the preparation cache to that same binary. Concurrent prepare-all requests coalesce to one promise and one WebAssembly.Module. On-demand opening also initializes that per-Player cache, so source replacement and fallback can reuse compiled code without depending on HTTP cache. Inspector and font retain their existing preparation paths. Every worker still creates its own instance, memory, pthread pool and playback state.
+
+Production integration still needs the TypeScript equivalent of the lab edits, a maintained unified build/export target, content-versioned deployment identity, and alias-aware preparation reporting. The prototype mirrors logical Hybrid/Software asset reports, so their bytes must not be added to estimate physical transfer; use unique request identities. Retry after an aborted/failed shared preparation is not qualified here. Cache reuse is per Player; multi-Player or cross-tab reuse, experimental YUV, remote streaming, HDR, full codec coverage, and endurance remain outside this profile. These limits do not require codec splitting to resolve.

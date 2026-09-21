@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "key": "granular-engine-loading",
+  "title": "Granular engine loading and lean Hybrid feasibility",
+  "definition": {
+    "hypothesis": "Avoid eagerly shipping software video decoders in a browser-video Hybrid runtime.",
+    "scope_contract": "PLAN.md; isolated builds and explicit browser trials only.",
+    "baseline": "Full Hybrid with matched link settings; shipping snapshot for metadata-only stripping.",
+    "success_criteria": "20% lower gzip Hybrid bytes plus 10% and 100ms startup gain after bounded correctness.",
+    "stop_criteria": "Wrong output, lost fallback, or setup exceeding the bounded experiment.",
+    "primary_metric": "Compressed bytes and selection-to-verified startup milliseconds.",
+    "negative_control": "Wrong picture oracle; Firefox unsupported HEVC fallback.",
+    "effort_limit": "One pruned registry build, one strip candidate, targeted tests.",
+    "definition_source": {
+      "path": "research/items/granular-engine-loading/PLAN.md",
+      "sha256": "b587d12559b3eb41179cc493486ada121824bb393c6f0a945811c8870709895a"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Predeclared in PLAN.md before builds/measurements.",
+      "evidence": [
+        "PLAN.md"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Frozen runtime, matched identical baseline, build commands, hashes and synthetic/external fixture manifests.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Actual raw and gzip sizes recorded; decoder reachability dependency identified.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    },
+    "correctness": {
+      "status": "failed",
+      "basis": "Lean candidate failed Hybrid startup. Metadata-only candidate separately passed bounded v3 image and lifecycle checks; see REPORT.md.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    },
+    "performance": {
+      "status": "blocked",
+      "basis": "Lean performance blocked by correctness. Separate metadata-only candidate completed 12 exploratory timing samples after its gate; no success criterion met.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "All failures and final variant-specific results preserved in REPORT.md and run evidence.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Stop registry-only lean profile; defer runtime codec modules; metadata stripping is a minor packaging follow-up only.",
+      "evidence": [
+        "REPORT.md",
+        "evidence/20260921T162900Z-screen-01"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "stop_current_profile",
+      "reason": "Lean build fails playback despite 28.28% gzip reduction; metadata-only variant has 2.22% size reduction and no qualifying latency win.",
+      "variants": {
+        "lean": "stop_current_profile",
+        "stripped": "stop_current_profile",
+        "dynamic_modules": "inconclusive"
+      },
+      "run": "research/items/granular-engine-loading/evidence/20260921T162900Z-screen-01",
+      "report": "research/items/granular-engine-loading/REPORT.md"
+    }
+  },
+  "next_action": "Separate research proposal: browser decoder registration independent of FFmpeg software video entries, then repeat correctness before performance.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  }
+}

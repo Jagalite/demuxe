@@ -1,0 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+# Firefox preparation timeout observation and reporting amendment
+
+Before resuming Firefox paired timing, an instrumented baseline diagnostic showed successful playback/replacement/teardown but both prepared full engines aborted at the existing 15-second asset deadline after lengthy compilation. The modules were not cached, and opening/refetching Software added about eight seconds. One preceding Firefox baseline browser closed unexpectedly; its cause is unconfirmed and its failed trial is retained.
+
+Keep the existing deadline and exact baseline behavior. Do not extend it to manufacture an all-ready comparison. The forthcoming Firefox pairs will report readiness statuses, preparation return time and preparation-plus-selection-to-progress separately. A partial baseline report must not be called completed all-engine preparation. The clean >=25% preparation-speed criterion applies to Chrome's all-ready pairs; Firefox's user-workflow comparison explicitly includes any baseline timeout/refetch and remains a distinct claim. All candidate assets must be ready, actual Software playback must pass and processes/workers must exit. Preserve every failed attempt. Existing Chrome pairs remain unchanged.

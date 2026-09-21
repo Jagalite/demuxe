@@ -1,0 +1,118 @@
+--- research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/snapshots/vo_libmpv.original.c
++++ research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/snapshots/vo_libmpv.c
+@@ -418,8 +418,11 @@
+ 
+     extern void web_experiment_frame(double pts, int64_t target_ns, int redraw);
+     extern void web_subtitle_render(struct osd_state *osd,double pts);
+-    web_subtitle_render(subtitle_osd,frame->current?frame->current->pts:0);
+-    if(frame->current) web_experiment_frame(frame->current->pts,frame->pts,frame->redraw);
++    extern int web_decoder_enabled(void);
++    if (web_decoder_enabled() == 2) {
++        web_subtitle_render(subtitle_osd,frame->current?frame->current->pts:0);
++        if(frame->current) web_experiment_frame(frame->current->pts,frame->pts,frame->redraw);
++    }
+     if (do_render)
+         err = ctx->renderer->fns->render(ctx->renderer, params, frame);
+ 
+@@ -722,6 +725,16 @@
+ 
+ static int preinit(struct vo *vo)
+ {
++    // Each Wasm instance owns a fixed mode. Software RGB requires mpv rotation;
++    // Hybrid retained frames are rotated by the JavaScript presenter.
++    extern int web_decoder_enabled(void);
++    if (web_decoder_enabled() != 2) {
++        struct vo_driver *driver = talloc_memdup(vo, vo->driver, sizeof(*driver));
++        if (!driver) return -1;
++        driver->caps &= ~VO_CAP_ROTATE90;
++        vo->driver = driver;
++    }
++
+ #if HAVE_MACOS_COCOA_CB
+     cocoa_init_cocoa_cb();
+ #else
+--- research/items/granular-engine-loading/evidence/20260921T162900Z-screen-01/snapshots/runtime/web/filter-retained-engine-worker.js
++++ research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/runtime/web/filter-retained-engine-worker.js
+@@ -206,7 +206,7 @@
+       context = canvas.getContext('2d', {alpha:false});
+       audio = new Int32Array(data.audio, 0, 16);
+       pcm = new Float32Array(data.audio, 64);
+-      const createEngine=(await import(data.decoder==='webcodecs'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
++      const createEngine=(await import(data.decoder==='webcodecs'?'./engine-unified/player.mjs':'./engine/player.mjs')).default;
+       engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+       if (closing) return;
+       engine.FS.mkdir('/fonts');
+--- research/items/granular-engine-loading/evidence/20260921T162900Z-screen-01/snapshots/runtime/web/software-full-engine-worker.js
++++ research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/runtime/web/software-full-engine-worker.js
+@@ -156,7 +156,7 @@
+       audio = new Int32Array(data.audio, 0, 16);
+       pcm = new Float32Array(data.audio, 64);
+       if(data.decoder!=='software')throw Error('This build supports software decoding only');
+-      const createEngine=(await import(uploader?'./engine-software-yuv/player.mjs':'./engine-software-full/player.mjs')).default;
++      const createEngine=(await import(uploader?'./engine-software-yuv/player.mjs':'./engine-unified/player.mjs')).default;
+       engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+       if(uploader){engine.failOutput=message=>{pumpFailed=true;post({type:'error',message});};engine.drawYUV=d=>{try{uploader.draw(engine,d);}catch(e){engine.failOutput(String(e));}};engine.drawRGB=(...a)=>{try{uploader.drawRGB(engine,...a);}catch(e){engine.failOutput(String(e));}};}
+       if (closing) return;
+--- research/items/granular-engine-loading/evidence/20260921T162900Z-screen-01/snapshots/runtime/web/generated/unified-player.js
++++ research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/runtime/web/generated/unified-player.js
+@@ -391,6 +391,7 @@
+         surface.style.cssText = 'display:none;width:100%;background:#000';
+         // Import before allocating workers; destroy during import cannot orphan an engine.
+         const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
++        if(mode !== 'native') this.preparation ??= new EnginePreparation(this.assetBase, this.softwarePresenter === 'experimental-yuv' ? 'engine-software-yuv' : 'engine-software-full');
+         const prepared = mode === 'native' ? undefined : await this.interruptible(this.preparation?.readyEngine(mode === 'hybrid' ? 'engine-hybrid' : this.softwarePresenter === 'experimental-yuv' ? 'engine-software-yuv' : 'engine-software-full') ?? Promise.resolve(undefined));
+         this.assertOperation();
+         this.root.append(surface);
+--- research/items/granular-engine-loading/evidence/20260921T162900Z-screen-01/snapshots/runtime/web/generated/internal/engine-preparation.js
++++ research/items/unified-hybrid-software-engine/evidence/20260921T182619Z-unified-01/runtime/web/generated/internal/engine-preparation.js
+@@ -15,6 +15,7 @@
+     controller = new AbortController();
+     pending = new Map();
+     modules = new Map();
++    sharedLoads = new Map();
+     font;
+     phases = new Map();
+     constructor(base, software = 'engine-software-full', changed = () => { }) {
+@@ -25,9 +26,10 @@
+     get progress() { return [...this.phases].map(([name, status]) => ({ name, status })); }
+     phase(name, status) { if (this.controller.signal.aborted)
+         return; this.phases.set(name, status); this.changed(); }
+-    module(name) { return this.modules.get(name); }
++    module(name) { return this.modules.get(['engine-hybrid','engine-software-full'].includes(name)?'engine-unified':name); }
+     fontCopy() { return this.font?.slice(0); }
+     async readyModule(name) {
++        if(['engine-hybrid','engine-software-full'].includes(name)) await this.warm([name==='engine-hybrid'?'hybrid':'software']);
+         await this.pending.get(name === 'engine-remux' ? 'inspector' : name === 'engine-hybrid' ? 'hybrid' : 'software');
+         return this.module(name);
+     }
+@@ -53,6 +55,14 @@
+         return { milliseconds: performance.now() - start, assets };
+     }
+     async load(name) {
++        const key=name==='software' && this.software==='engine-software-full'?'hybrid':name;
++        let task=this.sharedLoads.get(key);
++        if(!task){task=this.loadAsset(key);this.sharedLoads.set(key,task);}
++        const asset=await task;
++        this.phase(name,asset.status);
++        return {...asset,name};
++    }
++    async loadAsset(name) {
+         const start = performance.now(), controller = new AbortController(), parent = this.controller.signal;
+         const abort = () => controller.abort();
+         parent.addEventListener('abort', abort, { once: true });
+@@ -62,7 +72,7 @@
+         let bytes = 0;
+         try {
+             this.phase(name, 'loading');
+-            const engine = name === 'inspector' ? 'engine-remux' : name === 'hybrid' ? 'engine-hybrid' : this.software;
++            const engine = name === 'inspector' ? 'engine-remux' : name === 'hybrid' ? 'engine-unified' : this.software;
+             const path = name === 'font' ? 'fixtures/DejaVuSans.ttf' : `web/${engine}/${name === 'inspector' ? 'remux' : 'player'}.wasm`;
+             const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
+             if (!response.ok)
+@@ -91,5 +101,5 @@
+             parent.removeEventListener('abort', abort);
+         }
+     }
+-    destroy() { this.controller.abort(); this.modules.clear(); this.font = undefined; this.pending.clear(); }
++    destroy() { this.controller.abort(); this.modules.clear(); this.font = undefined; this.pending.clear(); this.sharedLoads.clear(); }
+ }
