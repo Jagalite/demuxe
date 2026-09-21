@@ -148,6 +148,50 @@ npm run test:head-to-head -- \
   --cases video.default.aac-mp4,demuxe.auto.aac-mp4,movi.native-first.aac-mp4,libmedia.prefer-mse.aac-mp4
 ```
 
+To compare defaults with configured alternatives across the expanded catalogue:
+
+```sh
+node tests/head-to-head/run.mjs --catalogue --configured-alternatives \
+  --assets build/head-to-head/assets-shaka-production-03 \
+  --cases movi,libmedia --headed \
+  --output results/head-to-head/my-configured-alternatives
+```
+
+This adds Movi `native-first` (`engine="native wasm"`, pinned slim bundle) and
+AVPlayer `prefer-mse` (`checkUseMSE: () => true`) alongside their defaults.
+AVPlayer also offers `webcodecs-off` (`enableWebCodecs: false`) and, for
+non-streaming fixtures, `file-input` (fetch the full unchanged file before
+calling `load` with a browser `File`). These are separately labeled integrations;
+File input does not qualify streaming or bounded memory. Manifest fixtures also add Movi `shaka-first`
+(`engine="shaka dashjs hlsjs wasm native"`, pinned full bundle). Live fixtures add
+AVPlayer `live` and `live-mse`, which pass `isLive: true` to `load`, with and
+without the MSE preference. Engine
+preferences do not guarantee a particular route or codec capability. The records
+retain the observed route, first failing stage, and whether initial marked
+playback passed. A failure at a later stage does not mean the file never played;
+unreached checks remain untested. Subtitle requirements and timing thresholds
+are unchanged. Movi external tracks are selected through its language API and
+embedded tracks through its exposed subtitle menu; its HTML `textTracks` facade
+does not enumerate embedded tracks. External `<track>` children are added before
+the element connects, when Movi parses them. Selection is retained in each case record.
+The audio observer includes detached media elements used by canvas streaming
+wrappers and records their public state. DOM-only discovery can miss their audio.
+Expanded subtitle cases retain built-in integration; the original
+four-fixture matrix separately labels its host-libass alternative.
+AVPlayer exposes its public `ended` event to the EOF check, avoiding a premature
+settling check when transport-stream timestamps extend beyond reported duration.
+See the [AVPlayer accuracy audit](HEAD-TO-HEAD-AVPLAYER.md) for reproductions,
+input-sensitive behavior, and limitations.
+
+For real-bitstream specialist fixtures, pass `configured-alternatives` as the
+third argument to `specialist-screen.mjs`; it tests both configurations of both
+players, preserving the independent source-audio and bitmap oracles. Use
+`report-configured-alternatives.py --output <new-report-directory> <run>...` to
+combine completed runs with explicit failure stages and evidence links. Use
+`--supersede <corrected-run>` for an intentional corrected-harness follow-up; the
+report retains the superseded observation alongside the new result. It
+checks captured hashes and keeps fidelity-limited passes distinct.
+
 Without `--output`, the runner creates a timestamped result directory. It never
 overwrites an existing run. The default is headless correctness. Use `--headed`
 for a visible browser run. For Playwright's bundled Chromium use `--channel ''`;

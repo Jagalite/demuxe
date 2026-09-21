@@ -1,0 +1,322 @@
+{
+  "schema": 1,
+  "kind": "correctness",
+  "startedAt": "2026-09-21T22:41:08.281Z",
+  "controlledStreaming": false,
+  "streamingBackends": false,
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-shaka-production-03",
+  "assetsSHA256": "e3abc0621d684f77e6e82fc043734a94eb49326882720f9e70924f03302bc217",
+  "harnessSHA256": "6c22cc0e24154a7e10a9d2e6fbc673b5e192fc12dbc3450524e4026480d9428f",
+  "sourceHashes": {
+    "browser-exit.mjs": "a2ffb141f6c41159439579b3172ea6335449f0e96114872c0f6ea2ac8e44090e",
+    "performance-metrics.mjs": "8e03fe5fcb79b897d13bb31648cecb7be7dc1716865b9087f9daf9c8e5a84f60",
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "run.mjs": "42249c21d3d53c4d02bd533b26d7c8d5842a277fbec659b37b36a41ca43fabe0",
+    "server.mjs": "3340ffdf3cec0c8c59871bbf5db22c7d10b6a7f580404d62aedbbaa614046e8a",
+    "checks.mjs": "2f95549238a956439ac2e86b7afb129c711b3d93917df15d27d6e8fe634e9326",
+    "adapters.mjs": "6f2bd083fc64bec088e7ab3b1e1819e162e9faa5053634438820b85d58a773f2",
+    "harness.html": "e5a949a87f133332e4848cddd4b3a91d6615b0da2b9776077bd9d4ba2df6ebdd",
+    "matrix.json": "0c21017ab62c37e651cc602ec6adc434d5f6aac47c6c3ab2c27c4ab16ee17cc3",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "c59d308b6c7ebee534a78d4e644d8b4c4958c7473bde8d01f63407924dae349b",
+    "expand.py": "34f61a258297ca035e6e5ddd01e5582486e31a35d357ec4c7ea52a9b104db739",
+    "planned.json": "ba2679905a12afdf61cacb7f3fd51fece8a5a1dfd8e21f82de81f8fcf7e929d1",
+    "subtitle-ocr.swift": "14454bb07b8f891d86f3a2685208530a2ea2d619dd4aff27c604ed1bc4e30b9b",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "ffe67cf0a85de77061d6592ad0a9e9ef1dfef0fc",
+  "playerSourceRevision": "6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets",
+      "build/head-to-head/assets-shaka-production-03",
+      "--catalogue",
+      "--configured-alternatives",
+      "--headed",
+      "--cases",
+      "libmedia.file-input.h264-fmp4",
+      "--negative-control",
+      "cover",
+      "--output",
+      "results/head-to-head/avplayer-audit-20260921-negative-01"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "libmedia.file-input.h264-fmp4"
+  ],
+  "cases": [
+    {
+      "id": "libmedia.file-input.h264-fmp4",
+      "player": "libmedia",
+      "lane": "file-input",
+      "fixture": "h264-fmp4",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ],
+      "status": "failed",
+      "startedAt": "2026-09-21T22:41:08.526Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:59037/libmedia/dist/decode/h264-simd.wasm",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:59037/libmedia/dist/decode/aac-simd.wasm",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:59037/libmedia/dist/resample/resample-simd.wasm",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "recordPath": "libmedia.file-input.h264-fmp4/result.json",
+      "stage": "initial-output",
+      "negativeControl": "cover",
+      "initial": {
+        "position": 0.69,
+        "duration": 36.066,
+        "route": "custom",
+        "ended": false,
+        "stats": {
+          "channels": 2,
+          "sampleRate": 48000,
+          "audioFrameSize": 1024,
+          "audioPacketBytes": "21929",
+          "audioPacketCount": "45",
+          "audioPacketQueueLength": 7,
+          "audioDropPacketCount": "0",
+          "audioDecodeErrorPacketCount": 0,
+          "audioEncodeErrorFrameCount": 0,
+          "audioFrameDecodeCount": "38",
+          "audioPacketEncodeCount": "0",
+          "audioFrameRenderCount": "38",
+          "audioFrameDropCount": 0,
+          "width": 320,
+          "height": 180,
+          "keyFrameInterval": 1000,
+          "gop": 29,
+          "videoPacketBytes": "2112",
+          "videoPacketCount": "36",
+          "videoPacketQueueLength": 11,
+          "videoDropPacketCount": "0",
+          "videoDecodeErrorPacketCount": 0,
+          "videoEncodeErrorFrameCount": 0,
+          "videoFrameDecodeCount": "23",
+          "videoPacketEncodeCount": "0",
+          "videoFrameRenderCount": "18",
+          "videoFrameDropCount": 0,
+          "keyFrameCount": "2",
+          "bufferDropBytes": "0",
+          "bufferReceiveBytes": "1858391",
+          "bufferSendBytes": "0",
+          "bufferOutputBytes": "0",
+          "audioBitrate": 0,
+          "videoBitrate": 0,
+          "videoDecodeFramerate": 0,
+          "videoRenderFramerate": 0,
+          "videoEncodeFramerate": 30,
+          "audioDecodeFramerate": 0,
+          "audioRenderFramerate": 0,
+          "audioEncodeFramerate": 47,
+          "audioFrameDecodeIntervalMax": 1,
+          "audioFrameRenderIntervalMax": 54,
+          "videoFrameDecodeIntervalMax": 0,
+          "videoFrameRenderIntervalMax": 44,
+          "bandwidth": 0,
+          "jitter": 0,
+          "jitterBuffer": {
+            "min": 0,
+            "max": 0
+          },
+          "audioStutter": 0,
+          "videoStutter": 0,
+          "firstAudioMuxDts": "0",
+          "lastAudioMuxDts": "0",
+          "firstVideoMuxDts": "0",
+          "lastVideoMuxDts": "0",
+          "audioCurrentTime": "690",
+          "videoCurrentTime": "633",
+          "audioNextTime": "834",
+          "videoNextTime": "666"
+        },
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10612631471095162,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10582690524997675,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "initialImage": {
+        "rgb": [
+          0,
+          0,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": false,
+        "magentaPixels": 0
+      },
+      "failureStage": "initial-output",
+      "reason": "Error: Initial displayed timeline marker incorrect\n    at expect (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:105:56)\n    at correctness (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:141:78)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:479:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:258:7",
+      "failureState": {
+        "position": 0.797,
+        "duration": 36.066,
+        "route": "custom",
+        "ended": false,
+        "stats": {
+          "channels": 2,
+          "sampleRate": 48000,
+          "audioFrameSize": 1024,
+          "audioPacketBytes": "21929",
+          "audioPacketCount": "45",
+          "audioPacketQueueLength": 2,
+          "audioDropPacketCount": "0",
+          "audioDecodeErrorPacketCount": 0,
+          "audioEncodeErrorFrameCount": 0,
+          "audioFrameDecodeCount": "43",
+          "audioPacketEncodeCount": "0",
+          "audioFrameRenderCount": "43",
+          "audioFrameDropCount": 0,
+          "width": 320,
+          "height": 180,
+          "keyFrameInterval": 1000,
+          "gop": 29,
+          "videoPacketBytes": "2664",
+          "videoPacketCount": "54",
+          "videoPacketQueueLength": 29,
+          "videoDropPacketCount": "0",
+          "videoDecodeErrorPacketCount": 0,
+          "videoEncodeErrorFrameCount": 0,
+          "videoFrameDecodeCount": "23",
+          "videoPacketEncodeCount": "0",
+          "videoFrameRenderCount": "21",
+          "videoFrameDropCount": 0,
+          "keyFrameCount": "2",
+          "bufferDropBytes": "0",
+          "bufferReceiveBytes": "1858391",
+          "bufferSendBytes": "0",
+          "bufferOutputBytes": "0",
+          "audioBitrate": 0,
+          "videoBitrate": 0,
+          "videoDecodeFramerate": 0,
+          "videoRenderFramerate": 0,
+          "videoEncodeFramerate": 30,
+          "audioDecodeFramerate": 0,
+          "audioRenderFramerate": 0,
+          "audioEncodeFramerate": 47,
+          "audioFrameDecodeIntervalMax": 1,
+          "audioFrameRenderIntervalMax": 54,
+          "videoFrameDecodeIntervalMax": 0,
+          "videoFrameRenderIntervalMax": 45,
+          "bandwidth": 0,
+          "jitter": 0,
+          "jitterBuffer": {
+            "min": 0,
+            "max": 0
+          },
+          "audioStutter": 0,
+          "videoStutter": 0,
+          "firstAudioMuxDts": "0",
+          "lastAudioMuxDts": "0",
+          "firstVideoMuxDts": "0",
+          "lastVideoMuxDts": "0",
+          "audioCurrentTime": "797",
+          "videoCurrentTime": "733",
+          "audioNextTime": "941",
+          "videoNextTime": "766"
+        },
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10588008134262918,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10579139214307881,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "browserCleanup": {
+        "trackedProcessIDs": [
+          9513,
+          9524,
+          9522,
+          9521,
+          9517,
+          9518,
+          9519,
+          9526
+        ],
+        "remainingProcessIDs": [],
+        "playwrightCloseAcknowledged": true
+      },
+      "finishedAt": "2026-09-21T22:41:11.565Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserIdentity": "chromium/152.0.7977.83/chrome/headed",
+  "finishedAt": "2026-09-21T22:41:11.566Z",
+  "counts": {
+    "passed": 0,
+    "failed": 1,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": false
+}

@@ -15,6 +15,7 @@ const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
   browser:{type:'string',default:'chromium'},channel:{type:'string',default:'chrome'},headed:{type:'boolean',default:false},
   'negative-control':{type:'string'},catalogue:{type:'boolean',default:false},
+  'configured-alternatives':{type:'boolean',default:false},
   'demuxe-mode':{type:'string',default:'auto'},
   'controlled-streaming':{type:'boolean',default:false},
   'streaming-backends':{type:'boolean',default:false},
@@ -24,12 +25,13 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 if(!['auto','native','hybrid','software'].includes(args['demuxe-mode']))throw Error('Invalid Demuxe mode');
 if(!args.catalogue&&args['demuxe-mode']!=='auto')throw Error('--demuxe-mode requires --catalogue');
 if(args['streaming-backends']&&(!args.catalogue||args['demuxe-mode']!=='auto'||!args['controlled-streaming']))throw Error('--streaming-backends requires --catalogue --controlled-streaming and auto policy');
+if(args['configured-alternatives']&&!args.catalogue)throw Error('--configured-alternatives requires --catalogue');
 let matrix=JSON.parse(await fs.readFile(path.join(here,'matrix.json')));
 if(args.catalogue) {
   if(!args.assets)throw Error('--catalogue requires --assets');
   const fixtures=JSON.parse(await fs.readFile(path.resolve(args.assets,'fixtures/catalogue.json')));
   matrix={schema:2,fixtures,cases:Object.entries(fixtures).flatMap(([fixture,f])=>[
-    ['video','default'],['demuxe',args['demuxe-mode']],['movi','default'],['libmedia','default'],...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
+    ['video','default'],['demuxe',args['demuxe-mode']],['movi','default'],['libmedia','default'],...(args['configured-alternatives']?[['movi','native-first'],['libmedia','prefer-mse'],['libmedia','webcodecs-off'],...(!f.streamFormat&&!f.live?[['libmedia','file-input']]:[]),...(f.streamFormat?[['movi','shaka-first']]:[]),...(f.live?[['libmedia','live'],['libmedia','live-mse']]:[])]:[]),...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
   ].map(([player,lane])=>({id:`${player}.${lane}.${fixture}`,player,lane,fixture,
     requirements:[...(f.video?['moving-video']:[]),...(f.audio?['marked-audio']:[]),'pause-resume','rate',...(f.live?['live-window']:['seek','eof']),'cleanup',...(f.subtitleCheck?['subtitle-output']:[])],
     ...(f.qualificationLimit?{qualificationLimit:f.qualificationLimit}:{})}))) };
@@ -103,6 +105,8 @@ process.once('SIGINT',stopSignal);process.once('SIGTERM',stopSignal);
 
 async function correctness(page,config,result,directory) {
   const snap=()=>page.evaluate(()=>api.snapshot());
+  const stage=name=>{result.stage=name;};
+  stage('open');
   const hasVideo=config.video!==false,hasAudio=config.audio!==false;
   const checkSubtitle=(png,state,file)=>{
     if(config.subtitleCheck==='text') {
@@ -125,22 +129,29 @@ async function correctness(page,config,result,directory) {
     result.negativeControl='cover';
     await page.evaluate(()=>{const cover=document.createElement('div');cover.style.cssText='position:absolute;inset:0;background:black;z-index:999999';document.querySelector('#stage').append(cover);});
   }
+  stage('initial-playback');
   await page.waitForFunction(audio=>api.snapshot().position>.65&&(!audio||api.snapshot().audio.some(a=>a.rms>.015)),hasAudio,{timeout:10000});
-  if(config.subtitleCheck){result.subtitleSelection=await page.evaluate(()=>api.subtitles());await delay(250);}
+  stage('initial-output');
+  if(config.subtitleCheck||config.subtitleIntegration){result.subtitleSelection=await page.evaluate(()=>api.subtitles());await delay(250);}
   result.initial=await snap();if(hasAudio)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
   const first=await page.locator('#stage').screenshot({path:path.join(directory,'initial.png')});
   result.initialImage=markedImage(first,result.initial.position);if(hasVideo)expect(result.initialImage.markerCorrect,'Initial displayed timeline marker incorrect');
   await delay(600);
   const second=await page.locator('#stage').screenshot({path:path.join(directory,'moving.png')});
   result.moving=hash(first)!==hash(second);if(hasVideo)expect(result.moving,'Displayed output did not change');
+  result.initialPlaybackPassed=true;
+  stage('initial-subtitles');
   checkSubtitle(second,await snap(),path.join(directory,'moving.png'));
+  stage('pause-resume');
   await page.evaluate(()=>api.pause());await delay(180);const paused=(await snap()).position;await delay(250);
   expect(Math.abs((await snap()).position-paused)<.12,'Pause did not stop the timeline');
   await page.evaluate(()=>api.resume());await delay(300);expect((await snap()).position>paused+.08,'Resume did not advance');
+  stage('playback-rate');
   await page.evaluate(()=>api.rate(1.25));const r1=(await snap()).position;await delay(800);const r2=(await snap()).position;
   result.rateAdvance=r2-r1;expect(result.rateAdvance>.7&&result.rateAdvance<1.5,'Playback-rate progression outside bounded tolerance');
   await page.evaluate(()=>api.rate(1));
   if(config.live) {
+    stage('live-window');
     result.liveSamples=[];
     let previousLiveImage;
     for(let i=0;i<4;i++) {
@@ -158,6 +169,7 @@ async function correctness(page,config,result,directory) {
   }
   result.seeks=[];
   for(const target of [6,1,10]) {
+    stage('seek-'+target);
     await deadline(page.evaluate(t=>api.seek(t),target),10000,'seek');await waitPosition(target);await delay(180);
     const state=await snap();const png=await page.locator('#stage').screenshot({path:path.join(directory,`seek-${target}.png`)});
     const image=markedImage(png,state.position);result.seeks.push({target,state,image});
@@ -165,10 +177,13 @@ async function correctness(page,config,result,directory) {
     if(hasAudio)expect(markedAudio(state),'Audio missing/wrong after seek');
     checkSubtitle(png,state,path.join(directory,`seek-${target}.png`));
   }
+  stage('near-eof');
   const end=(await snap()).duration;
   expect(Number.isFinite(end)&&end>10,'Missing finite duration');
   await deadline(page.evaluate(t=>api.seek(t),end-.65),10000,'near-EOF seek');
-  await page.waitForFunction(end=>api.snapshot().position>=end-.2||api.snapshot().video?.ended,end,{timeout:7000});
+  // A duration is not necessarily an absolute terminal timestamp (e.g. TS starts at 1.4s).
+  // Prefer the public ended signal when the adapter exposes one.
+  await page.waitForFunction(end=>{const state=api.snapshot();return state.ended===true||state.video?.ended||(state.ended==null&&state.position>=end-.2);},end,{timeout:7000});
   await delay(700);result.eof=await snap();expect(result.eof.position>=end-.2,'EOF did not reach final media region');
   await delay(400);expect(Math.abs((await snap()).position-result.eof.position)<.1,'EOF timeline did not settle');
   expect(!result.eof.errors.length,'Player reported errors: '+result.eof.errors.join('; '));
@@ -178,7 +193,7 @@ async function measure(page,config,result,browser) {
   const before=Date.now();await deadline(page.evaluate(c=>api.start(c),config),20000,'open');
   result.openWallMs=Date.now()-before;
   await page.waitForFunction(()=>api.snapshot().position>.25,null,{timeout:10000});
-  if(config.subtitleCheck)await page.evaluate(()=>api.subtitles());
+  if(config.subtitleCheck||config.subtitleIntegration)await page.evaluate(()=>api.subtitles());
   await delay(warmupSeconds*1000);
   const cdp=await browser.newBrowserCDPSession();
   frameObservation(await page.evaluate(()=>api.snapshot()),config);
@@ -241,7 +256,7 @@ try {
       result.status='passed';
       if(config.qualificationLimit){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
     } catch(error) {
-      result.status='failed';result.reason=String(error.stack??error);
+      result.status='failed';result.failureStage=result.stage??'setup';result.reason=String(error.stack??error);
       if(c.player==='demuxe'&&result.requestFailures.some(r=>r.status===404&&Object.entries(manifest.engines).some(([name,exists])=>!exists&&r.url.includes('/'+name+'/')))){result.status='blocked';result.reason='Required current Demuxe engine assets are absent. '+result.reason;}
       if(result.reason.includes('UNQUALIFIED:'))result.status='blocked';
       if(/Executable doesn't exist|Chromium distribution.*not found/.test(result.reason))result.status='blocked';
@@ -251,7 +266,7 @@ try {
         result.cleanup=await deadline(page.evaluate(()=>api.stop()),4000,'cleanup').catch(error=>({error:String(error)}));
         await delay(400);result.workersAfter=page.workers().length;
         if((result.status==='passed'||result.screenPassed)&&(result.cleanup.error||result.cleanup.remainingSurfaces||result.workersAfter||result.cleanup.contexts.some(s=>s!=='closed'))) {
-          result.status='failed';result.reason='Cleanup did not release observed surfaces, contexts or workers';
+          result.status='failed';result.failureStage='cleanup';result.reason='Cleanup did not release observed surfaces, contexts or workers';
         }
       }
       let processIDs;

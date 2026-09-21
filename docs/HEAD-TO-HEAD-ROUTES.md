@@ -2,6 +2,20 @@
 
 # Player paths and planned media coverage
 
+## Default and configured rerun (2026-09-21)
+
+The [current paired report](../results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md)
+compares Movi default/native-first/Shaka-first and AVPlayer default/MSE preference,
+plus explicit live options. It records the first failing stage and distinguishes
+initial playback from full lifecycle success. It also corrects Movi external-track
+attachment, embedded-track selection, and streaming audio observation for detached
+media elements. The [AVPlayer audit](HEAD-TO-HEAD-AVPLAYER.md) additionally corrects premature
+EOF checking on timestamp-offset HLS/TS and records WebCodecs-off and full
+File-input alternatives. The README uses these corrected competitor outcomes. CPU figures
+remain from the earlier campaign; no new CPU measurements were collected.
+
+The historical tables below retain their original run scope and outcomes.
+
 ## Specialist Software alternatives (2026-09-20)
 
 The [specialist/library report](../results/head-to-head/specialist-report-01/REPORT.md) records current headed Chrome default routes and separate forced-Software checks. HEVC + DTS-HD MA passes both Hybrid and explicit Software. Both simpler Dolby Vision 5/8.1 files and both DV + E-AC-3/JOC + ASS combinations pass bounded Software playback, including ordinary seeks, EOF and cleanup. They still fail the default comparison because Native preparation or Hybrid timing fails. These Software passes do not qualify DV color/RPU application, Atmos objects, discrete channels or losslessness. Both HDR10 + TrueHD/DTS-HD + PGS cases lose their subtitle marker after seeking in either mode.

@@ -86,3 +86,22 @@ test('live HLS serves an advancing three-segment window without a VOD end marker
   assert(later.includes('index6.ts'));assert(!later.includes('index3.ts'));
   assert(!later.includes('#EXT-X-ENDLIST'));assert(!later.includes('#EXT-X-PLAYLIST-TYPE:VOD'));
 });
+
+
+test('configured catalogue alternatives preserve defaults and reject use without catalogue',async()=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'head-to-head-lanes-'));
+  try {
+    await fs.mkdir(path.join(root,'fixtures'));
+    await fs.writeFile(path.join(root,'fixtures/catalogue.json'),JSON.stringify({sample:{video:true,audio:true}}));
+    const run=path.join(import.meta.dirname,'run.mjs');
+    const list=extra=>execFileSync(process.execPath,[run,'--list','--catalogue','--assets',root,'--cases','movi,libmedia',...extra],{encoding:'utf8'}).trim().split('\n');
+    assert.deepEqual(list([]),['movi.default.sample','libmedia.default.sample']);
+    assert.deepEqual(list(['--configured-alternatives']),['movi.default.sample','libmedia.default.sample','movi.native-first.sample','libmedia.prefer-mse.sample','libmedia.webcodecs-off.sample','libmedia.file-input.sample']);
+    await fs.writeFile(path.join(root,'fixtures/catalogue.json'),JSON.stringify({sample:{video:true,audio:true,streamFormat:'hls',live:true}}));
+    const streaming=list(['--configured-alternatives']);
+    assert(!streaming.includes('libmedia.file-input.sample'));
+    assert(streaming.includes('libmedia.webcodecs-off.sample'));
+    for(const id of ['movi.shaka-first.sample','libmedia.live.sample','libmedia.live-mse.sample'])assert(streaming.includes(id));
+    assert.throws(()=>execFileSync(process.execPath,[run,'--list','--configured-alternatives'],{stdio:'pipe'}));
+  } finally {await fs.rm(root,{recursive:true,force:true});}
+});

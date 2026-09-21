@@ -1,0 +1,631 @@
+{
+  "schema": 1,
+  "kind": "correctness",
+  "startedAt": "2026-09-21T21:21:36.492Z",
+  "controlledStreaming": false,
+  "streamingBackends": false,
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-shaka-production-03",
+  "assetsSHA256": "e3abc0621d684f77e6e82fc043734a94eb49326882720f9e70924f03302bc217",
+  "harnessSHA256": "acaeb26c4314de1a2b8911585a93ca317a4bca3038a01c316cee1297d6effa31",
+  "sourceHashes": {
+    "browser-exit.mjs": "a2ffb141f6c41159439579b3172ea6335449f0e96114872c0f6ea2ac8e44090e",
+    "performance-metrics.mjs": "8e03fe5fcb79b897d13bb31648cecb7be7dc1716865b9087f9daf9c8e5a84f60",
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "run.mjs": "404af7cdf0218186cbb56139354973079e7159e986b8ee1e5ff5576f68bef480",
+    "server.mjs": "3340ffdf3cec0c8c59871bbf5db22c7d10b6a7f580404d62aedbbaa614046e8a",
+    "checks.mjs": "2f95549238a956439ac2e86b7afb129c711b3d93917df15d27d6e8fe634e9326",
+    "adapters.mjs": "46f2f3bbfa2f087fd2dba456291d197704e7588cf1ac2b09e6d89741a1fc0f0c",
+    "harness.html": "e5a949a87f133332e4848cddd4b3a91d6615b0da2b9776077bd9d4ba2df6ebdd",
+    "matrix.json": "6476826d2a6c14fcd38554925182f199791f418e1b0d4576b3490abf68a6bfa3",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "c59d308b6c7ebee534a78d4e644d8b4c4958c7473bde8d01f63407924dae349b",
+    "expand.py": "34f61a258297ca035e6e5ddd01e5582486e31a35d357ec4c7ea52a9b104db739",
+    "planned.json": "ba2679905a12afdf61cacb7f3fd51fece8a5a1dfd8e21f82de81f8fcf7e929d1",
+    "subtitle-ocr.swift": "14454bb07b8f891d86f3a2685208530a2ea2d619dd4aff27c604ed1bc4e30b9b",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "213dd212a3726ee67634d9c907f9ea2361559b09",
+  "playerSourceRevision": "6feb9b337889bfbaab8c5ac33bbddd0ca5d94f36",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets",
+      "build/head-to-head/assets-shaka-production-03",
+      "--cases",
+      "movi.default.pcm-ass,movi.native-first.pcm-ass",
+      "--output",
+      "results/head-to-head/configured-alternatives-20260921-original-02",
+      "--headed"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "movi.default.pcm-ass",
+    "movi.native-first.pcm-ass"
+  ],
+  "cases": [
+    {
+      "id": "movi.default.pcm-ass",
+      "player": "movi",
+      "lane": "default",
+      "fixture": "pcm-ass",
+      "requirements": [
+        "moving-video",
+        "marked-stereo-audio",
+        "seek",
+        "pause-resume",
+        "rate",
+        "eof",
+        "cleanup",
+        "ass-overlay"
+      ],
+      "subtitleIntegration": "built-in",
+      "status": "failed",
+      "startedAt": "2026-09-21T21:21:36.742Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Unrecognized feature: 'speaker-selection'.",
+        "Unrecognized feature: 'speaker-selection'.",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "recordPath": "movi.default.pcm-ass/result.json",
+      "stage": "initial-subtitles",
+      "subtitleSelection": {
+        "method": "public-language-api",
+        "tracks": [
+          {
+            "lang": "en",
+            "label": "Marked subtitle",
+            "active": true
+          }
+        ]
+      },
+      "initial": {
+        "position": 0.9349449999332426,
+        "duration": 36.01,
+        "paused": false,
+        "route": "custom",
+        "renderQuality": {
+          "creationTime": 2338.5400000810623,
+          "droppedVideoFrames": 0,
+          "totalVideoFrames": 29,
+          "corruptedVideoFrames": 0
+        },
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10613674258168804,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10590260302425841,
+            "hz": 878.90625
+          },
+          {
+            "channel": 0,
+            "rms": 0,
+            "hz": 0
+          },
+          {
+            "channel": 1,
+            "rms": 0,
+            "hz": 0
+          }
+        ],
+        "observedMedia": [],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "initialImage": {
+        "rgb": [
+          254,
+          0,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      },
+      "moving": true,
+      "initialPlaybackPassed": true,
+      "failureStage": "initial-subtitles",
+      "reason": "Error: Required marked subtitle drawing missing\n    at expect (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:105:56)\n    at checkSubtitle (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:121:84)\n    at correctness (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:147:3)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:256:7",
+      "failureState": {
+        "position": 1.7906749999523162,
+        "duration": 36.01,
+        "paused": false,
+        "route": "custom",
+        "renderQuality": {
+          "creationTime": 3194.274999976158,
+          "droppedVideoFrames": 0,
+          "totalVideoFrames": 55,
+          "corruptedVideoFrames": 0
+        },
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10630305244245455,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10613348175573604,
+            "hz": 878.90625
+          },
+          {
+            "channel": 0,
+            "rms": 0,
+            "hz": 0
+          },
+          {
+            "channel": 1,
+            "rms": 0,
+            "hz": 0
+          }
+        ],
+        "observedMedia": [],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "browserCleanup": {
+        "trackedProcessIDs": [
+          145,
+          210,
+          204,
+          203,
+          191,
+          193,
+          195,
+          214,
+          215
+        ],
+        "remainingProcessIDs": [],
+        "playwrightCloseAcknowledged": false
+      },
+      "finishedAt": "2026-09-21T21:21:42.486Z"
+    },
+    {
+      "id": "movi.native-first.pcm-ass",
+      "player": "movi",
+      "lane": "native-first",
+      "fixture": "pcm-ass",
+      "requirements": [
+        "moving-video",
+        "marked-stereo-audio",
+        "seek",
+        "pause-resume",
+        "rate",
+        "eof",
+        "cleanup",
+        "ass-overlay"
+      ],
+      "subtitleIntegration": "host-libass",
+      "status": "passed",
+      "startedAt": "2026-09-21T21:21:42.492Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "WebAssembly support detected: yes",
+        "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "warning: Browser does not support creating object URLs. Built-in browser image decoding will not be available."
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "error": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ],
+      "recordPath": "movi.native-first.pcm-ass/result.json",
+      "stage": "near-eof",
+      "subtitleSelection": {
+        "method": "subtitle-menu",
+        "tracks": [],
+        "selected": null
+      },
+      "initial": {
+        "position": 0.915375,
+        "duration": 36.01,
+        "paused": false,
+        "route": "native-direct",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10609911412436578,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10590207664465112,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+            "time": 0.915375,
+            "paused": false,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "time": 0.915375,
+          "ended": false,
+          "paused": false,
+          "total": 32,
+          "dropped": 1
+        }
+      },
+      "initialImage": {
+        "rgb": [
+          248,
+          36,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": true,
+        "magentaPixels": 4725
+      },
+      "moving": true,
+      "initialPlaybackPassed": true,
+      "rateAdvance": 1.0000210000000003,
+      "seeks": [
+        {
+          "target": 6,
+          "state": {
+            "position": 6.178999,
+            "duration": 36.01,
+            "paused": false,
+            "route": "native-direct",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.1061060920113893,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10598526050601972,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+                "time": 6.178999,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 6
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+              "time": 6.178999,
+              "ended": false,
+              "paused": false,
+              "total": 106,
+              "dropped": 3
+            }
+          },
+          "image": {
+            "rgb": [
+              26,
+              35,
+              255
+            ],
+            "expected": "blue",
+            "markerCorrect": true,
+            "magentaPixels": 4725
+          }
+        },
+        {
+          "target": 1,
+          "state": {
+            "position": 1.186667,
+            "duration": 36.01,
+            "paused": false,
+            "route": "native-direct",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10566025470009839,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.1060521057195973,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+                "time": 1.186667,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 6
+              },
+              {
+                "type": "waiting",
+                "time": 1
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+              "time": 1.186667,
+              "ended": false,
+              "paused": false,
+              "total": 119,
+              "dropped": 4
+            }
+          },
+          "image": {
+            "rgb": [
+              248,
+              36,
+              0
+            ],
+            "expected": "red",
+            "markerCorrect": true,
+            "magentaPixels": 4725
+          }
+        },
+        {
+          "target": 10,
+          "state": {
+            "position": 10.192,
+            "duration": 36.01,
+            "paused": false,
+            "route": "native-direct",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.1060133504890396,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.1060563607414364,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+                "time": 10.192,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 6
+              },
+              {
+                "type": "waiting",
+                "time": 1
+              },
+              {
+                "type": "waiting",
+                "time": 10
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": {
+              "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+              "time": 10.192,
+              "ended": false,
+              "paused": false,
+              "total": 133,
+              "dropped": 5
+            }
+          },
+          "image": {
+            "rgb": [
+              27,
+              126,
+              0
+            ],
+            "expected": "green",
+            "markerCorrect": true,
+            "magentaPixels": 4725
+          }
+        }
+      ],
+      "eof": {
+        "position": 36.01,
+        "duration": 36.01,
+        "paused": false,
+        "route": "native-direct",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+            "time": 36.01,
+            "paused": true,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 6
+          },
+          {
+            "type": "waiting",
+            "time": 1
+          },
+          {
+            "type": "waiting",
+            "time": 10
+          },
+          {
+            "type": "waiting",
+            "time": 35.36
+          },
+          {
+            "type": "ended",
+            "time": 36.01
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "source": "http://127.0.0.1:63342/fixtures/pcm.mkv",
+          "time": 36.01,
+          "ended": true,
+          "paused": true,
+          "total": 166,
+          "dropped": 6
+        }
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "browserCleanup": {
+        "trackedProcessIDs": [
+          1071,
+          1104,
+          1102,
+          1101,
+          1097,
+          1098,
+          1099,
+          1110
+        ],
+        "remainingProcessIDs": [],
+        "playwrightCloseAcknowledged": false
+      },
+      "finishedAt": "2026-09-21T21:21:50.372Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserIdentity": "chromium/152.0.7977.83/chrome/headed",
+  "finishedAt": "2026-09-21T21:21:50.381Z",
+  "counts": {
+    "passed": 1,
+    "failed": 1,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": false
+}
