@@ -2,6 +2,15 @@
 
 # Construct a selected-track MP4 view without remuxing samples
 
+## Production integration — 2026-09-21
+
+**production_integrated_conditional**. Qualified immutable local AVC plus two-AAC MP4 views select tracks without changing selected samples. Browser file destination, exact decoded output, marked audio, seeks, cancellation/replacement and EOF are qualified; remote/unqualified sources retain remux.
+
+[Maintained implementation](../../../docs/PRODUCTION-PIPELINE.md) · [Current qualification and tradeoffs](../../shared/runs/20260921T203100Z-production-pipeline/analysis.md). Release not published.
+
+## Retained earlier research evidence
+
+
 Full identity: `R059.construct-a-selected-track-mp4-view-without-remuxing-samples`.
 
 Current decision: **pursue** (actual-matched-host-complete-cost-comparison).

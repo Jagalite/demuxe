@@ -1,0 +1,7 @@
+DEMUXE_SDK=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14 WEBMPV_EM_CONFIG=$PWD/build/top100-jspi/emscripten.config DEMUXE_REMUX_PROFILE=pthread bash scripts/build-remux.sh
+DEMUXE_SDK=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14 WEBMPV_EM_CONFIG=$PWD/build/top100-jspi/emscripten.config DEMUXE_REMUX_PROFILE=jspi bash scripts/build-remux.sh
+node --test tests/plan-admission.mjs tests/native-selection.mjs tests/engine-preparation.mjs tests/remux-buffering.mjs tests/remux-packaging-contracts.mjs
+ARCHIVE=build/jspi-review-fixes-20260921T194328Z/demuxe-0.3.0-beta.3.tgz node tests/remux-jspi.mjs
+ISOLATED=1 ARCHIVE=build/jspi-review-fixes-20260921T194328Z/demuxe-0.3.0-beta.3.tgz node tests/remux-jspi.mjs
+BROWSER=firefox ARCHIVE=build/jspi-review-fixes-20260921T194328Z/demuxe-0.3.0-beta.3.tgz node tests/remux-jspi.mjs
+BETA_ARCHIVE=build/jspi-review-fixes-20260921T194328Z/demuxe-0.3.0-beta.3.tgz node --test tests/copy-assets.mjs

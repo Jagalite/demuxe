@@ -17,7 +17,7 @@
       "line_end": 103,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New local-file packaging route · P1 · Risk: High · PROPOSED / NOT TESTED First environment: Sandbox Blob/File and direct-video pilot; local, finite, unencrypted MP4 only. Related cards: R46. Proposed mechanism. For a local MP4 whose requested audio cannot be selected through the browser track API, expose a virtual file containing only the desired track declarations while reusing the original media bytes. Begin by replacing unselected trak boxes with equally sized free boxes in a bounded copy of moov, retaining its size and position. Compose prefix + edited moov + suffix from Blob slices. What is new. R46 constructed new fragmented MP4 sample tables for MSE. This route preserves the ordinary MP4 sample layout and uses direct playback; it is a targeted metadata view, not an alternative general demuxer or a remote authenticated proxy.",
+    "source_excerpt": "New local-file packaging route \u00b7 P1 \u00b7 Risk: High \u00b7 PROPOSED / NOT TESTED First environment: Sandbox Blob/File and direct-video pilot; local, finite, unencrypted MP4 only. Related cards: R46. Proposed mechanism. For a local MP4 whose requested audio cannot be selected through the browser track API, expose a virtual file containing only the desired track declarations while reusing the original media bytes. Begin by replacing unselected trak boxes with equally sized free boxes in a bounded copy of moov, retaining its size and position. Compose prefix + edited moov + suffix from Blob slices. What is new. R46 constructed new fragmented MP4 sample tables for MSE. This route preserves the ordinary MP4 sample layout and uses direct playback; it is a targeted metadata view, not an alternative general demuxer or a remote authenticated proxy.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -27,7 +27,7 @@
         "line_start": 40,
         "line_end": 47,
         "source_kind": "report",
-        "reported_heading": "Metadata-only selected-track MP4 view — PROMISING"
+        "reported_heading": "Metadata-only selected-track MP4 view \u2014 PROMISING"
       }
     ],
     "scope_hash": "b2431467113f2fe749beca3e618f6a17d5acd705f5a0638fffb52ff6618c3396",
@@ -117,32 +117,35 @@
   },
   "current_decision": {
     "key": "R059.construct-a-selected-track-mp4-view-without-remuxing-samples",
-    "disposition": "pursue",
-    "evidence_level": "actual-matched-host-complete-cost-comparison",
-    "new_media_execution": true,
-    "reason": "Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures.",
-    "next_action": "Scopedcostdecision complete. Reopenfor materiallydifferent actualownership/transportworkload; no repeatedsamples toforcegate.",
-    "stages": {
-      "performance": {
-        "status": "passed",
-        "basis": "Selectedtrackmetadata view preservesfulloriginalselectedvideo/PCM inall18jobs. Ninepaired completehostjobs includeinputread, metadataedit orordinaryFFmpegselectedtrackcopy, outputwrite/read asneeded, full decodeandtransfer. Saving30.76percent95[28.41,32.65] passes5percentgate. View retainsunselectedmdat bytes andisnotredactedexport. Priorfront/tailmoov,sourceidentity/browserseek/EOF controls retained. Initialunmatched fMP4trim andtailmoov-on-pipe baseline failures preserved, notcandidate failures."
-      }
-    },
-    "recorded_at_utc": "2026-09-19T21:41:59.166011+00:00",
+    "disposition": "already_implemented",
+    "integration_status": "production_integrated_conditional",
+    "evidence_level": "maintained_player_and_exact_package",
+    "reason": "Qualified immutable local AVC plus two-AAC MP4 views select tracks without changing selected samples. Browser file destination, exact decoded output, marked audio, seeks, cancellation/replacement and EOF are qualified; remote/unqualified sources retain remux.",
+    "recorded_at_utc": "2026-09-21T21:22:48.786195+00:00",
     "run_ids": [
-      "20260919T214700Z-metadata-qualification"
+      "20260921T203100Z-production-pipeline"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T214700Z-metadata-qualification/run.json"
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate."
+  },
+  "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate.",
+  "integration": {
+    "status": "production_integrated_conditional",
+    "scope": "Qualified immutable local AVC plus two-AAC MP4 views select tracks without changing selected samples. Browser file destination, exact decoded output, marked audio, seeks, cancellation/replacement and EOF are qualified; remote/unqualified sources retain remux.",
+    "working_tree": "maintained main source; see Git history",
+    "documentation": "docs/PRODUCTION-PIPELINE.md",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
     ]
   },
-  "next_action": "Scopedcostdecision complete. Reopenfor materiallydifferent actualownership/transportworkload; no repeatedsamples toforcegate.",
-  "integration": {
-    "status": "not_assessed_by_migration"
-  },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_integration_validated_release_pending",
+    "release_status": "not_released",
+    "production_pipeline_run": "research/shared/runs/20260921T203100Z-production-pipeline/run.json",
+    "package_sha256": "d6ff389201a9a873c9941ddecea7d3213ac9d47b0a38fce4c1f9f07af961dcce"
   },
   "external_screenings": [
     {
@@ -154,5 +157,12 @@
       "path": "research/items/R059.construct-a-selected-track-mp4-view-without-remuxing-samples/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
       "acceptance": "supplemental_import_only; current-owner retest required before promotion"
     }
-  ]
+  ],
+  "whole_player_qualification": {
+    "status": "measured_scoped_integration_tradeoffs",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "no_additive_savings_claim": true
+  }
 }

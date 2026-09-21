@@ -72,9 +72,9 @@
     },
     "correctness": {
       "status": "passed",
-      "basis": "Prior independent host pixels/PCM and browser destination retained; new trials byte-identical, two concurrent workers exact, one-owner reentry rejected, instances closed and workers terminated. MP4 priming profile excluded.",
+      "basis": "Maintained public Player exact-package output and lifecycle checks, real pending-read cancellation with negative control, isolated regressions and feature rejection passed; limited to finite single-video AVC / single-audio AAC MPEG-TS.",
       "evidence": [
-        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
+        "research/shared/runs/20260921T194328Z-jspi-production-integration/run.json"
       ]
     },
     "performance": {
@@ -86,50 +86,75 @@
     },
     "results": {
       "status": "passed",
-      "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
+      "basis": "Production integrated (scoped): the maintained public Player automatically uses the no-pthread JSPI runtime on non-isolated origins for finite single-video AVC / single-audio AAC MPEG-TS. Builds, inspection, bounded source reads, cancellation, seeking, source replacement, packaging and exact-archive release gates are integrated. Eleven non-isolated Chrome checks pass, including exact decoded pixels/PCM and cancellation after an observed pending Wasm read with an initialization-only negative control. Isolated pthread regressions and missing-JSPI rejection pass. Local working-tree implementation; no commit, deployment or release publication is claimed.",
       "evidence": [
-        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
+        "research/shared/runs/20260921T194328Z-jspi-production-integration/run.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
+      "basis": "Production integrated (scoped): the maintained public Player automatically uses the no-pthread JSPI runtime on non-isolated origins for finite single-video AVC / single-audio AAC MPEG-TS. Builds, inspection, bounded source reads, cancellation, seeking, source replacement, packaging and exact-archive release gates are integrated. Eleven non-isolated Chrome checks pass, including exact decoded pixels/PCM and cancellation after an observed pending Wasm read with an initialization-only negative control. Isolated pthread regressions and missing-JSPI rejection pass. Local working-tree implementation; no commit, deployment or release publication is claimed.",
       "evidence": [
-        "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
+        "research/shared/runs/20260921T194328Z-jspi-production-integration/run.json"
       ]
     }
   },
   "current_decision": {
     "key": "R176.jspi-backed-synchronous-wasm-i-o",
-    "disposition": "pursue",
-    "evidence_level": "actual_component_cost_and_lifecycle",
-    "new_media_execution": true,
-    "reason": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry.",
-    "next_action": "Research gates complete for finite AVC/AAC TS nonisolated JSPI remux. Integration remains separate; expand only with exact timing/priming oracles for other source profiles.",
-    "stages": {
-      "performance": {
-        "status": "passed",
-        "basis": "Seven fresh-owner alternating cost pairs preserve complete remux SHA256 versus independently verified host pixels/PCM. Resident acquisition median56.0ms; asynchronous15ms-per-request range reads median211.6ms; worst257.4ms below declared4021.333ms source-duration bound. Same actual nonisolated JSPI FFmpeg engine, all transfer/close/termination included. Parallel independent engines also return exact output; one-instance owner rejects conflicting call before entry."
-      },
-      "correctness": {
-        "status": "passed",
-        "basis": "Prior independent host pixels/PCM and browser destination retained; new trials byte-identical, two concurrent workers exact, one-owner reentry rejected, instances closed and workers terminated. MP4 priming profile excluded."
-      }
-    },
-    "recorded_at_utc": "2026-09-19T20:43:49.809601+00:00",
+    "disposition": "already_implemented",
+    "integration_status": "production_integrated",
+    "evidence_level": "maintained_player_and_exact_package",
+    "reason": "The same scoped JSPI production producer as R006 is retained and requalified with separate MSE ownership, cancellation and checked fallbacks. This is shared capability evidence, not another independent saving.",
+    "recorded_at_utc": "2026-09-21T21:22:48.786195+00:00",
     "run_ids": [
-      "20260919T204200Z-jspi-cost"
+      "20260921T203100Z-production-pipeline"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T204200Z-jspi-cost/run.json"
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate."
+  },
+  "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate.",
+  "integration": {
+    "status": "production_integrated",
+    "scope": "The same scoped JSPI production producer as R006 is retained and requalified with separate MSE ownership, cancellation and checked fallbacks. This is shared capability evidence, not another independent saving.",
+    "working_tree": "maintained main source; see Git history",
+    "implementation": [
+      "src/unified-player.ts",
+      "web/native-remux-worker.js",
+      "web/native-remux-source-worker.js",
+      "native/remux/remux.c",
+      "scripts/build-remux.sh"
+    ],
+    "documentation": "docs/PRODUCTION-PIPELINE.md",
+    "regression_test": "tests/remux-jspi.mjs",
+    "evidence": [
+      "research/shared/runs/20260921T194328Z-jspi-production-integration/run.json",
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
     ]
   },
-  "next_action": "Research gates complete for finite AVC/AAC TS nonisolated JSPI remux. Integration remains separate; expand only with exact timing/priming oracles for other source profiles.",
-  "integration": {
-    "status": "not_assessed_by_migration"
-  },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_integration_validated_release_pending",
+    "release_status": "not_released",
+    "basis": "Exact-package local validation snapshot passed; clean tagged corresponding-source release qualification remains separate.",
+    "evidence": [
+      "research/shared/runs/20260921T194328Z-jspi-production-integration/run.json"
+    ],
+    "repository_validation": {
+      "research_integrity": "older mutable-runtime evidence references fail in R024, R261 and R353; new item artifacts verified",
+      "evidence": "results/remux-jspi/research-verification-20260921T195313Z/result.json",
+      "license_check": "results/remux-jspi/research-verification-20260921T195313Z/license-check.log"
+    },
+    "production_pipeline_run": "research/shared/runs/20260921T203100Z-production-pipeline/run.json",
+    "package_sha256": "d6ff389201a9a873c9941ddecea7d3213ac9d47b0a38fce4c1f9f07af961dcce"
+  },
+  "whole_player_qualification": {
+    "status": "measured_scoped_integration_tradeoffs",
+    "basis": "Capability integration, not a whole-player performance saving claim.",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "no_additive_savings_claim": true
   }
 }

@@ -2,6 +2,15 @@
 
 # append moof and mdat separately
 
+## Production integration — 2026-09-21
+
+**production_integrated_conditional**. Large bounded owned MP4 callback buffers append without application gathering; small/unknown batches retain the generic path. Copy reduction and extra append calls are measured; current Player output/lifecycle gates pass.
+
+[Maintained implementation](../../../docs/PRODUCTION-PIPELINE.md) · [Current qualification and tradeoffs](../../shared/runs/20260921T203100Z-production-pipeline/analysis.md). Release not published.
+
+## Retained earlier research evidence
+
+
 Current decision: **pursue**. Separate moof/mdat appends preserve all96 complete native reference pictures on the same AVC/AAC source and avoid the application gather allocation. Eleven alternating fresh-owner pairs show6.05% median complete-job savings;95% bootstrap interval1.19–13.47%. This supports the bounded no-gather component, not a general muxer or physical-memory claim.
 
 | Stage | Status | Basis |

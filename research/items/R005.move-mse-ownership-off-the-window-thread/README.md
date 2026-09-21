@@ -2,6 +2,15 @@
 
 # Move MSE ownership off the window thread
 
+## Production integration — 2026-09-21
+
+**production_integrated**. Worker-owned MSE reuses the maintained scheduler, preserves separate producer/read owners, transfers fragments directly, and retains checked window fallback. Scoped Player/package lifecycle and contention comparisons pass; costs are mixed, not a general throughput win.
+
+[Maintained implementation](../../../docs/PRODUCTION-PIPELINE.md) · [Current qualification and tradeoffs](../../shared/runs/20260921T203100Z-production-pipeline/analysis.md). Release not published.
+
+## Retained earlier research evidence
+
+
 Full identity: `R005.move-mse-ownership-off-the-window-thread`.
 
 Current decision: **pursue** (actual_component_performance).

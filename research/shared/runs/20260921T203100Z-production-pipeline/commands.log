@@ -1,0 +1,14 @@
+git fetch origin main
+git merge --ff-only origin/main
+npm run build
+node --test [134 focused contracts; see logs]
+npm run test:licenses
+python3 tests/beta-release.py
+[Both profile wrapper relinks: commands and toolchain environment retained in build logs]
+python3 scripts/package-beta.py --output build/pipeline-final-package
+BASELINE=build/main-baseline node tests/production-pipeline.mjs
+DEMUXE_TEST_ASSET_ROOT=build/pipeline-final-package/extracted/package PAIRS=1 RECOVERY_REPEATS=3 node tests/worker-mse.mjs
+DEMUXE_TEST_ASSET_ROOT=build/pipeline-final-package/extracted/package PAIRS=1 node tests/selected-mp4-view.mjs
+ARCHIVE=build/pipeline-final-package/demuxe-0.3.0-beta.3.tgz node tests/remux-jspi.mjs
+BROWSER=firefox ISOLATED=1 ARCHIVE=build/pipeline-final-package/demuxe-0.3.0-beta.3.tgz node tests/remux-jspi.mjs
+DEMUXE_TEST_ASSET_ROOT=build/pipeline-final-package/extracted/package node tests/remux-output-identity.mjs

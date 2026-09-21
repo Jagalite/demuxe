@@ -2,6 +2,15 @@
 
 # Compile a qualified mux configuration into a small patch program
 
+## Production integration — 2026-09-21
+
+**existing_repairs_retained_patch_deferred**. Current D09/D10 addressing/continuity repairs again preserve packet payload/timing and full decoded output. None of 120 maintained moofs match the researched 104-byte one-sample patch shape; no post-FFmpeg patch pass or new generic muxer is enabled.
+
+[Maintained implementation](../../../docs/PRODUCTION-PIPELINE.md) · [Current qualification and tradeoffs](../../shared/runs/20260921T203100Z-production-pipeline/analysis.md). Release not published.
+
+## Retained earlier research evidence
+
+
 Full identity: `R162.compile-a-qualified-mux-configuration-into-a-small-patch-program`.
 
 Current decision: **pursue** (actual-complete-cost-comparison).

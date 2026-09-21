@@ -111,31 +111,41 @@
   },
   "current_decision": {
     "key": "R005.move-mse-ownership-off-the-window-thread",
-    "disposition": "pursue",
-    "evidence_level": "actual_component_performance",
-    "new_media_execution": true,
-    "reason": "Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control.",
-    "next_action": "Research component gates complete for paced ingress under UI load. Separate integration project: apply ownership protocol to maintained scheduler and reproduce workload before production admission.",
-    "stages": {
-      "performance": {
-        "status": "passed",
-        "basis": "Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control."
-      }
-    },
-    "recorded_at_utc": "2026-09-19T20:43:49.262304+00:00",
+    "disposition": "already_implemented",
+    "integration_status": "production_integrated",
+    "evidence_level": "maintained_player_and_exact_package",
+    "reason": "Worker-owned MSE reuses the maintained scheduler, preserves separate producer/read owners, transfers fragments directly, and retains checked window fallback. Scoped Player/package lifecycle and contention comparisons pass; costs are mixed, not a general throughput win.",
+    "recorded_at_utc": "2026-09-21T21:22:48.786195+00:00",
     "run_ids": [
-      "20260919T204100Z-worker-paced"
+      "20260921T203100Z-production-pipeline"
     ],
     "stage": "decision",
     "evidence": [
-      "research/shared/runs/20260919T204100Z-worker-paced/run.json"
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate."
+  },
+  "next_action": "Maintain the scoped regression and exact-package gates; broaden profiles only with new owner/output/cost qualification. Release publication remains separate.",
+  "integration": {
+    "status": "production_integrated",
+    "scope": "Worker-owned MSE reuses the maintained scheduler, preserves separate producer/read owners, transfers fragments directly, and retains checked window fallback. Scoped Player/package lifecycle and contention comparisons pass; costs are mixed, not a general throughput win.",
+    "working_tree": "maintained main source; see Git history",
+    "documentation": "docs/PRODUCTION-PIPELINE.md",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
     ]
   },
-  "next_action": "Research component gates complete for paced ingress under UI load. Separate integration project: apply ownership protocol to maintained scheduler and reproduce workload before production admission.",
-  "integration": {
-    "status": "not_assessed_by_migration"
-  },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_integration_validated_release_pending",
+    "release_status": "not_released",
+    "production_pipeline_run": "research/shared/runs/20260921T203100Z-production-pipeline/run.json",
+    "package_sha256": "d6ff389201a9a873c9941ddecea7d3213ac9d47b0a38fce4c1f9f07af961dcce"
+  },
+  "whole_player_qualification": {
+    "status": "measured_scoped_integration_tradeoffs",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "no_additive_savings_claim": true
   }
 }

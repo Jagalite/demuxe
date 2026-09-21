@@ -2,6 +2,15 @@
 
 # incremental mdat sample release
 
+## Production integration — 2026-09-21
+
+**conditional_adapter_not_default**. Actual Wasm write-callback sample release is implemented and tested, including incomplete-sample and stale-generation protection. Existing FFmpeg internally buffers its fragments; no earlier-input benefit or win over separate delivery was established, so progressive mode is not default.
+
+[Maintained implementation](../../../docs/PRODUCTION-PIPELINE.md) · [Current qualification and tradeoffs](../../shared/runs/20260921T203100Z-production-pipeline/analysis.md). Release not published.
+
+## Retained earlier research evidence
+
+
 Current decision: **pursue**. Actualpartial-mdat endpoint now has complete48changing-picture fidelity and source-cancel guards. Every48picture matches whole-input baseline in24freshstreams; firstsample-minusonebyte emitsnone untiltail. Elevenpaired streams withidentical450ms tailavailability give449.84ms median firstcorrectframe improvement whileallfulloutputs/EOF pass.
 
 | Stage | Status | Basis |

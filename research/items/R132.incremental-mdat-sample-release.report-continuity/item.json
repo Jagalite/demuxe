@@ -104,53 +104,42 @@
     }
   },
   "current_decision": {
-    "campaign": "all-stages-transport",
-    "record": {
-      "key": "R132.incremental-mdat-sample-release.report-continuity",
-      "state": "pursue",
-      "disposition": "pursue",
-      "reason": "Actualpartial-mdat endpoint now has complete48changing-picture fidelity and source-cancel guards. Every48picture matches whole-input baseline in24freshstreams; firstsample-minusonebyte emitsnone untiltail. Elevenpaired streams withidentical450ms tailavailability give449.84ms median firstcorrectframe improvement whileallfulloutputs/EOF pass.",
-      "recorded_at_utc": "2026-09-19T21:25:05.976998+00:00",
-      "evidence_level": "component_test",
-      "run_ids": [
-        "20260919T213600Z-full-frame-release"
-      ],
-      "evidence": [
-        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T213600Z-full-frame-release/run.json",
-        "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T213600Z-full-frame-release/manifest.json"
-      ],
-      "next_test": "Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission.",
-      "reopen_condition": "Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission.",
-      "scope": "Exact source report parserquestion: completecoded samples delivered fromexistingmdat before enclosingpayloadcomplete.48distinct fullRGBA referenceframe hashes fromindependentwhole-input MSE; all48 continuouslypresented frames exact ininitialpartial,incompletecontrol and22timedstreams. Partialhead12samples presents11before450ms tail; incompletefirstsample0beforetail. Cancelledgeneration stale tailappend returnsfalse beforeSourceBuffer mutation. Allmediaelements/URLs released. Preparedencodedinput, not newstreamingmux emission, selectedaudio or arbitraryfragment layouts.",
-      "new_experiment": true,
-      "prior_decision": {
-        "campaign": "canonical-stage-advancement",
-        "record": {
-          "key": "R132.incremental-mdat-sample-release.report-continuity",
-          "state": "pursue",
-          "reason": "Actual Chrome emits presented video frames from12 complete coded samples while mdat tail is withheld; first sample truncated by1byte presents0frames until remainder arrives. Both complete to EOF and clean up.",
-          "evidence_level": "component_test",
-          "recorded_at_utc": "2026-09-19T20:17:10.146209+00:00",
-          "run_ids": [
-            "20260919T203000Z-partial-mdat"
-          ],
-          "evidence": [
-            "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/run.json",
-            "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/results.json",
-            "research/items/R132.incremental-mdat-sample-release.report-continuity/evidence/20260919T203000Z-partial-mdat/manifest.json"
-          ],
-          "next_test": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.",
-          "reopen_condition": "Expose truthful early fragment metadata/sample production from the actual streaming mux owner; add A/V and independent pixel oracle before route or latency claims.",
-          "scope": "Browser parser feasibility with callbacks and adverse incomplete sample passes; source-produced streaming output and complete fidelity/lifecycle remain unqualified."
-        }
-      }
-    }
+    "key": "R132.incremental-mdat-sample-release.report-continuity",
+    "disposition": "pursue",
+    "integration_status": "conditional_adapter_not_default",
+    "evidence_level": "maintained_player_and_exact_package",
+    "reason": "Actual Wasm write-callback sample release is implemented and tested, including incomplete-sample and stale-generation protection. Existing FFmpeg internally buffers its fragments; no earlier-input benefit or win over separate delivery was established, so progressive mode is not default.",
+    "recorded_at_utc": "2026-09-21T21:22:48.786195+00:00",
+    "run_ids": [
+      "20260921T203100Z-production-pipeline"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "next_action": "Keep progressive delivery non-default until a genuinely incremental producer establishes an end-to-end benefit with bounded copies and append overhead."
   },
-  "next_action": "Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission.",
+  "next_action": "Keep progressive delivery non-default until a genuinely incremental producer establishes an end-to-end benefit with bounded copies and append overhead.",
   "integration": {
-    "status": "not_assessed_by_migration"
+    "status": "conditional_adapter_not_default",
+    "scope": "Actual Wasm write-callback sample release is implemented and tested, including incomplete-sample and stale-generation protection. Existing FFmpeg internally buffers its fragments; no earlier-input benefit or win over separate delivery was established, so progressive mode is not default.",
+    "working_tree": "maintained main source; see Git history",
+    "documentation": "docs/PRODUCTION-PIPELINE.md",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ]
   },
   "qualification": {
-    "status": "not_assessed_by_migration"
+    "status": "scoped_integration_validated_release_pending",
+    "release_status": "not_released",
+    "production_pipeline_run": "research/shared/runs/20260921T203100Z-production-pipeline/run.json",
+    "package_sha256": "d6ff389201a9a873c9941ddecea7d3213ac9d47b0a38fce4c1f9f07af961dcce"
+  },
+  "whole_player_qualification": {
+    "status": "measured_scoped_integration_tradeoffs",
+    "evidence": [
+      "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
+    ],
+    "no_additive_savings_claim": true
   }
 }
