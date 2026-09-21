@@ -97,3 +97,10 @@ test('retired subtitle stitching is rejected without prefetching media',async()=
  let calls=0;mock(async()=>{calls++;return new Response(master);});const loader=new ResourceLoader(options);
  await assert.rejects(loader.open(options.url,{manifest:true}),/subtitle semantics/);assert.equal(calls,1);assert.equal(loader.stats.handles,0);loader.close();
 });
+
+test('preview resource fetch retains low priority and independent ownership',async()=>{
+  const priorities=[];mock(async(url,init)=>{priorities.push(init.priority);return new Response('ok');});
+  const playback=new ResourceLoader(options),preview=new ResourceLoader({...options,priority:'low'});
+  await playback.open('playback.ts');await preview.open('preview.ts');preview.close();
+  assert.deepEqual(priorities,['auto','low']);assert.equal(playback.stats.retainedBytes,2);playback.close();
+});

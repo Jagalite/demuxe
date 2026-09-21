@@ -38,9 +38,12 @@ export class LocalVideoPreviewProvider {
         video.preload = 'metadata';
         video.playsInline = true;
         const url = URL.createObjectURL(source);
+        let released;
+        request.trackCleanup?.(new Promise(resolve => { released = resolve; }));
         const wait = (event, action) => new Promise((resolve, reject) => {
             const done = () => { cleanup(); resolve(); }, fail = () => { cleanup(); reject(new Error('Preview media decode failed')); }, abort = () => { cleanup(); reject(new DOMException('Preview cancelled', 'AbortError')); };
-            const cleanup = () => { video.removeEventListener(event, done); video.removeEventListener('error', fail); request.signal.removeEventListener('abort', abort); };
+            const timer = setTimeout(fail, 1500);
+            const cleanup = () => { clearTimeout(timer); video.removeEventListener(event, done); video.removeEventListener('error', fail); request.signal.removeEventListener('abort', abort); };
             video.addEventListener(event, done, { once: true });
             video.addEventListener('error', fail, { once: true });
             request.signal.addEventListener('abort', abort, { once: true });
@@ -84,10 +87,15 @@ export class LocalVideoPreviewProvider {
             return blob ? { time: video.currentTime, width, height, image: { blob }, path: this.id, actualTime, temporalAccuracy: 'approximate', fidelity: 'full', timestampKind: 'media-time', metrics: { mediaReadyMs, seekMs, resizeConversionMs: performance.now() - conversionStart, bytesFetched: 0, decodedFrames: null } } : null;
         }
         finally {
-            video.pause();
-            video.removeAttribute('src');
-            video.load();
-            URL.revokeObjectURL(url);
+            try {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+                URL.revokeObjectURL(url);
+            }
+            finally {
+                released?.();
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions
 import type {Backend, Session} from './internal/backend.js';
 
 import {PreviewController} from './preview/controller.js';
+import {SoftwarePreviewProvider} from './preview/software.js';
 import {LocalVideoPreviewProvider} from './preview/providers.js';
 type Source = {kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}};
 class SeekPresentationBoundary extends PlayerError {
@@ -110,8 +111,14 @@ export class Player extends EventTarget {
     this.preview=new PreviewController([
       {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
         getFrame:request=>this.current?.backend.previewFrame?.(request)??Promise.resolve(null)},
-      new LocalVideoPreviewProvider(()=>this.busy||this.queued>0||this.observedWaiting?undefined:this.previewSource,container.ownerDocument,options.resourceLimits?.maxDecodePixels),
-    ],options.preview);
+      new LocalVideoPreviewProvider(()=>this.busy||this.queued>0||this.previewBuffering()?undefined:this.previewSource,container.ownerDocument,options.resourceLimits?.maxDecodePixels),
+      new SoftwarePreviewProvider(()=>{
+        if(this.busy||this.queued>0||this.previewBuffering())return undefined;
+        if(this.previewSource)return {file:this.previewSource,input:this.source?.kind==='local'?this.source.input:undefined};
+        if(this.source?.kind==='remote'&&!this.source.options.streaming?.live&&this.snapshot.streamType!=='live')return {remote:this.source.options};
+        return undefined;
+      },container.ownerDocument,this.assetBase,options.resourceLimits),
+    ],options.preview===false?{enabled:false}:options.preview);
     this.currentMode = modeValue(options.mode ?? 'native');
     this.automatic = options.automaticSelection ?? options.mode === undefined;
     if(typeof this.automatic !== 'boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid automatic selection policy');
@@ -169,6 +176,9 @@ export class Player extends EventTarget {
     // These are selectable requirements, not a claim of in-place browser support.
     return [...raw.filter(t=>t.type!=='audio'),...audio.map(t=>({...t,id:t.id,'ff-index':t.index,selected:this.settings.aid!=='no'&&t===fallback}))];
   }
+  private previewBuffering(){
+    return !this.settings.pause&&(this.observedWaiting||this.properties.get('paused-for-cache')===true||this.properties.get('native-waiting')===true);
+  }
   private publish() {
     const previous=this.snapshot,p=this.properties;
     let raw=this.sourceTracks();
@@ -187,6 +197,9 @@ export class Player extends EventTarget {
       currentTime:Math.max(0,Number(p.get('time-pos'))||0),duration,streamType,subtitlesVisible:this.settings.subtitles,volume:this.settings.volume/100,muted:this.muted,playbackRate:this.settings.speed,
       activeMode:this.current?this.mode:null,automaticSelection:this.automatic,buffered:this.mode==='native'&&this.current?ranges(p.get('native-buffered')):null,seekable,
       audioTracks:list.filter(t=>t.type==='audio'),subtitleTracks:list.filter(t=>t.type==='subtitle'),mediaInfo:mediaInfo(p,this.mode,this.surface,list),capabilities:caps,error:this.sessionError};
+    // Priority can change even when the externally visible snapshot is identical.
+    this.preview.setSuspended(this.busy||!!this.activeOperation||this.previewBuffering());
+    this.preview.setDuration(this.current&&!this.busy&&streamType==='vod'?duration:null);
     if(previous&&JSON.stringify(previous)===JSON.stringify(next))return;
     this.snapshot=freeze(next);
     for(const fn of [...this.subscribers]) {try{fn(this.snapshot);}catch(error){globalThis.reportError?.(error);}}
@@ -857,16 +870,16 @@ export class Player extends EventTarget {
     if(this.closing)return this.closing;
     this.preview.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
     this.operationEpoch++;this.activeOperation?.controller.abort();this.inspection?.abort();clearInterval(this.monitor);
-    const cleanup=Promise.all([this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{})));
+    const cleanup=Promise.all([this.preview.drain(),...[this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{}))]);
     this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.current=undefined;this.candidate=undefined;this.source=undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.nativeTracks=[];this.subtitleAssets=[];this.publicSelections.clear();this.settings={...this.settings,pause:true,aid:'auto',sid:'auto'};this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
   }
   destroy(): Promise<void> {
     if (this.destruction) return this.destruction;
-    this.preview.destroy();this.previewSource=undefined;
+    const previewCleanup=this.preview.destroy();this.previewSource=undefined;
     this.destroyed = true;this.operationEpoch++;this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();clearInterval(this.monitor);
     this.destruction = (async () => {
-      await Promise.all([this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {})));
+      await Promise.all([previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
       await this.queue;
       try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.nativeTracks = [];this.subtitleAssets=[];this.fonts=[];this.settings.pause=true;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;

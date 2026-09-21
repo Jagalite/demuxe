@@ -79,5 +79,27 @@ test('destroy during local decode unloads its private video and revokes its URL'
  const video=Object.assign(new EventTarget(),{videoWidth:320,videoHeight:180,duration:10,currentTime:0,readyState:1,pause(){paused++;},removeAttribute(){},load(){unloaded++;}});
  Object.defineProperty(video,'src',{set(){queueMicrotask(()=>video.dispatchEvent(new Event('loadedmetadata')));}});
  const c=new PreviewController([new LocalVideoPreviewProvider(()=>new Blob(['media']),{createElement(){return video;}})],{debounceMs:0});
- try{const pending=c.getFrame({time:2}),rejected=aborted(pending);await delay(10);assert.equal(urls,1);c.destroy();await rejected;await delay(0);assert.equal(urls,0);assert.equal(paused,1);assert.equal(unloaded,1);}finally{c.destroy();URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;}
+ try{const pending=c.getFrame({time:2}),rejected=aborted(pending);await delay(10);assert.equal(urls,1);await c.destroy();await rejected;assert.equal(urls,0);assert.equal(paused,1);assert.equal(unloaded,1);}finally{c.destroy();URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;}
+});
+
+test('destroy waits for registered resource cleanup without waiting for an uncooperative result',async()=>{
+ let release,started;const ready=new Promise(resolve=>{started=resolve;});
+ const c=new PreviewController([provider(r=>{
+  r.trackCleanup(new Promise(resolve=>{release=resolve;}));started();return new Promise(()=>{});
+ })],{debounceMs:0});
+ const result=aborted(c.getFrame({time:0}));await ready;
+ let finished=false;const destruction=c.destroy().then(()=>{finished=true;});
+ await result;await delay(0);assert.equal(finished,false);
+ release();await destruction;assert.equal(finished,true);await c.destroy();
+});
+test('playback pressure cancels generation, retains cached images, and resumes cleanly',async()=>{
+ let calls=0,started;const ready=new Promise(resolve=>{started=resolve;});
+ const c=new PreviewController([provider(r=>{
+  calls++;if(r.time===0)return Promise.resolve(frame(0));
+  started();return new Promise((resolve,reject)=>r.signal.addEventListener('abort',()=>reject(r.signal.reason),{once:true}));
+ })],{debounceMs:0});
+ await c.getFrame({time:0});const pending=aborted(c.getFrame({time:1}));await ready;
+ c.setSuspended(true);await pending;
+ assert.equal((await c.getFrame({time:0})).cache,'hit');assert.equal(await c.getFrame({time:2}),null);assert.equal(calls,2);
+ c.setSuspended(false);assert.equal((await c.getFrame({time:0,width:9})).cache,'miss');await c.destroy();
 });

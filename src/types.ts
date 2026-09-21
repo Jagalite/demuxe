@@ -32,9 +32,10 @@ export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfil
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;
 export type BufferingResolution = {requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
-export type PreviewOptions = {bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
+export type PreviewPregeneration = readonly number[] | ({width?:number;height?:number;count?:number|null} & ({timestamps:readonly number[];every?:never;unit?:never}|{every:number;unit?:'seconds'|'minutes';timestamps?:never}));
+export type PreviewOptions = {pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
 export type PlayerOptions = {
-  preview?:PreviewOptions;
+  preview?:PreviewOptions|false;
   /** Automatic balanced buffering and auto preload when omitted. */
   buffering?: BufferingOptions;
   /** Package runtime root; includes web/ and fixtures/. Same-origin only. */

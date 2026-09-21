@@ -103,6 +103,14 @@ export declare class WasmPlayer extends EventTarget {
     openRemote(source: RemoteSource): Promise<void>;
     private waitForEvent;
     private openLocal;
+    waitForPreviewPresentation(): Promise<void>;
+    /** Snapshot only this private software surface after a completed presentation. */
+    previewSnapshot(): Promise<{
+        blob: Blob;
+        time: number;
+        width: number;
+        height: number;
+    }>;
     inspectMetadata(): Promise<void>;
     command(...args: string[]): Promise<void>;
     private setPause;

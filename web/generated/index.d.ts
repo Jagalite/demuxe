@@ -9,3 +9,5 @@ export type { PreloadPolicy, BufferingProfile, BufferingOptions, BufferingPolicy
 export { PreviewController } from './preview/controller.js';
 export type { PreviewMetrics, PreviewRequest, PreviewFrame, PreviewImage, PreviewResult, PreviewContext, PreviewProvider, PreviewOptions } from './preview/controller.js';
 export { AuthoredPreviewProvider, LocalVideoPreviewProvider } from './preview/providers.js';
+export { SoftwarePreviewProvider } from './preview/software.js';
+export type { PreviewPregeneration } from './types.js';

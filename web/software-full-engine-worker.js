@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 let audioChannels=2;
+let previewSnapshot;
 let YUVPresenter,uploader,gpuPauseIntent;
 function installPresenter(canvas,prior){
  uploader=new YUVPresenter(canvas);
@@ -132,6 +133,13 @@ function tick() {
       }
       copyMs+=performance.now()-copyStart;engine._web_presented();
       rendered++;sourceRendered++;presentedPosition=position;
+      if(previewSnapshot){
+        const id=previewSnapshot;previewSnapshot=undefined;
+        const time=presentedPosition,width=canvas.width,height=canvas.height;
+        canvas.convertToBlob({type:'image/jpeg',quality:.8}).then(blob=>{
+          if(!closing)post({type:'event',event:{event:'command-reply',id,result:{blob,time,width,height}}});
+        },error=>{if(!closing)post({type:'error',id,message:String(error)});});
+      }
     }
     ticks++;
     if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{softwarePresenter:uploader?'experimental-yuv':'rgb',yuv:uploader?{...uploader.stats}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});}
@@ -185,6 +193,9 @@ self.onmessage = async ({data}) => {
       Atomics.store(engine.HEAPU32, (nativeAudio >>> 2) + 6, +data.running);
     } else if (data.type === 'open-remote' || data.type === 'open-file') {await openRemote(data);
     } else if(data.type==='refreshed'){ioWorker?.postMessage(data);
+    } else if(data.type==='preview-snapshot'){
+      if(previewSnapshot)throw Error('Snapshot already pending');
+      previewSnapshot=data.id;force=true;busyUntil=performance.now()+300;schedulePump(0);
     } else if(data.type==='seek'){sourceRendered=0;pendingTarget=data.seconds;restarted=false;Atomics.store(audio,2,0);submit(data.id,['seek',String(data.seconds),'absolute+exact']);
     } else if (data.type === 'open') {
       sourceRendered=0;

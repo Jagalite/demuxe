@@ -68,6 +68,7 @@ export type PreviewContext = {
     exact: boolean;
     sourceId: string;
     publish: (frame: PreviewResult) => void;
+    trackCleanup?: (completion: Promise<void>) => void;
 };
 export interface PreviewProvider {
     readonly id: string;
@@ -79,6 +80,12 @@ export interface PreviewProvider {
  * no retained promise reactions to an uncooperative provider. */
 export declare class PreviewController {
     private providers;
+    private cleanups;
+    private destruction?;
+    private suspended;
+    private allowed;
+    private pregenerator?;
+    private lastForeground;
     private cache;
     private bytes;
     private sourceId;
@@ -91,6 +98,8 @@ export declare class PreviewController {
     private lastFailure?;
     private readonly options;
     constructor(providers?: readonly PreviewProvider[], options?: PreviewOptions);
+    get enabled(): boolean;
+    set enabled(value: boolean);
     get diagnostics(): {
         sourceId: string;
         cacheBytes: number;
@@ -107,12 +116,20 @@ export declare class PreviewController {
         cancelled: number;
     };
     setSourceIdentity(id: string): void;
+    /** Finite VOD duration admits configured source-scoped background generation. */
+    setDuration(duration: number | null): void;
     setProviders(providers: readonly PreviewProvider[]): void;
     addProvider(provider: PreviewProvider): () => void;
     private cancelJob;
     private settle;
+    private cancelWork;
+    /** Playback pressure cancels generation, but resident thumbnails remain usable. */
+    setSuspended(value: boolean): void;
+    private trackCleanup;
+    /** Await registered resource teardown, not arbitrary provider result promises. */
+    drain(): Promise<void>;
     clear(): void;
-    destroy(): void;
+    destroy(): Promise<void>;
     /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */
     prefetch(request: PreviewRequest): Promise<void>;
     getFrame(request: PreviewRequest): Promise<PreviewFrame | null>;
@@ -120,6 +137,7 @@ export declare class PreviewController {
     request(request: PreviewRequest & {
         onUpdate?: (frame: PreviewFrame) => void;
     }): Promise<PreviewFrame | null>;
+    private requestWork;
     private pump;
     private run;
     private validate;

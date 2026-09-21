@@ -86,7 +86,22 @@ export type BufferingResolution = {
     notes: string[];
     settings?: Record<string, unknown>;
 };
+export type PreviewPregeneration = readonly number[] | ({
+    width?: number;
+    height?: number;
+    count?: number | null;
+} & ({
+    timestamps: readonly number[];
+    every?: never;
+    unit?: never;
+} | {
+    every: number;
+    unit?: 'seconds' | 'minutes';
+    timestamps?: never;
+}));
 export type PreviewOptions = {
+    pregenerate?: PreviewPregeneration;
+    enabled?: boolean;
     bucketSeconds?: number;
     debounceMs?: number;
     width?: number;
@@ -95,7 +110,7 @@ export type PreviewOptions = {
     timeoutMs?: number;
 };
 export type PlayerOptions = {
-    preview?: PreviewOptions;
+    preview?: PreviewOptions | false;
     /** Automatic balanced buffering and auto preload when omitted. */
     buffering?: BufferingOptions;
     /** Package runtime root; includes web/ and fixtures/. Same-origin only. */

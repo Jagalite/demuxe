@@ -83,6 +83,7 @@ export declare class Player extends EventTarget {
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions): void;
     private schedulePublish;
     private sourceTracks;
+    private previewBuffering;
     private publish;
     private featureCapabilities;
     get mode(): "native" | "hybrid" | "software";

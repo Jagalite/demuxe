@@ -18,9 +18,11 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
     const start=performance.now();let mediaReadyMs=0,seekMs=0;const actualTime=null;
     const video=this.document.createElement('video');video.muted=true;video.preload='metadata';video.playsInline=true;
     const url=URL.createObjectURL(source);
+    let released!:()=>void;request.trackCleanup?.(new Promise<void>(resolve=>{released=resolve;}));
     const wait=(event:string,action:()=>void)=>new Promise<void>((resolve,reject)=>{
       const done=()=>{cleanup();resolve();},fail=()=>{cleanup();reject(new Error('Preview media decode failed'));},abort=()=>{cleanup();reject(new DOMException('Preview cancelled','AbortError'));};
-      const cleanup=()=>{video.removeEventListener(event,done);video.removeEventListener('error',fail);request.signal.removeEventListener('abort',abort);};
+      const timer=setTimeout(fail,1500);
+      const cleanup=()=>{clearTimeout(timer);video.removeEventListener(event,done);video.removeEventListener('error',fail);request.signal.removeEventListener('abort',abort);};
       video.addEventListener(event,done,{once:true});video.addEventListener('error',fail,{once:true});request.signal.addEventListener('abort',abort,{once:true});
       if(request.signal.aborted){abort();return;}try{action();}catch(error){cleanup();reject(error);}
     });
@@ -39,6 +41,6 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
       context.drawImage(video,0,0,width,height);
       const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.8));request.signal.throwIfAborted();
       return blob?{time:video.currentTime,width,height,image:{blob},path:this.id,actualTime,temporalAccuracy:'approximate',fidelity:'full',timestampKind:'media-time',metrics:{mediaReadyMs,seekMs,resizeConversionMs:performance.now()-conversionStart,bytesFetched:0,decodedFrames:null}}:null;
-    }finally{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url);}
+    }finally{try{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url);}finally{released?.();}}
   }
 }

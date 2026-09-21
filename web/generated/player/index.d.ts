@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Player } from '../unified-player.js';
-import type { MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
+import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
+    previews: "Timeline thumbnails";
     diagnostics: "Session diagnostics";
     moreOptions: "More options";
     back: "Seek backward 10 seconds";
@@ -140,6 +141,11 @@ export declare class DemuxePlayerElement extends Base {
     get player(): Player | undefined;
     get src(): string;
     set src(value: string);
+    private previewConfiguration?;
+    get previewOptions(): PreviewOptions | false | undefined;
+    set previewOptions(value: PreviewOptions | false | undefined);
+    get previewThumbnails(): boolean;
+    set previewThumbnails(value: boolean);
     get controls(): boolean;
     set controls(value: boolean);
     get autoplay(): boolean;

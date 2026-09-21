@@ -51,7 +51,7 @@ export class ResourceLoader {
           headers.delete('Range');headers.delete('If-Range');
           if(start!==undefined)headers.set('Range',`bytes=${start}-${end-1n}`);
           this.stats.requests++;
-          response=await fetch(url,{headers,credentials:this.options.credentials,redirect:'error',cache:'no-store',signal:controller.signal});
+          response=await fetch(url,{headers,credentials:this.options.credentials,redirect:'error',cache:'no-store',priority:this.options.priority??'auto',signal:controller.signal});
           if(response.status===401&&this.refresh&&!refreshed){
             await response.body?.cancel();refreshed=true;
             const update=await new Promise((resolve,reject)=>{

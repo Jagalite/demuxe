@@ -25,6 +25,70 @@ playback error/recovery pipeline. `player.diagnostics.preview` reports bounded
 counters, current work/cache occupancy and the last failing provider/error class.
 It deliberately does not retain error messages, signed URLs or a growing event log.
 
+## Disable controls and pre-generation
+
+The ready-made player's settings include **Timeline thumbnails**. Turning it off
+hides/cancels scrubber previews without disabling the API or background generation:
+
+```html
+<demuxe-player controls no-preview></demuxe-player>
+```
+
+```ts
+element.previewThumbnails = false; // UI only; true restores it
+const player = new Player(container, {preview: false}); // Entire preview API off
+player.preview.enabled = true;  // Restore the original provider routes
+player.preview.enabled = false; // Cancel work and clear images; getFrame returns null
+```
+
+Pre-generation is opt-in at initialization and starts after a finite-duration
+source opens. Choose a timestamp list (seconds) or an interval:
+
+```ts
+new Player(container, {
+  preview: {pregenerate: {timestamps: [10, 30, 60, 90], count: 3}},
+});
+new Player(container, {
+  preview: {pregenerate: {every: 30, unit: 'seconds', count: 20}},
+});
+new Player(container, {
+  preview: {pregenerate: {every: 2, unit: 'minutes'}}, // All candidates
+});
+```
+
+`count` is an optional positive integer limiting the number of candidate thumbnails.
+Omit it or set it to `null` (the equivalent of a blank field) to process **all**
+candidates. A list may also be written as `pregenerate: [10, 30, 60]`. Lists are
+sorted, bucket-deduplicated and restricted to the source duration; at most 10,000
+explicit input timestamps are accepted. Intervals start at zero and stop before
+the duration. Intervals finer than the configured time bucket share one decode.
+Unknown-duration and live sources are not automatically generated.
+
+The default pre-generated image size is 240×135, matching the scrubber. Override
+`width`/`height` inside `pregenerate` when warming another consumer's cache; requests
+must use matching dimensions to hit the same entries. A single background candidate
+runs at a time, with a 500 ms scheduling gap. Hover requests and playback operations
+or buffering take priority. Source changes reset the plan; destruction stops it.
+Failures remain non-fatal, so the count is a maximum, not a guaranteed image yield.
+
+**All does not mean unlimited retention:** the existing image cache limits still
+apply. New background images may evict older background images, but never entries
+already used by foreground requests. No persistent on-disk storyboard is created.
+
+For the custom element, set initialization options before connecting it:
+
+```ts
+const element = document.createElement('demuxe-player');
+element.previewOptions = {
+  pregenerate: {every: 1, unit: 'minutes', count: null},
+};
+document.body.append(element);
+```
+
+For an explicit one-off warmup, `await player.preview.prefetch({time: 60, width: 240,
+height: 135})` remains available. It declines while the controller is busy; it does
+not queue a batch. The configured pre-generation scheduler waits for idle slots.
+
 ## Time and spatial fidelity
 
 `requestedTime` is the caller's original position; `bucketTime` is the routed
@@ -66,11 +130,16 @@ The routing order is:
 2. Application-registered `AuthoredPreviewProvider` (priority 10).
 3. Active backend's Shaka image-track provider (20).
 4. `LocalVideoPreviewProvider`, independent browser decoding of local files (40).
-5. Registered fallback providers, or `null`.
+5. `SoftwarePreviewProvider`, isolated FFmpeg/mpv extraction (50).
+6. Registered fallback providers, or `null`.
 
 A provider implements `id`, `priority`, `canHandle(context)` and `getFrame(context)`.
 Context includes source identity, target dimensions, time, exact intent, signal and
-`publish(frame)`. `addProvider()` returns an idempotent removal function;
+`publish(frame)`. Resource-owning providers register a teardown-completion promise
+with optional `trackCleanup(completion)` before their first asynchronous operation,
+and settle it once their resources have been released. This is separate from the
+provider result promise, so an uncooperative optional provider cannot block player
+destruction merely by never returning a result. `addProvider()` returns an idempotent removal function;
 `setProviders()` replaces the route list. Both invalidate cached results.
 
 ```ts
@@ -116,10 +185,41 @@ this baseline does not duplicate those systems with a new parser or custom codec
 qualifies a host-only, source-scoped H.264 IDR storyboard job, explicitly excluding
 browser integration and unproven open GOPs. Its minimum-sample strategy is appropriate
 for a future indexed provider, but is not silently applied to browser seeks.
-There is no automatic Wasm/software preview fallback: the current playback engine
-owns an audio/rendering worker stack, not a qualified lightweight frame-extraction
-API. Unsupported local codecs and remote source-video generation return no preview
-unless a registered provider supports them.
+`SoftwarePreviewProvider` falls back to the existing FFmpeg/mpv software engine for
+local containers/codecs that the browser cannot decode, including HEVC and FFV1 in
+Matroska. A disposable worker tree and canvas belong exclusively to each extraction;
+it never receives the active playback backend. Audio and subtitles are disabled,
+video decoding uses one thread, and mpv opens at the requested region. The engine
+remains paused. Capture waits for playback-restart before reading its own rendered
+surface. The returned media clock is approximate; `actualTime` stays null because
+this interface does not expose the decoded frame PTS.
+
+The same provider accepts remote files and clear VOD manifests accepted by Demuxe's
+existing FFmpeg fallback policy. It uses a separate bounded byte/resource cache,
+low-priority fetches and no playback authorization-refresh callback. It cannot evict
+playback cache entries. Remote bytes are currently not shared with the playback
+worker. Live streams, encrypted/DRM media and explicit adaptive constraints unsupported
+by the fallback retain authored/Shaka thumbnails or return no generated preview.
+Audio-only inputs have no video frame to extract.
+
+The controller serializes extraction and awaits worker disposal before starting the
+next decode. Cancellation, source changes and destruction terminate the preview
+worker tree through the existing WasmPlayer containment boundary. `Player.close()`
+and `Player.destroy()` await registered preview teardown; the browser provider
+also registers its video/object-URL cleanup. `PreviewController.destroy()` returns
+a completion promise, while `drain()` joins already registered resource teardown.
+Playback buffering (including mpv `paused-for-cache`) suspends generation and
+cancels active work. Resident cache hits remain available, and generation resumes
+when playback no longer needs buffering. Images still use
+the bounded shared preview-image LRU. The browser provider has a 1.5-second wait
+limit per media event so unsupported inputs can fall through promptly.
+
+This baseline trades broader format coverage for software initialization cost and
+an additional Wasm heap. The 8 MiB packet budget is not a whole-engine memory cap;
+existing allocation/pixel limits still apply. It uses the existing audio-capable
+runtime with audio decoding disabled, not a new lightweight extraction binary.
+CPU/network priorities remain best-effort browser hints, not hard reservations.
+Progressive or compressed-domain decoding remains optional research.
 
 ## Shaka integration and network isolation
 

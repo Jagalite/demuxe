@@ -180,6 +180,11 @@ export class WasmPlayer extends EventTarget {
     if(file instanceof File)await Promise.all([loaded,this.request({type:'open-file',file})]);
     else {const bytes=file.slice(0);await Promise.all([loaded,this.request({type:'open',bytes},[bytes])]);}
   }
+  waitForPreviewPresentation():Promise<void> {return this.waitForEvent(event=>event.event==='playback-restart'||(event.event==='end-file'?new Error('No preview video frame'):false));}
+  /** Snapshot only this private software surface after a completed presentation. */
+  async previewSnapshot():Promise<{blob:Blob;time:number;width:number;height:number}> {
+    await this.ready;return this.request({type:'preview-snapshot'});
+  }
   async inspectMetadata() {
     const value=await this.request({type:'command',args:['expand-text','${seekable}']});
     if(value==='yes'||value==='no')this.properties.set('seekable',value==='yes');

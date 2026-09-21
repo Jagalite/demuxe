@@ -271,6 +271,12 @@ export class WasmPlayer extends EventTarget {
             await Promise.all([loaded, this.request({ type: 'open', bytes }, [bytes])]);
         }
     }
+    waitForPreviewPresentation() { return this.waitForEvent(event => event.event === 'playback-restart' || (event.event === 'end-file' ? new Error('No preview video frame') : false)); }
+    /** Snapshot only this private software surface after a completed presentation. */
+    async previewSnapshot() {
+        await this.ready;
+        return this.request({ type: 'preview-snapshot' });
+    }
     async inspectMetadata() {
         const value = await this.request({ type: 'command', args: ['expand-text', '${seekable}'] });
         if (value === 'yes' || value === 'no')
