@@ -6,3 +6,6 @@ export { PlayerError } from './internal/errors.js';
 export { PLAYER_EVENTS } from './types.js';
 export type { PlayerState, PlayerEventMap, PlayerEventName, PlayerCapabilities, FeatureAvailability, MediaInfo, MediaTrack, TimeRange, SessionError, PlayerErrorCode, OpenOptions, MediaSourceInput, PendingOperation, OperationKind } from './types.js';
 export type { PreloadPolicy, BufferingProfile, BufferingOptions, BufferingPolicy, BufferingCapabilities, BufferingResolution } from './types.js';
+export { PreviewController } from './preview/controller.js';
+export type { PreviewMetrics, PreviewRequest, PreviewFrame, PreviewImage, PreviewResult, PreviewContext, PreviewProvider, PreviewOptions } from './preview/controller.js';
+export { AuthoredPreviewProvider, LocalVideoPreviewProvider } from './preview/providers.js';

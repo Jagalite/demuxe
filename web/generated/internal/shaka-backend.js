@@ -3,6 +3,7 @@ import { bufferingPolicy, resolveBuffering, shakaBufferingOptions } from './buff
 import { NativePlayer } from './native-player.js';
 import { ShakaNetworkPolicy } from './shaka-network.js';
 import { PlayerError } from './errors.js';
+import { rasterizePreview } from '../preview/images.js';
 import { plainVTT } from './plain-vtt.js';
 const runtimes = new Map();
 function runtimeAt(base, signal) {
@@ -126,6 +127,71 @@ export class ShakaBackend extends EventTarget {
             this.listeners.push(() => this.native.removeEventListener(type, listener));
         }
         this.refresh();
+    }
+    /** Shaka owns image-track indexing. Return its authored reference without
+     * downloading a sprite through playback's network/error/ABR machinery. */
+    async previewFrame(request) {
+        const player = this.player;
+        if (!player || this.stopped)
+            return null;
+        request.signal.throwIfAborted();
+        const indexStart = performance.now();
+        // In pinned Shaka, clear DASH JPEG SegmentList/Template indexes are metadata
+        // only: SegmentBase/index templates reject non-MP4/WebM at manifest admission.
+        // HLS lazy playlists and other formats must already be indexed.
+        const streams = player.getManifest()?.imageStreams ?? [];
+        const eligible = streams.filter(stream => !stream.encrypted && (stream.segmentIndex ||
+            (this.source?.format === 'dash' && !player.isDynamic() && stream.mimeType === 'image/jpeg')));
+        const ids = new Set(eligible.map(stream => stream.id));
+        const tracks = player.getImageTracks().filter(track => ids.has(track.id));
+        if (!tracks.length)
+            return null;
+        const track = [...tracks].sort((a, b) => Math.abs((a.width ?? request.width) - request.width) - Math.abs((b.width ?? request.width) - request.width))[0];
+        const stream = eligible.find(stream => stream.id === track.id);
+        if (!stream.segmentIndex)
+            await stream.createSegmentIndex();
+        request.signal.throwIfAborted();
+        const thumbnail = await player.getThumbnails(track.id, request.time);
+        request.signal.throwIfAborted();
+        if (!thumbnail || this.stopped || player !== this.player)
+            return null;
+        const indexLookupMs = performance.now() - indexStart;
+        if (!this.runtime || !this.source || !this.policy)
+            return null;
+        const runtime = this.runtime, policy = this.policy.forkForPreview();
+        const type = runtime.net.NetworkingEngine.RequestType.SEGMENT;
+        const acquisitionStart = performance.now();
+        try {
+            for (const uri of thumbnail.uris) {
+                request.signal.throwIfAborted();
+                const networkRequest = runtime.net.NetworkingEngine.makeRequest([uri], { ...runtime.net.NetworkingEngine.defaultRetryParameters(), timeout: 5000, maxAttempts: 1 });
+                if (thumbnail.startByte || thumbnail.endByte !== null)
+                    networkRequest.headers.Range = `bytes=${thumbnail.startByte}-${thumbnail.endByte ?? ''}`;
+                policy.filter(type, networkRequest);
+                const operation = policy.plugin(uri, networkRequest, type, () => { }, () => { }, {});
+                const cancel = () => { void operation.abort(); };
+                request.signal.addEventListener('abort', cancel, { once: true });
+                try {
+                    const response = await operation.promise;
+                    request.signal.throwIfAborted();
+                    const bytes = new Uint8Array(response.data), byteAcquisitionMs = performance.now() - acquisitionStart, conversionStart = performance.now();
+                    const image = await rasterizePreview(new Blob([bytes], { type: thumbnail.mimeType ?? 'image/jpeg' }), request, { x: thumbnail.positionX, y: thumbnail.positionY, width: thumbnail.width, height: thumbnail.height });
+                    return { time: thumbnail.startTime, actualTime: thumbnail.startTime, width: image.width, height: image.height, path: 'shaka-image-track', timestampKind: 'interval', temporalAccuracy: 'approximate', fidelity: 'full', image: { blob: image.blob }, metrics: { indexLookupMs, byteAcquisitionMs, resizeConversionMs: performance.now() - conversionStart, bytesFetched: bytes.length, bytesRead: bytes.length } };
+                }
+                catch (error) {
+                    request.signal.throwIfAborted();
+                    if (uri === thumbnail.uris.at(-1))
+                        throw error;
+                }
+                finally {
+                    request.signal.removeEventListener('abort', cancel);
+                }
+            }
+            return null;
+        }
+        finally {
+            policy.destroy();
+        }
     }
     emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
     active() { if (this.stopped)

@@ -10,6 +10,7 @@ export declare class ShakaNetworkPolicy {
     private source;
     private runtime;
     private fetcher;
+    private preview;
     private requests;
     terminalError?: PlayerError;
     private active;
@@ -19,7 +20,7 @@ export declare class ShakaNetworkPolicy {
     private validators;
     private rangeTotals;
     private ownedBlobs;
-    constructor(source: RemoteSource, runtime: typeof Shaka, fetcher?: typeof fetch);
+    constructor(source: RemoteSource, runtime: typeof Shaka, fetcher?: typeof fetch, preview?: boolean);
     private checkHeaders;
     private checkActive;
     authorize(uri: string): string;
@@ -27,6 +28,8 @@ export declare class ShakaNetworkPolicy {
     private fail;
     readonly filter: Shaka.extern.RequestFilter;
     readonly plugin: Shaka.extern.SchemePlugin;
+    /** Preview has current credentials but never owns playback authorization renewal. */
+    forkForPreview(): ShakaNetworkPolicy;
     destroy(): void;
     get diagnostics(): {
         active: boolean;

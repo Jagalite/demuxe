@@ -59,6 +59,8 @@ export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 export declare class DemuxePlayerElement extends Base {
     static observedAttributes: string[];
     private core?;
+    private hoverPreview;
+    private previewIdentity;
     private queueItems;
     private queueIndex;
     private queueOperation?;

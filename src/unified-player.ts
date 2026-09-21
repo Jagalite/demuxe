@@ -16,6 +16,8 @@ import type {Probe, SelectionAttempt} from './internal/selection.js';
 import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions, ResourceLimits, MediaInputOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, TrackType, PlaybackEvent} from './types.js';
 import type {Backend, Session} from './internal/backend.js';
 
+import {PreviewController} from './preview/controller.js';
+import {LocalVideoPreviewProvider} from './preview/providers.js';
 type Source = {kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}};
 class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
@@ -37,6 +39,8 @@ const dimensions = (width: number, height: number) => {
 
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
 export class Player extends EventTarget {
+  readonly preview:PreviewController;
+  private previewSource?:Blob;
   readonly ready = Promise.resolve();
   private assetBase: URL;
   private buffering: BufferingPolicy;
@@ -103,6 +107,11 @@ export class Player extends EventTarget {
     this.buffering=bufferingPolicy(options.buffering);
     this.assetBase=runtimeBase(options.assetBase);
     if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement) throw new PlayerError('INVALID_ARGUMENT','Pass a container element; Player owns its video/canvas surface');
+    this.preview=new PreviewController([
+      {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
+        getFrame:request=>this.current?.backend.previewFrame?.(request)??Promise.resolve(null)},
+      new LocalVideoPreviewProvider(()=>this.busy||this.queued>0||this.observedWaiting?undefined:this.previewSource,container.ownerDocument,options.resourceLimits?.maxDecodePixels),
+    ],options.preview);
     this.currentMode = modeValue(options.mode ?? 'native');
     this.automatic = options.automaticSelection ?? options.mode === undefined;
     if(typeof this.automatic !== 'boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid automatic selection policy');
@@ -220,7 +229,7 @@ export class Player extends EventTarget {
     return diagnostics?.buffering??resolveBuffering(this.buffering,this.mode!=='native'?'mpv':diagnostics?.plan==='shaka-mse'?'shaka':usesRemuxTracks(diagnostics?.plan)?'remux':'browser');
   }
   get diagnostics(): Diagnostics {
-    return redact({buffering:this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
+    return redact({preview:this.preview.diagnostics,buffering:this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan,this.settings.af,this.settings.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, backend: this.current?.backend.diagnostics as Record<string, unknown> | undefined});
   }
   audioDiagnostics() {return this.current?.backend.audioDiagnostics();}
   private emit(type: string, detail: unknown) {
@@ -452,6 +461,8 @@ export class Player extends EventTarget {
       if(!preserve){this.sourceSerial++;this.publicSelections.clear();if(initialAudio)this.publicSelections.set('audio',`audio:stream:${initialAudio.index}`);}
       this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;
       this.acceptEvidence(planId,candidate);
+      this.preview.setSourceIdentity(`${this.sourceSerial}:${mode}`);
+      this.previewSource=source.kind==='local'?(source.file instanceof Blob?source.file:new Blob([source.file])):undefined;
       this.current = candidate;this.candidate = undefined;this.source = source;this.currentMode = mode;this.settings = desired;this.nativeTracks = nativeTracks;if(!preserve)this.subtitleAssets=[];
       // Acceptance is the cancellation boundary, including synchronous observers.
       // close/destroy still abort the internal controller during old-session cleanup.
@@ -844,6 +855,7 @@ export class Player extends EventTarget {
   close():Promise<void> {
     if(this.destroyed)return this.destruction!;
     if(this.closing)return this.closing;
+    this.preview.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
     this.operationEpoch++;this.activeOperation?.controller.abort();this.inspection?.abort();clearInterval(this.monitor);
     const cleanup=Promise.all([this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{})));
     this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.current=undefined;this.candidate=undefined;this.source=undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.nativeTracks=[];this.subtitleAssets=[];this.publicSelections.clear();this.settings={...this.settings,pause:true,aid:'auto',sid:'auto'};this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;},'closing').finally(()=>{this.closing=undefined;});
@@ -851,6 +863,7 @@ export class Player extends EventTarget {
   }
   destroy(): Promise<void> {
     if (this.destruction) return this.destruction;
+    this.preview.destroy();this.previewSource=undefined;
     this.destroyed = true;this.operationEpoch++;this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();clearInterval(this.monitor);
     this.destruction = (async () => {
       await Promise.all([this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {})));

@@ -32,7 +32,9 @@ export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfil
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;
 export type BufferingResolution = {requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
+export type PreviewOptions = {bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
 export type PlayerOptions = {
+  preview?:PreviewOptions;
   /** Automatic balanced buffering and auto preload when omitted. */
   buffering?: BufferingOptions;
   /** Package runtime root; includes web/ and fixtures/. Same-origin only. */
@@ -78,6 +80,7 @@ export type Capabilities = {
 };
 export type PlaybackEvent = {event: string; name?: string; data?: unknown; [key: string]: unknown};
 export type Diagnostics = {
+  preview?:{sourceId:string;cacheBytes:number;cacheEntries:number;requests:number;hits:number;failures:number;cancelled:number;active:boolean;pending:boolean;lastFailure?:{provider:string;kind:string}};
   buffering?: BufferingResolution;
   runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
   planAdmission?:Array<{id:string;mode:PlaybackMode;eligible:boolean;code?:string;reason?:string}>;

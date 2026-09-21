@@ -84,4 +84,6 @@ button{transition:background .16s,color .16s,border-color .16s,scale .18s var(--
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto;transition:none!important;animation:none!important}}
 
 @media(forced-colors:active){button,select,.shell,.settings{border:1px solid ButtonText}.transport .play{border-color:ButtonText}.stage{background:Canvas}.settings,.source-menu{background:Canvas}.timeline{appearance:auto;accent-color:Highlight}.icon-button,.time,.empty,.help{color:CanvasText}}
+.thumbnail-preview{position:absolute;bottom:calc(100% - 4px);transform:translateX(-50%);width:240px;max-width:100%;pointer-events:none;overflow:hidden;border-radius:6px;background:var(--demuxe-overlay-background);border:1px solid color-mix(in srgb,var(--demuxe-foreground) 20%,transparent);box-shadow:0 3px 12px #0008;text-align:center;font:12px/1.6 system-ui;color:var(--demuxe-foreground)}
+.thumbnail-preview[hidden]{display:none}.thumbnail-preview img{display:block;width:100%;max-height:135px;object-fit:contain}.thumbnail-preview span{display:block;padding:2px 6px}
 `;

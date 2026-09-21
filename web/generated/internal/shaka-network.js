@@ -25,6 +25,7 @@ export class ShakaNetworkPolicy {
     source;
     runtime;
     fetcher;
+    preview;
     requests = new Set();
     terminalError;
     active = true;
@@ -34,10 +35,11 @@ export class ShakaNetworkPolicy {
     validators = new Map();
     rangeTotals = new Map();
     ownedBlobs = new Set();
-    constructor(source, runtime, fetcher = globalThis.fetch.bind(globalThis)) {
+    constructor(source, runtime, fetcher = globalThis.fetch.bind(globalThis), preview = false) {
         this.source = source;
         this.runtime = runtime;
         this.fetcher = fetcher;
+        this.preview = preview;
         const root = new URL(source.url, globalThis.location?.href);
         this.allowed = new Set(source.allowedOrigins ?? [root.origin]);
         this.headers = { ...source.headers };
@@ -88,7 +90,7 @@ export class ShakaNetworkPolicy {
                 const headers = new Headers(request.headers);
                 for (const [name, value] of Object.entries(this.headers))
                     headers.set(name, value);
-                response = await this.fetcher(uri, { method: request.method, headers, body: request.body, signal: controller.signal, credentials: this.source.credentials ?? 'same-origin', redirect: 'error' });
+                response = await this.fetcher(uri, { method: request.method, headers, body: request.body, signal: controller.signal, credentials: this.source.credentials ?? 'same-origin', redirect: 'error', priority: this.preview ? 'low' : 'auto' });
                 this.checkActive();
                 if (response.status !== 401 && response.status !== 403)
                     break;
@@ -167,7 +169,7 @@ export class ShakaNetworkPolicy {
             else if (response.status === 206)
                 throw this.fail(new PlayerError('SOURCE_CHANGED', 'Unexpected partial streaming response'));
             const chunks = [];
-            const byteLimit = (type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 4 : 16) * 1024 * 1024;
+            const byteLimit = (this.preview ? 4 : type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 4 : 16) * 1024 * 1024;
             if (Number(headers['content-length']) > byteLimit)
                 throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Streaming resource exceeds the response byte budget'));
             let bytes = 0, last = performance.now();
@@ -250,6 +252,14 @@ export class ShakaNetworkPolicy {
         } });
         return new this.runtime.util.AbortableOperation(promise, async () => { controller.abort(); });
     };
+    /** Preview has current credentials but never owns playback authorization renewal. */
+    forkForPreview() {
+        this.checkActive();
+        const policy = new ShakaNetworkPolicy({ ...this.source, headers: { ...this.headers }, refreshAuthorization: undefined }, this.runtime, this.fetcher, true);
+        for (const uri of this.ownedBlobs)
+            policy.ownBlob(uri);
+        return policy;
+    }
     destroy() { if (!this.active)
         return; this.active = false; for (const controller of this.controllers)
         controller.abort(); this.controllers.clear(); this.requests.clear(); this.validators.clear(); this.rangeTotals.clear(); this.headers = {}; this.ownedBlobs.clear(); this.allowed.clear(); this.source = { url: '' }; }

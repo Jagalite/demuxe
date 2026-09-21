@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Diagnostics, TrackType } from './types.js';
+import { PreviewController } from './preview/controller.js';
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
 export declare class Player extends EventTarget {
+    readonly preview: PreviewController;
+    private previewSource?;
     readonly ready: Promise<void>;
     private assetBase;
     private buffering;

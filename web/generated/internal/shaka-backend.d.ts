@@ -27,6 +27,9 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private audioDisabled;
     private source?;
     constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy);
+    /** Shaka owns image-track indexing. Return its authored reference without
+     * downloading a sprite through playback's network/error/ABR machinery. */
+    previewFrame(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
     private emit;
     private active;
     private loaded;

@@ -8,6 +8,8 @@ import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
+import { PreviewController } from './preview/controller.js';
+import { LocalVideoPreviewProvider } from './preview/providers.js';
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
@@ -28,6 +30,8 @@ const dimensions = (width, height) => {
 };
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
 export class Player extends EventTarget {
+    preview;
+    previewSource;
     ready = Promise.resolve();
     assetBase;
     buffering;
@@ -95,6 +99,11 @@ export class Player extends EventTarget {
         this.assetBase = runtimeBase(options.assetBase);
         if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement)
             throw new PlayerError('INVALID_ARGUMENT', 'Pass a container element; Player owns its video/canvas surface');
+        this.preview = new PreviewController([
+            { id: 'shaka', priority: 20, canHandle: () => !!this.current?.backend.previewFrame,
+                getFrame: request => this.current?.backend.previewFrame?.(request) ?? Promise.resolve(null) },
+            new LocalVideoPreviewProvider(() => this.busy || this.queued > 0 || this.observedWaiting ? undefined : this.previewSource, container.ownerDocument, options.resourceLimits?.maxDecodePixels),
+        ], options.preview);
         this.currentMode = modeValue(options.mode ?? 'native');
         this.automatic = options.automaticSelection ?? options.mode === undefined;
         if (typeof this.automatic !== 'boolean')
@@ -253,7 +262,7 @@ export class Player extends EventTarget {
         return diagnostics?.buffering ?? resolveBuffering(this.buffering, this.mode !== 'native' ? 'mpv' : diagnostics?.plan === 'shaka-mse' ? 'shaka' : usesRemuxTracks(diagnostics?.plan) ? 'remux' : 'browser');
     }
     get diagnostics() {
-        return redact({ buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
+        return redact({ preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
     }
     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
     emit(type, detail) {
@@ -643,6 +652,8 @@ export class Player extends EventTarget {
             this.observedPlaying = false;
             this.observedWaiting = false;
             this.acceptEvidence(planId, candidate);
+            this.preview.setSourceIdentity(`${this.sourceSerial}:${mode}`);
+            this.previewSource = source.kind === 'local' ? (source.file instanceof Blob ? source.file : new Blob([source.file])) : undefined;
             this.current = candidate;
             this.candidate = undefined;
             this.source = source;
@@ -1282,6 +1293,8 @@ export class Player extends EventTarget {
             return this.destruction;
         if (this.closing)
             return this.closing;
+        this.preview.setSourceIdentity(`closed:${this.sourceSerial}`);
+        this.previewSource = undefined;
         this.operationEpoch++;
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
@@ -1293,6 +1306,8 @@ export class Player extends EventTarget {
     destroy() {
         if (this.destruction)
             return this.destruction;
+        this.preview.destroy();
+        this.previewSource = undefined;
         this.destroyed = true;
         this.operationEpoch++;
         this.activeOperation?.controller.abort();

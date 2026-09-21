@@ -13,9 +13,29 @@ export class RangeReader {
   }
   checkURL(value){const u=new URL(value);if(!['http:','https:'].includes(u.protocol)||u.username||u.password||!this.allow.has(u.origin))throw Error('Media origin is not allowed');}
   async open(){await this.read(0n,1);return {size:String(this.total),etag:this.etag};}
-  beginEpoch(){this.epoch++;this.operation?.abort(new DOMException('Superseded','AbortError'));this.controller?.abort();this.retryWake?.();this.stats.aborts++;}
+  beginEpoch(){this.previewReader?.close();this.epoch++;this.operation?.abort(new DOMException('Superseded','AbortError'));this.controller?.abort();this.retryWake?.();this.stats.aborts++;}
   close(){this.closed=true;this.beginEpoch();this.cache.clear();this.stats.cacheBytes=0;}
+  /** Copy resident bytes without touching playback LRU, epoch, or scheduling. */
+  peek(offset,capacity){
+    if(this.closed)return null;
+    if(typeof offset!=='bigint'||offset<0n||!Number.isInteger(capacity)||capacity<1||capacity>262144)throw Error('Invalid preview read');
+    for(const [key,bytes] of this.cache){const at=offset-BigInt(key);if(at>=0n&&at+BigInt(capacity)<=BigInt(bytes.length))return bytes.slice(Number(at),Number(at)+capacity);}
+    return null;
+  }
+  /** Optional background lane: one bounded request, no playback cache admission.
+   * Playback reads/epochs preempt it. Callers retry later; no internal queue.
+   * Must run in the reader's owner worker, not through playback seek commands. */
+  async readPreview(offset,capacity,{signal,allowFetch=false}={}){
+    if(signal?.aborted||this.closed)throw new DOMException('Preview cancelled','AbortError');
+    const cached=this.peek(offset,capacity);if(cached)return {bytes:cached,path:'cached-bytes'};
+    if(!allowFetch||this.busy||this.previewReader||this.total===undefined||(!this.etag&&!this.options.immutable))return null;
+    const reader=new RangeReader({...this.options,priority:'low',blockBytes:this.options.blockBytes,cacheBytes:this.options.blockBytes,identity:{size:String(this.total),etag:this.etag}}); // Preview must not occupy playback's auth-refresh mailbox.
+    this.previewReader=reader;const abort=()=>reader.close();signal?.addEventListener('abort',abort,{once:true});
+    try{const bytes=await reader.read(offset,capacity);if(signal?.aborted||reader.closed)throw new DOMException('Preview cancelled','AbortError');return {bytes:bytes.slice(),path:'fetched-bytes'};}
+    finally{signal?.removeEventListener('abort',abort);reader.close();if(this.previewReader===reader)this.previewReader=undefined;}
+  }
   async read(offset,capacity){
+    this.previewReader?.close();
     if(this.closed)throw Error('Range reader closed');
     if(this.busy)throw Error('Concurrent reads are not allowed');
     if(typeof offset!=='bigint'||offset<0n||!Number.isInteger(capacity)||capacity<1||capacity>262144)throw Error('Invalid read');
@@ -82,7 +102,7 @@ export class RangeReader {
         let end=start+BigInt(buffer.length)-1n;if(this.total!==undefined&&end>=this.total)end=this.total-1n;
         const headers=new Headers(this.options.headers);headers.set('Range',`bytes=${offset}-${end}`);if(this.etag)headers.set('If-Range',this.etag);
         this.checkURL(this.options.url);touch();this.stats.requests++;
-        response=await waitFor(fetch(this.options.url,{headers,credentials:this.options.credentials,redirect:'error',cache:'no-store',signal:controller.signal}));
+        response=await waitFor(fetch(this.options.url,{headers,credentials:this.options.credentials,redirect:'error',cache:'no-store',priority:this.options.priority??'auto',signal:controller.signal}));
         if(response.status===401&&!refreshed&&this.refresh){
           await waitFor(response.body?.cancel());clearTimeout(timer);const update=await waitFor(this.refresh());
           this.checkURL(update.url||this.options.url);this.options={...this.options,...update};refreshed=true;continue;

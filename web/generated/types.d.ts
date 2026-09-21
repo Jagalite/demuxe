@@ -86,7 +86,16 @@ export type BufferingResolution = {
     notes: string[];
     settings?: Record<string, unknown>;
 };
+export type PreviewOptions = {
+    bucketSeconds?: number;
+    debounceMs?: number;
+    width?: number;
+    maxCacheBytes?: number;
+    maxEntries?: number;
+    timeoutMs?: number;
+};
 export type PlayerOptions = {
+    preview?: PreviewOptions;
     /** Automatic balanced buffering and auto preload when omitted. */
     buffering?: BufferingOptions;
     /** Package runtime root; includes web/ and fixtures/. Same-origin only. */
@@ -137,6 +146,21 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    preview?: {
+        sourceId: string;
+        cacheBytes: number;
+        cacheEntries: number;
+        requests: number;
+        hits: number;
+        failures: number;
+        cancelled: number;
+        active: boolean;
+        pending: boolean;
+        lastFailure?: {
+            provider: string;
+            kind: string;
+        };
+    };
     buffering?: BufferingResolution;
     runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
     planAdmission?: Array<{

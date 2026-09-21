@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+import type {PreviewContext,PreviewProvider,PreviewResult} from './controller.js';
+/** Host-authored storyboards can return encoded tiles or references without a decoder. */
+export class AuthoredPreviewProvider implements PreviewProvider {
+  readonly id='authored';readonly priority=10;
+  constructor(private lookup:(request:PreviewContext)=>Promise<PreviewResult|null>,private sourceId?:string){}
+  canHandle(request:PreviewContext){return this.sourceId===undefined||request.sourceId===this.sourceId;}
+  getFrame(request:PreviewContext){return this.lookup(request);}
+}
+/** Uses a separate muted media element and the browser's existing demux/decoder.
+ * Local Blob inputs only: no uncontrolled second remote buffering stack. */
+export class LocalVideoPreviewProvider implements PreviewProvider {
+  readonly id='local-browser';readonly priority=40;
+  constructor(private source:()=>Blob|undefined,private document:Document,private maxDecodePixels=8294400){}
+  canHandle(){return !!this.source();}
+  async getFrame(request:PreviewContext):Promise<PreviewResult|null>{
+    const source=this.source();if(!source)return null;
+    const start=performance.now();let mediaReadyMs=0,seekMs=0;const actualTime=null;
+    const video=this.document.createElement('video');video.muted=true;video.preload='metadata';video.playsInline=true;
+    const url=URL.createObjectURL(source);
+    const wait=(event:string,action:()=>void)=>new Promise<void>((resolve,reject)=>{
+      const done=()=>{cleanup();resolve();},fail=()=>{cleanup();reject(new Error('Preview media decode failed'));},abort=()=>{cleanup();reject(new DOMException('Preview cancelled','AbortError'));};
+      const cleanup=()=>{video.removeEventListener(event,done);video.removeEventListener('error',fail);request.signal.removeEventListener('abort',abort);};
+      video.addEventListener(event,done,{once:true});video.addEventListener('error',fail,{once:true});request.signal.addEventListener('abort',abort,{once:true});
+      if(request.signal.aborted){abort();return;}try{action();}catch(error){cleanup();reject(error);}
+    });
+    try{
+      await wait('loadedmetadata',()=>{video.src=url;});
+      if(!video.videoWidth||!video.videoHeight||video.videoWidth*video.videoHeight>this.maxDecodePixels||!Number.isFinite(video.duration)||video.duration<=0)return null;
+      mediaReadyMs=performance.now()-start;const seekStart=performance.now();
+      const time=Math.min(request.time,Math.max(0,video.duration-.001));
+      if(time!==video.currentTime)await wait('seeked',()=>{video.currentTime=time;});
+      else if(video.readyState<2)await wait('loadeddata',()=>{video.preload='auto';});
+      seekMs=performance.now()-seekStart;request.signal.throwIfAborted();const conversionStart=performance.now();
+      const scale=Math.min(request.width/video.videoWidth,(request.height??2048)/video.videoHeight,1);
+      const width=Math.max(1,Math.round(video.videoWidth*scale)),height=Math.max(1,Math.round(video.videoHeight*scale));
+      const canvas=this.document.createElement('canvas');canvas.width=width;canvas.height=height;
+      const context=canvas.getContext('2d');if(!context)return null;
+      context.drawImage(video,0,0,width,height);
+      const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.8));request.signal.throwIfAborted();
+      return blob?{time:video.currentTime,width,height,image:{blob},path:this.id,actualTime,temporalAccuracy:'approximate',fidelity:'full',timestampKind:'media-time',metrics:{mediaReadyMs,seekMs,resizeConversionMs:performance.now()-conversionStart,bytesFetched:0,decodedFrames:null}}:null;
+    }finally{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url);}
+  }
+}

@@ -7,6 +7,8 @@
     "build": "node scripts/copy-shaka-assets.mjs && tsc && python3 scripts/check-licenses.py --stamp-generated",
     "build:engine": "bash scripts/build.sh",
     "dev": "node scripts/serve.mjs",
+    "benchmark:preview": "node tests/preview-benchmark.mjs",
+    "test:preview": "npm run build && node --test tests/preview.mjs tests/preview-range.mjs tests/shaka-backend.mjs tests/shaka-network.mjs && node tests/preview-browser.mjs && node tests/preview-ui.mjs && node tests/preview-shaka-browser.mjs",
     "test:demo": "node tests/player-component.mjs",
     "test": "node --test tests/audio-worklet.mjs tests/retained-video.mjs tests/timing-coalescing.mjs && node tests/player-api.mjs",
     "dev:media": "node scripts/media-server.mjs",

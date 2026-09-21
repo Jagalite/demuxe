@@ -68,7 +68,7 @@ keyboard shortcuts, and optional session diagnostics. Local files stay in the
 browser. The runtime never uploads them.
 
 See [the public API](docs/PUBLIC-API.md), [component contract](docs/PLAYER-COMPONENT.md),
-[migration notes](docs/API-MIGRATION.md), and [beta limits](docs/BETA.md).
+[migration notes](docs/API-MIGRATION.md), [previews](docs/PREVIEWS.md), and [beta limits](docs/BETA.md).
 
 ## Representative head-to-head media evidence
 

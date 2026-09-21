@@ -129,3 +129,26 @@ test('Native preload maps literally and only promises hint control',async()=>{
   try{assert.equal(v.preload,preload);assert.equal(p.diagnostics.buffering.control,'hint');assert.equal(p.diagnostics.buffering.preload,preload);}finally{await p.destroy();}
  }
 });
+
+test('preview uses indexed Shaka tracks and isolated image transport without moving playback',async()=>{
+ const v=video(),backend=new ShakaBackend(v,new URL('https://app.test/'));
+ const fetcher=globalThis.fetch,bitmap=globalThis.createImageBitmap,canvas=globalThis.OffscreenCanvas;
+ try{await backend.openRemote(source);v.currentTime=7;
+ runtime.net.NetworkingEngine.RequestType.SEGMENT=1;
+ runtime.net.NetworkingEngine.defaultRetryParameters=()=>({timeout:5000});
+ runtime.net.NetworkingEngine.makeRequest=uris=>({uris,headers:{},method:'GET',retryParameters:{timeout:5000}});
+ runtime.util.AbortableOperation=class {constructor(promise,abort){this.promise=promise;this.abort=abort;}};
+ let closed=0;globalThis.createImageBitmap=async()=>({width:640,height:360,close(){closed++;}});
+ globalThis.OffscreenCanvas=class{getContext(){return {drawImage(){}};}async convertToBlob(){return new Blob(['jpg']);}};
+ globalThis.fetch=async(url,init)=>{assert.equal(init.priority,'low');return new Response(new Uint8Array([1,2]),{status:200});};
+ backend.policy.fetcher=globalThis.fetch;
+ backend.player.getManifest=()=>({imageStreams:[{id:12,segmentIndex:{}}]});
+ backend.player.getImageTracks=()=>[{id:12,width:160}];
+ backend.player.getThumbnails=async(id,time)=>{assert.equal(id,12);assert.equal(time,21);return {startTime:20,width:160,height:90,positionX:320,positionY:90,uris:['https://media.test/sprite.jpg'],startByte:0,endByte:null};};
+ const frame=await backend.previewFrame({time:21,width:160,signal:new AbortController().signal});
+ assert.equal(frame.actualTime,20);assert.equal(frame.path,'shaka-image-track');assert.ok(frame.image.blob instanceof Blob);assert.equal(closed,1);assert.equal(v.currentTime,7);assert.equal(v.paused,true);
+ globalThis.fetch=async()=>new Response(null,{status:403});backend.policy.fetcher=globalThis.fetch;await assert.rejects(backend.previewFrame({time:21,width:160,signal:new AbortController().signal}));assert.equal(backend.policy.terminalError,undefined);assert.equal(v.currentTime,7);
+ backend.player.getManifest=()=>({imageStreams:[{id:12,segmentIndex:null}]});backend.player.getThumbnails=()=>{throw Error('must not initialize lazy index');};
+ assert.equal(await backend.previewFrame({time:0,width:160,signal:new AbortController().signal}),null);
+ }finally{globalThis.fetch=fetcher;globalThis.createImageBitmap=bitmap;globalThis.OffscreenCanvas=canvas;await backend.destroy();}
+});
