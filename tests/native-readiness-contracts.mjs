@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
+import {bufferingPolicy} from '../web/generated/internal/buffering.js';
 import {PlayerError,playerError} from '../web/generated/internal/errors.js';
 import {compatibilityFailure} from '../web/generated/internal/runtime-capability.js';
 import {StartupEvidenceTimeout} from '../web/generated/internal/runtime-capability.js';
-function candidate(overrides={}){const p=Object.create(NativePlayer.prototype);Object.assign(p,{stopped:false,capability:{},cancelers:new Set(),video:{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,error:null,getVideoPlaybackQuality:()=>({totalVideoFrames:0}),cancelVideoFrameCallback(){},...overrides}});return p;}
+function candidate(overrides={}){const p=Object.create(NativePlayer.prototype);Object.assign(p,{buffering:bufferingPolicy(),stopped:false,capability:{},cancelers:new Set(),video:{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,error:null,getVideoPlaybackQuality:()=>({totalVideoFrames:0}),cancelVideoFrameCallback(){},...overrides}});return p;}
 test('paused current-data preparation does not require vendor counters or presentation',async()=>{const p=candidate();await p.verifyStartup({video:true,audio:true});assert.equal(p.capability.prepared,true);assert.notEqual(p.capability.videoPresented,true);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.cancelers.size,0);});
 // Avoid reading unrelated full Native diagnostics in these focused backend tests.
 
