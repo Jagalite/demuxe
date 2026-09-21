@@ -140,3 +140,28 @@ The former [streaming architecture](STREAMING-ARCHITECTURE.md),
 [modernization status](STREAMING-MODERNIZATION-STATUS.md),
 [upstream study](STREAMING-UPSTREAM-FINDINGS.md) and
 `experiments/streaming-modernization/` remain historical research only.
+
+## Portable buffering policy
+
+Demuxe buffering is enabled automatically. `balanced` and `preload: 'auto'` are
+the zero-configuration defaults. Browser, Shaka, Remux and mpv retain their own
+buffering mechanisms; Demuxe translates application intent rather than scheduling
+all media through a universal buffer manager.
+
+Balanced Shaka preserves its production buffering configuration (bundled 5.2.11:
+10 s goal, 0 s rebuffer goal, 30 s history). Low-latency reduces forward/history
+goals to 3/3 s; resilient raises the forward goal to 30 s. ABR, retries, live/DVR,
+segment availability, and MSE eviction stay Shaka-owned. Shaka can exceed a goal
+by segment granularity. Profiles do not activate low-latency manifest protocols.
+
+Hybrid/Software use mpv caching by default: 32 MiB forward packet budget and
+8 MiB backward packet budget. mpv owns refill, seek reuse and cache pausing;
+cache diagnostics are not presentation-ready buffered ranges. Browser stream
+bridging retains its separate source-byte cache and bounded read mailbox.
+Playback Range reads have an absolute 45-second retry window, permitting recovery
+from an 18-second outage; close and source epochs abort immediately. Standalone
+RangeReader consumers retain the 15-second default. There is no unbounded
+retry or promise of surviving arbitrarily long network loss.
+
+See [PUBLIC-API.md](PUBLIC-API.md#automatic-buffering) for preload limits and
+[BUFFERING.md](BUFFERING.md) for resolved diagnostics and qualification.

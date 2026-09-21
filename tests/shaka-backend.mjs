@@ -110,3 +110,22 @@ test('cancellation removes a queued execution script, its listeners and blob URL
     await backend.destroy();await rejected;assert.equal(removed,true);assert.equal(script.onload,null);assert.equal(script.onerror,null);assert.deepEqual(revoked,[script.src]);
   }finally{await backend.destroy();globalThis.document=doc;URL.revokeObjectURL=revoke;}
 });
+
+test('portable buffering preserves Shaka defaults and delegates profile goals',async()=>{
+ const {bufferingPolicy}=await import('../web/generated/internal/buffering.js');
+ for(const [profile,expected] of [['balanced',{}],['low-latency',{bufferingGoal:3,bufferBehind:3}],['resilient',{bufferingGoal:30}]]){
+  const backend=new ShakaBackend(video(),new URL('https://app.test/'),bufferingPolicy({profile}));
+  try{await backend.openRemote(source);assert.deepEqual(backend.player.config.streaming,expected);assert.equal(backend.diagnostics.buffering.backend,'shaka');
+   backend.player.isBuffering=()=>true;backend.player.dispatchEvent(new Event('buffering'));assert.equal(backend.properties.get('paused-for-cache'),true);
+   backend.player.isBuffering=()=>false;backend.player.dispatchEvent(new Event('buffering'));assert.equal(backend.properties.get('paused-for-cache'),false);
+  }finally{await backend.destroy();}
+ }
+});
+test('Native preload maps literally and only promises hint control',async()=>{
+ const {NativePlayer}=await import('../web/generated/internal/native-player.js');
+ const {bufferingPolicy}=await import('../web/generated/internal/buffering.js');
+ for(const preload of ['none','metadata','auto']){
+  const v=video(),p=new NativePlayer(v,'never',new URL('https://app.test/'),false,undefined,undefined,false,[],undefined,bufferingPolicy({preload}));
+  try{assert.equal(v.preload,preload);assert.equal(p.diagnostics.buffering.control,'hint');assert.equal(p.diagnostics.buffering.preload,preload);}finally{await p.destroy();}
+ }
+});

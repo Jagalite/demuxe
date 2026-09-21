@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
 import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted } from './internal/runtime-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
@@ -29,6 +30,7 @@ const dimensions = (width, height) => {
 export class Player extends EventTarget {
     ready = Promise.resolve();
     assetBase;
+    buffering;
     snapshot;
     subscribers = new Set();
     publishQueued = false;
@@ -89,6 +91,7 @@ export class Player extends EventTarget {
         super();
         if (typeof HTMLElement === 'undefined')
             throw new PlayerError('INVALID_ARGUMENT', 'Player construction requires a browser');
+        this.buffering = bufferingPolicy(options.buffering);
         this.assetBase = runtimeBase(options.assetBase);
         if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement)
             throw new PlayerError('INVALID_ARGUMENT', 'Pass a container element; Player owns its video/canvas surface');
@@ -186,7 +189,7 @@ export class Player extends EventTarget {
         const cache = p.get('demuxer-cache-state');
         const seekable = !this.current ? null : this.mode === 'native' ? ranges(p.get('native-seekable')) : live ? ranges(cache?.['seekable-ranges']) : p.get('seekable') === false ? [] : p.get('seekable') === true && duration !== null ? [{ start: 0, end: duration }] : null;
         const caps = this.featureCapabilities(seekable, list.filter(t => t.type === 'audio').length, list.filter(t => t.type === 'subtitle').length);
-        const status = !this.current ? (this.sessionError ? 'error' : 'idle') : this.sessionError ? 'error' : p.get('eof-reached') === true ? 'ended' : this.settings.pause || p.get('pause') === true ? 'paused' : this.observedWaiting || p.get('paused-for-cache') === true ? 'buffering' : this.observedPlaying ? 'playing' : 'paused';
+        const status = !this.current ? (this.sessionError ? 'error' : 'idle') : this.sessionError ? 'error' : p.get('eof-reached') === true ? 'ended' : this.settings.pause || p.get('pause') === true ? 'paused' : this.observedWaiting || p.get('paused-for-cache') === true || p.get('native-waiting') === true ? 'buffering' : this.observedPlaying ? 'playing' : 'paused';
         const next = { status, playbackIntent: this.settings.pause ? 'pause' : 'play', pendingOperation: this.pendingOperation, sourceId: this.current ? this.sourceSerial : null,
             currentTime: Math.max(0, Number(p.get('time-pos')) || 0), duration, streamType, subtitlesVisible: this.settings.subtitles, volume: this.settings.volume / 100, muted: this.muted, playbackRate: this.settings.speed,
             activeMode: this.current ? this.mode : null, automaticSelection: this.automatic, buffered: this.mode === 'native' && this.current ? ranges(p.get('native-buffered')) : null, seekable,
@@ -228,7 +231,8 @@ export class Player extends EventTarget {
         const unknown = { availability: 'unknown', reason: 'Open a source to establish availability' };
         const nativeOverlay = this.nativeASS && isolated && this.current?.backend.diagnostics?.plan !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
         const route = (mode) => !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
-        return { ...this.legacyCapabilities, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
+        const resolution = this.bufferingResolution();
+        return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
                 seek: seekable === null ? { availability: 'unknown', reason: 'Seek window has not been established' } : seekable.length ? available : unavailable('The source currently has no seekable time range'),
                 audioTracks: !this.current ? unknown : audio ? available : unavailable('Audio track selection is not exposed by this source/browser'),
                 subtitleTracks: !this.current ? unknown : sub ? available : unavailable('No subtitle tracks are available'),
@@ -244,8 +248,12 @@ export class Player extends EventTarget {
     get legacyCapabilities() {
         return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native', externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.current?.backend.diagnostics?.plan === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
     }
+    bufferingResolution() {
+        const diagnostics = this.current?.backend.diagnostics;
+        return diagnostics?.buffering ?? resolveBuffering(this.buffering, this.mode !== 'native' ? 'mpv' : diagnostics?.plan === 'shaka-mse' ? 'shaka' : usesRemuxTracks(diagnostics?.plan) ? 'remux' : 'browser');
+    }
     get diagnostics() {
-        return redact({ mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
+        return redact({ buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
     }
     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
     emit(type, detail) {
@@ -346,7 +354,7 @@ export class Player extends EventTarget {
         this.assertOperation();
         this.root.append(surface);
         try {
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId) : new module.WasmPlayer(surface, { mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase });
         }
         catch (error) {
             surface.remove();

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import type { BufferingPolicy } from '../types.js';
 import type { Backend } from './backend.js';
 import type { RemoteSource, TextTrackSource, SubtitleAsset, TrackType } from '../types.js';
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
@@ -6,6 +7,7 @@ import type { RemoteSource, TextTrackSource, SubtitleAsset, TrackType } from '..
 export declare class ShakaBackend extends EventTarget implements Backend {
     private video;
     private assetBase;
+    private buffering;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private native;
@@ -24,7 +26,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private selectedSub;
     private audioDisabled;
     private source?;
-    constructor(video: HTMLVideoElement, assetBase?: URL);
+    constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy);
     private emit;
     private active;
     private loaded;

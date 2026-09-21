@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
 export type PlayerEvent = {
     event: string;
@@ -24,6 +25,7 @@ export type RemoteSource = MediaInputOptions & {
     }>;
 };
 export type PlayerDiagnostics = {
+    buffering?: BufferingResolution;
     path: 'wasm';
     presentation?: {
         position?: number;
@@ -77,10 +79,13 @@ export declare class WasmPlayer extends EventTarget {
     private requestedOutput;
     private deviceChannels;
     diagnostics?: PlayerDiagnostics;
+    private buffering;
+    private bufferingSettings;
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    constructor(canvas: HTMLCanvasElement, { disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase }?: {
+    constructor(canvas: HTMLCanvasElement, { buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase }?: {
+        buffering?: BufferingPolicy;
         assetBase?: URL;
         audioOutput?: AudioOutput;
         audioFallback?: 'stereo' | 'reject';
@@ -101,6 +106,7 @@ export declare class WasmPlayer extends EventTarget {
     inspectMetadata(): Promise<void>;
     command(...args: string[]): Promise<void>;
     private setPause;
+    private configureBuffering;
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<any>;

@@ -4,6 +4,8 @@
 <h1>Custom controls</h1><p>This example uses only normalized public state and commands.</p><input type="file" aria-label="Open media"><div id="surface"></div><button id="play">Play</button><input id="seek" type="range" min="0" max="1" value="0" step=".1" aria-label="Seek"><output id="time">No media</output><p id="status" role="status"></p>
 <script type="module">
 import {Player} from '../index.js';
+// Buffering is automatic: balanced profile + auto preload.
+// Optional intent: new Player(container, {buffering: {profile: 'resilient'}}).
 const player=window.player=new Player(document.querySelector('#surface'));
 let preview=false;
 const seek=document.querySelector('#seek'),play=document.querySelector('#play');

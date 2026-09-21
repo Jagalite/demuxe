@@ -77,3 +77,16 @@ test('successful completion clears the operation deadline and keeps the cache re
   await advance(30000);assert.equal(aborts,0);assert.equal(r.operation,null);assert.equal(r.controller,null);
   assert.equal((await r.read(5n,10))[0],3);assert.equal(r.stats.requests,1);r.close();
 });
+
+test('playback read window survives 18 seconds but retains an absolute 45-second bound',async t=>{
+ const advance=clock(t),state=trickle(t,{chunk:1}),r=new RangeReader({...options,readDeadlineMs:45000});
+ let settled=false;const read=assert.rejects(r.read(0n,1024),/deadline exceeded/).then(()=>settled=true);await turn();
+ for(let i=0;i<24;i++)await advance(750);
+ assert.equal(settled,false);assert.equal(state.aborts,0);
+ for(let i=0;i<36;i++)await advance(750);
+ await read;assert.equal(settled,true);assert.equal(r.stats.activeBytes,0);r.close();
+});
+for(const action of ['close','beginEpoch'])test(`extended playback deadline does not delay ${action}`,async t=>{
+ const advance=clock(t),state=trickle(t),r=new RangeReader({...options,readDeadlineMs:45000});
+ const read=assert.rejects(r.read(0n,1024),{name:'AbortError'});await turn();await advance(750);r[action]();await read;assert.equal(state.aborts,1);assert.equal(r.stats.activeBytes,0);r.close();
+});

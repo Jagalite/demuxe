@@ -92,9 +92,13 @@ The beta worker lets an in-flight bounded read finish when mpv seeks. Previously
 seek hook interrupted `stream_cb` in the middle of a packet, allowing FFmpeg to
 receive truncated data; controlled RGB and YUV tests reproduced this. Source
 replacement and destruction still cancel I/O. A seek may now wait for the active
-read, and each uncached range-read operation has an absolute 15-second deadline across
+read. Playback workers give each uncached range-read operation an absolute
+45-second deadline across
 headers, body progress, retries and credential refresh. The 1.2-second idle watchdog
 is separate and cannot extend that deadline. A deadline fails the read with an
 explicit transport error; it never returns a partial packet or a false EOF. This
-is a per-read bound, not a 15-second bound on an entire seek or open operation. This correction
+is a per-read bound, not a bound on an entire seek or open operation. Generic
+RangeReader consumers retain the 15-second default. See
+[buffering qualification](BUFFERING-VALIDATION.md) for the playback retry-window
+change and interruption tests. This correction
 does not promote YUV or establish physical A/V/endurance qualification.

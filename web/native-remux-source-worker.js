@@ -12,7 +12,7 @@ self.onmessage=async({data})=>{
   file=data.file;
   let size,identity;
   if(file){reader=new LocalFileReader(file);size=Number((await reader.open()).size);}
-  else{reader=new RangeReader({...data.options,cacheBytes:2*1024*1024,blockBytes:65536},resource=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Authorization refresh timeout')),5000);refreshPending={resolve,reject,timer};postMessage({type:'refresh',resource});}));if(data.identity){reader.etag=data.identity.etag;reader.total=BigInt(data.identity.size);}
+  else{reader=new RangeReader({...data.options,cacheBytes:2*1024*1024,blockBytes:65536,readDeadlineMs:45000},resource=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Authorization refresh timeout')),5000);refreshPending={resolve,reject,timer};postMessage({type:'refresh',resource});}));if(data.identity){reader.etag=data.identity.etag;reader.total=BigInt(data.identity.size);}
    identity=await reader.open();size=Number(identity.size);}
   postMessage({type:'ready',size,identity});
   while(!stopped){

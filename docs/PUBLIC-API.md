@@ -24,6 +24,66 @@ availability, open(string | URL | RemoteSource), AbortSignal open options,
 setVolume(0–1), setMuted, setPlaybackRate, stable public track selections, close,
 assetBase. These are additive; legacy volume and rate units do not change.
 
+## Automatic buffering
+
+Demuxe buffering is enabled automatically. `balanced` is the default. Each
+playback backend uses its own buffering implementation, configured by Demuxe
+according to portable application intent. No buffer scheduler is shared between engines.
+
+```ts
+const player = new Player(container); // balanced + auto; no configuration needed
+const resilient = new Player(otherContainer, {
+  buffering: {preload: 'auto', profile: 'resilient'},
+});
+```
+
+`buffering.preload` accepts `none`, `metadata`, or `auto` (default).
+`buffering.profile` accepts `low-latency`, `balanced` (default), or `resilient`.
+Profiles express startup/memory versus interruption-tolerance intent, not equal
+buffer durations across engines. Options are fixed for a player lifetime and
+reapplied across backend changes, source replacement and close/open.
+
+`auto` prepares media for reliable startup and smooth playback using the engine's
+normal bounded policy; it is not a request to download an entire source. A small
+file may nevertheless fit in cache. Native Direct is only a browser hint and the
+browser may fetch the whole file. Demuxe does not impose fake limits on it.
+
+`open()` still promises metadata and backend preparation. With `none`, Direct
+uses a metadata hint during explicit open, then restores `preload="none"`;
+`metadata` remains a metadata hint. Browser startup/output verification on `play()`
+remains intact. mpv and Shaka need initial packets/segments to prepare a candidate;
+`none` and `metadata` reduce speculative preload to a one-second target there,
+then restore the profile on play. Remux similarly limits paused preparation.
+These are not zero-transfer guarantees or exact byte/time caps.
+
+Optional `memoryBudget` is an integer coded-data budget ceiling in bytes, 8–64 MiB.
+It can reduce a profile allocation; a larger ceiling does not enlarge that profile. It is
+not a whole-player, Wasm heap, browser decoder, or network-cache memory limit.
+mpv divides it between forward packets and bounded history; Remux caps its coded
+data accounting at the smaller of this value and 12 MiB, plus an in-flight
+fragment. Browser/Shaka cannot enforce byte budgets and disclose that limitation.
+Normal users should omit it. Engine-specific expert overrides are deferred.
+
+| Backend | low-latency | balanced | resilient |
+| --- | --- | --- | --- |
+| Native Direct | Browser preload hint | Browser preload hint | Browser preload hint |
+| Shaka | 3 s forward goal, 3 s history | Shaka production defaults | 30 s forward goal |
+| Hybrid / Software | mpv cache, 8/2 MiB forward/back | **mpv cache enabled, 32/8 MiB forward/back** | mpv cache, 48/8 MiB forward/back |
+| Native Remux | 2 s forward, 1 s history | 5 s forward, 3 s history | 10 s forward, 3 s history |
+
+Remux forward targets grow with playback rates above 1× while playing; slower
+playback and paused preload retain the base target. Byte ceilings, RAP-safe eviction, bounded fragment production and existing
+unequal-track safety guards take precedence. mpv packet size granularity and
+unused-forward donation mean actual packet history is not an exact 8 MiB cap.
+No profile changes decoding, retained video queues, or the audio ring.
+
+`player.capabilities.buffering` reports `control: 'hint' | 'profile'` and booleans
+`preload`, `profile`, `memoryBudget`. Direct does not claim profile or byte-budget
+control. `player.diagnostics.buffering` reports the resolved backend, requested
+profile, preload, settings, limits and limitations; see [BUFFERING.md](BUFFERING.md).
+`state.buffered`, `state.seekable`, and `state.status` retain their existing
+semantics. mpv packet ranges belong in diagnostics, not playable buffered time.
+
 ## Adaptive streaming
 
 Use `RemoteSource.format: 'hls' | 'dash'` and optional

@@ -5,7 +5,8 @@
 const byteLength=value=>Array.isArray(value)?value.reduce((n,b)=>n+b.byteLength,0):value?.byteLength||0;
 export function windowedBrowserSupported(ua=globalThis.navigator?.userAgent??''){return /Chrome\//.test(ua)&&!/Firefox|Edg\/|OPR\/|Android|Mobile/.test(ua);}
 export class RemuxPlayer {
- constructor(video,{bufferedSeeks=false,audioAdaptation}={}){
+ constructor(video,{bufferedSeeks=false,audioAdaptation,buffering}={}){
+  this.buffering=buffering;
   this.audioAdaptation=audioAdaptation;
   this.bufferedSeeks=bufferedSeeks&&typeof video.requestVideoFrameCallback==='function';
   this.video=video;this.timelineBias=1;this.generation=0;this.stopped=false;this.stats={fragments:[],generatedBytes:0,discardedBytes:0,peakQueueDepth:0,bufferedBytesUpperBound:0,peakBufferedBytesUpperBound:0,peakBufferedSeconds:0,seeks:[],sessions:[],errors:[],workers:0,recoveries:[],gapSkips:[]};
@@ -195,7 +196,21 @@ export class RemuxPlayer {
   const generation=this.generation;this.resumingWindow=true;
   void this.video.play().catch(error=>{if(generation===this.generation&&this.recoveryPlaying&&!this.stopped)this.fail(String(error));}).finally(()=>{if(generation===this.generation)this.resumingWindow=false;});
  }
+ forwardTargetSeconds(){return (this.video.paused&&this.buffering?.preload!=='auto'&&this.buffering?1:(this.buffering?.forwardSeconds??5))*(this.video.paused?1:Math.max(1,this.video.playbackRate||1));}
+ // Some MSE implementations retain HAVE_FUTURE_DATA at an exhausted audio
+ // edge without dispatching waiting. Observe real clock starvation only while
+ // the producer is outstanding near that edge; downloading alone is not waiting.
+ observeStarvation(now=performance.now()){
+  const position=this.video.currentTime,active=!this.stopped&&!this.starting&&this.targetReady&&!this.video.seeking&&!this.playbackPaused&&!this.playbackEnded;
+  if(!active||position!==this.progressPosition||this.progressGeneration!==this.generation){this.progressPosition=position;this.progressGeneration=this.generation;this.progressAt=now;}
+  const sourceTime=position-this.timelineBias;
+  const range=active?this.ranges().find(([a,b])=>a<=sourceTime+.05&&b>=sourceTime):undefined;
+  const ahead=range?range[1]-sourceTime:0;
+  const waiting=!!(active&&this.pulling&&now-(this.progressAt??now)>=750&&ahead<=Math.max(1,this.video.playbackRate||1));
+  if(waiting!==!!this.waitingForMedia){this.waitingForMedia=waiting;this.onBufferingChange?.();}
+ }
  pump(){
+  this.observeStarvation();
   if(this.stopped||!this.sb||this.busy||this.pulling||(this.sbs??[this.sb]).some(s=>s.updating)||!['open',...(this.windowed?['ended']:[])].includes(this.media.readyState))return;
   try{
    if(this.windowed&&this.targetReady&&!this.recoveryPlaying)return;
@@ -209,13 +224,13 @@ export class RemuxPlayer {
    if(this.windowed&&this.targetReady){
     for(let lane=0;lane<this.sbs.length;lane++){
      const sb=this.sbs[lane],end=lane?this.trackBounds.audioEnd:this.trackBounds.videoEnd;
-     const limit=Math.min(now-3,end-.5),cut=lane?limit:this.raps.filter(t=>t<=limit).at(-1);
+     const limit=Math.min(now-(this.buffering?.backwardSeconds??3),end-.5),cut=lane?limit:this.raps.filter(t=>t<=limit).at(-1);
      if(cut!==undefined&&sb.buffered.length&&sb.buffered.start(0)-this.timelineBias<cut-.001&&cut>(this.lastEvictions[lane]??-Infinity)){
       this.busy=true;this.lastEvictions[lane]=cut;this.pendingUpdates.add(sb);sb.remove(0,cut+this.timelineBias-.00001);this.segments=this.segments.filter(s=>s.lane!==lane||s.end>cut);return;
      }
     }
    }
-   const cut=this.windowed?undefined:this.raps.filter(t=>t<=now-3).at(-1);
+   const cut=this.windowed?undefined:this.raps.filter(t=>t<=now-(this.buffering?.backwardSeconds??3)).at(-1);
    if(this.targetReady&&cut!==undefined&&ranges.length&&ranges[0][0]<cut-.001&&cut>this.lastEviction){this.busy=true;this.lastEviction=cut;this.pendingUpdates?.add(this.sb);this.sb.remove(0,cut+this.timelineBias-.00001);this.segments=this.segments.filter(s=>s.end>cut);return;}
    const bufferedBytes=this.segments.reduce((s,v)=>s+v.bytes,0);this.stats.bufferedBytesUpperBound=bufferedBytes;this.stats.peakBufferedBytesUpperBound=Math.max(this.stats.peakBufferedBytesUpperBound,bufferedBytes);
    if(this.pending){
@@ -240,7 +255,8 @@ export class RemuxPlayer {
    // longer track merely to make a shorter track's buffered range advance.
    if(!this.eof&&preparedAhead>=5&&ahead<.25&&!this.video.paused){this.fail('Adapted track timelines cannot progress within the preparation budget; use Hybrid');return;}
    if(this.windowed&&!this.targetReady&&!this.primeVideo&&this.hasStartupCoverage())return;
-   if(!this.eof&&ahead<5&&preparedAhead<5&&bufferedBytes<12*1024*1024){this.busy=true;this.pulling=true;this.worker.postMessage({type:'next',id:this.pullId=(this.pullId??0)+1});}
+   const forward=this.forwardTargetSeconds();
+   if(!this.eof&&ahead<forward&&preparedAhead<forward&&bufferedBytes<(this.buffering?.forwardLimitBytes??12*1024*1024)){this.busy=true;this.pulling=true;this.worker.postMessage({type:'next',id:this.pullId=(this.pullId??0)+1});}
   }catch(e){this.fail(String(e));}
  }
  watchWorker(worker,generation,label){
@@ -300,6 +316,6 @@ export class RemuxPlayer {
  get playbackEnded(){return this.video.ended&&(!this.windowed||this.eof&&!this.pending&&!this.busy&&this.video.currentTime>=this.duration+this.timelineBias-.02);}
  async play(){this.recoveryPlaying=true;if(this.starting)return;if(this.windowed){this.pump();if(this.video.ended&&!this.playbackEnded){this.resumeWindow();return;}}return this.video.play();}
  pause(){this.recoveryPlaying=false;this.video.pause();}
- snapshot(){return {capability:{...this.capability},stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},windowed:this.windowed,presentationFloor:this.presentationFloor,trackBounds:this.trackBounds,ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
+ snapshot(){return {buffering:{effectiveForwardSeconds:this.forwardTargetSeconds(),playbackRate:this.video.playbackRate,paused:this.video.paused,waitingForMedia:!!this.waitingForMedia},capability:{...this.capability},stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},windowed:this.windowed,presentationFloor:this.presentationFloor,trackBounds:this.trackBounds,ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
  async destroy(){if(this.stopped)return;this.stopped=true;++this.generation;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);this.objectURL=null;}
 }

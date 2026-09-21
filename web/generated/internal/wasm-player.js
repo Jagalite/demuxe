@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
 import { PlayerError } from './errors.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
@@ -29,11 +30,14 @@ export class WasmPlayer extends EventTarget {
     requestedOutput;
     deviceChannels;
     diagnostics;
+    buffering;
+    bufferingSettings = {};
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
-    constructor(canvas, { disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'rgb', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url) } = {}) {
+    constructor(canvas, { buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'rgb', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url) } = {}) {
         super();
+        this.buffering = buffering;
         const decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
         if (!crossOriginIsolated)
             throw new Error('This player requires a secure, cross-origin isolated page.');
@@ -106,7 +110,7 @@ export class WasmPlayer extends EventTarget {
                 else if (data.type === 'source')
                     this.dispatchEvent(new CustomEvent('source', { detail: data.info }));
                 else if (data.type === 'diagnostics')
-                    this.diagnostics = data.data;
+                    this.diagnostics = { ...data.data, buffering: { ...resolveBuffering(this.buffering, 'mpv'), settings: { ...this.bufferingSettings, 'demuxer-cache-state': this.properties.get('demuxer-cache-state'), 'paused-for-cache': this.properties.get('paused-for-cache'), 'cache-buffering-state': this.properties.get('cache-buffering-state') } } };
                 else if (data.type === 'log')
                     this.dispatchEvent(new CustomEvent('log', { detail: data.message }));
                 else if (data.type === 'event') {
@@ -220,6 +224,7 @@ export class WasmPlayer extends EventTarget {
                 await Promise.all([this.waitForEvent(e => e.event === 'end-file'), this.command('stop')]);
             else
                 await this.command('stop');
+            await this.configureBuffering(true);
             if (source.demuxer && !/^[a-z0-9_]{1,64}$/.test(source.demuxer))
                 throw Error('Invalid demuxer hint');
             await this.command('set', 'demuxer-lavf-format', source.demuxer ?? '');
@@ -252,6 +257,7 @@ export class WasmPlayer extends EventTarget {
             await Promise.all([this.waitForEvent(event => event.event === 'end-file'), this.command('stop')]);
         else
             await this.command('stop');
+        await this.configureBuffering(true);
         const suffix = file instanceof File ? file.name.split('.').at(-1)?.toLowerCase() : undefined;
         const demuxer = options.demuxer ?? (suffix === 'sbc' || suffix === 'msbc' ? 'sbc' : '');
         if (demuxer && !/^[a-z0-9_]{1,64}$/.test(demuxer))
@@ -278,6 +284,12 @@ export class WasmPlayer extends EventTarget {
         }
         await Promise.all([this.waitForEvent(e => e.event === 'property-change' && e.name === 'pause' && e.data === paused), this.command('set', 'pause', paused ? 'yes' : 'no')]);
     }
+    async configureBuffering(preparing) {
+        for (const [key, value] of Object.entries(mpvBufferingOptions(this.buffering, preparing))) {
+            await this.command('set', key, value);
+            this.bufferingSettings[key] = value;
+        }
+    }
     async play() {
         const resume = this.audioContext.resume();
         void resume.catch(() => { });
@@ -285,6 +297,8 @@ export class WasmPlayer extends EventTarget {
             throw new DOMException('Playback needs a user gesture', 'NotAllowedError');
         await resume;
         this.sendTiming();
+        if (this.buffering.preload !== 'auto')
+            await this.configureBuffering(false);
         await this.setPause(false);
     }
     pause() { return this.setPause(true); }

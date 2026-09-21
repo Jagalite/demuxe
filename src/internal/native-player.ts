@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {bufferingPolicy, resolveBuffering} from './buffering.js';
+import type {BufferingPolicy} from '../types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './plain-vtt.js';
 import {nativeMediaError,compatibilityFailure,StartupEvidenceTimeout} from './runtime-capability.js';
 import {PlayerError} from './errors.js';
@@ -9,6 +11,7 @@ import type {Backend} from './backend.js';
 type RemuxSource = {file?: File; options?: RemoteSource; audioTrack?: number};
 type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
 type RemuxController = {
+  waitingForMedia?:boolean; onBufferingChange?:()=>void;
   audioAdaptation?:'flac'|'opus'; generation?:number;
   windowed?:boolean; ranges?():[number,number][]; duration?:number; playbackPaused?:boolean; playbackEnded?:boolean;
   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
@@ -85,10 +88,10 @@ export class NativePlayer extends EventTarget implements Backend {
   private cancelers = new Set<(error: Error) => void>();
   private listeners: Array<() => void> = [];
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy()) {
     super();
     video.playsInline = true;
-    video.preload = 'auto';
+    video.preload = this.buffering.preload;
     for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
       const listener = () => {
         this.refresh();
@@ -140,15 +143,18 @@ export class NativePlayer extends EventTarget implements Backend {
     if(this.remux?.tracks)tracks.push(...this.remux.tracks.filter(t=>t.type==='audio').map(t=>({...t,selected:t.selected&&!this.video.muted})));
     else if (audio) tracks.push(...Array.from(audio, (t, i) => ({id: String(i + 1), type: 'audio', title: t.label, lang: t.language, selected: t.enabled})));
     const timeRanges=(r:TimeRanges)=>Array.from({length:r.length},(_,i)=>({start:Math.max(0,r.start(i)-(this.remux?.timelineBias??0)),end:Math.max(0,r.end(i)-(this.remux?.timelineBias??0))}));
-    const values: Record<string, unknown> = {'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration)?this.sourceDuration():null, 'native-buffered':this.remux?.windowed?(this.remux.ranges?.()??[]).map(([start,end])=>({start,end})):timeRanges(this.video.buffered),'native-seekable':this.remux?.windowed?[{start:0,end:this.sourceDuration()}]:timeRanges(this.video.seekable),'native-live':this.video.duration===Infinity, pause: this.remux?.playbackPaused??this.video.paused, 'eof-reached': this.remux?.playbackEnded??this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks};
+    const values: Record<string, unknown> = {'native-waiting':!!this.remux?.waitingForMedia, 'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration)?this.sourceDuration():null, 'native-buffered':this.remux?.windowed?(this.remux.ranges?.()??[]).map(([start,end])=>({start,end})):timeRanges(this.video.buffered),'native-seekable':this.remux?.windowed?[{start:0,end:this.sourceDuration()}]:timeRanges(this.video.seekable),'native-live':this.video.duration===Infinity, pause: this.remux?.playbackPaused??this.video.paused, 'eof-reached': this.remux?.playbackEnded??this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks};
     for (const [name, data] of Object.entries(values)) {
       if (name !== 'track-list' && this.properties.get(name) === data) continue;
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get diagnostics() {const q = this.video.getVideoPlaybackQuality();return {capability:{...this.capability,...(this.remux?.snapshot().capability as CapabilityEvidence??{})},path: 'native', plan:this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux:this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', plan:this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
   private async load(url: string) {
-    await this.wait('loadeddata', () => {this.video.src = url;this.video.load();});
+    // open promises metadata even when speculative preload was disabled.
+    if(this.buffering.preload==='none')this.video.preload='metadata';
+    try{await this.wait(this.buffering.preload==='auto'?'loadeddata':'loadedmetadata', () => {this.video.src = url;this.video.load();});}
+    finally{this.video.preload=this.buffering.preload;}
     this.capability.metadata=true;
     this.refresh();this.emit('mpv', {event: 'file-loaded'});
   }
@@ -180,7 +186,7 @@ export class NativePlayer extends EventTarget implements Backend {
         // interval without presenting another frame. This is completion, not
         // fresh frame/audio evidence; do not strand play() until its deadline.
         if(output&&previouslyVerified&&v.ended){this.capability.completedAtEOF=true;this.capability.outputVerified=true;timing.outputAccepted=performance.now();finish();return;}
-        const ready=v.readyState>=3&&!v.seeking&&(!hasVideo||v.videoWidth>0);
+        const ready=v.readyState>=(!output&&!this.remux&&this.buffering.preload!=='auto'?1:3)&&!v.seeking&&(!hasVideo||v.videoWidth>0);
         if(!ready)return;
         this.capability.prepared=true;timing.ready??=performance.now();
         if(!output){finish();return;}
@@ -213,7 +219,8 @@ export class NativePlayer extends EventTarget implements Backend {
     const transport={...source,...(source.options?{options:options as RemoteSource}:{}),refreshAuthorization};
     const attempt=async(adapted:boolean)=>{
       this.assertActive();this.adapted=adapted;
-      this.remux??=new RemuxPlayer(this.video,{bufferedSeeks:this.bufferedSeeks,audioAdaptation:adapted?this.audioAdaptation:undefined}) as RemuxController;
+      this.remux??=new RemuxPlayer(this.video,{buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,audioAdaptation:adapted?this.audioAdaptation:undefined}) as RemuxController;
+      this.remux.onBufferingChange=()=>{if(!this.stopped)this.refresh();};
       this.remux.audioAdaptation=adapted?this.audioAdaptation:undefined;
       this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',message);};
       await this.remux.open(transport,target);this.assertActive();

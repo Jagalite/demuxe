@@ -51,7 +51,9 @@
     "verify:head-to-head": "node tests/head-to-head/verify.mjs",
     "test:shaka-assets": "node --test tests/shaka-assets.mjs",
     "test:shaka-package": "node tests/shaka-package.mjs",
-    "test:shaka": "npm run build && node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/native-selection.mjs tests/plan-admission.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs && node tests/shaka-lifecycle.mjs"
+    "test:shaka": "npm run build && node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/native-selection.mjs tests/plan-admission.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs && node tests/shaka-lifecycle.mjs",
+    "test:buffering": "npm run build && node --test tests/buffering-policy.mjs tests/remux-buffering.mjs tests/shaka-backend.mjs tests/range-reader-deadline.mjs tests/buffering-server.mjs tests/buffering-analyzer.mjs && node tests/buffering/run.mjs",
+    "test:buffering:qualify": "npm run build && STAGE=qualification node tests/buffering/run.mjs"
   },
   "devDependencies": {
     "playwright": "1.58.2",

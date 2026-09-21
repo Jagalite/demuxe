@@ -56,7 +56,39 @@ export type ResourceLimits = {
     maxDecodePixels?: number;
     maxAllocationBytes?: number;
 };
+export type PreloadPolicy = 'none' | 'metadata' | 'auto';
+export type BufferingProfile = 'low-latency' | 'balanced' | 'resilient';
+/** memoryBudget is a coded-data budget ceiling in bytes (8–64 MiB), not total player memory.
+ * Browser and Shaka cannot enforce it; consult diagnostics. */
+export type BufferingOptions = {
+    preload?: PreloadPolicy;
+    profile?: BufferingProfile;
+    memoryBudget?: number;
+};
+export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions, 'preload' | 'profile'>> & Pick<BufferingOptions, 'memoryBudget'>>;
+export type BufferingCapabilities = Readonly<{
+    control: 'hint' | 'profile';
+    preload: boolean;
+    profile: boolean;
+    memoryBudget: boolean;
+}>;
+export type BufferingResolution = {
+    requestedMemoryBudget?: number;
+    requestedProfile: BufferingProfile;
+    preload: PreloadPolicy;
+    backend: 'browser' | 'shaka' | 'remux' | 'mpv';
+    control: 'hint' | 'profile';
+    cache?: boolean;
+    forwardLimitBytes?: number;
+    backwardLimitBytes?: number;
+    forwardSeconds?: number;
+    backwardSeconds?: number;
+    notes: string[];
+    settings?: Record<string, unknown>;
+};
 export type PlayerOptions = {
+    /** Automatic balanced buffering and auto preload when omitted. */
+    buffering?: BufferingOptions;
     /** Package runtime root; includes web/ and fixtures/. Same-origin only. */
     assetBase?: string;
     audioOutput?: AudioOutput;
@@ -105,6 +137,7 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    buffering?: BufferingResolution;
     runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
     planAdmission?: Array<{
         id: string;
@@ -174,6 +207,7 @@ export type FeatureAvailability = Readonly<{
 }>;
 export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain';
 export type PlayerCapabilities = Readonly<Capabilities & {
+    buffering: BufferingCapabilities;
     deployment: Readonly<{
         isolated: boolean;
         webCodecs: boolean;

@@ -5,6 +5,7 @@ import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteS
 export declare class Player extends EventTarget {
     readonly ready: Promise<void>;
     private assetBase;
+    private buffering;
     private snapshot;
     private subscribers;
     private publishQueued;
@@ -87,6 +88,7 @@ export declare class Player extends EventTarget {
     get properties(): ReadonlyMap<string, unknown>;
     get capabilities(): PlayerCapabilities;
     private get legacyCapabilities();
+    private bufferingResolution;
     get diagnostics(): Diagnostics;
     audioDiagnostics(): object | undefined;
     private emit;

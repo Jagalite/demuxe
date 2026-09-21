@@ -74,3 +74,28 @@ test('window recovery preserves play intent when the browser paused at an intern
   p.fail('Remux mux worker failed');await new Promise(r=>setTimeout(r,0));assert.equal(p.recoveryPlaying,intent);assert.equal(plays,intent?1:0);
  }
 });
+
+test('portable remux goals scale with consumption rate but paused preload stays bounded',()=>{
+ const buffering={preload:'auto',forwardSeconds:5,backwardSeconds:3,forwardLimitBytes:12*1024*1024};
+ assert.equal(pump([[0,6]],{buffering,video:{currentTime:1,paused:false,playbackRate:2}}).sent.length,1);
+ assert.equal(pump([[0,6]],{buffering,video:{currentTime:1,paused:true,playbackRate:2}}).sent.length,0);
+ assert.equal(pump([[0,2]],{buffering:{...buffering,preload:'metadata'},video:{currentTime:1,paused:true}}).sent.length,0);
+ assert.equal(pump([[0,2]],{buffering,segments:[{bytes:12*1024*1024}]}).sent.length,0);
+});
+test('remux history eviction stays before the retained GOP',()=>{
+ const removed=[];pump([[0,20]],{video:{currentTime:21,paused:false},targetReady:true,buffering:{backwardSeconds:3},raps:[0,10,18,20],lastEviction:-Infinity,sb:{updating:false,remove:(a,b)=>removed.push([a,b])}});
+ assert.deepEqual(removed,[[0,10.99999]]);
+});
+
+test('remux starvation observes stopped playback near an outstanding producer, not downloading',()=>{
+ let changes=0;
+ const p=Object.assign(Object.create(RemuxPlayer.prototype),{generation:1,targetReady:true,timelineBias:1,pulling:true,video:{currentTime:5,paused:false,playbackRate:2},ranges:()=>[[0,4.6]],onBufferingChange:()=>changes++});
+ p.observeStarvation(0);p.observeStarvation(749);assert.equal(!!p.waitingForMedia,false);
+ p.observeStarvation(750);assert.equal(p.waitingForMedia,true);
+ p.video.currentTime=5.1;p.observeStarvation(800);assert.equal(p.waitingForMedia,false);assert.equal(changes,2);
+ for(const property of ['paused','seeking']){p.video[property]=true;p.observeStarvation(2000);assert.equal(p.waitingForMedia,false);p.video[property]=false;}
+ p.observeStarvation(2100);p.pulling=false;p.observeStarvation(3000);assert.equal(p.waitingForMedia,false);
+ p.pulling=true;p.ranges=()=>[[0,20]];p.observeStarvation(4000);assert.equal(p.waitingForMedia,false);
+ p.ranges=()=>[[0,4.6]];p.generation++;p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
+ p.video.currentTime=5.2;p.observeStarvation(6000);assert.equal(p.waitingForMedia,false);
+});

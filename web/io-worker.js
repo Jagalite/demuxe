@@ -20,7 +20,7 @@ self.onmessage=async({data})=>{
         const info=await resources.open(data.options.url,{manifest:true});
         postMessage({type:'ready',info:{...info,resource:info.id}});startPump();return;
       }
-      reader=data.file?new LocalFileReader(data.file):new RangeReader(data.options,refresh);
+      reader=data.file?new LocalFileReader(data.file):new RangeReader({...data.options,readDeadlineMs:45000},refresh);
       const info=await reader.open();postMessage({type:'ready',info});startPump();
     }else if(data.type==='epoch'){synchronizeEpoch();}
     else if(data.type==='close'){stopped=true;if(header)Atomics.notify(header,0);reader?.close();resources?.close();clearInterval(timer);for(const r of refreshes.values()){clearTimeout(r.timeout);r.reject(Error('Closed'));}refreshes.clear();postMessage({type:'closed'});}

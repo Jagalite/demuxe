@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {bufferingPolicy, resolveBuffering, shakaBufferingOptions} from './buffering.js';
+import type {BufferingPolicy} from '../types.js';
 import type Shaka from 'shaka-player';
 import type {Backend} from './backend.js';
 import type {RemoteSource,TextTrackSource,SubtitleAsset,TrackType} from '../types.js';
@@ -76,7 +78,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private selectedSub='auto';
   private audioDisabled=false;
   private source?:RemoteSource;
-  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url)) {
+  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),private buffering:BufferingPolicy=bufferingPolicy()) {
     super();this.native=new NativePlayer(video,'never',assetBase);
     for(const type of ['mpv','activity','error','log']) {
       const listener=(event:Event)=>{
@@ -120,6 +122,7 @@ export class ShakaBackend extends EventTarget implements Backend {
       const failed=(event:Event)=>{const detail=(event as Event&{detail:{severity?:number}}).detail;if(detail.severity!==runtime.util.Error.Severity.CRITICAL)return;const error=this.failure=this.mapped(detail);if(!this.opening&&!this.stopped)this.emit('error',error);};
       player.addEventListener('error',failed);this.listeners.push(()=>player.removeEventListener('error',failed));
       player.configure({streaming:{preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity}});
+      player.configure({streaming:shakaBufferingOptions(this.buffering)});
       await player.attach(this.video);this.active();
       await player.load(source.url,undefined,source.format==='hls'?'application/x-mpegurl':'application/dash+xml');this.active();
       if(this.failure)throw this.failure;
@@ -140,6 +143,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private refresh(){
     for(const [key,value] of this.native.properties)this.properties.set(key,value);
     const player=this.player;if(!player||this.stopped)return;
+    this.properties.set('paused-for-cache',player.isBuffering?.()??false);
     const variants=player.getVariantTracks(), current=variants.find(t=>t.active),texts=player.getTextTracks(),audio=this.audioTracks();
     const tracks:Array<Record<string,unknown>>=audio.map(({track:t,id})=>({id,type:'audio',codec:t.codecs,title:t.label,lang:t.language,selected:t.active&&!this.audioDisabled}));
     tracks.push(...texts.map(t=>({id:`shaka-sub-${t.id}`,type:'sub',codec:t.codecs||t.mimeType,title:t.label,lang:t.language,selected:t.active&&this.visible&&this.selectedSub!=='no',external:this.external.has(t.id),...(this.external.has(t.id)?{'external-index':this.external.get(t.id)}:{})})));
@@ -159,7 +163,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   async verifyStartup(_expected?:{video:boolean;audio:boolean},output=false){this.active();if(this.failure)throw this.failure;await this.native.verifyStartup(this.expected(),output);this.active();if(this.failure)throw this.failure;}
   verifyOutput(){return this.verifyStartup(undefined,true);}
   startupEvidence(){return {...this.native.diagnostics.capability,sourceBufferCreated:!!this.player&&this.player.getLoadMode()===this.runtime?.Player.LoadMode.MEDIA_SOURCE};}
-  async play(){this.active();await this.native.play();}
+  async play(){this.active();if(this.buffering.preload!=='auto')this.player?.configure({streaming:{bufferingGoal:10,...shakaBufferingOptions(this.buffering,false)}});await this.native.play();}
   async pause(){this.active();await this.native.pause();}
   async seek(seconds:number){const range=this.loaded().seekRange();if(!Number.isFinite(seconds)||seconds<range.start-.01||seconds>range.end+.01)throw new PlayerError('INVALID_ARGUMENT','Seek target is outside the streaming seekable window');await this.native.seek(Math.max(range.start,Math.min(range.end,seconds)));}
   async rate(value:number){this.active();await this.native.rate(value);}
@@ -198,7 +202,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   }
   resize(width:number,height:number){this.native.resize(width,height);}
   audioDiagnostics(){return {...this.native.audioDiagnostics(),source:'shaka-mse'};}
-  get diagnostics():Record<string,unknown>{const native=this.native.diagnostics;return {...native,path:'shaka-mse',plan:'shaka-mse',packaging:'shaka',streaming:{engine:'shaka',version:this.runtime?.Player.version,format:this.source?.format,live:this.player?.isDynamic()??false,seekRange:this.player?.seekRange(),abr:!this.source?.streaming?.representation,maxBandwidth:this.source?.streaming?.maxBandwidth,variants:this.player?.getVariantTracks().map(t=>({id:`variant:${t.id}`,representation:t.originalVideoId??t.originalAudioId,active:t.active,bandwidth:t.bandwidth,width:t.width,height:t.height,audioCodec:t.audioCodec,videoCodec:t.videoCodec})),network:this.policy?.diagnostics},capability:this.startupEvidence()};}
+  get diagnostics():Record<string,unknown>{const native=this.native.diagnostics;return {...native,buffering:{...resolveBuffering(this.buffering,'shaka'),settings:this.player?.getConfiguration?.().streaming?{bufferingGoal:this.player.getConfiguration().streaming.bufferingGoal,rebufferingGoal:this.player.getConfiguration().streaming.rebufferingGoal,bufferBehind:this.player.getConfiguration().streaming.bufferBehind}:shakaBufferingOptions(this.buffering)},path:'shaka-mse',plan:'shaka-mse',packaging:'shaka',streaming:{engine:'shaka',version:this.runtime?.Player.version,format:this.source?.format,live:this.player?.isDynamic()??false,seekRange:this.player?.seekRange(),abr:!this.source?.streaming?.representation,maxBandwidth:this.source?.streaming?.maxBandwidth,variants:this.player?.getVariantTracks().map(t=>({id:`variant:${t.id}`,representation:t.originalVideoId??t.originalAudioId,active:t.active,bandwidth:t.bandwidth,width:t.width,height:t.height,audioCodec:t.audioCodec,videoCodec:t.videoCodec})),network:this.policy?.diagnostics},capability:this.startupEvidence()};}
   destroy(){return this.disposal??(this.disposal=this.dispose());}
   private async dispose(){this.stopped=true;this.runtimeLoad.abort();this.listeners.splice(0).forEach(remove=>remove());this.policy?.destroy();try{await this.player?.destroy();}finally{this.player=undefined;await this.native.destroy();for(const url of this.blobs)URL.revokeObjectURL(url);this.blobs.clear();this.external.clear();this.source=undefined;}}
 }

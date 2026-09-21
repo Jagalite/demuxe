@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout } from './runtime-capability.js';
 import { PlayerError } from './errors.js';
@@ -13,6 +14,7 @@ export class NativePlayer extends EventTarget {
     nativeASS;
     fonts;
     requestedPlan;
+    buffering;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
@@ -85,7 +87,7 @@ export class NativePlayer extends EventTarget {
     subsVisible = true;
     cancelers = new Set();
     listeners = [];
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy()) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -96,8 +98,9 @@ export class NativePlayer extends EventTarget {
         this.nativeASS = nativeASS;
         this.fonts = fonts;
         this.requestedPlan = requestedPlan;
+        this.buffering = buffering;
         video.playsInline = true;
-        video.preload = 'auto';
+        video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
             const listener = () => {
                 this.refresh();
@@ -166,7 +169,7 @@ export class NativePlayer extends EventTarget {
         else if (audio)
             tracks.push(...Array.from(audio, (t, i) => ({ id: String(i + 1), type: 'audio', title: t.label, lang: t.language, selected: t.enabled })));
         const timeRanges = (r) => Array.from({ length: r.length }, (_, i) => ({ start: Math.max(0, r.start(i) - (this.remux?.timelineBias ?? 0)), end: Math.max(0, r.end(i) - (this.remux?.timelineBias ?? 0)) }));
-        const values = { 'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration) ? this.sourceDuration() : null, 'native-buffered': this.remux?.windowed ? (this.remux.ranges?.() ?? []).map(([start, end]) => ({ start, end })) : timeRanges(this.video.buffered), 'native-seekable': this.remux?.windowed ? [{ start: 0, end: this.sourceDuration() }] : timeRanges(this.video.seekable), 'native-live': this.video.duration === Infinity, pause: this.remux?.playbackPaused ?? this.video.paused, 'eof-reached': this.remux?.playbackEnded ?? this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks };
+        const values = { 'native-waiting': !!this.remux?.waitingForMedia, 'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration) ? this.sourceDuration() : null, 'native-buffered': this.remux?.windowed ? (this.remux.ranges?.() ?? []).map(([start, end]) => ({ start, end })) : timeRanges(this.video.buffered), 'native-seekable': this.remux?.windowed ? [{ start: 0, end: this.sourceDuration() }] : timeRanges(this.video.seekable), 'native-live': this.video.duration === Infinity, pause: this.remux?.playbackPaused ?? this.video.paused, 'eof-reached': this.remux?.playbackEnded ?? this.video.ended, volume: this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks };
         for (const [name, data] of Object.entries(values)) {
             if (name !== 'track-list' && this.properties.get(name) === data)
                 continue;
@@ -174,9 +177,17 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(); return { capability: { ...this.capability, ...(this.remux?.snapshot().capability ?? {}) }, path: 'native', plan: this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux: this.remux?.snapshot(), position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', plan: this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
-        await this.wait('loadeddata', () => { this.video.src = url; this.video.load(); });
+        // open promises metadata even when speculative preload was disabled.
+        if (this.buffering.preload === 'none')
+            this.video.preload = 'metadata';
+        try {
+            await this.wait(this.buffering.preload === 'auto' ? 'loadeddata' : 'loadedmetadata', () => { this.video.src = url; this.video.load(); });
+        }
+        finally {
+            this.video.preload = this.buffering.preload;
+        }
         this.capability.metadata = true;
         this.refresh();
         this.emit('mpv', { event: 'file-loaded' });
@@ -236,7 +247,7 @@ export class NativePlayer extends EventTarget {
                     finish();
                     return;
                 }
-                const ready = v.readyState >= 3 && !v.seeking && (!hasVideo || v.videoWidth > 0);
+                const ready = v.readyState >= (!output && !this.remux && this.buffering.preload !== 'auto' ? 1 : 3) && !v.seeking && (!hasVideo || v.videoWidth > 0);
                 if (!ready)
                     return;
                 this.capability.prepared = true;
@@ -293,7 +304,9 @@ export class NativePlayer extends EventTarget {
         const attempt = async (adapted) => {
             this.assertActive();
             this.adapted = adapted;
-            this.remux ??= new RemuxPlayer(this.video, { bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? this.audioAdaptation : undefined });
+            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? this.audioAdaptation : undefined });
+            this.remux.onBufferingChange = () => { if (!this.stopped)
+                this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
             this.remux.onError = message => { if (!this.opening && !this.stopped)
                 this.emit('error', message); };

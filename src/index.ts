@@ -6,3 +6,5 @@ export type {StreamingOptions, MediaInputOptions, AudioOutput, ToneMapping, Reso
 export {PlayerError} from './internal/errors.js';
 export {PLAYER_EVENTS} from './types.js';
 export type {PlayerState, PlayerEventMap, PlayerEventName, PlayerCapabilities, FeatureAvailability, MediaInfo, MediaTrack, TimeRange, SessionError, PlayerErrorCode, OpenOptions, MediaSourceInput, PendingOperation, OperationKind} from './types.js';
+
+export type {PreloadPolicy, BufferingProfile, BufferingOptions, BufferingPolicy, BufferingCapabilities, BufferingResolution} from './types.js';

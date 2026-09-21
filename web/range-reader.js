@@ -2,7 +2,8 @@
 // Original bounded, single-flight VOD range reader. No decoder dependency.
 export class RangeReader {
   constructor(options, refresh) {
-    this.options={credentials:'omit',cacheBytes:16*1024*1024,blockBytes:256*1024,immutable:false,...options};
+    this.options={readDeadlineMs:15000,credentials:'omit',cacheBytes:16*1024*1024,blockBytes:256*1024,immutable:false,...options};
+    if(!Number.isInteger(this.options.readDeadlineMs)||this.options.readDeadlineMs<15000||this.options.readDeadlineMs>45000)throw Error('Invalid read deadline');
     this.allow=new Set(options.allowedOrigins || [new URL(options.url).origin]);
     this.refresh=refresh;this.cache=new Map();this.epoch=0;this.closed=false;this.busy=false;
     this.stats={fetchedBytes:0,requests:0,retries:0,aborts:0,cacheBytes:0,peakCacheBytes:0,activeBytes:0,peakActiveBytes:0};
@@ -44,13 +45,14 @@ export class RangeReader {
   }
   async fetchBlock(start,epoch){
     const buffer=new Uint8Array(this.options.blockBytes);let received=0,refreshed=false;
-    const deadline=performance.now()+15000;
+    const readDeadlineMs=this.options.readDeadlineMs,attemptLimit=Math.ceil(readDeadlineMs/1500);
+    const deadline=performance.now()+readDeadlineMs;
     const operation=this.operation=new AbortController();
     const timeout=()=>operation.abort(Error('Media read retry deadline exceeded'));
     // A separate, non-resetting deadline covers headers, successful body progress,
     // backoff and credential refresh. Race pending work too: refresh callbacks do
     // not receive a signal and need not settle when the transport is cancelled.
-    const deadlineTimer=setTimeout(timeout,15000);
+    const deadlineTimer=setTimeout(timeout,readDeadlineMs);
     operation.signal.addEventListener('abort',()=>{
       this.controller?.abort();this.retryWake?.();
     },{once:true});
@@ -71,7 +73,7 @@ export class RangeReader {
     });
     try{
     this.stats.activeBytes=buffer.length;this.stats.peakActiveBytes=Math.max(this.stats.peakActiveBytes,buffer.length);
-    for(let attempt=0;attempt<10;attempt++){
+    for(let attempt=0;attempt<attemptLimit;attempt++){
       check();
       const controller=this.controller=new AbortController();let timer,reader,response;
       const touch=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),1200);};
@@ -117,7 +119,7 @@ export class RangeReader {
         check();
         if(epoch!==this.epoch||this.closed)throw new DOMException('Superseded','AbortError');
         const retry=error.retry||error.name==='AbortError'||error instanceof TypeError;
-        if(!retry||attempt===9||performance.now()>=deadline)throw Error(retry?'Media read retry deadline exceeded':error.message);
+        if(!retry||attempt===attemptLimit-1||performance.now()>=deadline)throw Error(retry?'Media read retry deadline exceeded':error.message);
         this.stats.retries++;
         const retryAfter=response?.headers.get('Retry-After');const serverWait=retryAfter ? (/^\d+$/.test(retryAfter)?Number(retryAfter)*1000:Math.max(0,Date.parse(retryAfter)-Date.now())) : 0;
         const backoff=80*2**Math.min(attempt,3)*(0.75+Math.random()*0.5);

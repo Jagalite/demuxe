@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import type { BufferingPolicy } from '../types.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
@@ -12,6 +13,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private nativeASS;
     private fonts;
     private requestedPlan?;
+    private buffering;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
@@ -42,13 +44,27 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy);
     private emit;
     private assertActive;
     private wait;
     private textTrackId;
     private refresh;
     get diagnostics(): {
+        buffering: {
+            settings: Record<string, unknown>;
+            requestedMemoryBudget?: number;
+            requestedProfile: import("../types.js").BufferingProfile;
+            preload: import("../types.js").PreloadPolicy;
+            backend: "browser" | "shaka" | "remux" | "mpv";
+            control: "hint" | "profile";
+            cache?: boolean;
+            forwardLimitBytes?: number;
+            backwardLimitBytes?: number;
+            forwardSeconds?: number;
+            backwardSeconds?: number;
+            notes: string[];
+        };
         capability: {
             apiHint?: string;
             prepared?: boolean;

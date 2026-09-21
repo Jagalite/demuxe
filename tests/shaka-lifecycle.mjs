@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium} from 'playwright';
+import {chromium,firefox} from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -37,11 +37,12 @@ const url=server.origin+'/'+path.relative(repo,fixture)+'/master.m3u8';
 const dash=server.origin+'/build/head-to-head/assets-component-isolation-01/fixtures/dash-h264/index.mpd';
 const eventURL=server.origin+'/'+path.relative(repo,fixture)+'/event-master.m3u8';
 const liveURL=server.origin+'/build/head-to-head/assets-component-isolation-01/fixtures/hls-live/index.m3u8?lifecycle-window-race';
-const browser=await chromium.launch({channel:'chrome',headless:process.env.HEADLESS==='1',args:['--autoplay-policy=no-user-gesture-required']});
+const family=process.env.BROWSER??'chrome';
+const browser=await(family==='firefox'?firefox:chromium).launch({headless:process.env.HEADLESS==='1',...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{firefoxUserPrefs:{'media.autoplay.default':0,'media.autoplay.block-webaudio':false}})});
 const result={scope:'Maintained Shaka public API, policy, explicit failure injection and lifecycle; synthetic media; no performance claim',browser:browser.version(),commands,fixture,cases:[]};
 const hashes={};for(const file of ['src/unified-player.ts','src/internal/shaka-backend.ts','src/internal/shaka-network.ts','src/internal/playback-plans.ts','web/resource-loader.js','web/fallback-stream-policy.js','tests/shaka-lifecycle.mjs'])hashes[file]=createHash('sha256').update(await fs.readFile(path.join(repo,file))).digest('hex');result.hashes=hashes;
-async function check(name,run){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;const page=await browser.newPage();page.setDefaultTimeout(30000);const console=[];page.on('console',m=>console.push(m.text()));
-  try{await page.goto(server.origin+'/harness/harness.html');await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');window.p=new Player(document.querySelector('#stage'));});let deadline;const evidence=await Promise.race([run(page),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(Error('Lifecycle case exceeded 45 seconds')),45000);})]).finally(()=>clearTimeout(deadline));await page.evaluate(()=>p.destroy());await page.waitForTimeout(200);assert.equal(page.workers().length,0);assert.equal(await page.locator('#stage video,#stage canvas').count(),0);result.cases.push({name,passed:true,evidence,console});process.stdout.write(`PASS ${name}\n`);}
+async function check(name,run){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;const page=await browser.newPage();page.setDefaultTimeout(30000);await page.addInitScript(()=>{const create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);window.livePlayerBlobURLs=new Set();URL.createObjectURL=value=>{const url=create(value);livePlayerBlobURLs.add(url);return url;};URL.revokeObjectURL=url=>{livePlayerBlobURLs.delete(url);revoke(url);};});const console=[];page.on('console',m=>console.push(m.text()));
+  try{await page.goto(server.origin+'/harness/harness.html');await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');window.p=new Player(document.querySelector('#stage'));});let deadline;const evidence=await Promise.race([run(page),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(Error('Lifecycle case exceeded 45 seconds')),45000);})]).finally(()=>clearTimeout(deadline));await page.evaluate(()=>p.destroy());await page.waitForTimeout(200);assert.equal(page.workers().length,0);assert.equal(await page.evaluate(()=>livePlayerBlobURLs.size),0,'owned Blob URLs revoked');assert.equal(await page.locator('#stage video,#stage canvas').count(),0);result.cases.push({name,passed:true,evidence,console});process.stdout.write(`PASS ${name}\n`);}
   catch(error){result.cases.push({name,passed:false,error:String(error.stack),console,diagnostics:await page.evaluate(()=>({player:p.diagnostics,state:p.state,cancelStage:window.cancelStage,cancelCandidate:window.cancelCandidate?{stopped:cancelCandidate.stopped,opening:cancelCandidate.opening,network:cancelCandidate.policy?.diagnostics,loadMode:cancelCandidate.player?.getLoadMode()}:undefined})).catch(()=>null)});process.exitCode=1;process.stdout.write(`FAIL ${name}: ${error}\n`);}
   finally{await Promise.race([page.evaluate(()=>p.destroy()).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);await page.close();await fs.writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');}}
 try{
@@ -50,6 +51,7 @@ await check('adaptive variants, audio/text selection, pause, seek and visibility
   await page.waitForFunction(()=>p.state.currentTime>.3);
   assert.equal(await page.evaluate(()=>p.diagnostics.plan.id),'shaka-mse');
   assert.equal(await page.evaluate(()=>p.surface.videoWidth),160);
+  const buffering=await page.evaluate(()=>p.diagnostics.buffering);assert.equal(buffering.requestedProfile,'balanced');assert.equal(buffering.preload,'auto');assert.deepEqual(buffering.settings,{bufferingGoal:10,rebufferingGoal:0,bufferBehind:30});
   const tracks=await page.evaluate(()=>({audio:p.state.audioTracks,text:p.state.subtitleTracks,stream:p.diagnostics.backend.streaming}));
   assert.equal(tracks.audio.length,2);assert.ok(tracks.text.length>=1);
   await page.evaluate(async()=>{const a=p.state.audioTracks.find(t=>t.language==='fr');window.selectedFrenchId=a.id;await p.selectAudioTrack(a.id);await p.seek(3);await p.play();window.ac=new AudioContext();window.an=ac.createAnalyser();an.fftSize=8192;ac.createMediaElementSource(p.surface).connect(an);an.connect(ac.destination);await ac.resume();});
@@ -192,5 +194,15 @@ await check('in-flight manifest cancellation leaves no published session',async 
   let requested;const entered=new Promise(r=>requested=r);await page.route('**/index.mpd',async route=>{requested();await new Promise(r=>setTimeout(r,500));await route.abort().catch(()=>{});});
   const open=page.evaluate(async dash=>{window.abortController=new AbortController();window.cancelStage='opening';try{await p.open({url:dash,format:'dash'},{signal:abortController.signal});window.cancelStage='accepted';return 'accepted';}catch(e){window.cancelStage='rejected:'+e.code;return e.code;}},dash);
   await Promise.race([entered,open.then(code=>{throw Error('Open ended before request interception: '+code);})]);await page.evaluate(()=>{window.cancelCandidate=p.candidate?.backend;window.cancelStage='aborting';abortController.abort();});assert.equal(await open,'ABORTED');assert.equal(await page.evaluate(()=>p.state.sourceId),null);
+});
+for(const [preload,profile,goal,behind] of [['none','low-latency',3,3],['metadata','balanced',10,30],['auto','resilient',30,30]])await check(`buffering intent ${preload} ${profile}`,async page=>{
+ const before=await page.evaluate(async ({url,preload,profile})=>{
+  await p.destroy();const {Player}=await import('/web/generated/index.js');window.p=new Player(document.querySelector('#stage'),{buffering:{preload,profile}});
+  await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});return {state:p.state,diagnostics:p.diagnostics};
+ },{url,preload,profile});
+ assert.equal(before.diagnostics.buffering.backend,'shaka');assert.equal(before.diagnostics.buffering.settings.bufferingGoal,preload==='auto'?goal:1);assert.equal(before.state.capabilities.buffering.memoryBudget,false);
+ await page.evaluate(()=>p.play());await page.waitForFunction(()=>p.state.currentTime>.3);
+ const after=await page.evaluate(()=>({state:p.state,diagnostics:p.diagnostics}));assert.equal(after.diagnostics.buffering.settings.bufferingGoal,goal);assert.equal(after.diagnostics.buffering.settings.bufferBehind,behind);assert.equal(after.diagnostics.backend.streaming.abr,true);assert.ok(after.state.buffered.length);
+ await page.evaluate(()=>p.close());assert.equal(page.workers().length,0);return {before,after};
 });
 }finally{result.passed=result.cases.every(c=>c.passed);await fs.writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');await browser.close();await server.close();console.log(out);}

@@ -355,3 +355,24 @@ candidate fallback with FFmpeg video/audio and mpv/libass. Required HDR tone map
 or an exact CPU video filter would independently select Software. HEVC+DTS and ASS
 have component evidence; this reasoning is **not** a new claim that this exact
 four-component file, every DTS layout, or physical A/V fidelity has been qualified.
+
+## Buffering intent and control
+
+Buffering is automatic (`balanced`, `preload: 'auto'`). The policy follows the
+selected execution plan; no backend object is exposed to applications.
+
+| Execution engine | `control` | `preload` | `profile` | `memoryBudget` |
+| --- | --- | --- | --- | --- |
+| Browser Native Direct | hint | true | false | false |
+| Shaka | profile | true | true | false |
+| Demuxe Native Remux | profile | true | true | true |
+| mpv Hybrid / Software | profile | true | true | true |
+
+`preload: true` means the intent is translated, not that zero network transfer is
+guaranteed. Explicit open can require metadata, initial packets or a segment.
+Byte budgets describe coded data only, never total runtime memory. Resolved
+limits and exceptions are in `diagnostics.buffering`. Balanced mpv enables cache
+with 32 MiB forward and 8 MiB backward packet budgets. Native retains browser
+ownership; Shaka retains ABR, live windows, buffering and eviction ownership.
+See [buffering contract](PUBLIC-API.md#automatic-buffering) and
+[qualification and diagnostics](BUFFERING.md).
