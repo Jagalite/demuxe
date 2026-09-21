@@ -9,3 +9,7 @@ Implemented a browser owner for seven already-pending exact consumers (including
 Next: Scoped pending-only same-GOP component gates complete. Keep independent consumer ownership/cancellation and persistentdecoder baseline. Additional GOP/source/config families or actualpreviewservice integration require new exact eligibility and output tests.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T220758Z-pending-batch/analysis.md)
+
+## Imported preview research supplement
+
+[20260921T123810Z-preview-research-import](../../shared/runs/20260921T123810Z-preview-research-import/REPORT.md): Context for exact refinement only; this package does not test pending-consumer GOP batching and does not replace the existing browser component result. Imported evidence only; current decision and stages remain unchanged.

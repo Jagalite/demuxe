@@ -9,3 +9,7 @@ Implemented an explicit requested-preview native video producer and eight-image4
 Next: Scoped revisit-preview research gates complete. Keep cache disabled when no preview intent, preserve exact source/selection/geometry/time keys and eight-image cap; assess any future larger image, concurrency or integration contract separately.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T215328Z-strict-cap/analysis.md)
+
+## Imported preview research supplement
+
+[20260921T123810Z-preview-research-import](../../shared/runs/20260921T123810Z-preview-research-import/REPORT.md): Authored PNG timings exclude preparation, transfer and storage. They motivate a baseline, not a replacement for the qualified bounded revisit cache. Imported evidence only; current decision and stages remain unchanged.

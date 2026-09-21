@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "run_id": "20260921T032200Z-preview-native-screen",
+  "item_keys": [
+    "preview.progressive-independent-extraction"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "working_directory": "/mnt/data/demuxe_preview_research",
+  "commands": [
+    "python scripts/make_fixtures.py > results/fixture_generation.log 2>&1",
+    "python scripts/native_bench.py > results/native_bench.log 2>&1",
+    "python scripts/browser_bench.py > results/browser_bench.log 2>&1 # original attempted version: blocked before codec tests",
+    "python scripts/packet_bench.py > results/packet_bench.log 2>&1",
+    "python scripts/kernel_bench.py > results/kernel_bench.log 2>&1",
+    "python scripts/progressive_bench.py > results/progressive_bench.log 2>&1",
+    "python scripts/authored_control.py > results/authored_control.log 2>&1",
+    "python -m py_compile scripts/*.py # syntax check after packaging-only notices/browser continuation changes",
+    "python scripts/prepare_metadata.py # standalone metadata preparation after separating the browser dependency"
+  ],
+  "environment": {
+    "git_revision": "b4fa9ec1e7b86c2768aa5cb220d451d1b54432c7",
+    "git_revision_role": "inspected metadata/process only; independent local harnesses were executed",
+    "dirty_diff_sha256": null,
+    "runtime_manifest": "results/environment.txt",
+    "browser": "Chromium 144.0.7559.96; navigation blocked before codec execution",
+    "os_device": "Linux / AMD EPYC 9V74 container; no /dev/dri",
+    "python": "3.13.5"
+  },
+  "candidate": {
+    "executed": true,
+    "executed_scope": "Native component variants only, not full custom decoder or Demuxe browser provider",
+    "fallback_observed": true,
+    "fallback_details": "lowres requests clamped to zero for modern-video codecs; VP9 keyframe skip did not reduce output count."
+  },
+  "acceptance": {
+    "contract": "Complete the bounded feasibility screen and preserve observed positives/negatives/blocks; status passed means screen completed, not all candidates passed.",
+    "baseline": "Per-experiment baseline recorded in RESEARCH.md and raw results",
+    "oracle": "Full-source frame outputs at matching timestamps, full JPEG decode/resize, same progressive JPEG final decode, independent NumPy transform oracle",
+    "adverse_control": "Unsupported option probes, output-count checks, filter pixel differences, DC-only algebraic counterexample",
+    "passed": true
+  },
+  "correctness_gate": {
+    "run_id": null,
+    "manifest_sha256": null,
+    "passed": null,
+    "note": "Full provider gate is pending; individual component checks are documented."
+  },
+  "performance": {
+    "applicable": true,
+    "metric": "Exploratory component wall/CPU time; image fidelity and payload accounting separately",
+    "units": "ms, bytes, SSIM, PSNR, exact hashes",
+    "threshold": null,
+    "sampling": "Variant-specific warmups/randomized trials; JPEG initial scaled test sequential order, disclosed. No retroactive performance threshold.",
+    "included_costs": [
+      "video CLI process/demux/decode/scale/output",
+      "JPEG per-method in-process costs",
+      "kernel loops/checksums"
+    ],
+    "excluded_costs": [
+      "actual HTTP",
+      "Demuxe integration",
+      "GPU/hardware routing",
+      "Wasm execution",
+      "playback contention",
+      "physical energy",
+      "prepared-asset generation in decode timings",
+      "full decoder integration for selective kernel"
+    ],
+    "uncertainty": "Small synthetic corpus, one host, component-only scope, compiler/order effects. Quantified medians are not browser latency guarantees."
+  },
+  "decision": {
+    "state": "pursue",
+    "reason": "Pursue independent tiered preview delivery; keep custom video reconstruction optional, gated and removable. Individual path decisions and browser block are recorded separately.",
+    "date_utc": "2026-09-21T03:45:48.732665+00:00",
+    "run_ids": [
+      "20260921T032200Z-preview-native-screen"
+    ],
+    "evidence_level": "component_test",
+    "scope": "Native synthetic component screen, not integrated browser preview qualification."
+  },
+  "limits": [
+    "No complete custom video decoder built",
+    "Browser codec tests blocked",
+    "No remote repo mutations",
+    "Provisional key requires canonical mapping"
+  ],
+  "next_action": "LOCAL_AGENT.md",
+  "assembled_at_utc": "2026-09-21T03:45:48.732665+00:00"
+}

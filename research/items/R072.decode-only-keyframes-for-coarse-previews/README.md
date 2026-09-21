@@ -9,3 +9,7 @@ Implemented an explicit source-scoped coarse-keyframe job contract and actual144
 Next: Scoped host coarse-preview gates complete. Retain explicit coarse intent, independently proved IDR boundaries and actual sourcePTS. Browser/persistentdecoder integration or openGOP eligibility requires a separate bounded contract.
 
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T220620Z-coarse-job/analysis.md)
+
+## Imported preview research supplement
+
+[20260921T123810Z-preview-research-import](../../shared/runs/20260921T123810Z-preview-research-import/REPORT.md): VP9 packet selection and H.264 coarse IDR extraction support a browser baseline follow-up. Coarse 2-second and exact 3.5-second outputs are different contracts; full-file decode is not the best optimized random-access baseline. Imported evidence only; current decision and stages remain unchanged.

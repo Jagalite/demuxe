@@ -1,0 +1,208 @@
+{
+  "commands": [
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1920x1080:rate=30:duration=6",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-crf",
+      "24",
+      "-g",
+      "60",
+      "-keyint_min",
+      "60",
+      "-sc_threshold",
+      "0",
+      "-bf",
+      "2",
+      "-threads",
+      "1",
+      "-movflags",
+      "+faststart",
+      "/mnt/data/demuxe_preview_research/fixtures/h264.mp4"
+    ],
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1920x1080:rate=30:duration=6",
+      "-c:v",
+      "libx265",
+      "-preset",
+      "ultrafast",
+      "-crf",
+      "28",
+      "-x265-params",
+      "pools=none:frame-threads=1:keyint=60:min-keyint=60:scenecut=0:log-level=error",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_preview_research/fixtures/hevc.mp4"
+    ],
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1920x1080:rate=30:duration=6",
+      "-c:v",
+      "libvpx-vp9",
+      "-deadline",
+      "realtime",
+      "-cpu-used",
+      "8",
+      "-crf",
+      "38",
+      "-b:v",
+      "0",
+      "-g",
+      "60",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_preview_research/fixtures/vp9.webm"
+    ],
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1920x1080:rate=1:duration=1",
+      "-c:v",
+      "libaom-av1",
+      "-cpu-used",
+      "8",
+      "-crf",
+      "36",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_preview_research/fixtures/av1.mkv"
+    ],
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=1920x1080:rate=30:duration=1",
+      "-c:v",
+      "mpeg2video",
+      "-q:v",
+      "4",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_preview_research/fixtures/mpeg2.mkv"
+    ],
+    [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-filter_threads",
+      "1",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=3840x2160:rate=1:duration=1",
+      "-frames:v",
+      "1",
+      "-q:v",
+      "3",
+      "-threads",
+      "1",
+      "/mnt/data/demuxe_preview_research/fixtures/chart4k.jpg"
+    ]
+  ],
+  "description": "Synthetic lab fixtures, 6s 1080p30 interframe, 2s GOP where configured; 4K JPEG",
+  "files": [
+    {
+      "name": "av1.mkv",
+      "bytes": 22776,
+      "sha256": "f8969ce2ea5dfcbeb82b3c9f42ec55c0dad3b10e1014d8afd1b0feb764664d1e"
+    },
+    {
+      "name": "chart4k.jpg",
+      "bytes": 350551,
+      "sha256": "ea130b6730495463b87c105e32d29ee5618d7625050cc49298a9e0fd3fd1e4e8"
+    },
+    {
+      "name": "chart4k_progressive.jpg",
+      "bytes": 322313,
+      "sha256": "dcc1caf5144d24a8eab2eba260414d3ae086055d353bbd054d4717cbb8fdd258"
+    },
+    {
+      "name": "chart4k_thumb.jpg",
+      "bytes": 4112,
+      "sha256": "3e84795b3a11a9019b426e856df80e97b181dee4e38957143fafa28f180c39b1"
+    },
+    {
+      "name": "h264.mp4",
+      "bytes": 3639839,
+      "sha256": "72c08e36cfd61213311cfb38b09b29dc0f8d9cc879dd944c18b54e33045a2b07"
+    },
+    {
+      "name": "hevc.mp4",
+      "bytes": 2547037,
+      "sha256": "4ba655334e2db773953f0fb145a25bea23b25f731b114e1d0f8c93996811d824"
+    },
+    {
+      "name": "mpeg2.mkv",
+      "bytes": 2099638,
+      "sha256": "3f435add650a2a70028313a1a3c2e67a66d581d866d0b2a336e536c549d0a67a"
+    },
+    {
+      "name": "texture4k.jpg",
+      "bytes": 2292308,
+      "sha256": "39d08bb44fb11869420c2e6ba2d791a206fb6bfe5a19f187f93499cd8a553c6e"
+    },
+    {
+      "name": "texture4k_progressive.jpg",
+      "bytes": 2060601,
+      "sha256": "cf045ab68a9fe91845549186a0e09761702f21cf4572b2b1678e87b889d90d0b"
+    },
+    {
+      "name": "texture4k_thumb.jpg",
+      "bytes": 5269,
+      "sha256": "e935fcbe39d7aa7f1c264757a70c5c6b17a047ee4387ef84254b0502f8f335bf"
+    },
+    {
+      "name": "vp9.webm",
+      "bytes": 4627314,
+      "sha256": "3d208faa508a96d70526e3070b1ac06f258d11e8a74054661c1feabc1ee309a5"
+    }
+  ]
+}

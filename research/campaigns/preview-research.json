@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "preview-research",
+  "run_id": "20260921T123810Z-preview-research-import",
+  "run": "research/shared/runs/20260921T123810Z-preview-research-import/run.json",
+  "items": [
+    {
+      "key": "R055.cache-bounded-decoded-previews-for-scrub-revisits",
+      "title": "Authored/cached preview control",
+      "item_path": "research/items/R055.cache-bounded-decoded-previews-for-scrub-revisits",
+      "source_result": "research/shared/runs/20260921T123810Z-preview-research-import/snapshots/demuxe_preview_research/results/authored_control.json",
+      "applicability": "Authored PNG timings exclude preparation, transfer and storage. They motivate a baseline, not a replacement for the qualified bounded revisit cache."
+    },
+    {
+      "key": "R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+      "title": "Codec-specific reduced reconstruction and selective-kernel screen",
+      "item_path": "research/items/R064.decode-directly-at-reduced-resolution-for-explicit-previews",
+      "source_result": "research/shared/runs/20260921T123810Z-preview-research-import/snapshots/demuxe_preview_research/results/jpeg_bench.json",
+      "applicability": "Native JPEG scaling and modern-codec lowres probes extend screening. They do not supersede the existing quarter-resolution MJPEG/MPEG-2 quality failures. The H.264 residual kernel is not a complete decoder or a certified-error JPEG implementation."
+    },
+    {
+      "key": "R072.decode-only-keyframes-for-coarse-previews",
+      "title": "Independent random-access source extraction",
+      "item_path": "research/items/R072.decode-only-keyframes-for-coarse-previews",
+      "source_result": "research/shared/runs/20260921T123810Z-preview-research-import/snapshots/demuxe_preview_research/results/packet_bench.json",
+      "applicability": "VP9 packet selection and H.264 coarse IDR extraction support a browser baseline follow-up. Coarse 2-second and exact 3.5-second outputs are different contracts; full-file decode is not the best optimized random-access baseline."
+    },
+    {
+      "key": "R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
+      "title": "Accurate temporal refinement and dependency reuse",
+      "item_path": "research/items/R073.decode-a-gop-once-for-a-pending-exact-preview-batch",
+      "source_result": "research/shared/runs/20260921T123810Z-preview-research-import/snapshots/demuxe_preview_research/results/native_keyframe_bench.json",
+      "applicability": "Context for exact refinement only; this package does not test pending-consumer GOP batching and does not replace the existing browser component result."
+    },
+    {
+      "key": "R185.progressively-refine-one-preview",
+      "title": "Progressive image refinement and independent preview delivery",
+      "item_path": "research/items/R185.progressively-refine-one-preview",
+      "source_result": "research/shared/runs/20260921T123810Z-preview-research-import/snapshots/demuxe_preview_research/results/progressive_bench.json",
+      "applicability": "Native progressive JPEG state reuse yields exact final pixels with extra total work. This does not overturn the existing browser compositor refinement/final-fidelity failure."
+    }
+  ],
+  "current_decisions_changed": false
+}

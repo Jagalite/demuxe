@@ -1,0 +1,107 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Real Chromium WebCodecs component probes; no hardware or whole-player claim.
+An HTTP localhost server serves test assets. All timed codec inputs are preloaded.
+"""
+import pathlib,json,subprocess,struct,threading,http.server,functools,time,os
+from playwright.sync_api import sync_playwright
+R=pathlib.Path(__file__).resolve().parents[1]; F=R/'fixtures'; O=R/'results'
+p=F/'h264.mp4'; data=p.read_bytes(); i=data.index(b'avcC'); n=int.from_bytes(data[i-4:i],'big'); avcc=data[i+4:i-4+n]
+meta=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0','-show_packets','-show_entries','packet=pts_time,dts_time,pos,size,flags','-of','json',str(p)]))
+meta={'codec':'avc1.'+avcc[1:4].hex(),'description':list(avcc),'width':1920,'height':1080,'packets':meta['packets']}
+(F/'h264_packets.json').write_text(json.dumps(meta))
+# Progressive JPEG: provide the first completed scan plus the following marker/header.
+def jpeg_scan_ends(data):
+ i=2; scans=[]
+ while i<len(data)-1:
+  if data[i]!=255:i+=1;continue
+  while i<len(data) and data[i]==255:i+=1
+  m=data[i];i+=1
+  if m in [0,0xd8,0xd9] or 0xd0<=m<=0xd7:continue
+  length=int.from_bytes(data[i:i+2],'big')
+  if m==0xda:scans.append({'marker':i-2,'header_end':i+length})
+  i+=length
+ return scans
+prog={}
+for name in ['chart4k','texture4k']:
+ b=(F/f'{name}_progressive.jpg').read_bytes(); scans=jpeg_scan_ends(b)
+ prog[name]={'bytes':len(b),'scan_headers':scans,'prefix_bytes':scans[1]['header_end'] if len(scans)>1 else len(b)}
+(F/'progressive_meta.json').write_text(json.dumps(prog))
+class Quiet(http.server.SimpleHTTPRequestHandler):
+ def log_message(self,*args):pass
+server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(R)))
+threading.Thread(target=server.serve_forever,daemon=True).start()
+try:
+ with sync_playwright() as p:
+  browser=p.chromium.launch(executable_path=os.environ.get('DEMUXE_CHROMIUM','/usr/bin/chromium'),headless=os.environ.get('DEMUXE_HEADLESS','1')!='0',args=(['--no-sandbox'] if os.environ.get('DEMUXE_NO_SANDBOX')=='1' else []))
+  page=browser.new_page(); page.goto(f'http://127.0.0.1:{server.server_port}/')
+  result=page.evaluate(r'''async () => {
+  const result={userAgent:navigator.userAgent, videoDecoder:typeof VideoDecoder, imageDecoder:typeof ImageDecoder};
+  const bytes=await (await fetch('/fixtures/h264.mp4')).arrayBuffer();
+  const meta=await (await fetch('/fixtures/h264_packets.json')).json();
+  const config={codec:meta.codec,description:new Uint8Array(meta.description),codedWidth:1920,codedHeight:1080};
+  result.videoSupport={};
+  for(const hw of ['no-preference','prefer-software','prefer-hardware']){
+    result.videoSupport[hw]=await VideoDecoder.isConfigSupported({...config,hardwareAcceleration:hw});
+    delete result.videoSupport[hw].config.description;
+  }
+  const fake=await VideoDecoder.isConfigSupported({...config,desiredWidth:240,desiredHeight:135});
+  delete fake.config.description; result.unknownVideoResizeOptions=fake;
+  const packets=meta.packets.map(p=>({type:p.flags.includes('K')?'key':'delta',timestamp:Math.round(Number(p.pts_time)*1e6),data:new Uint8Array(bytes,Number(p.pos),Number(p.size))}));
+  const canvas=new OffscreenCanvas(240,135);const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  function hashFrame(frame){ctx.drawImage(frame,0,0,240,135);const data=ctx.getImageData(0,0,240,135).data;let h=2166136261;for(let i=0;i<data.length;i++)h=Math.imul(h^data[i],16777619);return h>>>0;}
+  const keys=packets.filter(p=>p.type==='key');
+  // Decode batches either normally or with only true sync samples. Compare keyframe output hashes.
+  async function decodeBatch(list,filterOutputs=true){
+   let error=null;const frames=[];const start=performance.now();
+   const d=new VideoDecoder({output:f=>{if(!filterOutputs||keys.some(k=>k.timestamp===f.timestamp))frames.push({timestamp:f.timestamp,width:f.codedWidth,height:f.codedHeight,hash:hashFrame(f)});f.close()},error:e=>error=String(e)});
+   d.configure({...config,hardwareAcceleration:'prefer-software'});
+   for(const p of list)d.decode(new EncodedVideoChunk(p));await d.flush();d.close();
+   return {ms:performance.now()-start,submitted:list.length,submittedBytes:list.reduce((s,p)=>s+p.data.length,0),frames,error};
+  }
+  result.videoBatches={full:[],keyOnly:[]};
+  for(let i=0;i<8;i++){
+   for(const method of (i%2?['full','keyOnly']:['keyOnly','full']))result.videoBatches[method].push(await decodeBatch(method==='full'?packets:keys));
+  }
+  // Actual isolated source key at 2s versus a decoded GOP containing requested frame 3.5s.
+  // Whole GOP is deliberately conservative for B-frame reorder; not a claimed minimal dependency set.
+  const gop=packets.filter(p=>Number(p.timestamp)>=2000000&&Number(p.timestamp)<4000000);
+  result.randomAccess={coarse:[],exactGop:[]};
+  for(let i=0;i<8;i++){
+   result.randomAccess.coarse.push(await decodeBatch(keys.filter(p=>p.timestamp===2000000),false));
+   let row=await decodeBatch(gop,false); row.frames=row.frames.filter(f=>f.timestamp===3500000);result.randomAccess.exactGop.push(row);
+  }
+  result.jpeg={};
+  for(const name of ['chart4k','texture4k']){
+   const data=await (await fetch('/fixtures/'+name+'.jpg')).arrayBuffer();const thumb=await(await fetch('/fixtures/'+name+'_thumb.jpg')).arrayBuffer();
+   const variants={full:[],desired480:[],authored240:[]};
+   for(let i=0;i<12;i++)for(const method of (i%2?['full','desired480','authored240']:['authored240','desired480','full'])){
+    const t=performance.now();const d=new ImageDecoder({data:method==='authored240'?thumb:data,type:'image/jpeg',...(method==='desired480'?{desiredWidth:480,desiredHeight:270}:{})});
+    const decoded=await d.decode();const dt=performance.now()-t;const frame=decoded.image;
+    const h=hashFrame(frame);variants[method].push({decode_ms:dt,total_ms:performance.now()-t,width:frame.codedWidth,height:frame.codedHeight,hash:h,complete:decoded.complete});frame.close();d.close();
+   }result.jpeg[name]=variants;
+  }
+  result.progressive={};const pm=await(await fetch('/fixtures/progressive_meta.json')).json();
+  for(const name of ['chart4k','texture4k']){
+   const data=new Uint8Array(await(await fetch('/fixtures/'+name+'_progressive.jpg')).arrayBuffer());let c;
+   const stream=new ReadableStream({start(controller){c=controller}});
+   const d=new ImageDecoder({type:'image/jpeg',data:stream,desiredWidth:480,desiredHeight:270});
+   const cut=pm[name].prefix_bytes;const t=performance.now();c.enqueue(data.slice(0,cut));
+   function collect(x){const row={ms:performance.now()-t,complete:x.complete,width:x.image.codedWidth,height:x.image.codedHeight,hash:hashFrame(x.image)};x.image.close();return row;}
+   const pending=d.decode({frameIndex:0,completeFramesOnly:false}).then(collect).catch(e=>({error:String(e)}));
+   const first=await Promise.race([pending,new Promise(resolve=>setTimeout(()=>resolve({timedOut:true}),500))]);
+   c.enqueue(data.slice(cut));c.close();
+   if(first.timedOut) await pending; // Never label an incomplete pending result as final.
+   const final=await d.decode({frameIndex:0,completeFramesOnly:true}).then(collect).catch(e=>({error:String(e)}));
+   result.progressive[name]={prefixBytes:cut,totalBytes:data.length,first,final};d.close();
+  }
+  return result;
+ }''')
+  (O/'browser_bench.json').write_text(json.dumps(result,indent=2)); print(json.dumps({k:v for k,v in result.items() if k not in ['videoBatches','randomAccess','jpeg']},indent=2))
+  browser.close()
+except Exception as exc:
+ status={'status':'blocked' if 'ERR_BLOCKED_BY_ADMINISTRATOR' in str(exc) else 'error','error':str(exc),'note':'A failed/blocked probe is not a codec support result.'}
+ (O/'browser_status.json').write_text(json.dumps(status,indent=2))
+ raise
+finally:
+ server.shutdown()
+ server.server_close()

@@ -38,3 +38,5 @@ their limits, including retained historical hash discrepancies.
 Reports/data use CC BY 4.0; original independent tooling uses Apache 2.0.
 Copied software and third-party media retain their own terms. See the licensing
 section of the process before adding or exporting artifacts.
+
+[Progressive and reduced-decode preview research](campaigns/preview-research.md): imported native component screens, mapped to five existing owners with browser/provider qualification limits preserved.

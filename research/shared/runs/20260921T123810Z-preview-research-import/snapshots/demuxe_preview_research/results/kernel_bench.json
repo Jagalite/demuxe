@@ -1,0 +1,147 @@
+{
+  "scope": "Only 4x4 already-dequantized inverse-transform residual arithmetic. Full comparator is our own C kernel, not FFmpeg SIMD. Does not validate bitstream decoding, intra predictions, spatial quality or a full thumbnail provider.",
+  "builds": {
+    "O3_native": {
+      "correctness_cases": 1000000,
+      "boundary_residual_checks": 7000000,
+      "clipped_prediction_checks": 7000000,
+      "mismatches": 0,
+      "kernel_calls_per_trial": 1048576,
+      "trials": [
+        {
+          "full_ms": 17.04751,
+          "boundary_ms": 9.469001
+        },
+        {
+          "full_ms": 17.130332,
+          "boundary_ms": 9.944757
+        },
+        {
+          "full_ms": 16.643811,
+          "boundary_ms": 9.43439
+        },
+        {
+          "full_ms": 17.496045,
+          "boundary_ms": 9.751019
+        },
+        {
+          "full_ms": 16.711101,
+          "boundary_ms": 9.411416
+        },
+        {
+          "full_ms": 16.628698,
+          "boundary_ms": 9.541209
+        },
+        {
+          "full_ms": 16.62268,
+          "boundary_ms": 9.799041
+        },
+        {
+          "full_ms": 16.714115,
+          "boundary_ms": 10.173676
+        },
+        {
+          "full_ms": 16.6832,
+          "boundary_ms": 9.509511
+        }
+      ],
+      "checksum": -7072784,
+      "build": [
+        "gcc",
+        "-std=c11",
+        "-O3",
+        "-march=native",
+        "/mnt/data/demuxe_preview_research/scripts/boundary_kernel.c",
+        "-o",
+        "/tmp/tmpasse1ncd/O3_native"
+      ],
+      "stderr": "",
+      "full_ms_median": 16.711101,
+      "boundary_ms_median": 9.541209,
+      "speedup_ratio": 1.7514657733626837
+    },
+    "O3_no_vectorize": {
+      "correctness_cases": 1000000,
+      "boundary_residual_checks": 7000000,
+      "clipped_prediction_checks": 7000000,
+      "mismatches": 0,
+      "kernel_calls_per_trial": 1048576,
+      "trials": [
+        {
+          "full_ms": 13.070702,
+          "boundary_ms": 9.749879
+        },
+        {
+          "full_ms": 12.891036,
+          "boundary_ms": 9.758951
+        },
+        {
+          "full_ms": 12.715225,
+          "boundary_ms": 9.982353
+        },
+        {
+          "full_ms": 12.921992,
+          "boundary_ms": 10.478779
+        },
+        {
+          "full_ms": 12.661436,
+          "boundary_ms": 10.084494
+        },
+        {
+          "full_ms": 12.954791,
+          "boundary_ms": 9.768856
+        },
+        {
+          "full_ms": 12.690819,
+          "boundary_ms": 9.713274
+        },
+        {
+          "full_ms": 13.400672,
+          "boundary_ms": 9.711802
+        },
+        {
+          "full_ms": 12.631211,
+          "boundary_ms": 9.701396
+        }
+      ],
+      "checksum": -7072784,
+      "build": [
+        "gcc",
+        "-std=c11",
+        "-O3",
+        "-fno-tree-vectorize",
+        "/mnt/data/demuxe_preview_research/scripts/boundary_kernel.c",
+        "-o",
+        "/tmp/tmpasse1ncd/O3_no_vectorize"
+      ],
+      "stderr": "",
+      "full_ms_median": 12.891036,
+      "boundary_ms_median": 9.758951,
+      "speedup_ratio": 1.3209448433545778
+    },
+    "undefined_sanitizer": {
+      "correctness_cases": 1000000,
+      "boundary_residual_checks": 7000000,
+      "clipped_prediction_checks": 7000000,
+      "mismatches": 0,
+      "kernel_calls_per_trial": 1048576,
+      "trials": [],
+      "checksum": 0,
+      "build": [
+        "gcc",
+        "-std=c11",
+        "-O1",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "/mnt/data/demuxe_preview_research/scripts/boundary_kernel.c",
+        "-o",
+        "/tmp/tmpasse1ncd/undefined_sanitizer"
+      ],
+      "stderr": ""
+    }
+  },
+  "independent_numpy_oracle": {
+    "cases": 1000,
+    "mismatches": 0
+  }
+}

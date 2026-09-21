@@ -11,3 +11,7 @@ Next: Reopen a materially different explicitly requested quality/scale profile o
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T215357Z-mpeg2-lowres/analysis.md)
 
 [Fixture provenance metadata amendment](../../shared/runs/20260919T220430Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.
+
+## Imported preview research supplement
+
+[20260921T123810Z-preview-research-import](../../shared/runs/20260921T123810Z-preview-research-import/REPORT.md): Native JPEG scaling and modern-codec lowres probes extend screening. They do not supersede the existing quarter-resolution MJPEG/MPEG-2 quality failures. The H.264 residual kernel is not a complete decoder or a certified-error JPEG implementation. Imported evidence only; current decision and stages remain unchanged.
