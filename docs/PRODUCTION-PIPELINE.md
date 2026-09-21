@@ -35,3 +35,5 @@ D09 absolute addressing and D10 authored missing-tfdt continuity remain handled 
 ## Evidence and limits
 
 [Production qualification report](../research/shared/runs/20260921T203100Z-production-pipeline/analysis.md) separates per-item and combined results, including regressions and failed development runs. Chrome qualification is bounded; fallback behavior remains essential elsewhere. Timings are descriptive small paired samples. Startup/seek regressions are retained, no savings are added across overlapping mechanisms, and no hardware acceleration, physical A/V latency, endurance, or release certification is claimed.
+
+[Worker lifecycle review and fixes](../research/shared/runs/20260921T223200Z-worker-mse-review/analysis.md) cover pause intent during recovery and awaiting an already pending shutdown. The intermittent browser retirement observation remains documented separately.
