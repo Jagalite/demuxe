@@ -97,6 +97,12 @@ async function pump(){
    if(size<0||size>65536)throw Error('Invalid decoder configuration size');
    const description=new Uint8Array(memory,pointer+packetOffset,size).slice();
    stats.input={kind:header[13]||1,width:w,height:h,profile:header[14],level:header[15],depth:header[8],descriptionBytes:size};
+   // An empty hvcC relies on in-band parameter sets. Browser acceptance at
+   // startup does not establish random-access decoding after reset: the
+   // screened sources skip the requested tail frames. Keep this unqualified
+   // configuration on Software until the bridge preserves that seek contract.
+   if(stats.input.kind===2&&description.length>=23&&description[0]===1&&description[22]===0)
+    throw Error('Unsupported retained HEVC configuration: in-band parameter sets require Software');
    pendingConfiguration=null;
    if(stats.input.kind===4&&(stats.input.profile<0||!stats.input.depth)){
     pendingConfiguration={...stats.input,description};configuration=null;return;

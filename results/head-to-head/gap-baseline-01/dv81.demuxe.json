@@ -1,0 +1,627 @@
+{
+  "id": "dv81.demuxe",
+  "fixture": "dv81",
+  "player": "demuxe",
+  "lane": "auto",
+  "status": "failed",
+  "checks": [],
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "recordPath": "dv81.demuxe.json",
+  "stage": "open",
+  "failureStage": "open",
+  "reason": "page.evaluate: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets\nError: FFmpeg error -1094995529: Missing HEVC parameter sets\n    at check (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:26:4)\n    at check (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:26:4)\n    at playerError (http://127.0.0.1:57633/demuxe/web/generated/internal/errors.js:53:12)\n    at http://127.0.0.1:57633/demuxe/web/generated/unified-player.js:476:36\n    at /Volumes/seed2/Projects/demuxe/tests/head-to-head/specialist-screen.mjs:53:24",
+  "failureState": {
+    "position": 10.140152,
+    "duration": 36.375,
+    "route": "native-direct",
+    "diagnostics": {
+      "preview": {
+        "requests": 0,
+        "hits": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "sourceId": "1:native",
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "active": false,
+        "pending": false
+      },
+      "buffering": {
+        "requestedProfile": "balanced",
+        "preload": "auto",
+        "backend": "browser",
+        "control": "hint",
+        "notes": [
+          "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+          "Explicit open performs metadata discovery even with preload none."
+        ],
+        "settings": {
+          "elementPreload": "auto"
+        }
+      },
+      "mode": "native",
+      "plan": {
+        "id": "native-direct",
+        "mode": "native",
+        "video": "browser",
+        "audio": "original",
+        "qualification": "existing",
+        "owners": {
+          "video": "browser-media-element",
+          "audio": "browser-media-element",
+          "subtitle": "browser-text-track",
+          "demux": "browser",
+          "presentation": "browser-media-element"
+        },
+        "source": "browser-supported source and selected tracks",
+        "prerequisites": "HTMLMediaElement",
+        "subtitles": "browser text tracks",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "This source policy requires controlled remux transport"
+        },
+        {
+          "id": "native-remux-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires opted-in inspected local Matroska ASS/SSA"
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": true
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "shaka-mse",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources"
+        },
+        {
+          "id": "shaka-mse-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation"
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy"
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": true
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "mpv scalar filter stage does not match the request"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "This source policy requires controlled remux transport",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-mpv",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv subtitle service requires opted-in inspected local Matroska ASS/SSA",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "failed",
+          "reason": "Error: Error: FFmpeg error -1094995529: Missing HEVC parameter sets\nError: FFmpeg error -1094995529: Missing HEVC parameter sets\n    at check (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:26:4)",
+          "previouslyVerified": false,
+          "evidence": {},
+          "failureKind": "terminal"
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv scalar filter stage does not match the request",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: This source policy requires controlled remux transport"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux-mpv: mpv subtitle service requires opted-in inspected local Matroska ASS/SSA"
+          },
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-remux: Error: Error: FFmpeg error -1094995529: Missing HEVC parameter sets\nError: FFmpeg error -1094995529: Missing HEVC parameter sets\n    at check (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:26:4)"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ],
+          "settings": {
+            "elementPreload": "auto"
+          }
+        },
+        "capability": {
+          "metadata": true,
+          "timing": {
+            "preparationRequested": 720.6299999952316,
+            "metadata": 720.7400000095367,
+            "ready": 720.7450000047684,
+            "outputRequested": 725.914999961853,
+            "firstFrame": 751.5199999809265
+          },
+          "decoderOutput": true,
+          "prepared": true,
+          "completedAtEOF": false,
+          "outputVerified": false,
+          "videoPresented": true,
+          "playbackReady": false,
+          "audioProgress": false
+        },
+        "path": "native",
+        "plan": "direct",
+        "audioProcessing": {
+          "component": "media-element",
+          "gain": 1
+        },
+        "position": 10.151372,
+        "rendered": 248,
+        "dropped": 0,
+        "readyState": 4
+      }
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "selected",
+        "reason": "native-direct: Playback requirements and actual startup accepted"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct: This source policy requires controlled remux transport"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux-mpv: mpv subtitle service requires opted-in inspected local Matroska ASS/SSA"
+      },
+      {
+        "mode": "native",
+        "outcome": "failed",
+        "reason": "native-remux: Error: Error: FFmpeg error -1094995529: Missing HEVC parameter sets\nError: FFmpeg error -1094995529: Missing HEVC parameter sets\n    at check (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:57633/demuxe/web/native-remux-worker.js:26:4)"
+      }
+    ],
+    "nativeVerificationFailures": [
+      {
+        "error": "PlayerError: Native selected track produced no decoded output",
+        "diagnostics": {
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "browser",
+            "control": "hint",
+            "notes": [
+              "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+              "Explicit open performs metadata discovery even with preload none."
+            ],
+            "settings": {
+              "elementPreload": "auto"
+            }
+          },
+          "capability": {
+            "metadata": true,
+            "timing": {
+              "preparationRequested": 720.6299999952316,
+              "metadata": 720.7400000095367,
+              "ready": 720.7450000047684,
+              "outputRequested": 725.914999961853,
+              "firstFrame": 751.5199999809265
+            },
+            "decoderOutput": true,
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": false,
+            "videoPresented": true,
+            "playbackReady": false,
+            "audioProgress": false
+          },
+          "path": "native",
+          "plan": "direct",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "position": 10.004892,
+          "rendered": 244,
+          "dropped": 0,
+          "readyState": 4
+        }
+      }
+    ],
+    "mediaTracks": [],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0,
+        "hz": 0
+      },
+      {
+        "channel": 1,
+        "rms": 0,
+        "hz": 0
+      },
+      {
+        "channel": 0,
+        "rms": 0,
+        "hz": 0
+      },
+      {
+        "channel": 1,
+        "rms": 0,
+        "hz": 0
+      }
+    ],
+    "observedMedia": [
+      {
+        "detachedWhenObserved": false,
+        "connected": true,
+        "source": "http://127.0.0.1:57633/fixtures/specialist/dv81.mkv",
+        "time": 10.151372,
+        "paused": false,
+        "muted": false,
+        "volume": 1
+      },
+      {
+        "detachedWhenObserved": false,
+        "connected": false,
+        "source": "",
+        "time": 0,
+        "paused": true,
+        "muted": false,
+        "volume": 1
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": {
+      "source": "http://127.0.0.1:57633/fixtures/specialist/dv81.mkv",
+      "time": 10.151372,
+      "ended": false,
+      "paused": false,
+      "total": 248,
+      "dropped": 0
+    }
+  },
+  "cleanup": {
+    "remainingSurfaces": 0,
+    "contexts": [
+      "closed",
+      "closed"
+    ],
+    "workers": 0
+  },
+  "browserExit": {
+    "trackedProcessIDs": [
+      83870,
+      83882,
+      83880,
+      83879,
+      83874,
+      83875,
+      83876,
+      83884
+    ],
+    "remainingProcessIDs": [],
+    "playwrightCloseAcknowledged": true
+  }
+}

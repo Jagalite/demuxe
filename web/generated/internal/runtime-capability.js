@@ -62,7 +62,15 @@ export function compatibilityFailure(error) {
         return ['UNSUPPORTED_MEDIA', 'DECODE_FAILED', 'UNSUPPORTED_FEATURE'].includes(code);
     // Existing preparation guards reject this pipeline, not the source. Keep the
     // allowlist exact so unrelated resource, transport and unknown errors stay terminal.
-    const message = (error instanceof Error ? error.message : String(error)).split('\n')[0].replace(/^Error: /, '');
+    const message = (error instanceof Error ? error.message : String(error)).split('\n')[0].replace(/^(?:Error: )+/, '');
+    // Some HEVC files carry parameter sets in-band. The remux construction
+    // guard cannot package them, but mpv can still decode the original source.
+    if (/^FFmpeg error -1094995529: Missing HEVC parameter sets$/.test(message))
+        return true;
+    // The retained renderer keys frames by PTS. Repeated timestamps are a
+    // limitation of that renderer, not proof the software decoder cannot play.
+    if (message === 'Duplicate retained frame timestamp')
+        return true;
     if (/^FFmpeg error -\d+: TS timestamp repair requires AVC with optional AAC audio$/.test(message))
         return true;
     if (/^(?:Error: )*Subtitle (?:bitmap budget exceeded|composition failed)$/.test(message))

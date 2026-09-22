@@ -2,6 +2,8 @@
 
 # Player paths and planned media coverage
 
+Latest Demuxe routing follow-up: [comparison gap closeout](COMPARISON-GAP-CLOSEOUT.md). The four Dolby Vision fixtures now pass auto mode through Software; the three PGS fixtures pass Hybrid. External ASS can retain qualified Native playback by default. The historical default failures below describe their original snapshots.
+
 ## Default and configured rerun (2026-09-21)
 
 The [current paired report](../results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md)
@@ -18,7 +20,7 @@ The historical tables below retain their original run scope and outcomes.
 
 ## Specialist Software alternatives (2026-09-20)
 
-The [specialist/library report](../results/head-to-head/specialist-report-01/REPORT.md) records current headed Chrome default routes and separate forced-Software checks. HEVC + DTS-HD MA passes both Hybrid and explicit Software. Both simpler Dolby Vision 5/8.1 files and both DV + E-AC-3/JOC + ASS combinations pass bounded Software playback, including ordinary seeks, EOF and cleanup. They still fail the default comparison because Native preparation or Hybrid timing fails. These Software passes do not qualify DV color/RPU application, Atmos objects, discrete channels or losslessness. Both HDR10 + TrueHD/DTS-HD + PGS cases lose their subtitle marker after seeking in either mode.
+The [specialist/library report](../results/head-to-head/specialist-report-01/REPORT.md) records the earlier headed Chrome default routes and separate forced-Software checks. HEVC + DTS-HD MA passes both Hybrid and explicit Software. Both simpler Dolby Vision 5/8.1 files and both DV + E-AC-3/JOC + ASS combinations pass bounded Software playback, including ordinary seeks, EOF and cleanup. They failed that snapshot’s default comparison because Native preparation or Hybrid timing failed. These Software passes do not qualify DV color/RPU application, Atmos objects, discrete channels or losslessness. Both HDR10 + TrueHD/DTS-HD + PGS cases lose their subtitle marker after seeking in either mode.
 
 The older table below retains its original fixture and snapshot scope.
 

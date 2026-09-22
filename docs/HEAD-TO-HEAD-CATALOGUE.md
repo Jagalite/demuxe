@@ -2,6 +2,8 @@
 
 # Expanded player comparison results
 
+Latest Demuxe gap follow-up: [automatic Dolby Vision fallback, PGS recovery and external ASS routing](COMPARISON-GAP-CLOSEOUT.md). This supersedes the affected Demuxe outcomes below; historical records and competitor results are retained.
+
 Latest streaming supplement: [Shaka migration, all six adaptive cases across four players](../results/head-to-head/shaka-catalogue-01/REPORT.md). Demuxe passed 6/6; Direct remains selected for default HLS VOD and Shaka for DASH/live HLS. These current streaming rows supersede the old custom-path rows below. See [controlled-route qualification and CPU evidence](STREAMING-QUALIFICATION.md).
 
 Latest specialist/library supplement: [14 combinations across four players](../results/head-to-head/specialist-report-01/REPORT.md), plus explicit Software diagnostics. The eight-case DTS rescreen corrects silent seek targets in the first screen. These are bounded playback results, not CPU or HDR/spatial-fidelity qualification.

@@ -186,7 +186,7 @@ export class Player extends EventTarget {
     this.backgroundPromotion=options.experimentalBackgroundPromotion?{...options.experimentalBackgroundPromotion}:undefined;
     if(this.backgroundPromotion&&(!Number.isSafeInteger(this.backgroundPromotion.maxKnownBytes)||this.backgroundPromotion.maxKnownBytes<256*1024*1024))throw new PlayerError('INVALID_ARGUMENT','Background promotion needs at least 256 MiB of known-allocation budget');
     this.mpvSubtitles=options.experimentalMpvSubtitles??false;if(typeof this.mpvSubtitles!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid mpv subtitle policy');
-    this.nativeASS=options.experimentalNativeASS??false;if(typeof this.nativeASS!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid Native ASS policy');
+    this.nativeASS=options.experimentalNativeASS??this.automatic;if(typeof this.nativeASS!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid Native ASS policy');
     this.allowLossy=options.allowLossyAudio??false;
     if(options.allowLossyAudio!==undefined&&typeof options.allowLossyAudio!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid lossy audio permission');
     if(this.audioAdaptation==='opus'&&options.allowLossyAudio!==true)throw new PlayerError('INVALID_ARGUMENT','Opus adaptation requires allowLossyAudio: true');

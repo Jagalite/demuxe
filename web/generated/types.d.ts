@@ -172,7 +172,8 @@ export type PlayerOptions = {
     automaticAudioAdaptation?: 'lossless';
     /** Explicit lossy permission; does not authorize resampling or downmixing. */
     allowLossyAudio?: boolean;
-    /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction. */
+    /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction.
+     * Enabled by default with automatic selection. Set false to require mpv subtitles. */
     experimentalNativeASS?: boolean;
     /** Local Matroska embedded ASS/SSA with browser A/V and bounded mpv subtitle service. */
     experimentalMpvSubtitles?: boolean;

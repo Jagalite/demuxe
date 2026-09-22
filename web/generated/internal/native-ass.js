@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { BrowserCaptionUnsupported } from './plain-vtt.js';
+import { PlayerError } from './errors.js';
 /** External ASS rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeASS {
     video;
@@ -14,6 +16,7 @@ export class NativeASS {
     busy = false;
     changingTrack = false;
     frame = 0;
+    videoFrame = 0;
     last = '';
     lastRevision = -1;
     loading = new AbortController();
@@ -61,6 +64,16 @@ export class NativeASS {
             this.ready = (async () => {
                 const deadline = setTimeout(() => this.loading.abort(), 10000);
                 try {
+                    // Packages may deliberately omit this optional renderer. Only a missing
+                    // asset permits the existing mpv caption route; permissions and broken
+                    // installed runtimes must retain their ordinary terminal diagnostics.
+                    for (const name of ['subtitles.mjs', 'subtitles.wasm']) {
+                        const asset = await fetch(new URL('web/engine-ass/' + name, base), { method: 'HEAD', signal: this.loading.signal });
+                        if (asset.status === 404)
+                            throw new BrowserCaptionUnsupported('Native ASS runtime is not installed');
+                        if (!asset.ok)
+                            throw new PlayerError(asset.status === 401 || asset.status === 403 ? 'SOURCE_PERMISSION' : 'ASSET_LOAD_FAILED', `Native ASS asset check failed (${asset.status})`);
+                    }
                     const response = await fetch(new URL('fixtures/DejaVuSans.ttf', base), { signal: this.loading.signal });
                     if (!response.ok)
                         throw Error('Subtitle default font unavailable');
@@ -121,7 +134,10 @@ export class NativeASS {
         }
     }
     visible(value) { this.enabled = value; this.canvas.style.display = value ? 'block' : 'none'; this.invalidate(); }
-    invalidate() { this.revision++; this.last = ''; if (!this.stopped && !this.frame)
+    invalidate() { this.revision++; this.last = ''; if (this.videoFrame) {
+        this.video.cancelVideoFrameCallback(this.videoFrame);
+        this.videoFrame = 0;
+    } if (!this.stopped && !this.frame)
         this.frame = requestAnimationFrame(() => this.tick()); }
     tick() {
         this.frame = 0;
@@ -184,7 +200,13 @@ export class NativeASS {
                 this.last = key;
             }, error => this.fail(error)).finally(() => { this.busy = false; });
         }
-        if (!this.video.paused || this.busy || this.last !== key)
+        // Follow presented video frames instead of asking libass to render the same
+        // movie interval at the display's (often higher) refresh rate. Invalidation
+        // still schedules an immediate render for paused seeks, resize and toggles.
+        if (!this.video.paused && this.video.videoWidth > 0 && typeof this.video.requestVideoFrameCallback === 'function') {
+            this.videoFrame = this.video.requestVideoFrameCallback(() => { this.videoFrame = 0; this.tick(); });
+        }
+        else if (!this.video.paused || this.busy || this.last !== key)
             this.frame = requestAnimationFrame(() => this.tick());
     }
     destroy() {
@@ -194,6 +216,8 @@ export class NativeASS {
         this.revision++;
         this.loading.abort();
         cancelAnimationFrame(this.frame);
+        if (this.videoFrame)
+            this.video.cancelVideoFrameCallback(this.videoFrame);
         this.observer?.disconnect();
         this.handlers.forEach(f => f());
         this.worker.terminate();

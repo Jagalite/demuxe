@@ -26,6 +26,21 @@ test('PCM24 lacks packet-copy construction without losing direct browser eligibi
  assert.equal(nativeRejection(probe,settings),undefined);assert.match(remuxRejection(probe,settings),/construction contract/);
 });
 
+test('missing HEVC remux configuration permits another backend without masking terminal errors',()=>{
+ const message='FFmpeg error -1094995529: Missing HEVC parameter sets';
+ for(const prefix of ['', 'Error: ', 'Error: Error: '])assert.equal(compatibilityFailure(new Error(prefix+message)),true);
+ for(const code of ['SOURCE_CHANGED','SOURCE_PERMISSION','ASSET_LOAD_FAILED','ABORTED'])assert.equal(compatibilityFailure(new PlayerError(code,message)),false);
+ assert.equal(compatibilityFailure(new Error('Source transport: '+message)),false);
+ assert.equal(compatibilityFailure(new Error('FFmpeg error -1: Missing HEVC parameter sets')),false);
+});
+
+test('retained timestamp collisions allow Software fallback with terminal errors preserved',()=>{
+ for(const prefix of ['', 'Error: ', 'Error: Error: '])assert.equal(compatibilityFailure(new Error(prefix+'Duplicate retained frame timestamp')),true);
+ assert.equal(compatibilityFailure(new PlayerError('SOURCE_CHANGED','Duplicate retained frame timestamp')),false);
+ assert.equal(compatibilityFailure(new Error('Source transport: Duplicate retained frame timestamp')),false);
+ assert.equal(compatibilityFailure(new Error('Duplicate unknown timestamp')),false);
+});
+
 test('known preparation limits permit fallback without weakening terminal failures',()=>{
  const messages=['Remux random-access interval exceeds fragment production budget','Remux timeline gap exceeds forward buffer budget','Adapted track timelines cannot progress within the preparation budget; use Hybrid'];
  for(const message of messages){

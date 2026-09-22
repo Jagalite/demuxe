@@ -15,6 +15,7 @@ export declare class NativeASS {
     private busy;
     private changingTrack;
     private frame;
+    private videoFrame;
     private last;
     private lastRevision;
     private loading;

@@ -5,11 +5,22 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {videoCodecConfig} from '../web/video-codec-config.js';
 import {vp9PacketConfig} from '../web/video-codec-config.js';
+test('empty HEVC configuration is rejected before browser admission rather than failing at a tail seek',async()=>{
+ const memory=new SharedArrayBuffer(80+65536),h=new Int32Array(memory,0,16),messages=[];
+ let checked=0;
+ const context=vm.createContext({self:{},videoCodecConfig,vp9PacketConfig,VideoDecoder:class{static async isConfigSupported(){checked++;return {supported:true};}},Uint8Array,Int32Array,DataView,Atomics,performance,postMessage:m=>messages.push(m),shared:memory});
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');
+ vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
+ h[0]=5;h[2]=1;h[4]=23;h[5]=1920;h[6]=1080;h[13]=2;
+ new Uint8Array(memory,80,23)[0]=1;
+ await context.pump();assert.equal(h[3],-29);assert.equal(checked,0);
+ assert.match(messages.find(m=>m.error).error,/Unsupported retained HEVC configuration/);
+});
 test('Rejected Hybrid configuration retains diagnostic fields without binary initialization data',async()=>{
  const messages=[];
  const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16);
  const context=vm.createContext({self:{},videoCodecConfig,vp9PacketConfig,VideoDecoder:class{static async isConfigSupported(config){return {supported:false,config};}},Uint8Array,Int32Array,DataView,Atomics,performance,postMessage:m=>messages.push(m),shared:memory});
- const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');
  vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
  h[0]=5;h[2]=1;h[4]=7;h[5]=1920;h[6]=1080;h[13]=1;h[14]=110;h[15]=40;h[8]=10;
  new Uint8Array(memory,80,7).set([1,110,0,40,255,225,0]);
@@ -25,7 +36,7 @@ test('Deferred VP9 rejection reports profile and depth learned from the packet',
  const messages=[];
  const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16);
  const context=vm.createContext({self:{},videoCodecConfig,vp9PacketConfig,VideoDecoder:class{static async isConfigSupported(config){return {supported:false,config};}},Uint8Array,Int32Array,DataView,Atomics,performance,postMessage:m=>messages.push(m),shared:memory});
- const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');
  vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
  h[0]=5;h[2]=1;h[4]=0;h[5]=640;h[6]=360;h[13]=4;h[14]=-1;h[15]=10;h[8]=0;
  await context.pump();assert.equal(h[3],0);
@@ -45,7 +56,7 @@ test('Invisible packets do not exhaust a fictitious one-packet/one-frame credit'
  }
  const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16);
  const context=vm.createContext({self:{},videoCodecConfig,VideoDecoder:Decoder,EncodedVideoChunk:class{constructor(data){Object.assign(this,data);}},Uint8Array,Int32Array,DataView,Atomics,performance,postMessage:m=>messages.push(m),shared:memory});
- const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
  let serial=0;const request=async op=>{h[0]=++serial*4+1;h[2]=op;await context.pump();assert.equal(h[0],serial*4+2);return h[3];};
  h[4]=0;h[5]=640;h[6]=360;h[13]=4;h[14]=0;h[15]=10;h[8]=8;assert.equal(await request(1),0);
  h[4]=1;h[7]=1;for(let i=0;i<9;i++)assert.equal(await request(2),0);
@@ -62,7 +73,7 @@ async function watchdogHarness(){
  }
  const memory=new SharedArrayBuffer(80+8*1024*1024+16),h=new Int32Array(memory,0,16),messages=[];
  const context=vm.createContext({self:{},videoCodecConfig,VideoDecoder:Decoder,EncodedVideoChunk:class{constructor(data){Object.assign(this,data);}},Uint8Array,Int32Array,DataView,Atomics,performance:{now:()=>now},postMessage:m=>messages.push(m),shared:memory});
- const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
  let serial=0;const request=async op=>{h[0]=++serial*4+1;h[2]=op;await context.pump();assert.equal(h[0],serial*4+2);return h[3];};
  h[4]=0;h[5]=640;h[6]=360;h[13]=4;h[14]=0;h[15]=10;h[8]=8;assert.equal(await request(1),0);h[4]=1;h[7]=1;
  return {request,messages,advance:ms=>now+=ms,decoder:()=>instance,flush:async()=>{finishFlush();await Promise.resolve();}};
@@ -90,7 +101,7 @@ test('packet ownership preserves prefixes and falls back once without transferri
  }
  const decoder={decodeQueueSize:0,decode(chunk){seen.push(chunk.bytes);new Uint8Array(memory,80,3).fill(255);}};
  const context=vm.createContext({self:{},videoCodecConfig,vp9PacketConfig,EncodedVideoChunk:Chunk,Uint8Array,Int32Array,DataView,Atomics,performance,postMessage(){},shared:memory,instance:decoder});
- const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/,'');
+ const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/m,'');
  vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);decoder=instance;packetPrefix=new Uint8Array([99]);',context);
  for(let i=0;i<3;i++){
   new Uint8Array(memory,80,3).set([1+i*3,2+i*3,3+i*3]);h[0]=(i+1)*4+1;h[2]=2;h[4]=3;h[7]=i===0?1:0;

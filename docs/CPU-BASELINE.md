@@ -2,6 +2,11 @@
 
 # Cross-player CPU baseline
 
+The [2026-09-22 comparison follow-up](COMPARISON-GAP-CLOSEOUT.md) supersedes the
+PCM24+ASS README row with a fresh matched campaign. The historical campaign below
+remains intact; its absolute CPU figures are not a before/after comparison with
+that later run.
+
 ## Current README: actual CPU usage for each player
 
 For each media case, the reference is the player with the **lowest median CPU**

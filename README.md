@@ -110,7 +110,8 @@ The table uses the recorded CPU campaign and its matching playback checks, plus 
 **These are bounded playback tests, not a format-support scorecard.** Movi
 0.4.0 and AVPlayer 1.3.1 are pinned versions. Their correctness cells below use
 [fresh default and configured-route tests](results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md).
-CPU figures retain the earlier campaign; these reruns collected no new CPU data.
+Except for the PCM24+ASS follow-up below, CPU figures retain the earlier campaign;
+these competitor reruns collected no new CPU data.
 
 For Movi and AVPlayer, **🟣 configured pass** means an explicitly named alternative
 passed while the default failed a named check. **🟠 Plays; … failed** means initial
@@ -136,6 +137,12 @@ Every numeric cell shows that player’s actual median CPU usage as a percentage
 
 [Raw values, ranges and exclusions](results/head-to-head/cpu-specialist-usage-02/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
+The [PCM24+ASS follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) replaces that row’s
+CPU figures with a fresh matched campaign: Demuxe 46.6% versus native plus
+host ASS 45.6%. Demuxe’s fresh Hybrid baseline was 56.8%, making the
+new Native ASS route 18.0% lower in median CPU. These absolute values
+should not be compared directly with the older campaign’s host conditions.
+
 The six HLS/DASH rows were rerun through the maintained streaming architecture in
 [the Shaka migration catalogue](results/head-to-head/shaka-catalogue-01/REPORT.md).
 Their older custom-route CPU numbers have been removed. Default HLS VOD uses
@@ -152,7 +159,7 @@ measurements do not replace the default-route correctness labels below.
 | H.264 + AAC / MP4 | 🟠 21.9% CPU | **🟢 20.2% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 38.0% CPU |
 | H.264 + AAC / MKV | **🟢 (Pass)** | **🟢 22.1% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 37.3% CPU |
 | H.264 + PCM24 / MKV | **🟢 21.2% CPU** | 🟠 21.7% CPU | **🟢 (Pass)** | 🔴 startup/audio check failed |
-| H.264 + PCM24 / MKV + ASS | **🟢 23.6% CPU** | 🟠 37.8% CPU | 🟣 Native-first + host ASS pass; default subtitle check failed | 🔴 startup/audio check failed |
+| H.264 + PCM24 / MKV + ASS | **🟢 45.6% CPU** | 🟠 46.6% CPU | 🟣 Native-first + host ASS pass; default subtitle check failed | 🔴 startup/audio check failed |
 | H.264 + AAC 5.1 / MP4 | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
 | H.264 + MP3 stereo / MP4 | **🟢 22.0% CPU** | 🟠 22.2% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
 | H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
@@ -186,7 +193,7 @@ measurements do not replace the default-route correctness labels below.
 | H.264 + AAC + external WebVTT / MP4 | 🟠 23.4% CPU | **🟢 23.3% CPU** | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
 | H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | AAC audio-only / M4A | **🟢 15.3% CPU** | 🟠 15.9% CPU | **🟢 (Pass)** | 🟠 20.7% CPU |
 | MP3 audio-only / MP3 | 🟠 15.2% CPU | **🟢 14.9% CPU** | **🟢 (Pass)** | 🟠 Plays; seek check failed |
@@ -201,8 +208,8 @@ measurements do not replace the default-route correctness labels below.
 | HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; rate check failed | 🔴 startup/audio check failed |
 | HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; rate check failed | **🟢 (Pass)\*** |
 | HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | 🟠 Plays; EOF check failed |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
 | H.264 + AAC / HLS VOD (TS segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
 | H.264 + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
 | HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
@@ -214,15 +221,15 @@ measurements do not replace the default-route correctness labels below.
 | HEVC Main 10 + Opus / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
 | HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; subtitle check failed | 🔴 startup/audio check failed |
-| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
-| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🔴 startup/audio check failed |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).
 
-The [specialist and library screen](results/head-to-head/specialist-report-01/REPORT.md) also tests explicit Software mode: all four Dolby Vision combinations pass its bounded playback checks, despite failing automatic selection or Hybrid lifecycle checks above. This does not qualify Dolby Vision color or Atmos object rendering. Both HDR10+PGS combinations still lose subtitles after seeking in Hybrid and Software.
+The [comparison gap follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) refreshes the seven Dolby Vision/PGS cells above. All four Dolby Vision combinations now pass bounded automatic playback through Software fallback. The three PGS fixtures pass in Hybrid, including subtitle recovery after seeking. These results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
 
 ## Release and licensing
 

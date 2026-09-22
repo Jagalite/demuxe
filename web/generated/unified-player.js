@@ -216,7 +216,7 @@ export class Player extends EventTarget {
         this.mpvSubtitles = options.experimentalMpvSubtitles ?? false;
         if (typeof this.mpvSubtitles !== 'boolean')
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid mpv subtitle policy');
-        this.nativeASS = options.experimentalNativeASS ?? false;
+        this.nativeASS = options.experimentalNativeASS ?? this.automatic;
         if (typeof this.nativeASS !== 'boolean')
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid Native ASS policy');
         this.allowLossy = options.allowLossyAudio ?? false;
