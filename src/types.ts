@@ -149,6 +149,8 @@ export type PlayerState = Readonly<{
   streamType: 'unknown' | 'vod' | 'live'; subtitlesVisible:boolean; volume: number; muted: boolean; playbackRate: number;
   activeMode: PlaybackMode | null; automaticSelection: boolean;
   buffered: readonly TimeRange[] | null; seekable: readonly TimeRange[] | null;
+  /** Resident demux packet coverage; decoding may still be required. */
+  cached: readonly TimeRange[] | null;
   trackPolicy:TrackPolicy;
   audioTracks: readonly MediaTrack[]; subtitleTracks: readonly MediaTrack[];
   mediaInfo: MediaInfo; capabilities: PlayerCapabilities; error: SessionError | null;

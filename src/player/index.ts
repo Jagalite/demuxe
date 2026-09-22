@@ -413,7 +413,7 @@ export class DemuxePlayerElement extends Base {
     this.$('diagnostics-overlay').textContent=lines.join('\n');
   }
   private bufferedProgress(state:PlayerState){const ranges=state.seekable,min=ranges?.[0]?.start??0,max=ranges?.at(-1)?.end??0,span=max-min;
-    const layers=span>0?(state.buffered??[]).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.end>min&&r.start<max).map(r=>{const start=Math.max(0,(r.start-min)/span*100),end=Math.min(100,(r.end-min)/span*100);return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 21%,transparent) ${start}% ${end}%,transparent ${end}%)`;}):[];
+    const layers=span>0?(state.buffered??state.cached??[]).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.end>min&&r.start<max).map(r=>{const start=Math.max(0,(r.start-min)/span*100),end=Math.min(100,(r.end-min)/span*100);return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 45%,transparent) ${start}% ${end}%,transparent ${end}%)`;}):[];
     this.$('timeline').style.setProperty('--buffered',layers.join(',')||'linear-gradient(transparent,transparent)');
   }
   private timelineProgress(){const input=this.input('timeline'),min=Number(input.min),max=Number(input.max);input.style.setProperty('--progress',`${max>min?Math.max(0,Math.min(100,(Number(input.value)-min)/(max-min)*100)):0}%`);}

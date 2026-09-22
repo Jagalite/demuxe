@@ -123,3 +123,38 @@ component-suite qualification boundary.
   with 0.1-second buckets before the fix. It now verifies a 4.3-second result and
   foreground cache hits without another decode.
 - All 76 focused unit tests, the build and license-boundary checks pass.
+
+## Continuous scrubber motion
+
+The old UI cancelled generation on every pointer movement. A regression with a
+delayed provider failed before the change: no image appeared until movement
+stopped. The scrubber now completes one sample, retains only the latest waiting
+position, and decodes the replacement image before replacing the visible one.
+
+[Same-file Chrome comparison](../results/preview/2026-09-22T03-03-49.286Z-scrub-motion/benchmark.json)
+used the user's 1.45 GB, 1920×1080 H.264/AAC MKV with Hybrid playback paused.
+Across 100 synthetic pointer events spaced 16 ms apart, the old UI displayed
+zero thumbnails during movement and cancelled 99 requests. The updated UI first
+displayed an image at 271 ms, was visible for 85 of 100 samples, never blanked
+after that first image, and cancelled zero requests. Both runs retained playback
+time at zero and emitted no seeks. This measures scrubber responsiveness, not
+physical playback contention or universal cold-decoder latency.
+
+Chrome and Firefox scrubber regressions cover continuous motion, cached image
+reuse, the latest waiting timestamp, discarded work after pointer leave, and
+close/destroy cleanup. The controller's 15 tests and Chrome preview-option checks
+pass. The software-preview check passed on an isolated rerun; one preceding run
+missed its existing 0.2-second timestamp tolerance for a superseded request.
+
+Review found that awaiting authored image loading in the generation lane could
+block a later cached preview indefinitely. The added browser regression stalls
+an image URI, moves to a resident thumbnail and requires that thumbnail to display
+within two seconds with the stalled fetch cancelled and playback time unchanged.
+It failed before the fix and passes in Chrome and Firefox. Another regression
+requires repeated cache hits within one bucket to reuse a slow image download
+and display it during continuous movement. Generation and image
+presentation now have separate cancellation owners; replacement, leave and
+destruction cancel obsolete image work without restarting continuous decoding.
+The 37 preview, pregeneration, range-isolation and public-state unit tests pass,
+as do the TypeScript build and license checks. The same-file comparison above
+predates this image-loading fix and measures the generation coalescing change.

@@ -214,3 +214,23 @@ at extra transfer/storage cost. Next investigate latency-amortized bounded
 source reads separately, holding codecs and packet budgets constant.
 
 **mpv cache looks promising for Hybrid/Software**
+
+## Timeline cache shading
+
+The player now renders a medium shade between played progress and the dim track.
+Native uses `state.buffered`; Hybrid and Software use the new `state.cached`
+packet ranges. The existing playable-buffer meaning of `state.buffered` remains
+unchanged. Negative packet preroll is clipped to zero; missing coverage remains
+null, known-empty coverage stays empty, and separate cached intervals retain gaps.
+
+The focused public API browser check passes across Native, Hybrid and Software
+in [Chrome](../results/public-api/chrome-2026-09-22T03-13-28.839Z/result.json)
+and [Firefox](../results/public-api/firefox-2026-09-22T03-14-29.125Z/result.json).
+It verifies real packet coverage, immutable state, explicit empty/unknown updates,
+and source close. The 25 state/preview unit tests pass.
+
+A same-file Chrome inspection of the 23:43 MKV at 1:07 showed the cached interval
+66.084–112.070 seconds on the timeline. No cache duration was inferred from bytes.
+The component suite's shading/clipping check passes; its 49/50 check result still
+contains the previously documented hidden-controls Play click failure (see
+[preview validation](PREVIEWS-VALIDATION.md#existing-component-suite-failure)).

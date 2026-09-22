@@ -18,6 +18,27 @@ for(const mode of ['native','hybrid','software'])await check(mode+' state events
  await page.evaluate(async()=>{await player.pause();await player.seek(1);});d=await page.evaluate(()=>({state:player.state,events:historyEvents}));assert.equal(d.state.volume,.61);assert.equal(d.state.muted,false);assert.equal(d.state.playbackRate,1.25);assert.ok(Math.abs(d.state.currentTime-1)<.15);assert.equal(d.state.pendingOperation,null);const seeking=d.events.findIndex(e=>e.name==='seeking'),seeked=d.events.findIndex(e=>e.name==='seeked');assert.ok(seeked>seeking);assert.equal(d.events[seeking].state.pendingOperation.kind,'seeking');assert.equal(d.events[seeked].state.pendingOperation,null);assert.ok(d.events.find(e=>e.name==='playing'));assert.equal(d.events.filter(e=>e.name==='sourcechange').length,1);
  await page.evaluate(()=>player.close());d=await page.evaluate(()=>player.state);assert.equal(d.status,'idle');assert.equal(d.sourceId,null);assert.equal(d.volume,.61);await open();assert.equal(await page.evaluate(()=>player.state.status),'paused');
 });
+await check('cached packet ranges remain distinct from playable buffers across engines',async()=>{
+ for(const mode of ['native','hybrid','software']){
+  await make(mode);await open();
+  if(mode==='native')assert.equal(await page.evaluate(()=>player.state.cached),null);
+  else {
+   await page.waitForFunction(()=>player.state.cached?.some(range=>range.end>range.start));
+   const real=await page.evaluate(()=>({cached:player.state.cached,reported:player.properties.get('demuxer-cache-state')['seekable-ranges'],buffered:player.state.buffered,frozen:Object.isFrozen(player.state.cached)&&player.state.cached.every(Object.isFrozen)}));
+   assert.deepEqual(real.cached,real.reported.filter(r=>r.end>0).map(r=>({start:Math.max(0,r.start),end:r.end})));assert.equal(real.buffered,null);assert.equal(real.frozen,true);
+   const states=await page.evaluate(async()=>{
+    const backend=player.current.backend,states=[];
+    for(const value of [[{start:0,end:2},{start:6,end:8}],[],undefined]){
+     backend.properties.set('demuxer-cache-state',value===undefined?{}:{'seekable-ranges':value});
+     backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'demuxer-cache-state',data:backend.properties.get('demuxer-cache-state')}}));
+     await Promise.resolve();states.push({cached:player.state.cached,buffered:player.state.buffered});
+    }return states;
+   });
+   assert.deepEqual(states,[{cached:[{start:0,end:2},{start:6,end:8}],buffered:null},{cached:[],buffered:null},{cached:null,buffered:null}]);
+  }
+  await page.evaluate(()=>player.close());assert.equal(await page.evaluate(()=>player.state.cached),null);
+ }
+});
 await check('canceled replacement preserves accepted state and bounded close',async()=>{
  await make('native');await open();await page.route('**/hung.mp4',()=>{});
  const d=await page.evaluate(async()=>{const old=player.surface,id=player.state.sourceId;const c=new AbortController();const work=player.open(location.origin+'/hung.mp4',{signal:c.signal}).catch(e=>e);await new Promise(r=>setTimeout(r,100));c.abort();const error=await work;return {code:error.code,same:old===player.surface,id:player.state.sourceId,previous:id,status:player.state.status,error:player.state.error};});assert.equal(d.code,'ABORTED');assert.ok(d.same);assert.equal(d.id,d.previous);assert.equal(d.status,'paused');assert.equal(d.error,null);

@@ -46,7 +46,7 @@ Keep these resource owners separate:
 | Owner | Evidence | Meaning |
 | --- | --- | --- |
 | Source byte cache | `backend.io` / Remux `source` | Raw byte LRU and active read allocation, not seconds |
-| mpv packet cache | `buffering.settings['demuxer-cache-state']` | Demux packets and packet timeline coverage |
+| mpv packet cache | `state.cached` / `buffering.settings['demuxer-cache-state']` | Resident demux packet timeline coverage, not decoded/playable frames |
 | Video decode/presentation | `backend.decoderStats`, `backend.presentation` | Retained/queued decoded frames |
 | Audio | `audioDiagnostics()` / `backend.queuedFrames` | Audio output ring and activity |
 | Wasm memory | `backend.heapBytes` | Published engine committed linear memory, not whole-player or malloc peak allocation |

@@ -2,6 +2,8 @@
 import type { MediaInfo, MediaTrack, TimeRange, PlaybackMode } from '../types.js';
 export declare function freeze<T>(value: T): T;
 export declare function ranges(value: unknown): readonly TimeRange[] | null;
+/** Packet caches can include negative preroll PTS before the public timeline. */
+export declare function cachedRanges(value: unknown): readonly TimeRange[] | null;
 export type RawTrack = Record<string, any>;
 export declare function usesRemuxTracks(plan?: string): boolean;
 export declare function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string;

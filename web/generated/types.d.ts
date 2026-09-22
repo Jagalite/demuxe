@@ -342,6 +342,8 @@ export type PlayerState = Readonly<{
     automaticSelection: boolean;
     buffered: readonly TimeRange[] | null;
     seekable: readonly TimeRange[] | null;
+    /** Resident demux packet coverage; decoding may still be required. */
+    cached: readonly TimeRange[] | null;
     trackPolicy: TrackPolicy;
     audioTracks: readonly MediaTrack[];
     subtitleTracks: readonly MediaTrack[];

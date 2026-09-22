@@ -196,8 +196,11 @@ text overlay that remains visible when playback controls hide. The overlay is
 scrollable and keyboard-focusable; navigation keys scroll it, and Escape closes
 it and returns focus to the eye. Top-right icons
 use motion on hover and a stronger accent stroke when active. Buffering displays
-a small central ring even with hidden controls. Timeline shading uses reported
-buffered ranges (currently Native only); unavailable ranges are not estimated.
+a small central ring even with hidden controls. The timeline uses a bright played
+segment, a medium shade for media already buffered or cached, and a dim remaining
+track. Native uses reported playable `buffered` ranges; Hybrid and Software use
+resident demux packet `cached` ranges, which may still require decoding.
+Unavailable ranges are not estimated.
 Control sizes and compact layouts follow the player container width, including
 small embeds in wide browser windows. Pointer controls retain 36px targets and
 coarse-pointer devices use 44px targets. On narrow players, opening a menu hides

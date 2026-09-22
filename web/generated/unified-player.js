@@ -8,7 +8,7 @@ import { EnginePreparation, preparationComponents } from './internal/engine-prep
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
 import { runtimeBase } from './internal/assets.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
-import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
+import { freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
 import { PreviewController } from './preview/controller.js';
@@ -358,6 +358,7 @@ export class Player extends EventTarget {
         const next = { status, playbackIntent: this.settings.pause ? 'pause' : 'play', pendingOperation: this.pendingOperation, sourceId: this.current ? this.sourceSerial : null,
             currentTime: Math.max(0, Number(p.get('time-pos')) || 0), duration, streamType, subtitlesVisible: this.settings.subtitles, volume: this.settings.volume / 100, muted: this.muted, playbackRate: this.settings.speed,
             activeMode: this.current ? this.mode : null, automaticSelection: this.automatic, buffered: this.mode === 'native' && this.current ? ranges(p.get('native-buffered')) : null, seekable,
+            cached: this.current && this.mode !== 'native' ? cachedRanges(cache?.['seekable-ranges']) : null,
             trackPolicy: this.trackPolicy, audioTracks: list.filter(t => t.type === 'audio'), subtitleTracks: list.filter(t => t.type === 'subtitle'), mediaInfo: mediaInfo(p, this.mode, this.surface, list), capabilities: caps, error: this.sessionError };
         // Priority can change even when the externally visible snapshot is identical.
         this.preview.setSuspended(this.busy || !!this.activeOperation || this.previewBuffering());

@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {playerError,redact} from '../web/generated/internal/errors.js';import {ranges,tracks,mediaInfo,freeze} from '../web/generated/internal/state.js';
+import {playerError,redact} from '../web/generated/internal/errors.js';import {ranges,cachedRanges,tracks,mediaInfo,freeze} from '../web/generated/internal/state.js';
 test('runtime Wasm abort is asset failure; user AbortError is cancellation',()=>{assert.equal(playerError(Error('Aborted(both async and sync fetching of the wasm failed)')).code,'ASSET_LOAD_FAILED');assert.equal(playerError(new DOMException('Aborted','AbortError')).code,'ABORTED');assert.equal(playerError(new DOMException('play() failed','NotAllowedError')).code,'AUTOPLAY_BLOCKED');});
 test('unknown ranges are distinct from known empty and invalid ranges remain unknown',()=>{assert.equal(ranges(undefined),null);assert.deepEqual(ranges([]),[]);assert.equal(ranges([{start:5,end:4}]),null);assert.deepEqual(ranges([{start:20,end:40}]),[{start:20,end:40}]);});
+test('packet cache coverage clips negative preroll and preserves disjoint ranges and unknown state',()=>{
+ assert.deepEqual(cachedRanges([{start:-.021,end:11.9895},{start:30,end:40}]),[{start:0,end:11.9895},{start:30,end:40}]);
+ assert.deepEqual(cachedRanges([{start:-1,end:-.1}]),[]);assert.deepEqual(cachedRanges([]),[]);
+ for(const value of [undefined,null,[null],[{start:5,end:4}],[{start:0,end:Infinity}]])assert.equal(cachedRanges(value),null);
+});
 test('normal diagnostics redact auth, userinfo, signed queries and fragments',()=>{const d=redact({headers:{Authorization:'Bearer SECRET'},url:'https://name:password@example.com/media?X-Amz-Signature=SECRET#private',message:'Bearer SECRET'});assert.ok(!JSON.stringify(d).includes('SECRET'));assert.ok(!JSON.stringify(d).includes('password'));assert.equal(d.url,'https://example.com/media?[redacted]');});
 test('display geometry resolves Hybrid timing placeholders and anamorphic rotation',()=>{const raw={id:'1',type:'video',selected:true,'ff-index':0,'demux-w':720,'demux-h':576,'demux-par':16/15,'demux-rotation':90};const properties=new Map([['video-params',{w:2,h:2,dw:2,dh:2}],['track-list',[raw]]]);const list=tracks([raw],1,'hybrid');const info=mediaInfo(properties,'hybrid',undefined,list);assert.ok(Math.abs(info.aspectRatio-.75)<.00001);assert.equal(info.rotation,90);assert.equal(info.video.id,'1:video:stream:0');});
 test('track identities are source scoped and compatible across mpv engines',()=>{const raw=[{id:'2',type:'audio','ff-index':3,lang:'jpn',selected:true}];assert.equal(tracks(raw,1,'hybrid')[0].id,tracks(raw,1,'software')[0].id);assert.notEqual(tracks(raw,1,'hybrid')[0].id,tracks(raw,2,'hybrid')[0].id);const state=freeze({tracks:tracks(raw,1,'hybrid')});assert.throws(()=>state.tracks[0].label='bad');});

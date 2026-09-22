@@ -82,7 +82,9 @@ No profile changes decoding, retained video queues, or the audio ring.
 control. `player.diagnostics.buffering` reports the resolved backend, requested
 profile, preload, settings, limits and limitations; see [BUFFERING.md](BUFFERING.md).
 `state.buffered`, `state.seekable`, and `state.status` retain their existing
-semantics. mpv packet ranges belong in diagnostics, not playable buffered time.
+semantics. `state.cached` exposes resident mpv packet ranges separately from
+playable buffered time; these packets may still require decoding. It is `null`
+for Native and when cache coverage is unavailable, or `[]` for a known empty cache.
 
 ## Adaptive streaming
 

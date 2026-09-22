@@ -280,7 +280,12 @@ paths. Caller-held Blob results remain valid after eviction.
 
 `src/player/preview.ts` only maps pointer coordinates to time, calls the public API,
 loads the result and manages visible UI/object-URL ownership. The thumbnail appears
-above the scrubber with its represented/estimated time. Pointer leave/cancel,
+above the scrubber with its represented/estimated time. During continuous pointer
+motion, one request finishes while only the latest waiting position is retained;
+the displayed image stays visible until its replacement has decoded. Image loading
+runs separately from generation, so a stalled authored image cannot block the next
+preview; a newer result cancels the older image load. This avoids starving
+generation by cancelling on every pointer event. Pointer leave/cancel,
 source/engine operations, controls hiding, disconnect and destruction hide it and
 cancel obsolete requests. Touch movement is left to the existing seek interaction.
 
