@@ -31,3 +31,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D38 — Admit a useful seek GOP without waiting for earlier GOPs**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D38 — deferred_profile_followup**: Current player already seeks through its source/remux owner. A new out-of-order admission planner needs a real verified-source scheduling workload and cross-track/cancel proof.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

@@ -13,11 +13,62 @@
 
 Full identity: `R162.compile-a-qualified-mux-configuration-into-a-small-patch-program`.
 
-Current decision: **pursue** (actual-complete-cost-comparison).
+Current scoped decision: **already_implemented**.
+
+D09/D10: actual current remux accepts absolute-addressed and missing-tfdt sources and emits byte-identical packet payloads and full decoded output. No additional imported repair adapter is needed for this profile. Prior patch-program cost evidence remains in history.
+
+Next action: Retain these as remux regression inputs; reopen only for a demonstrated unsupported addressing/continuity profile.
+
+## Current stages
+
+| Stage | Status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Authoritative item contract/state](item.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl).
+
+Production integration and release qualification are separate. Current stages apply to the scope above; earlier findings retain their original scope.
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D09 — executed_existing_owner_or_control**: The maintained remuxer already repairs relative output addressing for this absolute-addressed source; all packets and full decoded output match.
+
+**D10 — executed_existing_owner_or_control**: The maintained demux/mux owner already accepts the authored missing-tfdt continuity profile; all packets and decoded output match.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+Latest scoped decision: **already_implemented**. D09/D10: actual current remux accepts absolute-addressed and missing-tfdt sources and emits byte-identical packet payloads and full decoded output. No additional imported repair adapter is needed for this profile. Prior patch-program cost evidence remains in history.
+
+Next action: Retain these as remux regression inputs; reopen only for a demonstrated unsupported addressing/continuity profile.
+
+| Stage | Current status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+Production integration and release qualification are separate. Earlier sections describe retained historical profiles.
+
+
+## Retained earlier profile notes (historical)
+
+Full identity: `R162.compile-a-qualified-mux-configuration-into-a-small-patch-program`.
+
+Earlier decision: **pursue** (actual-complete-cost-comparison).
 
 Qualifiedfixedmoofpatchconstructor versusdirectboundedboxconstructor,200movies/4800fragmentsperjob,11pairs includingcoldtemplateparsing/compilation andoutputhashing. Everyoutputbyteexact existingqualifiedfixture; priorfullhostdecodedpixel/packet/timing andadversecontrols retained. Median23.00percent saving95[21.91,24.01] passes5percentgate. 104byte template retention; hostPython only, not arbitraryrecipes/Wasm/browserCPU.
 
-Next action: Scopedresearch costdecision complete; broaden only for a materially differentowner/workload withnewdeclaredgate.
+Earlier next action: Scopedresearch costdecision complete; broaden only for a materially differentowner/workload withnewdeclaredgate.
 
 ## Stages
 

@@ -31,3 +31,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D58 — Give a native IIR filter only enough history for a declared error budget**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D58 — deferred_profile_followup**: A bounded-error IIR preview is opt-in, not transparent exact playback. Defer the browser arithmetic guarantee and full-cost comparison until a preview consumer exists.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

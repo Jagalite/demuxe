@@ -1,0 +1,112 @@
+{
+  "scope": "Finite authored fixture extraction; no general parser qualification",
+  "results": [
+    {
+      "id": "h264-srt",
+      "cues": [
+        {
+          "start": 0.5,
+          "end": 35.8,
+          "text": "DE MUXE TEST 123"
+        }
+      ],
+      "readBytes": 925291,
+      "oracle": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 2,
+            "pts": 500,
+            "pts_time": "0.500000",
+            "dts": 500,
+            "dts_time": "0.500000",
+            "duration": 35300,
+            "duration_time": "35.300000",
+            "size": "16",
+            "pos": "14339",
+            "flags": "K__",
+            "data": "\n00000000: 4445 204d 5558 4520 5445 5354 2031 3233  DE MUXE TEST 123\n"
+          }
+        ]
+      },
+      "negativeTruncationsRejected": 5,
+      "passed": true
+    },
+    {
+      "id": "h264-ass",
+      "cues": [
+        {
+          "start": 0.5,
+          "end": 35.8,
+          "text": "0,0,Default,,0,0,0,,{\\an7\\pos(220,130)\\p1}m 0 0 l 70 0 70 30 0 30"
+        }
+      ],
+      "readBytes": 925854,
+      "oracle": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 2,
+            "pts": 500,
+            "pts_time": "0.500000",
+            "dts": 500,
+            "dts_time": "0.500000",
+            "duration": 35300,
+            "duration_time": "35.300000",
+            "size": "65",
+            "pos": "14853",
+            "flags": "K__",
+            "data": "\n00000000: 302c 302c 4465 6661 756c 742c 2c30 2c30  0,0,Default,,0,0\n00000010: 2c30 2c2c 7b5c 616e 375c 706f 7328 3232  ,0,,{\\an7\\pos(22\n00000020: 302c 3133 3029 5c70 317d 6d20 3020 3020  0,130)\\p1}m 0 0 \n00000030: 6c20 3730 2030 2037 3020 3330 2030 2033  l 70 0 70 30 0 3\n00000040: 30                                       0\n"
+          }
+        ]
+      },
+      "negativeTruncationsRejected": 5,
+      "passed": true
+    },
+    {
+      "id": "h264-movtext",
+      "cues": [
+        {
+          "start": 0.5,
+          "end": 35.8,
+          "text": "DE MUXE TEST 123"
+        }
+      ],
+      "readBytes": 946223,
+      "oracle": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 2,
+            "pts": 0,
+            "pts_time": "0.000000",
+            "dts": 0,
+            "dts_time": "0.000000",
+            "duration": 500000,
+            "duration_time": "0.500000",
+            "size": "2",
+            "pos": "43430",
+            "flags": "K__",
+            "data": "\n00000000: 0000                                     ..\n"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 2,
+            "pts": 500000,
+            "pts_time": "0.500000",
+            "dts": 500000,
+            "dts_time": "0.500000",
+            "duration": 35300000,
+            "duration_time": "35.300000",
+            "size": "18",
+            "pos": "54675",
+            "flags": "K__",
+            "data": "\n00000000: 0010 4445 204d 5558 4520 5445 5354 2031  ..DE MUXE TEST 1\n00000010: 3233                                     23\n"
+          }
+        ]
+      },
+      "negativeTruncationsRejected": 5,
+      "passed": true
+    }
+  ]
+}

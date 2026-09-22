@@ -31,3 +31,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D12 — A validated packet still needs a current source owner before publication**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D12 — deferred_profile_followup**: Keep source-generation publication checks. A real decompression sink/aggregate-budget cancellation stress test remains a separate hardening follow-up; simulated stale-byte counters do not close it.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

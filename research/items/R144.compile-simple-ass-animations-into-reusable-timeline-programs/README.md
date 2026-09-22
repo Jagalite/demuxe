@@ -17,3 +17,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D70 — Give native text the syllable timeline rather than repainting it in JavaScript**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch16_D68-D70/demuxe_batch16/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D70 — deferred_profile_followup**: Native-style syllable timing is a separate explicitly permitted subtitle feature. Do not convert full ASS styling or reopen the prior cost miss without a maintained text-owner comparison.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

@@ -4,11 +4,64 @@
 
 Full identity: `R119.canonicalize-equivalent-decoder-configurations`.
 
-Current decision: **inconclusive** (actual-browser-complete-cost-comparison).
+Current scoped decision: **pursue**.
+
+D01/D08: isolated AAC-LC metadata normalization preserves all packet payloads, full host PCM/YUV and checked browser frames. Both frozen-runtime seven-pair admission-cost gates pass. D03 two-byte AVC already works and is left unchanged.
+
+Next action: Integrate only the qualified AAC declarations with strict guards and fallback; extend real-source/browser corpus before automatic admission.
+
+## Current stages
+
+| Stage | Status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Authoritative item contract/state](item.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl).
+
+Production integration and release qualification are separate. Current stages apply to the scope above; earlier findings retain their original scope.
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D01 — qualified_bounded_candidate**: Qualify the narrow AAC-LC PCE normalizer; compressed packets and full host/browser output remain exact.
+
+**D03 — executed_existing_owner_or_control**: The maintained remuxer already plays the two-byte AVC length profile. Do not add a blanket prefix-widening pass.
+
+**D08 — qualified_bounded_candidate**: Qualify exact-table explicit AAC sample-rate normalization; non-table rates and unsupported extensions remain rejected.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+Latest scoped decision: **pursue**. D01/D08: isolated AAC-LC metadata normalization preserves all packet payloads, full host PCM/YUV and checked browser frames. Both frozen-runtime seven-pair admission-cost gates pass. D03 two-byte AVC already works and is left unchanged.
+
+Next action: Integrate only the qualified AAC declarations with strict guards and fallback; extend real-source/browser corpus before automatic admission.
+
+| Stage | Current status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | passed |
+| results | passed |
+| decision | passed |
+
+Production integration and release qualification are separate. Earlier sections describe retained historical profiles.
+
+
+## Retained earlier profile notes (historical)
+
+Full identity: `R119.canonicalize-equivalent-decoder-configurations`.
+
+Earlier decision: **inconclusive** (actual-browser-complete-cost-comparison).
 
 11paired20GOP browserjobs, allhostreference picturehashes andPTS exact. Canonical exactduplicateSPS/PPS parsing, boundschecks, serialization and comparison charged on everyjob;configurecalls20to1. Completecold decoder/hash/flush/close costsaving5.71percent95CI[2.36,12.57], misses lower95>5percent gate. No arbitrary semantic SPS equivalence or source-reset suppression. Earlier pre-canonicalized diagnostic excludes preprocessing and is not performance acceptance.
 
-Next action: Scoped cost decision complete; reopen only for materially different measuredconfiguration exposure, not repeated sampling to chase significance.
+Earlier next action: Scoped cost decision complete; reopen only for materially different measuredconfiguration exposure, not repeated sampling to chase significance.
 
 ## Stages
 

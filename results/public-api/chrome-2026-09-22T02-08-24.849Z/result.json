@@ -1,0 +1,260 @@
+{
+  "browser": "152.0.7977.83",
+  "family": "chrome",
+  "checks": [
+    {
+      "name": "immutable state, stable identity and no core UI import",
+      "passed": true
+    },
+    {
+      "name": "native state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "hybrid state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "software state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "canceled replacement preserves accepted state and bounded close",
+      "passed": true
+    },
+    {
+      "name": "close remains available with a full bounded operation queue",
+      "passed": true
+    },
+    {
+      "name": "failed replacement stays usable and redacts signed URL",
+      "passed": true
+    },
+    {
+      "name": "stable source-scoped tracks and explicit transition preservation",
+      "passed": true
+    },
+    {
+      "name": "external subtitles have distinct identities and preserve explicit selection across modes",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'second.srt · SUBRIP'\n- 'second.srt'\n             ^\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:45:66\n    at async check (file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:10:96)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:29:1",
+      "state": {
+        "status": "paused",
+        "playbackIntent": "pause",
+        "pendingOperation": null,
+        "sourceId": 1,
+        "currentTime": 0,
+        "duration": 12.011,
+        "streamType": "vod",
+        "subtitlesVisible": true,
+        "volume": 1,
+        "muted": false,
+        "playbackRate": 1,
+        "activeMode": "software",
+        "automaticSelection": false,
+        "buffered": null,
+        "seekable": [
+          {
+            "start": 0,
+            "end": 12.011
+          }
+        ],
+        "trackPolicy": {},
+        "audioTracks": [
+          {
+            "id": "1:audio:stream:1",
+            "type": "audio",
+            "label": "AAC · Stereo · File default",
+            "language": null,
+            "codec": "aac",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 1,
+            "default": true,
+            "forced": false,
+            "channels": 2
+          }
+        ],
+        "subtitleTracks": [
+          {
+            "id": "1:sub:external:1",
+            "type": "subtitle",
+            "label": "first.srt · SUBRIP",
+            "language": null,
+            "codec": "subrip",
+            "selected": false,
+            "external": true,
+            "title": "first.srt",
+            "streamIndex": 0,
+            "default": false,
+            "forced": false,
+            "channels": null
+          },
+          {
+            "id": "1:sub:external:2",
+            "type": "subtitle",
+            "label": "second.srt · SUBRIP",
+            "language": null,
+            "codec": "subrip",
+            "selected": true,
+            "external": true,
+            "title": "second.srt",
+            "streamIndex": 0,
+            "default": false,
+            "forced": false,
+            "channels": null
+          }
+        ],
+        "mediaInfo": {
+          "displayWidth": 640,
+          "displayHeight": 360,
+          "aspectRatio": 1.7777777777777777,
+          "rotation": 0,
+          "video": {
+            "id": "1:video:stream:0",
+            "type": "video",
+            "label": "H264 · File default",
+            "language": null,
+            "codec": "h264",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 0,
+            "default": true,
+            "forced": false,
+            "channels": null
+          },
+          "audio": {
+            "id": "1:audio:stream:1",
+            "type": "audio",
+            "label": "AAC · Stereo · File default",
+            "language": null,
+            "codec": "aac",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 1,
+            "default": true,
+            "forced": false,
+            "channels": 2
+          },
+          "subtitle": {
+            "id": "1:sub:external:2",
+            "type": "subtitle",
+            "label": "second.srt · SUBRIP",
+            "language": null,
+            "codec": "subrip",
+            "selected": true,
+            "external": true,
+            "title": "second.srt",
+            "streamIndex": 0,
+            "default": false,
+            "forced": false,
+            "channels": null
+          }
+        },
+        "capabilities": {
+          "videoFilters": true,
+          "audioFilters": true,
+          "mpvSubtitles": true,
+          "externalTextTracks": false,
+          "externalSubtitles": true,
+          "customFonts": true,
+          "customRequestHeaders": true,
+          "buffering": {
+            "control": "profile",
+            "preload": true,
+            "profile": true,
+            "memoryBudget": true
+          },
+          "deployment": {
+            "isolated": true,
+            "webCodecs": true,
+            "mediaSource": true
+          },
+          "features": {
+            "seek": {
+              "availability": "available"
+            },
+            "audioTracks": {
+              "availability": "available"
+            },
+            "subtitleTracks": {
+              "availability": "available"
+            },
+            "audioGain": {
+              "availability": "available"
+            },
+            "externalSubtitles": {
+              "availability": "available"
+            },
+            "customFonts": {
+              "availability": "available"
+            },
+            "videoFilters": {
+              "availability": "available"
+            },
+            "audioFilters": {
+              "availability": "available"
+            }
+          }
+        },
+        "error": null
+      }
+    },
+    {
+      "name": "native fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "hybrid fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "software fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "native caller abort at source acceptance does not reject committed open",
+      "passed": true
+    },
+    {
+      "name": "software caller abort at source acceptance does not reject committed open",
+      "passed": true
+    },
+    {
+      "name": "canceling Wasm asset initialization preserves the previous session",
+      "passed": true
+    },
+    {
+      "name": "stale backend events cannot overwrite accepted playback",
+      "passed": true
+    },
+    {
+      "name": "unknown duration and live windows remain truthful (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "waiting and ended reflect observed playback (native events)",
+      "passed": true
+    },
+    {
+      "name": "idempotent destroy settles queue and removes workers",
+      "passed": true
+    },
+    {
+      "name": "no uncaught errors",
+      "passed": true
+    }
+  ],
+  "hashes": {
+    "src/unified-player.ts": "d8f7ae2e2d732d995de97cb92e633c07a218f1d0695658bd46256d4d0d8bff43",
+    "src/internal/state.ts": "983c5a76861214a658cb6714f7c9445f67ffc76a1c1d0cd1d8a5fbfbd6deb6cc",
+    "src/types.ts": "c7cc7d0a2fa8d1d97b1157ffd5d56956f71b65508e0aafff2ee86a4987f73bf4",
+    "src/internal/wasm-player.ts": "c8f0104ef8c3391a5d76423cdb7b95aa3c225ebcb1275774c8b7926a39a19777",
+    "src/internal/native-player.ts": "cea75798966adb77bc052515e952f57c999e1918790cd95fcff6770eb0d9d82f",
+    "tests/public-api.mjs": "b6afceb2c917ea800b455e955e6f6214a0f703fdb57e1deeb890e121eaf828dd"
+  },
+  "passed": false
+}

@@ -31,3 +31,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D45 — A recovery point is not necessarily a native cold-start point**: stop/negative. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D45 — retain_scoped_stop**: Stop the imported native cold-recovery profile: empty MSE coverage fails before output, despite host recoverability.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

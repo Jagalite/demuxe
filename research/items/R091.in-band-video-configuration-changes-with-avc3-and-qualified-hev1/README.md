@@ -26,3 +26,12 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D44 — Try an unchanged native destination before projecting sample descriptions**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch09_D44-D47/demuxe_batch9/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D27 — retain_scoped_stop**: Retain the observed configuration-transition witness failure; a repeated positive does not erase it. Maintained transition lifecycle and every-picture timing are still required.
+
+**D44 — deferred_profile_followup**: Unchanged-source destination selection is preferable for the accepted multi-description profile. No new generic description projector is justified without a maintained-route failure.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

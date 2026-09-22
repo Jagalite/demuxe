@@ -17,3 +17,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D34 — Recover original JPEG bytes from JPEG-origin JPEG XL, then use browser JPEG decoding**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch06_D31-D35/demuxe_batch6/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D34 — deferred_profile_followup**: Defer JPEG-XL reconstruction bridge until its reconstruction-only API exists in the supported Wasm runtime and total browser cost is measured.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

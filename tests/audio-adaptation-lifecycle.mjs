@@ -14,7 +14,7 @@ const media=createServer((req,res)=>{
  if(req.method==='OPTIONS'){res.end();return;}
  requests.push({method:req.method,range:req.headers.range,authorized:req.headers.authorization==='Bearer fixture'});
  if(req.headers.authorization!=='Bearer fixture'){res.writeHead(401);res.end();return;}
- res.setHeader('Accept-Ranges','bytes');res.setHeader('ETag','"fixed-fixture"');
+ res.setHeader('Accept-Ranges','bytes');res.setHeader('ETag',fault==='changed'?'"changed-fixture"':'"fixed-fixture"');
  if(req.method==='HEAD'){res.setHeader('Content-Length',bytes.length);res.end();return;}
  const range=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range||'');if(!range){res.writeHead(400);res.end();return;}
  const a=+range[1],b=Math.min(+range[2],bytes.length-1);res.writeHead(206,{'Content-Range':`bytes ${a+(fault==='incorrect'?1:0)}-${b}/${bytes.length}`,'Content-Length':b-a+1});
@@ -26,9 +26,11 @@ const result={browser:browser.version(),cases:[]};
 async function setup(page,gain=1){await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async({gain,profile})=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalBufferedNativeSeeks:true,audioGain:gain});},{gain,profile})}
 async function cleanup(page){await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0)}
 try{
- for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
+ for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','changed-identity','stale-generation','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={kind};result.cases.push(item);fault='';requests=[];
   try{
+   if(process.env.REMUX_WORKER)await page.route('**/native-remux-worker.js',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.REMUX_WORKER)}));
+   if(process.env.ENGINE_BUILD)await page.route('**/engine-adaptation/remux.*',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.ENGINE_BUILD+'/'+(r.request().url().endsWith('.wasm')?'remux.wasm':'remux.mjs'))}));
    await setup(page,kind==='bounded-local-gain'?.5:1);
    if(kind==='lossy-policy'){
     item.rejections=await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');return [undefined,false].map(allowLossyAudio=>{try{const p=new Player(document.querySelector('#surface'),{mode:'native',experimentalAudioAdaptation:'opus',allowLossyAudio});void p.destroy();return null;}catch(e){return e.message;}});});
@@ -43,6 +45,10 @@ try{
     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/'+kind.slice(7)+'.mkv');
     item.error=await page.evaluate(()=>player.open(document.querySelector('#file').files[0]).then(()=>null,e=>e.message));
     assert.match(item.error,/precision|quantization|mono\/stereo|not qualified/i);
+   }else if(kind==='stale-generation'){
+    await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/long-pcm.mkv');
+    item.control=await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0]);const r=player.current.backend.remux,oldGeneration=r.generation,late=r.worker.onmessage;await player.seek(24);const before=r.stats.discardedBytes;late({data:{type:'fragment',id:999,buffer:new ArrayBuffer(7),stats:{staleSentinel:true}}});return {oldGeneration,newGeneration:r.generation,discarded:r.stats.discardedBytes-before,stalePublished:!!r.remuxStats.staleSentinel,position:player.state.currentTime};});
+    assert.notEqual(item.control.oldGeneration,item.control.newGeneration);assert.equal(item.control.discarded,7);assert.equal(item.control.stalePublished,false);assert.ok(Math.abs(item.control.position-24)<.15);
    }else if(kind==='bounded-local-gain'){
     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/long-pcm.mkv');await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
     await page.waitForFunction(()=>{const r=player.current.backend.remux,now=Math.max(player.surface.currentTime-r.timelineBias,r.target);return !r.busy&&!r.pending&&!r.sb.updating&&(r.eof||(r.remuxStats.adaptation?.sourceEnd??0)-now>=5||r.ranges().some(([a,b])=>a<=now+.5&&b-now>=5));});
@@ -56,7 +62,9 @@ try{
    }else{
     const source={url,headers:{Authorization:'Bearer fixture'},allowedOrigins:[new URL(url).origin],immutable:true};
     if(kind==='incorrect-range'){fault='incorrect';const error=await page.evaluate(source=>player.open(source).then(()=>null,e=>e.message),source);assert.match(error,/range|transport/i);item.error=error;}
-    else if(kind==='destroy-blocked-read'){
+    else if(kind==='changed-identity'){
+     await page.evaluate(source=>player.open(source),source);fault='changed';item.rejection=await page.evaluate(()=>player.seek(24).then(()=>null,e=>({code:e.code,message:e.message})));assert.ok(item.rejection);assert.match(item.rejection.message,/identity|changed|representation/i);
+    }else if(kind==='destroy-blocked-read'){
      fault='stall';const blocked=new Promise(r=>heldResolve=r);
      await page.evaluate(source=>{window.opening=player.open(source).then(()=>null,e=>e.code)},source);
      await Promise.race([blocked,new Promise((_,j)=>setTimeout(()=>j(Error('No outstanding read barrier')),10000))]);assert.ok(held.size>0);

@@ -1,0 +1,329 @@
+diff --git a/docs/COMPONENT-ROUTING.md b/docs/COMPONENT-ROUTING.md
+index e723086..26c0242 100644
+--- a/docs/COMPONENT-ROUTING.md
++++ b/docs/COMPONENT-ROUTING.md
+@@ -4,6 +4,8 @@
+ 
+ This staged change admits **plain external WebVTT on Native A/V** through `addSubtitle(File)`. It does not qualify embedded extraction, rich subtitle overlays, independently decoded audio, or a new manifest owner. The earlier [17-case Hybrid audit](HEAD-TO-HEAD-HYBRID.md) remains the before-change record. Hybrid is not presumed slower.
+ 
++The follow-up [remaining-Hybrid component isolation study](HYBRID-COMPONENT-STUDY.md) tests narrower subtitle, audio and manifest ownership with separate correctness and whole-player CPU evidence. Its explicit lab routes do not change this production admission record.
++
+ ## Architecture and first change
+ 
+ `selection.ts` rejects Native when selected embedded subtitles need rendering. `playback-plans.ts` previously required every file subtitle attachment to have an explicitly admitted ASS component; consequently even WebVTT selected mpv. `unified-player.ts` replayed all attachments onto the chosen backend. `NativePlayer.addTextTrack` already supported browser captions, including remux timeline bias, but `addSubtitle(File)` did not use it.
+diff --git a/research/ITEMS.md b/research/ITEMS.md
+index d21fc76..c834f29 100644
+--- a/research/ITEMS.md
++++ b/research/ITEMS.md
+@@ -2,7 +2,7 @@
+ 
+ # Research item directory
+ 
+-Current derived view of 433 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
++Current derived view of 434 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
+ 
+ | Rank | Item | Current decision | Prepare | Correctness | Performance | Whole-player follow-up |
+ |---:|---|---|---|---|---|---|
+@@ -432,6 +432,7 @@ Current derived view of 433 item homes, ranked by the original catalogue. Open e
+ | — | [R287.definition-not-recovered](items/R287.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
+ | — | [R288.definition-not-recovered](items/R288.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
+ | — | [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
++| — | [mpv-cache-browser-stream](items/mpv-cache-browser-stream/README.md) | pursue | passed | passed | passed | not_measured |
+ | — | [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) | pursue | pending | pending | pending | not_measured |
+ | — | [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+ | — | [native-fir-window-rendering](items/native-fir-window-rendering/README.md) | pursue | pending | pending | pending | not_measured |
+diff --git a/research/README.md b/research/README.md
+index e4cd662..2bb7dde 100644
+--- a/research/README.md
++++ b/research/README.md
+@@ -4,7 +4,7 @@
+ 
+ Start with the [item directory](ITEMS.md), using its full stable key. Each item
+ owns its definition, stages, current decision, history and evidence index.
+-The [identity index](index.json) covers all 433 records, including missing
++The [identity index](index.json) covers all 434 records, including missing
+ definitions and distinct mechanisms with reused R-numbers.
+ 
+ The [current stage summary](STATUS.md) and [latest advancement campaign](campaigns/2026-09-19-stage-advancement.md) distinguish new execution from evidence reconciliation.
+diff --git a/research/STATUS.md b/research/STATUS.md
+index a44f75a..281bb2a 100644
+--- a/research/STATUS.md
++++ b/research/STATUS.md
+@@ -2,21 +2,21 @@
+ 
+ # Current research status
+ 
+-Derived from all 433 canonical item homes at 2026-09-21T02:55:16.765170+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
++Derived from all 434 canonical item homes at 2026-09-21T02:34:08.047966+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
+ 
+-398 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 8 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
++399 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 8 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
+ 
+-433 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
++434 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
+ 
+ | Stage | Passed | Failed | Blocked | Pending | Not applicable |
+ |---|---:|---:|---:|---:|---:|
+-| define | 406 | 0 | 0 | 0 | 27 |
+-| prepare | 308 | 0 | 0 | 8 | 117 |
+-| screen | 433 | 0 | 0 | 0 | 0 |
+-| correctness | 275 | 27 | 0 | 8 | 123 |
+-| performance | 89 | 122 | 0 | 8 | 214 |
+-| results | 433 | 0 | 0 | 0 | 0 |
+-| decision | 433 | 0 | 0 | 0 | 0 |
++| define | 407 | 0 | 0 | 0 | 27 |
++| prepare | 309 | 0 | 0 | 8 | 117 |
++| screen | 434 | 0 | 0 | 0 | 0 |
++| correctness | 276 | 27 | 0 | 8 | 123 |
++| performance | 90 | 122 | 0 | 8 | 214 |
++| results | 434 | 0 | 0 | 0 | 0 |
++| decision | 434 | 0 | 0 | 0 | 0 |
+ 
+ A passed screen or decision records a scoped finding, not production readiness. Passed correctness applies only to the stated run profile. Blocked prerequisites and failed outputs are distinct.
+ 
+@@ -32,7 +32,7 @@ Whole-player qualification is a separate follow-up: earlier scoped research comp
+ | correctness_failed | 2 |
+ | deferred_integration_not_prioritized | 1 |
+ | measured_lab_benefit | 3 |
+-| not_measured | 145 |
++| not_measured | 146 |
+ | not_required_by_current_scoped_decision | 277 |
+ 
+ - Rank None: [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+diff --git a/research/index.json b/research/index.json
+index 9ab6c8e..3bbd2e2 100644
+--- a/research/index.json
++++ b/research/index.json
+@@ -2976,6 +2976,11 @@
+       "decision_at_import": "STOP_PROFILE",
+       "campaign_at_import": "full-completion"
+     },
++    {
++      "key": "mpv-cache-browser-stream",
++      "title": "Bounded mpv cache over Demuxe browser RangeReader",
++      "path": "items/mpv-cache-browser-stream"
++    },
+     {
+       "key": "native-g711-wave-rewrap",
+       "title": "Rewrap G.711 telephony audio rather than decoding it in application code",
+diff --git a/tests/audio-adaptation-lifecycle.mjs b/tests/audio-adaptation-lifecycle.mjs
+index ba0166a..c8322de 100644
+--- a/tests/audio-adaptation-lifecycle.mjs
++++ b/tests/audio-adaptation-lifecycle.mjs
+@@ -14,7 +14,7 @@ const media=createServer((req,res)=>{
+  if(req.method==='OPTIONS'){res.end();return;}
+  requests.push({method:req.method,range:req.headers.range,authorized:req.headers.authorization==='Bearer fixture'});
+  if(req.headers.authorization!=='Bearer fixture'){res.writeHead(401);res.end();return;}
+- res.setHeader('Accept-Ranges','bytes');res.setHeader('ETag','"fixed-fixture"');
++ res.setHeader('Accept-Ranges','bytes');res.setHeader('ETag',fault==='changed'?'"changed-fixture"':'"fixed-fixture"');
+  if(req.method==='HEAD'){res.setHeader('Content-Length',bytes.length);res.end();return;}
+  const range=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range||'');if(!range){res.writeHead(400);res.end();return;}
+  const a=+range[1],b=Math.min(+range[2],bytes.length-1);res.writeHead(206,{'Content-Range':`bytes ${a+(fault==='incorrect'?1:0)}-${b}/${bytes.length}`,'Content-Length':b-a+1});
+@@ -26,9 +26,11 @@ const result={browser:browser.version(),cases:[]};
+ async function setup(page,gain=1){await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async({gain,profile})=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalBufferedNativeSeeks:true,audioGain:gain});},{gain,profile})}
+ async function cleanup(page){await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0)}
+ try{
+- for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
++ for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','changed-identity','stale-generation','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
+   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={kind};result.cases.push(item);fault='';requests=[];
+   try{
++   if(process.env.REMUX_WORKER)await page.route('**/native-remux-worker.js',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.REMUX_WORKER)}));
++   if(process.env.ENGINE_BUILD)await page.route('**/engine-adaptation/remux.*',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.ENGINE_BUILD+'/'+(r.request().url().endsWith('.wasm')?'remux.wasm':'remux.mjs'))}));
+    await setup(page,kind==='bounded-local-gain'?.5:1);
+    if(kind==='lossy-policy'){
+     item.rejections=await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');return [undefined,false].map(allowLossyAudio=>{try{const p=new Player(document.querySelector('#surface'),{mode:'native',experimentalAudioAdaptation:'opus',allowLossyAudio});void p.destroy();return null;}catch(e){return e.message;}});});
+@@ -43,6 +45,10 @@ try{
+     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/'+kind.slice(7)+'.mkv');
+     item.error=await page.evaluate(()=>player.open(document.querySelector('#file').files[0]).then(()=>null,e=>e.message));
+     assert.match(item.error,/precision|quantization|mono\/stereo|not qualified/i);
++   }else if(kind==='stale-generation'){
++    await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/long-pcm.mkv');
++    item.control=await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0]);const r=player.current.backend.remux,oldGeneration=r.generation,late=r.worker.onmessage;await player.seek(24);const before=r.stats.discardedBytes;late({data:{type:'fragment',id:999,buffer:new ArrayBuffer(7),stats:{staleSentinel:true}}});return {oldGeneration,newGeneration:r.generation,discarded:r.stats.discardedBytes-before,stalePublished:!!r.remuxStats.staleSentinel,position:player.state.currentTime};});
++    assert.notEqual(item.control.oldGeneration,item.control.newGeneration);assert.equal(item.control.discarded,7);assert.equal(item.control.stalePublished,false);assert.ok(Math.abs(item.control.position-24)<.15);
+    }else if(kind==='bounded-local-gain'){
+     await page.evaluate(()=>{const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f)});await page.locator('#file').setInputFiles('build/optimization-fixtures/long-pcm.mkv');await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
+     await page.waitForFunction(()=>{const r=player.current.backend.remux,now=Math.max(player.surface.currentTime-r.timelineBias,r.target);return !r.busy&&!r.pending&&!r.sb.updating&&(r.eof||(r.remuxStats.adaptation?.sourceEnd??0)-now>=5||r.ranges().some(([a,b])=>a<=now+.5&&b-now>=5));});
+@@ -56,7 +62,9 @@ try{
+    }else{
+     const source={url,headers:{Authorization:'Bearer fixture'},allowedOrigins:[new URL(url).origin],immutable:true};
+     if(kind==='incorrect-range'){fault='incorrect';const error=await page.evaluate(source=>player.open(source).then(()=>null,e=>e.message),source);assert.match(error,/range|transport/i);item.error=error;}
+-    else if(kind==='destroy-blocked-read'){
++    else if(kind==='changed-identity'){
++     await page.evaluate(source=>player.open(source),source);fault='changed';item.rejection=await page.evaluate(()=>player.seek(24).then(()=>null,e=>({code:e.code,message:e.message})));assert.ok(item.rejection);assert.match(item.rejection.message,/identity|changed|representation/i);
++    }else if(kind==='destroy-blocked-read'){
+      fault='stall';const blocked=new Promise(r=>heldResolve=r);
+      await page.evaluate(source=>{window.opening=player.open(source).then(()=>null,e=>e.code)},source);
+      await Promise.race([blocked,new Promise((_,j)=>setTimeout(()=>j(Error('No outstanding read barrier')),10000))]);assert.ok(held.size>0);
+diff --git a/tests/audio-adaptation.mjs b/tests/audio-adaptation.mjs
+index e45d443..87ca13d 100644
+--- a/tests/audio-adaptation.mjs
++++ b/tests/audio-adaptation.mjs
+@@ -14,6 +14,7 @@ const manifest=JSON.parse(await readFile('results/optimization-integration/fixtu
+ const fixtures=manifest.map(f=>({name:f.name,file:'build/optimization-fixtures/'+f.name+'.mkv'}));fixtures.push({name:'original-edge',file:'results/optimization-integration/reference/web/edge.mkv'});
+ fixtures.push({name:'audio-offset',file:'build/optimization-fixtures/audio-offset.mkv'});
+ fixtures.push(profile==='flac'?{name:'multi-audio',file:'build/optimization-fixtures/multi-audio.mkv',audio:1,rate:44100}:{name:'opus-multi-audio',file:'build/optimization-fixtures/opus-multi-audio.mkv',audio:1,rate:48000});
++if(process.env.CASES?.split(',').includes('long-pcm'))fixtures.push({name:'long-pcm',file:'build/optimization-fixtures/long-pcm.mkv'});
+ if(profile==='opus')fixtures.push({name:'opus-markers',file:'build/optimization-fixtures/opus-markers.mkv'});
+ const result={profile,browser:browser.version(),scope:'Real browser MSE playback and native offline decode-back; not physical A/V or performance qualification',cases:[]};
+ const hash=b=>createHash('sha256').update(b).digest('hex');
+@@ -24,6 +25,7 @@ try{
+  for(const fixture of fixtures.filter(f=>!process.env.CASES||process.env.CASES.split(',').includes(f.name))){
+   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={...fixture};result.cases.push(item);
+   try{
++   if(process.env.REMUX_WORKER)await page.route('**/native-remux-worker.js',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.REMUX_WORKER)}));
+    if(process.env.ENGINE_BUILD)await page.route('**/engine-adaptation/remux.*',async r=>{const name=r.request().url().endsWith('.wasm')?'remux.wasm':'remux.mjs';await r.fulfill({contentType:name.endsWith('.wasm')?'application/wasm':'text/javascript',body:await readFile(process.env.ENGINE_BUILD+'/'+name)});});
+    await page.goto(origin+'/examples/custom-controls.html');
+    await page.evaluate(async profile=>{
+@@ -43,7 +45,8 @@ try{
+     assert.equal(item.selection.backend.remux.remux.adaptation.channels,1);
+    }
+    await page.evaluate(()=>player.play());
+-   await page.waitForFunction(()=>player.surface.ended,null,{timeout:20000});
++   if(process.env.EXPECT_PRECISION_REJECTION)throw Error('Expected injected precision rejection was not observed');
++   await page.waitForFunction(()=>player.surface.ended,null,{timeout:fixture.name==='long-pcm'?45000:20000});
+    item.diagnostics=await page.evaluate(()=>({d:player.diagnostics,errors,position:player.state.currentTime}));
+    assert.deepEqual(item.diagnostics.errors,[]);assert.equal(item.diagnostics.d.plan.id,`native-${profile}${fixture.audio?'-gain':''}`);
+    const data=await page.evaluate(()=>{const appended=captures.get(player.current.backend.remux.sb);let n=appended.reduce((n,b)=>n+b.length,0),b=new Uint8Array(n),at=0;for(const chunk of appended){b.set(chunk,at);at+=chunk.length}return Array.from(b)});
+@@ -90,7 +93,12 @@ try{
+    if(fixture.name==='original-edge')assert.deepEqual(frames(output),frames(fixture.file));
+    item.fidelity={videoPackets:inputPackets.length,ptsShift:shift,pcmBytes:reference.length,pcmSHA256:hash(reference),outputSHA256:hash(Buffer.from(data)),samplesExact:profile==='flac'};
+    await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+-  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}
++  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);
++   if(process.env.EXPECT_PRECISION_REJECTION&&item.error.includes('Decoded samples exceed established 24-bit precision')){
++    item.control='Injected nonzero S24 low bits rejected';
++    item.publishedBoxes=await page.evaluate(()=>Array.from(captures.values()).flatMap(chunks=>chunks.flatMap(b=>{const boxes=[];for(let at=0;at+8<=b.length;){const size=new DataView(b.buffer,b.byteOffset+at,4).getUint32(0);if(size<8||at+size>b.length)throw Error('Invalid captured box');boxes.push(String.fromCharCode(...b.subarray(at+4,at+8)));at+=size;}return boxes;})));
++    assert.ok(!item.publishedBoxes.includes('moof'),'Invalid samples reached media publication');await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
++   }else process.exitCode=1;}
+   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.name,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+  }
+ }finally{await browser.close();server.kill();}
+diff --git a/tests/head-to-head/adapters.mjs b/tests/head-to-head/adapters.mjs
+index 0dff236..0ff3908 100644
+--- a/tests/head-to-head/adapters.mjs
++++ b/tests/head-to-head/adapters.mjs
+@@ -3,6 +3,7 @@
+ const stage = document.querySelector('#stage');
+ let player, config, overlay, overlayCanvas, overlayTimer, observer;
+ const contexts = [], analysers = [], failures = [], events = [], selectionTrace = [], nativeVerificationFailures = [];
++let componentTrial;
+ const originalConnect = AudioNode.prototype.connect;
+ const OriginalContext = window.AudioContext;
+ const plain = value => JSON.parse(JSON.stringify(value, (_, v) => typeof v === 'bigint' ? String(v) : v));
+@@ -63,6 +64,17 @@ export async function start(c) {
+     player=document.createElement('video'); stage.append(player); player.src=source;
+     if(subtitle){const track=document.createElement('track');track.src=subtitle;track.kind='subtitles';track.default=true;player.append(track);}
+   } else if (c.player==='demuxe') {
++    let extracted;
++    const options={};
++    if(c.componentTrial) {
++      const trial=await import('./component-trials.mjs');
++      componentTrial={kind:c.componentTrial,scope:'LAB ONLY; explicit component substitution'};
++      if(c.componentTrial==='subtitles') {
++        options.experimentalNativeASS=true;
++        if(c.embeddedSubtitle){const began=performance.now();extracted=await trial.extractCaptions(source);componentTrial.extraction={wallMs:performance.now()-began,bytes:extracted.readBytes,format:extracted.format,cues:extracted.cues};}
++      } else if(c.componentTrial==='dash')await trial.installDASHTrial();
++      else if(c.componentTrial==='audio'){options.experimentalAudioAdaptation='flac';options.nativeRemux='always';}
++    }
+     const {Player}=await import('/demuxe/web/generated/index.js');
+     if(c.correctness) {
+       const {NativePlayer}=await import('/demuxe/web/generated/internal/native-player.js');
+@@ -75,10 +87,12 @@ export async function start(c) {
+         }
+       };
+     }
+-    player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...(c.lane!=='auto'?{mode:c.lane}:{})});
++    player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...options,...(c.lane!=='auto'?{mode:c.lane}:{})});
++    if(c.componentTrial)window.componentPlayer=player;
+     if(c.correctness)player.addEventListener('selectionchange',event=>{if(selectionTrace.length<100)selectionTrace.push(plain(event.detail));});
+     await player.ready; await player.open(c.streamFormat?{url:source,format:c.streamFormat,streaming:{live:!!c.live,...c.streaming}}:source);
+-    if(c.embeddedSubtitle&&player.state.subtitleTracks.length)await player.selectSubtitleTrack(player.state.subtitleTracks[0].id);
++    if(extracted){for(const font of extracted.fonts)await player.addFont(new File([font.bytes],font.name));await player.addSubtitle(new File([extracted.text],'extracted.'+extracted.format));}
++    if(!extracted&&c.embeddedSubtitle&&player.state.subtitleTracks.length)await player.selectSubtitleTrack(player.state.subtitleTracks[0].id);
+     if(subtitle&&!c.subtitleIntegration)await player.addSubtitle(new File([await(await fetch(subtitle)).arrayBuffer()],c.subtitle.split('/').at(-1)));
+     if (c.subtitleIntegration==='built-in') {
+       await player.addFont(new File([await(await fetch('/fixtures/DejaVuSans.ttf')).arrayBuffer()],'DejaVuSans.ttf'));
+@@ -115,7 +129,7 @@ export function snapshot() {
+   if (player) {
+     if(config.player==='demuxe') state={position:player.state.currentTime,duration:player.state.duration,paused:player.state.paused,
+       route:player.diagnostics?.plan?.id ?? player.state.activeMode,diagnostics:player.diagnostics,
+-      selectionTrace,nativeVerificationFailures,mediaTracks:player.properties.get('track-list'),audioParams:player.properties.get('audio-params')};
++      selectionTrace,nativeVerificationFailures,componentTrial,mediaTracks:player.properties.get('track-list'),audioParams:player.properties.get('audio-params')};
+     else if(config.player==='libmedia') state={position:Number(player.currentTime)/1000,duration:Number(player.getDuration())/1000,
+       route:player.isMSE()?'mse':'custom',stats:player.getStats()};
+     else state={position:player.currentTime,duration:player.duration,paused:player.paused,route:(video||(config.audio!==false&&surfaces('video').some(v=>v.currentSrc&&v.readyState>=2))||surfaces('audio').some(v=>v.currentSrc))?'native-direct':'custom'};
+@@ -133,7 +147,7 @@ export function snapshot() {
+ export async function subtitles() {
+   if(config.player==='demuxe') {
+     const tracks=player.state.subtitleTracks;
+-    if(tracks.length)await player.selectSubtitleTrack(tracks[0].id);
++    if(tracks.length)await player.selectSubtitleTrack((config.componentTrial==='subtitles'?tracks.at(-1):tracks[0]).id);
+     return {tracks:plain(tracks)};
+   }
+   if(config.player==='libmedia') {
+diff --git a/tests/head-to-head/run.mjs b/tests/head-to-head/run.mjs
+index ff97de8..f2c2faa 100644
+--- a/tests/head-to-head/run.mjs
++++ b/tests/head-to-head/run.mjs
+@@ -15,11 +15,13 @@ const here=import.meta.dirname,repo=path.resolve(here,'../..');
+ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
+   browser:{type:'string',default:'chromium'},channel:{type:'string',default:'chrome'},headed:{type:'boolean',default:false},
+   'negative-control':{type:'string'},catalogue:{type:'boolean',default:false},
++  'component-trial':{type:'string'},
+   'demuxe-mode':{type:'string',default:'auto'},
+   'controlled-streaming':{type:'boolean',default:false},
+   'streaming-backends':{type:'boolean',default:false},
+   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},
+   'measure-seconds':{type:'string',default:'20'},'warmup-seconds':{type:'string',default:'5'},list:{type:'boolean',default:false}}});
++if(args['component-trial']&&(!args.catalogue||args['demuxe-mode']!=='native'||!['subtitles','audio','dash','direct'].includes(args['component-trial'])))throw Error('Component trials require catalogue, explicit Native, and a known lab strategy');
+ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+ if(!['auto','native','hybrid','software'].includes(args['demuxe-mode']))throw Error('Invalid Demuxe mode');
+ if(!args.catalogue&&args['demuxe-mode']!=='auto')throw Error('--demuxe-mode requires --catalogue');
+@@ -36,6 +38,7 @@ if(args.catalogue) {
+ }
+ 
+ const selected=selectCases(matrix,args.cases);
++if(args['component-trial']){const allowed={subtitles:['h264-srt','h264-movtext','h264-ass','pcm-ass'],audio:['h264-ac3','h264-eac3','h264-dts','hevc10-ac3','hevc10-eac3','hevc10-dts','hdr10-hevc','hevc-pgs','h264-vobsub'],dash:['dash-h264','dash-av1'],direct:['hls-live','hevc-pgs','h264-vobsub']}[args['component-trial']];if(selected.some(c=>c.player!=='demuxe'||!allowed.includes(c.fixture)))throw Error('Component trial is restricted to its authored Demuxe fixtures');}
+ if(args['negative-control']==='hide-subtitles'&&selected.some(c=>matrix.fixtures[c.fixture].subtitleCheck!=='text'))throw Error('hide-subtitles requires text-subtitle cases');
+ if(args.list){for(const c of selected)console.log(c.id);process.exit(0);}
+ if(!args.assets)throw Error('--assets is required; prepare a snapshot with setup.py');
+@@ -55,7 +58,7 @@ for(const [name,record]of Object.entries(manifest.files)) {
+ const stamp=new Date().toISOString().replaceAll(':','-');
+ const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
+ await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
+-const sourceNames=['browser-exit.mjs','performance-metrics.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
++const sourceNames=['browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+ const sourceHashes={};
+ await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
+ for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
+@@ -209,7 +212,7 @@ async function measure(page,config,result,browser) {
+ try {
+   const schedule=args.performance?[...new Set(selected.map(c=>c.fixture))].flatMap(fixture=>{const group=selected.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):selected;
+   for(const c of schedule) {
+-    const result={...c,status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
++    const result={...c,...(args['component-trial']?{componentTrial:args['component-trial']} : {}),status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
+     const recordName=c.id+(c.round?'.round-'+c.round:'');result.recordPath=recordName+'/result.json';
+     const directory=path.join(output,recordName);await fs.mkdir(directory);await save();
+     const fixture=matrix.fixtures[c.fixture];
+@@ -236,7 +239,7 @@ try {
+       page.on('requestfailed',q=>result.requestFailures.push({url:q.url(),error:q.failure()}));
+       page.on('response',r=>{if(r.status()>=400)result.requestFailures.push({url:r.url(),status:r.status()});});
+       await page.goto(server.origin+'/harness/harness.html');await page.bringToFront();await page.waitForFunction(()=>window.api);
+-      const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{})};
++      const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
+       await (args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
+       result.status='passed';
+       if(config.qualificationLimit){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
+diff --git a/web/native-remux-worker.js b/web/native-remux-worker.js
+index d5e76d8..3715021 100644
+--- a/web/native-remux-worker.js
++++ b/web/native-remux-worker.js
+@@ -3,7 +3,7 @@ import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
+ import {remuxPackaging} from './remux-packaging.js';
+ let engine,chunks=[],bytes=0,emptyBatches=0,negotiation,splitter,timing;
+ const stats={calls:0,remuxMs:0,generatedBytes:0,peakBatchBytes:0,heapBytes:0};
+-const flush=()=>{const output=new Uint8Array(bytes);let at=0;for(const b of chunks){output.set(b,at);at+=b.length;}chunks=[];bytes=0;stats.generatedBytes+=output.length;stats.peakBatchBytes=Math.max(stats.peakBatchBytes,output.length);return output;};
++const flush=()=>{const sole=chunks.length===1?chunks[0]:null;const reuse=sole&&sole.buffer instanceof ArrayBuffer&&sole.byteOffset===0&&sole.byteLength===sole.buffer.byteLength;const output=reuse?sole:new Uint8Array(bytes);if(!reuse){let at=0;for(const b of chunks){output.set(b,at);at+=b.length;}}stats.gatherCopiedBytes=(stats.gatherCopiedBytes||0)+(reuse?0:bytes);stats.reusedOwnedBatches=(stats.reusedOwnedBatches||0)+(reuse?1:0);chunks=[];bytes=0;stats.generatedBytes+=output.length;stats.peakBatchBytes=Math.max(stats.peakBatchBytes,output.length);return output;};
+ const adaptationABI=()=>{if(engine.preparationInterface!==2)throw Error('Audio preparation initialization interface mismatch; install matching runtime assets');};
+ const check=n=>{if(n<0)throw Error(`FFmpeg error ${n}: ${engine.UTF8ToString(engine._rm_error())}`);return n;};
+ self.onmessage=async({data})=>{

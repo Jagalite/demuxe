@@ -32,3 +32,12 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D36 — Author a source-indexed edited MP4, then leave playback to the browser**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch07_D36-D39/demuxe_batch7/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D33 — retain_scoped_stop**: Stop the tested exact whole-file edit-list audio representation; plausible duration/EOF and unchanged compressed payloads do not repair sample-boundary mismatch.
+
+**D36 — deferred_profile_followup**: Defer browser-side edited-MP4 authoring and authority-aware remote range views until an actual edit/export consumer is defined; host construction is not that integration.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

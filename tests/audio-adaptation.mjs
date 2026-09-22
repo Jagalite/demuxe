@@ -14,6 +14,7 @@ const manifest=JSON.parse(await readFile('results/optimization-integration/fixtu
 const fixtures=manifest.map(f=>({name:f.name,file:'build/optimization-fixtures/'+f.name+'.mkv'}));fixtures.push({name:'original-edge',file:'results/optimization-integration/reference/web/edge.mkv'});
 fixtures.push({name:'audio-offset',file:'build/optimization-fixtures/audio-offset.mkv'});
 fixtures.push(profile==='flac'?{name:'multi-audio',file:'build/optimization-fixtures/multi-audio.mkv',audio:1,rate:44100}:{name:'opus-multi-audio',file:'build/optimization-fixtures/opus-multi-audio.mkv',audio:1,rate:48000});
+if(process.env.CASES?.split(',').includes('long-pcm'))fixtures.push({name:'long-pcm',file:'build/optimization-fixtures/long-pcm.mkv'});
 if(profile==='opus')fixtures.push({name:'opus-markers',file:'build/optimization-fixtures/opus-markers.mkv'});
 const result={profile,browser:browser.version(),scope:'Real browser MSE playback and native offline decode-back; not physical A/V or performance qualification',cases:[]};
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -24,6 +25,7 @@ try{
  for(const fixture of fixtures.filter(f=>!process.env.CASES||process.env.CASES.split(',').includes(f.name))){
   const page=await browser.newPage();page.setDefaultTimeout(20000);const item={...fixture};result.cases.push(item);
   try{
+   if(process.env.REMUX_WORKER)await page.route('**/native-remux-worker.js',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.REMUX_WORKER)}));
    if(process.env.ENGINE_BUILD)await page.route('**/engine-adaptation/remux.*',async r=>{const name=r.request().url().endsWith('.wasm')?'remux.wasm':'remux.mjs';await r.fulfill({contentType:name.endsWith('.wasm')?'application/wasm':'text/javascript',body:await readFile(process.env.ENGINE_BUILD+'/'+name)});});
    await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async profile=>{
@@ -43,7 +45,8 @@ try{
     assert.equal(item.selection.backend.remux.remux.adaptation.channels,1);
    }
    await page.evaluate(()=>player.play());
-   await page.waitForFunction(()=>player.surface.ended,null,{timeout:20000});
+   if(process.env.EXPECT_PRECISION_REJECTION)throw Error('Expected injected precision rejection was not observed');
+   await page.waitForFunction(()=>player.surface.ended,null,{timeout:fixture.name==='long-pcm'?45000:20000});
    item.diagnostics=await page.evaluate(()=>({d:player.diagnostics,errors,position:player.state.currentTime}));
    assert.deepEqual(item.diagnostics.errors,[]);assert.equal(item.diagnostics.d.plan.id,`native-${profile}${fixture.audio?'-gain':''}`);
    const data=await page.evaluate(()=>{const appended=captures.get(player.current.backend.remux.sb);let n=appended.reduce((n,b)=>n+b.length,0),b=new Uint8Array(n),at=0;for(const chunk of appended){b.set(chunk,at);at+=chunk.length}return Array.from(b)});
@@ -90,7 +93,12 @@ try{
    if(fixture.name==='original-edge')assert.deepEqual(frames(output),frames(fixture.file));
    item.fidelity={videoPackets:inputPackets.length,ptsShift:shift,pcmBytes:reference.length,pcmSHA256:hash(reference),outputSHA256:hash(Buffer.from(data)),samplesExact:profile==='flac'};
    await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
-  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}
+  }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);
+   if(process.env.EXPECT_PRECISION_REJECTION&&item.error.includes('Decoded samples exceed established 24-bit precision')){
+    item.control='Injected nonzero S24 low bits rejected';
+    item.publishedBoxes=await page.evaluate(()=>Array.from(captures.values()).flatMap(chunks=>chunks.flatMap(b=>{const boxes=[];for(let at=0;at+8<=b.length;){const size=new DataView(b.buffer,b.byteOffset+at,4).getUint32(0);if(size<8||at+size>b.length)throw Error('Invalid captured box');boxes.push(String.fromCharCode(...b.subarray(at+4,at+8)));at+=size;}return boxes;})));
+    assert.ok(!item.publishedBoxes.includes('moof'),'Invalid samples reached media publication');await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+   }else process.exitCode=1;}
   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.name,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
 }finally{await browser.close();server.kill();}

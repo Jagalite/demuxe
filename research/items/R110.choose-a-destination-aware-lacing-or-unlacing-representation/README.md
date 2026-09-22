@@ -4,11 +4,60 @@
 
 Full identity: `R110.choose-a-destination-aware-lacing-or-unlacing-representation`.
 
-Current decision: **already_implemented** (opportunity-review-grounded-in-actual-route-evidence).
+Current scoped decision: **already_implemented**.
+
+Actual Xiph/EBML header-stripped lacing and tail profiles play/seek; emitted packet payloads and complete host PCM match the references. Restoration already occurs per packet in the maintained owner.
+
+Next action: Add regression fixtures deliberately; do not duplicate FFmpeg lacing/header-restoration ownership.
+
+## Current stages
+
+| Stage | Status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Authoritative item contract/state](item.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl).
+
+Production integration and release qualification are separate. Current stages apply to the scope above; earlier findings retain their original scope.
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D41 — executed_existing_owner_or_control**: The maintained remuxer already restores stripped headers per unlaced packet. Xiph, EBML and tail samples retain exact packet and host PCM output.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+Latest scoped decision: **already_implemented**. Actual Xiph/EBML header-stripped lacing and tail profiles play/seek; emitted packet payloads and complete host PCM match the references. Restoration already occurs per packet in the maintained owner.
+
+Next action: Add regression fixtures deliberately; do not duplicate FFmpeg lacing/header-restoration ownership.
+
+| Stage | Current status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+Production integration and release qualification are separate. Earlier sections describe retained historical profiles.
+
+
+## Retained earlier profile notes (historical)
+
+Full identity: `R110.choose-a-destination-aware-lacing-or-unlacing-representation`.
+
+Earlier decision: **already_implemented** (opportunity-review-grounded-in-actual-route-evidence).
 
 Existing maintainedWasm route already converts Chrome-rejectedXiph-lacedWebM into acceptedunlacedoutput with101packetpayloads and648sample finaldiscard preserved, realseek andcleanup. Sourcecontract is destination-specificpackagingcapability; no new subsystem or added admission remains for this testedprofile. NoCPU/startupspeed claim; other lacing modes requireseparateprofiles.
 
-Next action: Scopedresearch complete; reopen only for newdestination/configuration not covered by preservedactualroute.
+Earlier next action: Scopedresearch complete; reopen only for newdestination/configuration not covered by preservedactualroute.
 
 ## Stages
 

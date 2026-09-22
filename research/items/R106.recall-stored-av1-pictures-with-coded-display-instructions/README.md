@@ -31,3 +31,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D56 — Preserve an explicit cadence with coded picture recalls**: stop/negative. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch12_D56-D58/demuxe_batch12/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D56 — retain_scoped_stop**: For simple picture holds, use truthful durations rather than recall instructions. Reopen coded recall only for fixed-cadence requirements or demonstrated operational value.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

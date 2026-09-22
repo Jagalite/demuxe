@@ -40,3 +40,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D02 — Same-size selected-track fMP4 projection**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch01_D01-D07/demuxe_native_screen/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D02 — executed_existing_owner_or_control**: Current selected-video projection plays, but has zero audio output. It is not a full A/V replacement; keep explicit video-only export/selection work separate.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

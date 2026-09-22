@@ -18,3 +18,12 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D62 — Retain PGS object data, not stale rendered subtitles**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch14_D62-D64/demuxe_batch14/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D24 — deferred_profile_followup**: Preserve the existing bitmap renderer cost stop. A PNG carrier component needs an actual maintained palette/object owner and full compositing comparison before adoption.
+
+**D62 — deferred_profile_followup**: Reuse existing PGS object/palette ownership before adding a parser. Epoch/content-keyed invalidation and arbitrary palette compositing are not qualified by the imported neutral-palette component.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

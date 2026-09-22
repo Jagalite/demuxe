@@ -23,3 +23,5 @@ Next action: Scoped repeated-video-interval component research complete. Product
 | decision | passed | Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate. |
 
 [New run](../../shared/runs/20260919T205700Z-prepared-cache-cost/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+Imported follow-up: [focused batch 22](../../campaigns/focused-research-batch22.md) (D88). External component evidence only; current decision and stage gates are unchanged.

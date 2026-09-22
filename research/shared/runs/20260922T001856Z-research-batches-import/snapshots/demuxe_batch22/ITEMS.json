@@ -1,0 +1,54 @@
+{
+  "batch": 22,
+  "repo_commit": "3bfeac8178bd34047e5396d1618e09a31cf8618a",
+  "items": [
+    {
+      "id": "D86",
+      "title": "Test packet-preserving intra-fragment interleaving for early joint A/V",
+      "disposition": "stop_tested_release_profile",
+      "lineage": [
+        "R033.interleave-samples-for-earlier-complete-a-v-output"
+      ],
+      "evidence": [
+        "evidence/manifest.json",
+        "evidence/browser_av.json",
+        "evidence/browser_whole_audio.json"
+      ],
+      "correctness": "Complete within-endpoint media identity passes; intended early A/V release fails.",
+      "performance": "not_measured",
+      "production_integration": false
+    },
+    {
+      "id": "D87",
+      "title": "Feed partial per-track fragments through independent native parser inputs",
+      "disposition": "pursue_scoped_component",
+      "lineage": [
+        "R032.use-different-output-containers-for-different-tracks",
+        "R132.incremental-mdat-sample-release.report-continuity",
+        "D14"
+      ],
+      "evidence": [
+        "evidence/browser_av_split.json",
+        "evidence/analysis.json"
+      ],
+      "correctness": "Early video/audio activity; checked pixels/PTS/tones and EOF pass. Exact live A/V sync unqualified.",
+      "performance": "not_measured",
+      "production_integration": false
+    },
+    {
+      "id": "D88",
+      "title": "Deduplicate append requests with residency and mutation-order identity",
+      "disposition": "conditional_opportunity_required",
+      "lineage": [
+        "R018.cache-prepared-media-by-timeline-and-transformation-recipe"
+      ],
+      "evidence": [
+        "evidence/browser_ledger.json",
+        "evidence/browser_ledger_v0.json"
+      ],
+      "correctness": "Restricted final guard passes; two initial false-success variants retained and reproduced.",
+      "performance": "not_measured",
+      "production_integration": false
+    }
+  ]
+}

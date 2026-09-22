@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "scope": "Bounded current Chrome desktop maintained-player admission, output and lifecycle research; production admission remains separate.",
+  "selected_ids": [
+    "D01",
+    "D03",
+    "D08",
+    "D09",
+    "D10",
+    "D11",
+    "D13",
+    "D14",
+    "D15",
+    "D32",
+    "D41",
+    "D53",
+    "D68",
+    "D69",
+    "D72",
+    "D73"
+  ],
+  "correctness": {
+    "AAC": "Exact ordered packet payloads, independent host decoded YUV and PCM versus canonical source; browser presented-frame/PCM reference equality; positive track-output witness; forward/backward seek, EOF, source replacement and bounded teardown.",
+    "finite_audio": "Exact bytes where wrapper construction is canonical; independent host PCM and browser decodeAudioData output against original reference; adverse controls, maintained Native Player play/seek/EOF, source replacement and cleanup.",
+    "existing_owner": "Source review plus actual owner output and relevant adversarial control; close no-opportunity work without a fabricated speed benchmark."
+  },
+  "performance": {
+    "applicable_ids": [
+      "D01",
+      "D08",
+      "D32",
+      "D68",
+      "D69"
+    ],
+    "purpose": "Admission overhead/no-regression gate against the cheapest correct canonical representation of identical source essence. Not a claim of CPU savings versus the failed input.",
+    "metric": "paired complete finite operation wall milliseconds: source read/copy and optional construction, Player open, verified initial output, playback to EOF, destroy/context close; report startup, operation and cleanup separately",
+    "threshold": "Median candidate/reference complete-operation ratio <=1.15 and median startup ratio <=1.25; also report paired bootstrap 95% interval. A measured miss is a stopped profile, not hidden by repeated sampling.",
+    "sampling": "Seven paired trials per representative profile, alternating candidate/reference order; fresh page and player each trial; no concurrent browser research workloads during timing.",
+    "included_costs": [
+      "source read",
+      "owned input copy",
+      "representation construction",
+      "media initialization",
+      "native playback",
+      "seek for correctness separately",
+      "cleanup"
+    ],
+    "excluded_costs": [
+      "browser launch",
+      "remote network",
+      "server CPU",
+      "physical output/energy",
+      "attributable memory",
+      "whole-player process CPU"
+    ],
+    "correctness_required": true
+  },
+  "stops": "Existing correct owner, failed contract, no maintained consumer, or measured lack of benefit is recorded at its real scope; deferred ideas do not become completed positive research."
+}

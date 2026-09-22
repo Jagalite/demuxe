@@ -4,7 +4,7 @@
 
 Start with the [item directory](ITEMS.md), using its full stable key. Each item
 owns its definition, stages, current decision, history and evidence index.
-The [identity index](index.json) covers all 433 records, including missing
+The [identity index](index.json) covers all 436 records, including missing
 definitions and distinct mechanisms with reused R-numbers.
 
 The [current stage summary](STATUS.md) and [latest advancement campaign](campaigns/2026-09-19-stage-advancement.md) distinguish new execution from evidence reconciliation.
@@ -39,8 +39,24 @@ Reports/data use CC BY 4.0; original independent tooling uses Apache 2.0.
 Copied software and third-party media retain their own terms. See the licensing
 section of the process before adding or exporting artifacts.
 
+Bulky raw telemetry, media, screenshots and captured runtimes remain local.
+The [local artifact inventory](shared/local-artifacts-20260922.json) records their
+exact paths, sizes and SHA-256 values; `.gitignore` excludes those specific files.
+Source, reports, manifests and compact evidence remain versioned. No remote
+archive is implied: a fresh checkout needs the listed artifacts restored before
+full historical verification or benchmark reproduction. See the
+[commit validation record](shared/commit-validation-20260922.md) for the executed
+checks and pre-existing evidence-reference failures.
+
+[Prioritized D01–D73 owner follow-up](campaigns/screened-owner-completion.md): exact-output/cost results, retained lifecycle failures, and five new audio owners with pending gates. The source-import campaign remains a historical incorporation record.
+
 [Progressive and reduced-decode preview research](campaigns/preview-research.md): imported native component screens, mapped to five existing owners with browser/provider qualification limits preserved.
+
+Production decision: [R006 non-isolated remux](items/R006.offer-a-non-pthread-remux-path-without-isolation/README.md) and [R176 JSPI I/O](items/R176.jspi-backed-synchronous-wasm-i-o/README.md) are **Dropped / intentionally removed**. Maintenance complexity outweighs present production value. Advanced Wasm retains pthreads; browser-native paths remain usable without isolation. Revisit only on concrete deployment demand. Earlier evidence remains historical.
 
 [Native production pipeline integration](shared/runs/20260921T203100Z-production-pipeline/analysis.md): R005, bounded R059 and R133 are integrated; R132 remains conditional; R162 existing repairs are requalified while the patch constructor is deferred. Measured regressions and release limits are retained.
 
-Production decision: [R006 non-isolated remux](items/R006.offer-a-non-pthread-remux-path-without-isolation/README.md) and [R176 JSPI I/O](items/R176.jspi-backed-synchronous-wasm-i-o/README.md) are **Dropped / intentionally removed**. Maintenance complexity outweighs present production value. Advanced Wasm retains pthreads; browser-native paths remain usable without isolation. Revisit only on concrete deployment demand. Earlier evidence remains historical.
+New imported batches:
+
+- [Focused batch 22: D86–D88](campaigns/focused-research-batch22.md) — component screens with original evidence, linked to existing owners.
+- [Ecosystem expansion: EB01–EB22](campaigns/ecosystem-expansion-2026-09-21.md) — 38 additional source-review targets; canonical novelty reconciliation pending.

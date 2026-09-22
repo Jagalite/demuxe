@@ -36,3 +36,20 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D73 — Resolve geometry at the boundary that actually presents it**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch17_D71-D73/demuxe_batch17/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D20 — deferred_profile_followup**: Known color semantics should propagate; unknown/conflicting authority must not be guessed. R008's full-route fidelity stop remains.
+
+**D22 — deferred_profile_followup**: Static orientation is a restricted metadata bridge. Existing geometry propagation is exercised by D73; dynamic orientation and subtitle/input coordinates remain separate.
+
+**D29 — retain_scoped_stop**: Stop the imported exact metadata-crop profile: requested browser rectangle fails. Do not weaken geometry or substitute host decode for browser presentation.
+
+**D46 — deferred_profile_followup**: Treat color conflict as source-authority policy. No automatic BT.709 repair or cross-endpoint exact-color claim.
+
+**D49 — deferred_profile_followup**: Display-only crop is a possible product feature, not less decoding. Native controls, subtitles, high-DPI and source geometry need qualification before adoption.
+
+**D73 — executed_existing_owner_or_control**: Maintained coherent SAR/rotation geometry passes. This does not resolve metadata authority conflicts or overturn R008's prior full-route pixel-fidelity stop.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

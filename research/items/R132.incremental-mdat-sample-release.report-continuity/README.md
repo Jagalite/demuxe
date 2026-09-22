@@ -26,3 +26,5 @@ Current decision: **pursue**. Actualpartial-mdat endpoint now has complete48chan
 Next/reopen: Pursue streamingproducer integration only with actualincremental write/ownership boundary and equivalentwork benchmark; retain whole-output fidelity and cancelled-tail guard. Currentcomponent answersparserquestion, not automaticplayerrouteadmission.
 
 [Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+Imported follow-up: [focused batch 22](../../campaigns/focused-research-batch22.md) (D87). External component evidence only; current decision and stage gates are unchanged.

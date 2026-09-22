@@ -2,15 +2,64 @@
 
 # Supply known WebM durations to prevent parser holdback
 
+Full identity: `R112.supply-known-webm-durations-to-prevent-parser-holdback`.
+
+Current scoped decision: **stop_current_profile**.
+
+Sparse held-frame source preserves six checked pictures and final coverage, but maintained consecutive terminal seek/play does not complete reliably. The actual negotiated output is MP4; the isolated WebM muxer patch is irrelevant and not accepted. Full lifecycle gate fails.
+
+Next action: Isolate and fix the Native held-picture seek/output-evidence completion contract; preserve the direct reference and rerun before promotion. Do not apply the rejected muxer-only patch.
+
+## Current stages
+
+| Stage | Status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | failed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Authoritative item contract/state](item.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl).
+
+Production integration and release qualification are separate. Current stages apply to the scope above; earlier findings retain their original scope.
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D72 — executed_lifecycle_failure**: Current route retains checked held-frame pictures and final coverage, but repeated terminal held-frame seek/play fails lifecycle. Stop promotion; the irrelevant WebM muxer patch is rejected.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+Latest scoped decision: **stop_current_profile**. Sparse held-frame source preserves six checked pictures and final coverage, but maintained consecutive terminal seek/play does not complete reliably. The actual negotiated output is MP4; the isolated WebM muxer patch is irrelevant and not accepted. Full lifecycle gate fails.
+
+Next action: Isolate and fix the Native held-picture seek/output-evidence completion contract; preserve the direct reference and rerun before promotion. Do not apply the rejected muxer-only patch.
+
+| Stage | Current status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | failed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+Production integration and release qualification are separate. Earlier sections describe retained historical profiles.
+
+
+## Retained earlier profile notes (historical)
+
 Full identity: `R112.supply-known-webm-durations-to-prevent-parser-holdback`. Original rank: 161.
 
-Current decision: **already_implemented** (reconciled from **ALREADY_IMPLEMENTED**). No new media execution.
+Earlier decision: **already_implemented** (reconciled from **ALREADY_IMPLEMENTED**). No new media execution.
 
 Maintained VP9/Opus output already contains video DefaultDuration. Its first block is audio and gives no early frame with or without video duration metadata; do not infer an A/V timing benefit from video-only VP8. Retain truthful duration signaling; no missing metadata fix is needed in this output profile.
 
 DefaultDuration exists in maintained VP9/Opus; removing it does not change first-audio-block early availability. Video-only VP8 control differs; preserve truthful metadata without inferring mixed A/V benefit.
 
-Next action: Retain duration correctness; reopen a demonstrated mixed A/V parser-holdback profile.
+Earlier next action: Retain duration correctness; reopen a demonstrated mixed A/V parser-holdback profile.
 
 ## Stages
 

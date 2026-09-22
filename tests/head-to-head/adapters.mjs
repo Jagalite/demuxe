@@ -4,7 +4,7 @@ const stage = document.querySelector('#stage');
 let player, config, overlay, overlayCanvas, overlayTimer, observer;
 const observedMedia = [];
 const contexts = [], analysers = [], failures = [], events = [], selectionTrace = [], nativeVerificationFailures = [];
-let playbackEnded=false;
+let componentTrial, playbackEnded=false;
 const originalConnect = AudioNode.prototype.connect;
 const OriginalContext = window.AudioContext;
 const plain = value => JSON.parse(JSON.stringify(value, (_, v) => typeof v === 'bigint' ? String(v) : v));
@@ -73,6 +73,17 @@ export async function start(c) {
     player=document.createElement('video'); stage.append(player); player.src=source;
     if(subtitle){const track=document.createElement('track');track.src=subtitle;track.kind='subtitles';track.default=true;player.append(track);}
   } else if (c.player==='demuxe') {
+    let extracted;
+    const options={};
+    if(c.componentTrial) {
+      const trial=await import('./component-trials.mjs');
+      componentTrial={kind:c.componentTrial,scope:'LAB ONLY; explicit component substitution'};
+      if(c.componentTrial==='subtitles') {
+        options.experimentalNativeASS=true;
+        if(c.embeddedSubtitle){const began=performance.now();extracted=await trial.extractCaptions(source);componentTrial.extraction={wallMs:performance.now()-began,bytes:extracted.readBytes,format:extracted.format,cues:extracted.cues};}
+      } else if(c.componentTrial==='dash')await trial.installDASHTrial();
+      else if(c.componentTrial==='audio'){options.experimentalAudioAdaptation='flac';options.nativeRemux='always';}
+    }
     const {Player}=await import('/demuxe/web/generated/index.js');
     if(c.correctness) {
       const {NativePlayer}=await import('/demuxe/web/generated/internal/native-player.js');
@@ -85,10 +96,12 @@ export async function start(c) {
         }
       };
     }
-    player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...(c.lane!=='auto'?{mode:c.lane}:{})});
+    player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...options,...(c.lane!=='auto'?{mode:c.lane}:{})});
+    if(c.componentTrial)window.componentPlayer=player;
     if(c.correctness)player.addEventListener('selectionchange',event=>{if(selectionTrace.length<100)selectionTrace.push(plain(event.detail));});
     await player.ready; await player.open(c.streamFormat?{url:source,format:c.streamFormat,streaming:{live:!!c.live,...c.streaming}}:source);
-    if(c.embeddedSubtitle&&player.state.subtitleTracks.length)await player.selectSubtitleTrack(player.state.subtitleTracks[0].id);
+    if(extracted){for(const font of extracted.fonts)await player.addFont(new File([font.bytes],font.name));await player.addSubtitle(new File([extracted.text],'extracted.'+extracted.format));}
+    if(!extracted&&c.embeddedSubtitle&&player.state.subtitleTracks.length)await player.selectSubtitleTrack(player.state.subtitleTracks[0].id);
     if(subtitle&&!c.subtitleIntegration)await player.addSubtitle(new File([await(await fetch(subtitle)).arrayBuffer()],c.subtitle.split('/').at(-1)));
     if (c.subtitleIntegration==='built-in') {
       await player.addFont(new File([await(await fetch('/fixtures/DejaVuSans.ttf')).arrayBuffer()],'DejaVuSans.ttf'));
@@ -137,7 +150,7 @@ export function snapshot() {
   if (player) {
     if(config.player==='demuxe') state={position:player.state.currentTime,duration:player.state.duration,paused:player.state.paused,
       route:player.diagnostics?.plan?.id ?? player.state.activeMode,diagnostics:player.diagnostics,
-      selectionTrace,nativeVerificationFailures,mediaTracks:player.properties.get('track-list'),audioParams:player.properties.get('audio-params')};
+      selectionTrace,nativeVerificationFailures,componentTrial,mediaTracks:player.properties.get('track-list'),audioParams:player.properties.get('audio-params')};
     else if(config.player==='libmedia') state={position:Number(player.currentTime)/1000,duration:Number(player.getDuration())/1000,
       route:player.isMSE()?'mse':'custom',ended:playbackEnded,stats:player.getStats()};
     else state={position:player.currentTime,duration:player.duration,paused:player.paused,route:(video||(config.audio!==false&&surfaces('video').some(v=>v.currentSrc&&v.readyState>=2))||surfaces('audio').some(v=>v.currentSrc))?'native-direct':'custom'};
@@ -156,7 +169,7 @@ export function snapshot() {
 export async function subtitles() {
   if(config.player==='demuxe') {
     const tracks=player.state.subtitleTracks;
-    if(tracks.length)await player.selectSubtitleTrack(tracks[0].id);
+    if(tracks.length)await player.selectSubtitleTrack((config.componentTrial==='subtitles'?tracks.at(-1):tracks[0]).id);
     return {tracks:plain(tracks)};
   }
   if(config.player==='libmedia') {

@@ -54,3 +54,5 @@ association was invented during migration.
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/reports/RESULTS_R31_R42.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R033.interleave-samples-for-earlier-complete-a-v-output.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R033.interleave-samples-for-earlier-complete-a-v-output.md)
+
+Imported follow-up: [focused batch 22](../../campaigns/focused-research-batch22.md) (D86). External component evidence only; current decision and stage gates are unchanged.

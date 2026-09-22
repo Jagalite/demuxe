@@ -37,3 +37,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D63 — Native clipping of lossless audio at individual sample boundaries**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch14_D62-D64/demuxe_batch14/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D63 — deferred_profile_followup**: Lossless sample clipping is a new explicit operation, not general queue correctness. Preserve the source-derived length/content witnesses and require a maintained excerpt owner.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

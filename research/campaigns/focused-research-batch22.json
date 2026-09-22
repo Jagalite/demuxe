@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "id": "focused-research-batch22",
+  "run_id": "20260922T001856Z-research-batches-import",
+  "run": "research/shared/runs/20260922T001856Z-research-batches-import/run.json",
+  "items": [
+    {
+      "key": "R033.interleave-samples-for-earlier-complete-a-v-output",
+      "item_path": "research/items/R033.interleave-samples-for-earlier-complete-a-v-output"
+    },
+    {
+      "key": "R032.use-different-output-containers-for-different-tracks",
+      "item_path": "research/items/R032.use-different-output-containers-for-different-tracks"
+    },
+    {
+      "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+      "item_path": "research/items/R018.cache-prepared-media-by-timeline-and-transformation-recipe"
+    },
+    {
+      "key": "R132.incremental-mdat-sample-release.report-continuity",
+      "item_path": "research/items/R132.incremental-mdat-sample-release.report-continuity"
+    }
+  ],
+  "screenings": [
+    {
+      "id": "D86",
+      "title": "Test packet-preserving intra-fragment interleaving for early joint A/V",
+      "disposition": "stop_tested_release_profile",
+      "lineage": [
+        "R033.interleave-samples-for-earlier-complete-a-v-output"
+      ],
+      "evidence": [
+        "evidence/manifest.json",
+        "evidence/browser_av.json",
+        "evidence/browser_whole_audio.json"
+      ],
+      "correctness": "Complete within-endpoint media identity passes; intended early A/V release fails.",
+      "performance": "not_measured",
+      "production_integration": false,
+      "primary_owner": "R033.interleave-samples-for-earlier-complete-a-v-output"
+    },
+    {
+      "id": "D87",
+      "title": "Feed partial per-track fragments through independent native parser inputs",
+      "disposition": "pursue_scoped_component",
+      "lineage": [
+        "R032.use-different-output-containers-for-different-tracks",
+        "R132.incremental-mdat-sample-release.report-continuity",
+        "D14"
+      ],
+      "evidence": [
+        "evidence/browser_av_split.json",
+        "evidence/analysis.json"
+      ],
+      "correctness": "Early video/audio activity; checked pixels/PTS/tones and EOF pass. Exact live A/V sync unqualified.",
+      "performance": "not_measured",
+      "production_integration": false,
+      "primary_owner": "R032.use-different-output-containers-for-different-tracks"
+    },
+    {
+      "id": "D88",
+      "title": "Deduplicate append requests with residency and mutation-order identity",
+      "disposition": "conditional_opportunity_required",
+      "lineage": [
+        "R018.cache-prepared-media-by-timeline-and-transformation-recipe"
+      ],
+      "evidence": [
+        "evidence/browser_ledger.json",
+        "evidence/browser_ledger_v0.json"
+      ],
+      "correctness": "Restricted final guard passes; two initial false-success variants retained and reproduced.",
+      "performance": "not_measured",
+      "production_integration": false,
+      "primary_owner": "R018.cache-prepared-media-by-timeline-and-transformation-recipe"
+    }
+  ],
+  "current_decisions_changed": false,
+  "scope": "External component screens imported without rerunning experiments; current decisions and stages unchanged. No production or performance qualification inferred."
+}

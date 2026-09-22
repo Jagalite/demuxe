@@ -1,0 +1,51 @@
+--- native/remux/remux.c
++++ native/remux/remux.c
+@@ -123,7 +123,7 @@
+ static AVPacket *packet;
+ static AVPacket *prefetch[256];static int prefetched,prefetch_at;
+ static void clear_prefetch(void){for(int i=0;i<prefetched;i++)av_packet_free(&prefetch[i]);prefetched=prefetch_at=0;}
+-static int video=-1,audio=-1,map[64],eof,is_ts,video_started;
++static int video=-1,audio=-1,map[64],eof,is_ts,video_started,hevc_drop_rasl;
+ static int64_t position,total,aac_anchor,aac_count;
+ static double fragment_start,origin;
+ static int fragment_count;
+@@ -133,6 +133,15 @@
+ #ifdef DEMUXE_AUDIO_ADAPTATION
+ #include "../adaptation/flac.h"
+ #endif
++// A fresh CRA presentation cannot reference pictures before random access.
++// Keep RASL packets during continuous playback; omit only leading pictures of
++// the initial CRA access unit when starting a new decoder presentation.
++static int hevc_vcl_type(const AVPacket *q){
++ const uint8_t *p=q->data;int n=q->size;
++ if(is_avc){for(int i=0;i<n;){if(n-i<nal_size)return -1;unsigned size=0;for(int j=0;j<nal_size;j++)size=(size<<8)|p[i++];if(size>(unsigned)(n-i))return -1;if(size>=2){int type=(p[i]>>1)&63;if(type<32)return type;}i+=size;}}
++ else for(int i=0;i+4<n;i++)if(!p[i]&&!p[i+1]&&p[i+2]==1){int type=(p[i+3]>>1)&63;if(type<32)return type;}
++ return -1;
++}
+ static int idr(const AVPacket*q){
+  if(generic_video)return !!(q->flags&AV_PKT_FLAG_KEY);
+  const uint8_t*p=q->data;int n=q->size;
+@@ -392,7 +401,7 @@
+ #endif
+ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
+  int seek_stream=video>=0?video:audio;
+- close_output();eof=0;video_started=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
++ close_output();eof=0;video_started=0;hevc_drop_rasl=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
+  int tail_seek=0;
+ #ifdef DEMUXE_AUDIO_ADAPTATION
+  tail_seek=prepare_tail_seek(target);if(tail_seek<0)return tail_seek;
+@@ -496,6 +505,14 @@
+    if(src->codecpar->codec_id==AV_CODEC_ID_VP9&&(packet->flags&AV_PKT_FLAG_KEY)){
+     int same=EM_ASM_INT({const next=Module.parseVP9(HEAPU8.slice($0,$0+$1));return next.profile===Module.vp9.profile&&next.pixelFormat===Module.vp9.pixelFormat&&next.fullRange===Module.vp9.fullRange;},packet->data,packet->size);
+     if(!same)return reject("Selected VP9 configuration changed; new initialization required");
++   }
++   if(hevc_video){
++    int type=hevc_vcl_type(packet);
++    if(!video_started)hevc_drop_rasl=type==21;
++    else if(hevc_drop_rasl&&type>=0){
++     if(type==8||type==9){av_packet_unref(packet);continue;}
++     hevc_drop_rasl=0;
++    }
+    }
+    if(!video_started&&!idr(packet))return reject("Selected video must begin at an IDR");video_started=1;
+    size_t extra_size=0;uint8_t *extra=av_packet_get_side_data(packet,AV_PKT_DATA_NEW_EXTRADATA,&extra_size);

@@ -1,0 +1,23 @@
+# Initial context is context.json; final context is frozen-context.json. Run from repository root.
+# Recover authored fixtures using fixture-index.json/additional-fixtures.json and their original archive members.
+bash research/shared/runs/20260921T030620Z-screened-owner-completion/build-engines.sh
+python3 research/shared/tooling/test-aac-normalization.py
+node research/shared/tooling/screened-owner-screen.mjs /tmp/demuxe-owner-context.json
+ENGINE=build/screened-owner-completion/20260921T030620Z-screened-owner-completion/engine-aac VARIANT=aac-owner-screen CASES=D01,D01-reference,D08,D08-reference,D11 node research/shared/tooling/screened-owner-screen.mjs /tmp/demuxe-owner-context.json
+REMUX=auto VARIANT=audio-default-owner CASES=D14,D32-mulaw,D32-alaw,D32-reference,D68-float,D68-integer,D68-reference node research/shared/tooling/screened-owner-screen.mjs /tmp/demuxe-owner-context.json
+python3 research/shared/tooling/screened-remux-oracles.py /tmp/demuxe-owner-context.json
+python3 research/shared/tooling/finite-audio-host-oracles.py /tmp/demuxe-owner-context.json
+node research/shared/tooling/screened-boundary-checks.mjs /tmp/demuxe-owner-context.json
+# Failed/irrelevant duration-only hypothesis; retain but do not adopt.
+bash research/shared/runs/20260921T030620Z-screened-owner-completion/build-duration-engine.sh
+# Additional current-owner screens, including requested second Ogg track:
+CASES=D42,D57,D57-reference,D65,D65-track2,D65-reference VARIANT=remaining-owner-screen node research/shared/tooling/screened-owner-screen.mjs /tmp/demuxe-owner-context.json
+REMUX=auto CASES=D42,D57,D57-reference VARIANT=remaining-default-owner node research/shared/tooling/screened-owner-screen.mjs /tmp/demuxe-owner-context.json
+# Final accepted correctness/cost groups; never run browser comparisons concurrently with performance.
+VARIANT=correctness-final node research/shared/tooling/screened-owner-correctness.mjs research/shared/runs/20260921T030620Z-screened-owner-completion/frozen-context.json
+CORRECTNESS=correctness-final/results.json VARIANT=performance-final node research/shared/tooling/screened-owner-performance.mjs research/shared/runs/20260921T030620Z-screened-owner-completion/frozen-context.json
+node research/shared/tooling/ogg-selection-correctness.mjs /tmp/demuxe-owner-context.json
+CORRECTNESS=ogg-selection-v2/results.json PROFILES=research/shared/runs/20260921T030620Z-screened-owner-completion/ogg-selection-v2/profiles.json VARIANT=ogg-performance node research/shared/tooling/screened-owner-performance.mjs /tmp/demuxe-owner-context.json
+# OS process-exit checks are captured separately from CDP identities. Do not overwrite registered run directories on replay.
+python3 research/shared/tooling/verify-screened-owner-completion.py research/shared/runs/20260921T030620Z-screened-owner-completion/context.json
+python3 scripts/check-licenses.py

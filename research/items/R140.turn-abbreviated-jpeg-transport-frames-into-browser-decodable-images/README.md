@@ -18,3 +18,12 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D59 — Native JPEG decoding for restricted TIFF pages and regions**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch13_D59-D61/demuxe_batch13/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D21 — deferred_profile_followup**: Defer timed abbreviated-JPEG ownership until a real source/configuration/epoch consumer is defined; native image decoding alone does not implement MJPEG playback.
+
+**D59 — deferred_profile_followup**: TIFF pages/regions are a new image capability; current getFrame API does not define page/strip/orientation ownership. Keep wrong-table/strip controls and require a real consumer.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

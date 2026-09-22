@@ -4,6 +4,8 @@
 
 This staged change admits **plain external WebVTT on Native A/V** through `addSubtitle(File)`. It does not qualify embedded extraction, rich subtitle overlays, independently decoded audio, or a new manifest owner. The earlier [17-case Hybrid audit](HEAD-TO-HEAD-HYBRID.md) remains the before-change record. Hybrid is not presumed slower.
 
+The follow-up [remaining-Hybrid component isolation study](HYBRID-COMPONENT-STUDY.md) tests narrower subtitle, audio and manifest ownership with separate correctness and whole-player CPU evidence. Its explicit lab routes do not change this production admission record.
+
 ## Architecture and first change
 
 `selection.ts` rejects Native when selected embedded subtitles need rendering. `playback-plans.ts` previously required every file subtitle attachment to have an explicitly admitted ASS component; consequently even WebVTT selected mpv. `unified-player.ts` replayed all attachments onto the chosen backend. `NativePlayer.addTextTrack` already supported browser captions, including remux timeline bias, but `addSubtitle(File)` did not use it.

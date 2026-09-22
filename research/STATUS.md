@@ -2,21 +2,21 @@
 
 # Current research status
 
-Derived from all 435 canonical item homes at 2026-09-22T00:23:13.513242+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
+Derived from all 436 canonical item homes at 2026-09-22T00:11:30.617445+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
 
-400 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 8 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
+404 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 5 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
 
-435 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
+436 items have post-migration updates; 0 retain imported decisions. Updates include new experiments and source/evidence reconciliation; this is not an experiment count.
 
 | Stage | Passed | Failed | Blocked | Pending | Not applicable |
 |---|---:|---:|---:|---:|---:|
-| define | 408 | 0 | 0 | 0 | 27 |
-| prepare | 310 | 0 | 0 | 8 | 117 |
-| screen | 435 | 0 | 0 | 0 | 0 |
-| correctness | 277 | 27 | 0 | 8 | 123 |
-| performance | 91 | 122 | 0 | 8 | 214 |
-| results | 435 | 0 | 0 | 0 | 0 |
-| decision | 435 | 0 | 0 | 0 | 0 |
+| define | 409 | 0 | 0 | 0 | 27 |
+| prepare | 320 | 0 | 0 | 0 | 116 |
+| screen | 436 | 0 | 0 | 0 | 0 |
+| correctness | 280 | 28 | 0 | 5 | 123 |
+| performance | 94 | 119 | 0 | 5 | 218 |
+| results | 436 | 0 | 0 | 0 | 0 |
+| decision | 436 | 0 | 0 | 0 | 0 |
 
 A passed screen or decision records a scoped finding, not production readiness. Passed correctness applies only to the stated run profile. Blocked prerequisites and failed outputs are distinct.
 
@@ -31,20 +31,20 @@ Whole-player qualification is a separate follow-up: earlier scoped research comp
 | benefit_gate_failed | 5 |
 | correctness_failed | 2 |
 | deferred_integration_not_prioritized | 1 |
+| lifecycle_failed | 1 |
 | measured_lab_benefit | 3 |
 | measured_scoped_integration_tradeoffs | 5 |
-| not_measured | 140 |
-| not_required_by_current_scoped_decision | 277 |
+| new_owner_pending | 5 |
+| not_measured | 129 |
+| not_required_by_current_scoped_decision | 278 |
 | not_required_dropped | 2 |
+| scoped_admission_cost_passed | 5 |
 
-- Rank None: [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [native-fir-window-rendering](items/native-fir-window-rendering/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [native-ogg-page-projection](items/native-ogg-page-projection/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
-- Rank None: [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
+- Rank None: [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) — Define and implement the bounded native audio owner, source identity/cancellation, public timeline and memory contract; then execute exact output/lifecycle and predeclared full-cost comparison. Keep the imported controls.
+- Rank None: [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) — Define and implement the bounded native audio owner, source identity/cancellation, public timeline and memory contract; then execute exact output/lifecycle and predeclared full-cost comparison. Keep the imported controls.
+- Rank None: [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) — Define and implement the bounded native audio owner, source identity/cancellation, public timeline and memory contract; then execute exact output/lifecycle and predeclared full-cost comparison. Keep the imported controls.
+- Rank None: [native-fir-window-rendering](items/native-fir-window-rendering/README.md) — Define and implement the bounded native audio owner, source identity/cancellation, public timeline and memory contract; then execute exact output/lifecycle and predeclared full-cost comparison. Keep the imported controls.
+- Rank None: [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) — Define and implement the bounded native audio owner, source identity/cancellation, public timeline and memory contract; then execute exact output/lifecycle and predeclared full-cost comparison. Keep the imported controls.
 
 ## Permanently closed source gaps
 

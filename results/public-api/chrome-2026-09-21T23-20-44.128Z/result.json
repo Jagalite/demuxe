@@ -1,0 +1,177 @@
+{
+  "browser": "152.0.7977.83",
+  "family": "chrome",
+  "checks": [
+    {
+      "name": "immutable state, stable identity and no core UI import",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    calls: 1,\n    frozen: true,\n    mode: null,\n    ranges: null,\n    same: true,\n+   workers: 1\n-   workers: 0\n  }\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:14:474\n    at async check (file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:10:96)\n    at async file:///Volumes/seed2/Projects/demuxe/tests/public-api.mjs:14:1",
+      "state": {
+        "status": "idle",
+        "playbackIntent": "pause",
+        "pendingOperation": null,
+        "sourceId": null,
+        "currentTime": 0,
+        "duration": null,
+        "streamType": "unknown",
+        "subtitlesVisible": true,
+        "volume": 1,
+        "muted": false,
+        "playbackRate": 1,
+        "activeMode": null,
+        "automaticSelection": false,
+        "buffered": null,
+        "seekable": null,
+        "audioTracks": [],
+        "subtitleTracks": [],
+        "mediaInfo": {
+          "displayWidth": null,
+          "displayHeight": null,
+          "aspectRatio": null,
+          "rotation": null,
+          "video": null,
+          "audio": null,
+          "subtitle": null
+        },
+        "capabilities": {
+          "videoFilters": false,
+          "audioFilters": false,
+          "mpvSubtitles": false,
+          "externalTextTracks": true,
+          "externalSubtitles": true,
+          "customFonts": false,
+          "customRequestHeaders": true,
+          "buffering": {
+            "control": "hint",
+            "preload": true,
+            "profile": false,
+            "memoryBudget": false
+          },
+          "deployment": {
+            "isolated": true,
+            "webCodecs": true,
+            "mediaSource": true
+          },
+          "features": {
+            "seek": {
+              "availability": "unknown",
+              "reason": "Seek window has not been established"
+            },
+            "audioTracks": {
+              "availability": "unknown",
+              "reason": "Open a source to establish availability"
+            },
+            "subtitleTracks": {
+              "availability": "unknown",
+              "reason": "Open a source to establish availability"
+            },
+            "audioGain": {
+              "availability": "available"
+            },
+            "externalSubtitles": {
+              "availability": "available"
+            },
+            "customFonts": {
+              "availability": "unavailable",
+              "reason": "Select hybrid mode first"
+            },
+            "videoFilters": {
+              "availability": "unavailable",
+              "reason": "Select software mode first"
+            },
+            "audioFilters": {
+              "availability": "unavailable",
+              "reason": "Select software mode first"
+            }
+          }
+        },
+        "error": null
+      }
+    },
+    {
+      "name": "native state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "hybrid state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "software state events, seek completion, mute and reopen",
+      "passed": true
+    },
+    {
+      "name": "canceled replacement preserves accepted state and bounded close",
+      "passed": true
+    },
+    {
+      "name": "close remains available with a full bounded operation queue",
+      "passed": true
+    },
+    {
+      "name": "failed replacement stays usable and redacts signed URL",
+      "passed": true
+    },
+    {
+      "name": "stable source-scoped tracks and explicit transition preservation",
+      "passed": true
+    },
+    {
+      "name": "external subtitles have distinct identities and preserve explicit selection across modes",
+      "passed": true
+    },
+    {
+      "name": "native fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "hybrid fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "software fatal end-file reaches normalized state before error (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "native caller abort at source acceptance does not reject committed open",
+      "passed": true
+    },
+    {
+      "name": "software caller abort at source acceptance does not reject committed open",
+      "passed": true
+    },
+    {
+      "name": "canceling Wasm asset initialization preserves the previous session",
+      "passed": true
+    },
+    {
+      "name": "stale backend events cannot overwrite accepted playback",
+      "passed": true
+    },
+    {
+      "name": "unknown duration and live windows remain truthful (adapter injection)",
+      "passed": true
+    },
+    {
+      "name": "waiting and ended reflect observed playback (native events)",
+      "passed": true
+    },
+    {
+      "name": "idempotent destroy settles queue and removes workers",
+      "passed": true
+    },
+    {
+      "name": "no uncaught errors",
+      "passed": true
+    }
+  ],
+  "hashes": {
+    "src/unified-player.ts": "787110bf16c4e8866aa1919fe903ba2b823c39c307b63a0ee8b209f0608b7d9f",
+    "src/internal/state.ts": "7bac1d69d2de54e3a4e07ed89cb3fabab18c10ef3a4cd22ff6158d8dd67eb017",
+    "src/types.ts": "d780dc9a8a199feed8a315ac0616a3f5ea201958ffac7e80851b40e90d595d80",
+    "src/internal/wasm-player.ts": "c8f0104ef8c3391a5d76423cdb7b95aa3c225ebcb1275774c8b7926a39a19777",
+    "src/internal/native-player.ts": "021bc445d79d4bfb2dc31c00624cffa6d1df2747abfef15de72bb2dcaba74a8b",
+    "tests/public-api.mjs": "1355a8a333fde7433889eeddab487e9f987acb3cd162b588e482068d9d1097c4"
+  },
+  "passed": false
+}

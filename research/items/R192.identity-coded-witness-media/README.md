@@ -4,11 +4,60 @@
 
 Full identity: `R192.identity-coded-witness-media`.
 
-Current decision: **pursue** (actual-route screen).
+Current scoped decision: **pursue**.
+
+Real maintained output distinguishes the selected-video view (13 frames, zero audio RMS) from the requested A/V positives. Exact host packet/PCM comparisons supplement browser frame and audio-presence witnesses. This is diagnostic correctness, not a performance optimization.
+
+Next action: Promote selected-track output witnesses into maintained regressions with explicit reference contracts; physical output and exact post-seek audio capture remain separate.
+
+## Current stages
+
+| Stage | Status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Authoritative item contract/state](item.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl).
+
+Production integration and release qualification are separate. Current stages apply to the scope above; earlier findings retain their original scope.
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D13 — executed_existing_owner_or_control**: Use track-output witnesses: the video-only D02 presentation has 13 frames and zero RMS, while the qualified A/V/audio routes have nonzero output and independent complete decode checks.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+Latest scoped decision: **pursue**. Real maintained output distinguishes the selected-video view (13 frames, zero audio RMS) from the requested A/V positives. Exact host packet/PCM comparisons supplement browser frame and audio-presence witnesses. This is diagnostic correctness, not a performance optimization.
+
+Next action: Promote selected-track output witnesses into maintained regressions with explicit reference contracts; physical output and exact post-seek audio capture remain separate.
+
+| Stage | Current status |
+|---|---|
+| define | passed |
+| prepare | passed |
+| screen | passed |
+| correctness | passed |
+| performance | not_applicable |
+| results | passed |
+| decision | passed |
+
+Production integration and release qualification are separate. Earlier sections describe retained historical profiles.
+
+
+## Retained earlier profile notes (historical)
+
+Full identity: `R192.identity-coded-witness-media`.
+
+Earlier decision: **pursue** (actual-route screen).
 
 Identity-coded owned AVC/AAC witness passes independent host and actual Chromium barcode/channel-frequency checks. Video-order swap, stereo-channel swap and500ms audio shift remain decodable but all three are rejected by both oracles. First paused-canvas diagnostic repeatedly returned initial picture; corrected oracle waits actual presented-frame callback, preserving failure. Correct file all96host frame identities, five browser forward/back targets and eight tone epochs pass; diagnostic capability only, no physical latency claim.
 
-Next action: Research profile complete; reuse witness to falsify wrong media/timeline output.
+Earlier next action: Research profile complete; reuse witness to falsify wrong media/timeline output.
 
 ## Stages
 

@@ -27,3 +27,10 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D50 — Reduce an epoch while timestamps are still integers**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch10_D48-D51/demuxe_batch10/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+
+## Screened-owner follow-up (20260921T030620Z-screened-owner-completion)
+
+**D50 — deferred_profile_followup**: Use only a regression at a demonstrated integer-to-browser-time boundary. Existing rollover normalization remains; do not add a second unconditional post-demux normalizer.
+
+[Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).

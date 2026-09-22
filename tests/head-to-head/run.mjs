@@ -16,11 +16,13 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   browser:{type:'string',default:'chromium'},channel:{type:'string',default:'chrome'},headed:{type:'boolean',default:false},
   'negative-control':{type:'string'},catalogue:{type:'boolean',default:false},
   'configured-alternatives':{type:'boolean',default:false},
+  'component-trial':{type:'string'},
   'demuxe-mode':{type:'string',default:'auto'},
   'controlled-streaming':{type:'boolean',default:false},
   'streaming-backends':{type:'boolean',default:false},
   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},
   'measure-seconds':{type:'string',default:'20'},'warmup-seconds':{type:'string',default:'5'},list:{type:'boolean',default:false}}});
+if(args['component-trial']&&(!args.catalogue||args['demuxe-mode']!=='native'||!['subtitles','audio','dash','direct'].includes(args['component-trial'])))throw Error('Component trials require catalogue, explicit Native, and a known lab strategy');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 if(!['auto','native','hybrid','software'].includes(args['demuxe-mode']))throw Error('Invalid Demuxe mode');
 if(!args.catalogue&&args['demuxe-mode']!=='auto')throw Error('--demuxe-mode requires --catalogue');
@@ -38,6 +40,7 @@ if(args.catalogue) {
 }
 
 const selected=selectCases(matrix,args.cases);
+if(args['component-trial']){const allowed={subtitles:['h264-srt','h264-movtext','h264-ass','pcm-ass'],audio:['h264-ac3','h264-eac3','h264-dts','hevc10-ac3','hevc10-eac3','hevc10-dts','hdr10-hevc','hevc-pgs','h264-vobsub'],dash:['dash-h264','dash-av1'],direct:['hls-live','hevc-pgs','h264-vobsub']}[args['component-trial']];if(selected.some(c=>c.player!=='demuxe'||!allowed.includes(c.fixture)))throw Error('Component trial is restricted to its authored Demuxe fixtures');}
 if(args['negative-control']==='hide-subtitles'&&selected.some(c=>matrix.fixtures[c.fixture].subtitleCheck!=='text'))throw Error('hide-subtitles requires text-subtitle cases');
 if(args.list){for(const c of selected)console.log(c.id);process.exit(0);}
 if(!args.assets)throw Error('--assets is required; prepare a snapshot with setup.py');
@@ -57,7 +60,7 @@ for(const [name,record]of Object.entries(manifest.files)) {
 const stamp=new Date().toISOString().replaceAll(':','-');
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['browser-exit.mjs','performance-metrics.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
@@ -224,7 +227,7 @@ async function measure(page,config,result,browser) {
 try {
   const schedule=args.performance?[...new Set(selected.map(c=>c.fixture))].flatMap(fixture=>{const group=selected.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):selected;
   for(const c of schedule) {
-    const result={...c,status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
+    const result={...c,...(args['component-trial']?{componentTrial:args['component-trial']} : {}),status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
     const recordName=c.id+(c.round?'.round-'+c.round:'');result.recordPath=recordName+'/result.json';
     const directory=path.join(output,recordName);await fs.mkdir(directory);await save();
     const fixture=matrix.fixtures[c.fixture];
@@ -251,7 +254,7 @@ try {
       page.on('requestfailed',q=>result.requestFailures.push({url:q.url(),error:q.failure()}));
       page.on('response',r=>{if(r.status()>=400)result.requestFailures.push({url:r.url(),status:r.status()});});
       await page.goto(server.origin+'/harness/harness.html');await page.bringToFront();await page.waitForFunction(()=>window.api);
-      const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{})};
+      const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
       await (args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
       result.status='passed';
       if(config.qualificationLimit){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}

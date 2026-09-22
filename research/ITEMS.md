@@ -2,7 +2,7 @@
 
 # Research item directory
 
-Current derived view of 435 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
+Current derived view of 436 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
 
 | Rank | Item | Current decision | Prepare | Correctness | Performance | Whole-player follow-up |
 |---:|---|---|---|---|---|---|
@@ -51,7 +51,7 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 43 | [R019.extract-embedded-ass-while-leaving-video-native](items/R019.extract-embedded-ass-while-leaving-video-native/README.md) | pursue | passed | passed | passed | measured_lab_benefit |
 | 44 | [R020.render-bitmap-subtitles-without-burning-them-into-video](items/R020.render-bitmap-subtitles-without-burning-them-into-video/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 45 | [R031.raw-aac-mp3-audio-beside-fragmented-video](items/R031.raw-aac-mp3-audio-beside-fragmented-video/README.md) | pursue | passed | passed | passed | not_measured |
-| 46 | [R032.use-different-output-containers-for-different-tracks](items/R032.use-different-output-containers-for-different-tracks/README.md) | pursue | passed | passed | passed | not_measured |
+| 46 | [R032.use-different-output-containers-for-different-tracks](items/R032.use-different-output-containers-for-different-tracks/README.md) | already_implemented | passed | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 47 | [R046.a-small-javascript-ordinary-mp4-to-mse-adapter](items/R046.a-small-javascript-ordinary-mp4-to-mse-adapter/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 48 | [R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders](items/R051.try-integer-lossless-source-codecs-before-changing-lossy-decoders/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 49 | [R058.change-video-codec-while-retaining-the-audio-presentation](items/R058.change-video-codec-while-retaining-the-audio-presentation/README.md) | pursue | passed | passed | not_applicable | not_measured |
@@ -78,7 +78,7 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 70 | [R074.skip-redundant-packed-pcm-staging](items/R074.skip-redundant-packed-pcm-staging/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 71 | [R100.transfer-owned-packet-storage-into-webcodecs-chunks](items/R100.transfer-owned-packet-storage-into-webcodecs-chunks/README.md) | inconclusive | passed | passed | failed | not_required_by_current_scoped_decision |
 | 72 | [R118.mse-append-window-clipping-report-paragraph-label.report-frontier](items/R118.mse-append-window-clipping-report-paragraph-label.report-frontier/README.md) | stop_current_profile | passed | failed | not_applicable | not_required_by_current_scoped_decision |
-| 73 | [R119.canonicalize-equivalent-decoder-configurations](items/R119.canonicalize-equivalent-decoder-configurations/README.md) | inconclusive | passed | passed | failed | not_required_by_current_scoped_decision |
+| 73 | [R119.canonicalize-equivalent-decoder-configurations](items/R119.canonicalize-equivalent-decoder-configurations/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
 | 74 | [R119.mse-future-range-replacement-report-paragraph-label.report-frontier](items/R119.mse-future-range-replacement-report-paragraph-label.report-frontier/README.md) | stop_current_profile | passed | failed | not_applicable | not_required_by_current_scoped_decision |
 | 75 | [R122.retime-existing-frames-without-creating-new-pictures.report-frontier](items/R122.retime-existing-frames-without-creating-new-pictures.report-frontier/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 76 | [R124.copy-a-frame-once-to-free-the-decoder](items/R124.copy-a-frame-once-to-free-the-decoder/README.md) | stop_current_profile | passed | passed | not_applicable | not_required_by_current_scoped_decision |
@@ -92,7 +92,7 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 84 | [R140.cue-less-webm-native-seek.report-continuity](items/R140.cue-less-webm-native-seek.report-continuity/README.md) | stop_current_profile | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 85 | [R144.compile-simple-ass-animations-into-reusable-timeline-programs](items/R144.compile-simple-ass-animations-into-reusable-timeline-programs/README.md) | inconclusive | passed | passed | failed | not_required_by_current_scoped_decision |
 | 86 | [R144.evict-through-a-paused-current-position.report-continuity](items/R144.evict-through-a-paused-current-position.report-continuity/README.md) | pursue | passed | passed | not_applicable | not_measured |
-| 87 | [R162.compile-a-qualified-mux-configuration-into-a-small-patch-program](items/R162.compile-a-qualified-mux-configuration-into-a-small-patch-program/README.md) | pursue | passed | passed | passed | measured_scoped_integration_tradeoffs |
+| 87 | [R162.compile-a-qualified-mux-configuration-into-a-small-patch-program](items/R162.compile-a-qualified-mux-configuration-into-a-small-patch-program/README.md) | pursue | passed | passed | not_applicable | measured_scoped_integration_tradeoffs |
 | 88 | [R169.make-custom-presentation-aware-of-display-cadence](items/R169.make-custom-presentation-aware-of-display-cadence/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 89 | [R170.separate-audio-clock-drift-from-an-audio-latency-jump](items/R170.separate-audio-clock-drift-from-an-audio-latency-jump/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 90 | [R188.schedule-verified-playable-data](items/R188.schedule-verified-playable-data/README.md) | pursue | passed | passed | passed | not_measured |
@@ -166,7 +166,7 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 158 | [R072.decode-only-keyframes-for-coarse-previews](items/R072.decode-only-keyframes-for-coarse-previews/README.md) | pursue | passed | passed | passed | not_measured |
 | 159 | [R073.decode-a-gop-once-for-a-pending-exact-preview-batch](items/R073.decode-a-gop-once-for-a-pending-exact-preview-batch/README.md) | pursue | passed | passed | passed | not_measured |
 | 160 | [R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata](items/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata/README.md) | pursue | passed | passed | not_applicable | not_measured |
-| 161 | [R112.supply-known-webm-durations-to-prevent-parser-holdback](items/R112.supply-known-webm-durations-to-prevent-parser-holdback/README.md) | already_implemented | passed | passed | not_applicable | not_required_by_current_scoped_decision |
+| 161 | [R112.supply-known-webm-durations-to-prevent-parser-holdback](items/R112.supply-known-webm-durations-to-prevent-parser-holdback/README.md) | stop_current_profile | passed | failed | not_applicable | lifecycle_failed |
 | 162 | [R118.one-decode-many-views](items/R118.one-decode-many-views/README.md) | inconclusive | passed | passed | failed | not_required_by_current_scoped_decision |
 | 163 | [R198.bitmap-subtitles-directly-from-rle-runs](items/R198.bitmap-subtitles-directly-from-rle-runs/README.md) | stop_current_profile | passed | failed | not_applicable | not_required_by_current_scoped_decision |
 | 164 | [R206.incremental-mjpeg-stripe-decode-upload](items/R206.incremental-mjpeg-stripe-decode-upload/README.md) | inconclusive | passed | passed | failed | not_required_by_current_scoped_decision |
@@ -174,7 +174,7 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 166 | [R270.exact-flac-smart-cut-concat](items/R270.exact-flac-smart-cut-concat/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 167 | [R271.opus-fec-aware-scheduling](items/R271.opus-fec-aware-scheduling/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 168 | [R274.virtual-webm-cues](items/R274.virtual-webm-cues/README.md) | pursue | passed | passed | passed | measured_lab_benefit |
-| 169 | [R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming](items/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
+| 169 | [R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming](items/R320.make-exact-ogg-opus-clip-edges-with-packet-copy-plus-pre-skip-end-trimming/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
 | 170 | [R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster](items/R321.range-fetch-directly-to-a-matroska-block-inside-a-large-cluster/README.md) | pursue | passed | passed | passed | not_measured |
 | 171 | [R090.convert-finite-fmp4-fragments-into-a-metadata-indexed-native-mp4-view](items/R090.convert-finite-fmp4-fragments-into-a-metadata-indexed-native-mp4-view/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 172 | [R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate](items/R318.seek-directly-into-matroska-configuration-changes-using-cuecodecstate/README.md) | pursue | passed | passed | passed | not_measured |
@@ -187,9 +187,9 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 179 | [R116.mse-sequence-mode-concatenation-report-paragraph-label.report-frontier](items/R116.mse-sequence-mode-concatenation-report-paragraph-label.report-frontier/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 180 | [R127.sequence-mode-cross-codec-concatenation-report-paragraph-label.report-frontier](items/R127.sequence-mode-cross-codec-concatenation-report-paragraph-label.report-frontier/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 181 | [R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier](items/R130.webm-cues-placement-changes-request-timing-not-total-work-here.report-frontier/README.md) | pursue | passed | passed | passed | not_measured |
-| 182 | [R131.automatically-search-equivalent-representations](items/R131.automatically-search-equivalent-representations/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
+| 182 | [R131.automatically-search-equivalent-representations](items/R131.automatically-search-equivalent-representations/README.md) | pursue | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 183 | [R143.compressed-fragment-rewind-cache.report-continuity](items/R143.compressed-fragment-rewind-cache.report-continuity/README.md) | pursue | passed | passed | passed | not_measured |
-| 184 | [R192.identity-coded-witness-media](items/R192.identity-coded-witness-media/README.md) | pursue | passed | passed | not_applicable | not_measured |
+| 184 | [R192.identity-coded-witness-media](items/R192.identity-coded-witness-media/README.md) | pursue | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 185 | [R226.compact-exact-packet-index.report-continuity](items/R226.compact-exact-packet-index.report-continuity/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 186 | [R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram](items/R337.evaluate-tone-curve-statistics-from-an-exact-source-histogram/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 187 | [R120.repeat-media-without-repeating-mdat.report-frontier](items/R120.repeat-media-without-repeating-mdat.report-frontier/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
@@ -234,19 +234,19 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 226 | [R268.aac-selective-channel-element-reconstruction](items/R268.aac-selective-channel-element-reconstruction/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 227 | [R241.jpeg-90-dct-domain-rotation.report-c](items/R241.jpeg-90-dct-domain-rotation.report-c/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 228 | [R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a](items/R241.reconstruct-gain-map-hdr-using-browser-decoded-component-images.report-a/README.md) | pursue | passed | passed | not_applicable | not_measured |
-| 229 | [R010.screen-float-preserving-destinations-before-writing-adapters](items/R010.screen-float-preserving-destinations-before-writing-adapters/README.md) | pursue | passed | passed | not_applicable | not_measured |
+| 229 | [R010.screen-float-preserving-destinations-before-writing-adapters](items/R010.screen-float-preserving-destinations-before-writing-adapters/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
 | 230 | [R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch](items/R012.use-a-browser-audio-encoder-for-the-permitted-lossy-branch/README.md) | stop_current_profile | passed | failed | not_applicable | not_required_by_current_scoped_decision |
 | 231 | [R025.try-a-generated-video-track-as-an-alternative-presenter](items/R025.try-a-generated-video-track-as-an-alternative-presenter/README.md) | stop_current_profile | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 232 | [R030.investigate-containerless-encoded-chunk-mse](items/R030.investigate-containerless-encoded-chunk-mse/README.md) | stop_current_profile | passed | failed | not_applicable | not_required_by_current_scoped_decision |
 | 233 | [R022.use-document-pip-to-keep-native-subtitles-and-controls](items/R022.use-document-pip-to-keep-native-subtitles-and-controls/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 234 | [R008.keep-display-only-transformations-out-of-cpu-video-filters](items/R008.keep-display-only-transformations-out-of-cpu-video-filters/README.md) | stop_current_profile | passed | failed | not_applicable | correctness_failed |
-| 235 | [R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media](items/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media/README.md) | already_implemented | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
+| 235 | [R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media](items/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media/README.md) | already_implemented | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 236 | [R053.coalesce-gain-gestures-into-audio-clock-automation](items/R053.coalesce-gain-gestures-into-audio-clock-automation/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 237 | [R056.map-repeated-clip-boundaries-in-integer-media-ticks](items/R056.map-repeated-clip-boundaries-in-integer-media-ticks/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 238 | [R070.remove-the-intermediate-host-remux](items/R070.remove-the-intermediate-host-remux/README.md) | already_implemented | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | 239 | [R071.tune-flac-effort-without-changing-frame-duration](items/R071.tune-flac-effort-without-changing-frame-duration/README.md) | stop_current_profile | passed | passed | failed | not_required_by_current_scoped_decision |
 | 240 | [R075.compact-large-seek-maps-with-checkpoints](items/R075.compact-large-seek-maps-with-checkpoints/README.md) | pursue | passed | passed | passed | not_measured |
-| 241 | [R095.fixed-opus-gain-through-codec-container-headers](items/R095.fixed-opus-gain-through-codec-container-headers/README.md) | pursue | passed | passed | passed | not_measured |
+| 241 | [R095.fixed-opus-gain-through-codec-container-headers](items/R095.fixed-opus-gain-through-codec-container-headers/README.md) | already_implemented | passed | passed | not_applicable | not_required_by_current_scoped_decision |
 | 242 | [R107.separate-av1-base-decoding-from-film-grain-reconstruction](items/R107.separate-av1-base-decoding-from-film-grain-reconstruction/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 243 | [R158.structure-aware-failure-preserving-reduction](items/R158.structure-aware-failure-preserving-reduction/README.md) | pursue | passed | passed | not_applicable | not_measured |
 | 244 | [R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors](items/R171.derive-a-small-set-of-tests-that-distinguish-route-behaviors/README.md) | pursue | passed | passed | not_applicable | not_measured |
@@ -431,13 +431,14 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | — | [R286.definition-not-recovered](items/R286.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [R287.definition-not-recovered](items/R287.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [R288.definition-not-recovered](items/R288.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
-| — | [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [granular-engine-loading](items/granular-engine-loading/README.md) | pursue | passed | passed | passed | not_measured |
-| — | [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) | pursue | pending | pending | pending | not_measured |
-| — | [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
-| — | [native-fir-window-rendering](items/native-fir-window-rendering/README.md) | pursue | pending | pending | pending | not_measured |
-| — | [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) | pursue | pending | pending | pending | not_measured |
-| — | [native-ogg-page-projection](items/native-ogg-page-projection/README.md) | pursue | pending | pending | pending | not_measured |
-| — | [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [mpv-cache-browser-stream](items/mpv-cache-browser-stream/README.md) | pursue | passed | passed | passed | not_measured |
+| — | [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) | pursue | passed | pending | pending | new_owner_pending |
+| — | [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
+| — | [native-fir-window-rendering](items/native-fir-window-rendering/README.md) | pursue | passed | pending | pending | new_owner_pending |
+| — | [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
+| — | [native-ogg-page-projection](items/native-ogg-page-projection/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
+| — | [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [unified-hybrid-software-engine](items/unified-hybrid-software-engine/README.md) | pursue | passed | passed | passed | not_measured |
-| — | [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) | pursue | pending | pending | pending | not_measured |
+| — | [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) | pursue | passed | passed | not_applicable | not_required_by_current_scoped_decision |
