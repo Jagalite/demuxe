@@ -17,7 +17,7 @@
       "line_end": 171,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Delivery \u00b7 New execution-plan hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Browser-only first; Demuxe integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Create MediaSource and append/remove scheduling in a dedicated worker, passing a MediaSourceHandle to the visible video element. Keep blocking FFmpeg execution on a different worker unless its calls genuinely suspend. Source basis. MSE defines worker construction and transferable handles. Support must be detected in the runtime; a handle is not a transferable MediaSource object. [M1] First agent experiment. Compare window-owned and worker-owned MSE under identical UI layout/animation load. Use unchanged fMP4 output first; add remux only after the ownership test passes. Include worker death, source replacement and detach during append.",
+    "source_excerpt": "Delivery · New execution-plan hypothesis · P1 · Risk: Medium First environment: Browser-only first; Demuxe integration later. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Create MediaSource and append/remove scheduling in a dedicated worker, passing a MediaSourceHandle to the visible video element. Keep blocking FFmpeg execution on a different worker unless its calls genuinely suspend. Source basis. MSE defines worker construction and transferable handles. Support must be detected in the runtime; a handle is not a transferable MediaSource object. [M1] First agent experiment. Compare window-owned and worker-owned MSE under identical UI layout/animation load. Use unchanged fMP4 output first; add remux only after the ownership test passes. Include worker death, source replacement and detach during append.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -147,5 +147,16 @@
       "research/shared/runs/20260921T203100Z-production-pipeline/run.json"
     ],
     "no_additive_savings_claim": true
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB01",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "path": "research/items/R005.move-mse-ownership-off-the-window-thread/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Extend the maintained append owner with bounded intended/committed/failed/observed states only if used for recovery or exact residency reporting. Test synchronous and asynchronous failure, browser eviction, overlapping appends and source replacement in real MSE before measuring avoided work."
+    }
+  ]
 }

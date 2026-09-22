@@ -53,3 +53,13 @@ association was invented during migration.
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R298.copy-surviving-packets-to-release-oversized-backing-buffers.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R298.copy-surviving-packets-to-release-oversized-backing-buffers.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_R295_R300_Proposals.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R298.copy-surviving-packets-to-release-oversized-backing-buffers.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_c/audits/R298.copy-surviving-packets-to-release-oversized-backing-buffers.md)
+
+## Ecosystem follow-up EB04
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+RangeReader charges buffer.byteLength for each retained cache block. The synthetic probe confirms a one-byte view still costs a 1024-byte backing block and an external view survives cache eviction. Existing source-worker copying and bounded blocks do not establish the oversized long-lived packet-slab opportunity required to reopen R298.
+
+Next gate / reopening condition: Keep the compaction stop. Reopen only with a real owner retaining small live slices after its siblings finish, then measure unique backing retention and copy cost; cache counters are not process memory.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

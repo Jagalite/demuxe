@@ -1,0 +1,38 @@
+{
+  "id": "EB14",
+  "title": "Construct checked metadata projections with bounded offset fixpoints",
+  "owner": "R274.virtual-webm-cues",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The maintained selected-MP4 view preserves file length and payload offsets, avoiding a fixpoint entirely. R274's bounded WebM index relies on reserved space. Neither establishes a general variable-width metadata projection constructor; the broad proposal overlaps these owners but needs a different source profile.",
+  "novelty": "R274 is the direct variable-index comparison home, with R059 and R162 related; do not duplicate their fixed-layout constructors.",
+  "next_action": "Reopen for a specific recording that cannot use the fixed-size/reserved-space baseline. Prove checked convergence across EBML integer-width boundaries, all offset targets, opaque-metadata handling, source identity and bounded failure before timing.",
+  "reopen_condition": "Do not generalize ts-ebml’s recording assumptions to arbitrary Matroska. A server packager’s architecture is not evidence that an equivalent browser view is cheap.",
+  "proposal_contract": {
+    "Proposed mechanism": "For an explicitly eligible source, create seek metadata or a virtual presentation without rewriting payload. Solve metadata-size/offset dependencies with checked arithmetic, a convergence bound and a failure fallback.",
+    "Smallest useful experiment": "Use WebM recordings with cue offsets near encoded-size boundaries and MP4 mapped views; retain cluster/sample hashes and independently inspect the projected structure.",
+    "Correctness gate": "All offsets resolve to intended source bytes; original file remains unchanged; unknown required metadata survives or eligibility rejects; malformed sizes and nonconvergence fail closed.",
+    "Measure only after correctness": "Prepared bytes avoided, seek coverage and metadata construction cost, including index acquisition and source identity."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/selected-mp4-view.js",
+      "sha256": "ca26c70155d89a34f64fe3d9adf6bbebb1ee97e4fd1d5c08ddf920b0ae6be088"
+    },
+    {
+      "path": "web/cheap-mp4-probe.js",
+      "sha256": "551fdb484be554808cd8b330d868b734bbf0d8de2fd0091c81d534d71148d7c8"
+    }
+  ],
+  "executed_contracts": [
+    "tests/cheap-mp4-probe.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB14",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

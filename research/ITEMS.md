@@ -2,7 +2,7 @@
 
 # Research item directory
 
-Current derived view of 436 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
+Current derived view of 439 item homes, ranked by the original catalogue. Open each item for scope, evidence, stages and next action. [Aggregate stages](STATUS.md). Historical import metadata remains in index.json.
 
 | Rank | Item | Current decision | Prepare | Correctness | Performance | Whole-player follow-up |
 |---:|---|---|---|---|---|---|
@@ -432,13 +432,16 @@ Current derived view of 436 item homes, ranked by the original catalogue. Open e
 | — | [R287.definition-not-recovered](items/R287.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [R288.definition-not-recovered](items/R288.definition-not-recovered/README.md) | closed_source_unavailable | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
+| — | [explicit-media-repair-accounting](items/explicit-media-repair-accounting/README.md) | pursue | pending | pending | pending | not_measured |
 | — | [granular-engine-loading](items/granular-engine-loading/README.md) | pursue | passed | passed | passed | not_measured |
+| — | [live-dependency-group-deadlines](items/live-dependency-group-deadlines/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [mpv-cache-browser-stream](items/mpv-cache-browser-stream/README.md) | pursue | passed | passed | passed | not_measured |
 | — | [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [native-audio-sample-window-scheduling](items/native-audio-sample-window-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [native-fir-window-rendering](items/native-fir-window-rendering/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [native-g711-wave-rewrap](items/native-g711-wave-rewrap/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
 | — | [native-ogg-page-projection](items/native-ogg-page-projection/README.md) | pursue | passed | passed | passed | scoped_admission_cost_passed |
+| — | [reconnect-overlap-identity](items/reconnect-overlap-identity/README.md) | stop_current_profile | not_applicable | not_applicable | not_applicable | not_required_by_current_scoped_decision |
 | — | [sparse-wave-native-scheduling](items/sparse-wave-native-scheduling/README.md) | pursue | passed | pending | pending | new_owner_pending |
 | — | [unified-hybrid-software-engine](items/unified-hybrid-software-engine/README.md) | pursue | passed | passed | passed | not_measured |
 | — | [verified-mp4-sync-label-repair](items/verified-mp4-sync-label-repair/README.md) | pursue | passed | passed | not_applicable | not_required_by_current_scoped_decision |

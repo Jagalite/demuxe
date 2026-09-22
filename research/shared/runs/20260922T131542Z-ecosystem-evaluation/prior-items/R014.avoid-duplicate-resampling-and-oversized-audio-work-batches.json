@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+  "title": "Avoid duplicate resampling and oversized audio work batches",
+  "definition": {
+    "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+    "legacy_id": "R14",
+    "legacy_number": 14,
+    "identity_branch": "proposal",
+    "title": "Avoid duplicate resampling and oversized audio work batches",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 324,
+      "line_end": 342,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Audio \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Matching mpv audio path + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Account for source, mpv-filter, AudioContext and device-side rates as separate stages. Compare output policies that eliminate redundant intermediate conversion and tune bounded PCM batches to playback rather than per-packet message timing. Source basis. mpv documents insertion of swresample when its selected output rate differs from media. Web Audio has context-rate processing; Chrome\u2019s worklet guidance separates compute workers from real-time output. [V1, A1, A2] First agent experiment. Trace the actual rate/layout at every accessible stage for 44.1 and 48 kHz files. Compare existing buffering against a small set of PCM batch sizes under seek, rate change and simulated worker delay.",
+    "related_reports": [],
+    "scope_hash": "111a6a6451c9b64b1341a74f2512cafa884feb5a9b626533668579b434839966",
+    "legacy_guide_aliases": [],
+    "family": "audio",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 142,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "minimum_probe": "A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "initial_screen": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it. A tiny independent numerical/bitstream oracle plus one boundary or adversarial case. Only use a matching Wasm slice when available and inexpensive.",
+    "primary_metric": "Complete specified audio operation, output sample count/phase and practical CPU/memory or repeated-query cost.",
+    "scope_contract": "Exact PCM/encoded output where claimed; otherwise declared numeric tolerance against a stronger independent reference, including delay, tails and state.",
+    "negative_control": "Extrema, invalid precision, changed predictor/phase/history or a nonlinear stage must invalidate assumptions. No covert resampling/downmix/quality change.",
+    "stop_boundary": "No full DSP pipeline or codec-state subsystem in the first pass. Count preparation/queries and do not promote algebra alone as an integrated gain.",
+    "shared_prerequisite": "Pinned processing recipe and relevant assets. Distinguish aggregate statistics from waveform, loudness, true peak and physical speaker behavior.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md"
+      ]
+    },
+    "prepare": {
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/full-completion/completion.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "This investigation ended at a source-only stop_current_profile decision. No candidate correctness or performance qualification is claimed; reopen under the item-specific condition.",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Existing results indexed with current byte identities; historical mismatches are separately retained in the migration record.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Prior scoped decision reconciled into the current checklist: stop_current_profile",
+      "evidence": [
+        "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md"
+      ]
+    }
+  },
+  "current_decision": {
+    "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+    "disposition": "stop_current_profile",
+    "blocker_category": null,
+    "evidence_level": "source_review",
+    "kind": "stage_reconciliation",
+    "run_id": "20260919T200619Z-source-stage-reconciliation",
+    "stage": "decision",
+    "recorded_at_utc": "2026-09-19T20:06:19.656279+00:00",
+    "reason": "Current AO explicitly negotiates browser context rate and fixed ring transport; no duplicate resampling stage or oversized-work regression was identified in these owners. Retain required source-to-context conversion and current batching. Reopen only with a rate/occupancy trace demonstrating avoidable conversion or retained work; physical device conversion remains unobserved.",
+    "basis": "Retained prior source gate; no new experiment and no broadened claim.",
+    "prior_decision": {
+      "campaign": "full-completion",
+      "ledger": "results/full-completion/completion.jsonl",
+      "line": 53,
+      "record": {
+        "key": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+        "state": "STOP_PROFILE",
+        "evidence": [
+          "../full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md"
+        ],
+        "reason": "Current AO explicitly negotiates browser context rate and fixed ring transport; no duplicate resampling stage or oversized-work regression was identified in these owners. Retain required source-to-context conversion and current batching. Reopen only with a rate/occupancy trace demonstrating avoidable conversion or retained work; physical device conversion remains unobserved.",
+        "evidence_level": "SOURCE_REVIEW",
+        "recorded_at_utc": "2026-09-19T17:34:19.058454+00:00"
+      }
+    },
+    "next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+    "evidence": [
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/analysis.md",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/commands.log",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/manifest.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/results.json",
+      "research/shared/runs/20260919T200619Z-source-stage-reconciliation/run.json"
+    ]
+  },
+  "next_action": "Write the exact requested signal operation, codec tool constraints, state and rounding contract. Check whether an optimized existing library already performs it.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

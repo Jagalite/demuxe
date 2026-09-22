@@ -44,3 +44,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 **D63 — deferred_profile_followup**: Lossless sample clipping is a new explicit operation, not general queue correctness. Preserve the source-derived length/content witnesses and require a maintained excerpt owner.
 
 [Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+## Ecosystem follow-up EB09
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **followup_required**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Current remux explicitly preserves Opus padding through WebM choice, records initial padding and retains bounded real seek preroll. R094 has scoped sample-boundary evidence, but there is no new proof here that all AAC/MP3/Opus mixed/chunked routes apply trim exactly once.
+
+Next gate / reopening condition: Use independently decoded impulse/channel-marked AAC, MP3 and Opus fixtures at head/tail and seek boundaries; declare each trim owner and sample units. Require exact counts/positions before admitting any new wrapper or split route.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

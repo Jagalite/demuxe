@@ -17,3 +17,13 @@ Current decision: **stop_current_profile**. Actual source-bound map retains exac
 Next/reopen: Reopen for a direct scatter/gather or range-backed input that avoids host temporary-file copying, or a measured network-latency workload where source-byte reductions dominate. Prove new owner integration and predeclare profile; retain current negative.
 
 [Current contract](item.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Ecosystem follow-up EB13
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The local metadata probe walks checked box lengths with box/read budgets, handles safe extended top-level sizes and fails closed to deep inspection. Source reads are bounded. R045's source-map latency regression remains relevant; no new remote seek-versus-skip threshold is measured.
+
+Next gate / reopening condition: Keep bounded local metadata skipping. Reopen remote policy only with a measured Range-capable transport workload and stale-hint, malformed-size and ignored-Range controls; include index acquisition cost.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

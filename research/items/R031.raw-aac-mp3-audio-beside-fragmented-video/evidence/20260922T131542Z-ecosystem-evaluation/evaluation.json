@@ -1,0 +1,43 @@
+{
+  "id": "EB12",
+  "title": "Prefer qualified audio wrapping over unnecessary audio decoding",
+  "owner": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Packet-copy remux and destination-specific packaging already exist. R031 has scoped raw-audio evidence and R032 records a working direct AVC/Vorbis baseline. The external wrapper list does not expose a new unsupported source or prove a faster browser decoder.",
+  "novelty": "Merge into R031 with R032 related; do not create a general wrapping subsystem from MIME lists.",
+  "next_action": "Select a real source whose cheapest unchanged route fails, then compare exact compressed frames and decoded timing/channels across the specific wrapper; charge parse/mux/setup. Preserve working direct playback.",
+  "reopen_condition": "Do not treat a wrapper’s output MIME list as a browser support matrix. Stop at an unsupported destination and retain the existing route.",
+  "proposal_contract": {
+    "Proposed mechanism": "Reuse already parsed compressed frames, select a destination-specific audio container, and keep the browser as audio decoder where the exact configuration and fidelity are verified.",
+    "Smallest useful experiment": "Feed identical parsed AAC/MP3/FLAC/Opus/Vorbis frames into applicable container alternatives, including partial-frame input, codec updates and discontinuity.",
+    "Correctness gate": "Exact selected payloads where copy is promised; reference decoded duration/channels/timing; discarded bytes explicitly reported; true output verification rather than MIME acceptance.",
+    "Measure only after correctness": "Avoided decode/encode work and native component coverage; include mux/parse/setup cost."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/remux/remux.c",
+      "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+    },
+    {
+      "path": "web/remux-packaging.js",
+      "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433"
+    },
+    {
+      "path": "src/internal/playback-plans.ts",
+      "sha256": "b58cc5a342ef37506208c697008154963a6fa68fe214db7910b9e39742d73e9d"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-packaging-contracts.mjs",
+    "tests/plan-admission.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB12",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

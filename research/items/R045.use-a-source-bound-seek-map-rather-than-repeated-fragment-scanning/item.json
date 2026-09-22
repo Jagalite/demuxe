@@ -17,7 +17,7 @@
       "line_end": 104,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New metadata/index optimization \u00b7 P2 \u00b7 PROPOSED / NOT TESTED Extends: R03, R09, R18. Reference primitives: S2, S9, S10. Question. Can a small reusable index bootstrap a distant seek without scanning or appending every preceding fragment? Mechanism. Index validated fragment byte spans, decode/presentation intervals, codec generations and random-access boundaries. Bind the map to source identity. Reuse an existing index where available, or build one incrementally during useful reads; this is metadata caching, not cached transcoded media. Smallest useful experiment. Start with the archived fMP4 fixture. Build a ground-truth map offline, then a bounded parser that builds/uses its own map. Compare repeated seeks against sequential discovery. Test an altered source with the same name, out-of-range offsets and a corrupted index entry.",
+    "source_excerpt": "New metadata/index optimization · P2 · PROPOSED / NOT TESTED Extends: R03, R09, R18. Reference primitives: S2, S9, S10. Question. Can a small reusable index bootstrap a distant seek without scanning or appending every preceding fragment? Mechanism. Index validated fragment byte spans, decode/presentation intervals, codec generations and random-access boundaries. Bind the map to source identity. Reuse an existing index where available, or build one incrementally during useful reads; this is metadata caching, not cached transcoded media. Smallest useful experiment. Start with the archived fMP4 fixture. Build a ground-truth map offline, then a bounded parser that builds/uses its own map. Compare repeated seeks against sequential discovery. Test an altered source with the same name, out-of-range offsets and a corrupted index entry.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -161,5 +161,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB13",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "path": "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Keep bounded local metadata skipping. Reopen remote policy only with a measured Range-capable transport workload and stale-hint, malformed-size and ignored-Range controls; include index acquisition cost."
+    }
+  ]
 }

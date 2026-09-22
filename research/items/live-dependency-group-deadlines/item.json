@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "key": "live-dependency-group-deadlines",
+  "title": "Limit live work by dependency-group deadlines, not VOD policy",
+  "definition": {
+    "hypothesis": "For a declared live-latency policy, stop consuming superseded media groups and select a valid newer random-access group. Tie subscription demand to active playback, not unconditional producer work.",
+    "scope_contract": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings.",
+    "baseline": "Current maintained owners at the recorded source revision; unchanged VOD and Shaka policies.",
+    "success_criteria": "No display of dependent frames without their closure; skipped intervals reported; timeline and audio/subtitles resynchronize; VOD control retains required content.",
+    "stop_criteria": "No new transport dependency unless product scope needs it. Preserve the existing packaged-stream owner and avoid conflating evolving protocol behavior with standards guarantees.",
+    "primary_metric": "Live lateness and stale-work reduction under explicit loss policy, not equal-output CPU savings.",
+    "negative_control": "Delay one group while delivering later groups, pause/resume the consumer and vary queue pressure. Run a separate strict-VOD control that must not use lossy skipping.",
+    "effort_limit": "This run: canonical deduplication, current-source screening and selected contract probes. Media implementation/qualification is a separate run.",
+    "definition_source": {
+      "path": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "sha256": "dc5dadeb7dc80f8f419f2ca3d18b8aa05d0568c564faaad8b6b7dd06144f4c85"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "prepare": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "correctness": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "stop_current_profile",
+      "reason": "Live playback already requires explicit Shaka permission; the byte reader is finite VOD. No maintained MoQ dependency-group consumer or loss policy is present in the inspected owners. Existing R208 cancellation and R267 deadline attribution do not authorize dropping required VOD content.",
+      "scope": "Source screening only",
+      "evidence_level": "current_source_review",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "at": "2026-09-22T13:21:09.078983+00:00"
+    }
+  },
+  "next_action": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "whole_player_qualification": {
+    "status": "not_required_by_current_scoped_decision"
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB21",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "path": "research/items/live-dependency-group-deadlines/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings."
+    }
+  ]
+}

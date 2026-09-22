@@ -1,0 +1,43 @@
+{
+  "id": "EB17",
+  "title": "Keep clock epochs and transition metadata tied to their source",
+  "owner": "R220.scoped-transport-clock-normalization",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Current owners already separate remux source generations, timeline bias, audio epochs and Shaka timeline ownership. R220 records a qualified 33-bit rollover profile. No observed disagreement justifies a second clock normalizer.",
+  "novelty": "R220 owns normalization; configuration continuity items remain related rather than independently reopened.",
+  "next_action": "Keep existing epoch authorities. Reopen only on a trace showing double offset, stale configuration/GOP metadata or premature final drain at a specific owner boundary; include delayed old-epoch events.",
+  "reopen_condition": "Do not replace Shaka or mpv clock management wholesale. Add a boundary adapter only where existing owners demonstrably disagree.",
+  "proposal_contract": {
+    "Proposed mechanism": "Model source-time to presentation-time mappings as epochs with explicit rate/offset and flush rules. Clear GOP/configuration alignment state together when the epoch changes.",
+    "Smallest useful experiment": "Combine nonzero starts, rate changes, seeks, period discontinuity and a delayed old-epoch metadata or sample event. Include unequal track tails and final drain.",
+    "Correctness gate": "No offset applied twice, no stale GOP alignment, correct subtitle/audio/video markers, and EOS only after required presented output drains.",
+    "Measure only after correctness": "Correct transitions and fewer avoidable reopenings; source timestamp fidelity before responsiveness."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/remux/remux.c",
+      "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+    },
+    {
+      "path": "web/native-remux-player.js",
+      "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+    },
+    {
+      "path": "src/internal/shaka-backend.ts",
+      "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-buffering.mjs",
+    "tests/audio-worklet.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB17",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

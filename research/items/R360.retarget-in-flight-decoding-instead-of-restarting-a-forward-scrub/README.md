@@ -11,3 +11,13 @@ Next: Reopen with a concrete owner that receives already-started forward request
 [Current record](item.json) · [History](history.jsonl) · [Run analysis](evidence/20260919T214730Z-retarget/analysis.md)
 
 [Fixture provenance metadata amendment](../../shared/runs/20260919T220430Z-presentation-provenance-amendment/analysis.md); output and gate decisions unchanged.
+
+## Ecosystem follow-up EB06
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The inspected dedicated worker queues frames and copies on consumer operation 4 rather than on decoder output; generation changes close stale queued frames. Preview jobs cancel/coalesce. This does not qualify every shipped engine or a new lazy GPU presenter, and R360's prior performance gate remains failed.
+
+Next gate / reopening condition: Reopen only when a measured presenter/preview trace shows avoidable mapping of superseded frames; compare total owner cost and required visible output while retaining dependency decoding.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

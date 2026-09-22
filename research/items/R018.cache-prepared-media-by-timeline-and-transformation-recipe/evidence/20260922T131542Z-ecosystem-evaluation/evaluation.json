@@ -1,0 +1,43 @@
+{
+  "id": "EB22",
+  "title": "Publish narrow contracts for prepared-media reuse and virtual presentations",
+  "owner": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Engine preparation already shares immutable assets and preview work has separate owners. R018 owns source/recipe prepared-media caching and the unified study owns engine sharing. Neither is evidence for sharing live parsers or clocks between export and playback.",
+  "novelty": "Merge into R018; retain engine-sharing links without counting their savings again or inventing a universal graph.",
+  "next_action": "When a repeated-preparation workload warrants integration, key reuse by immutable source, selected tracks, recipe, metadata epoch, destination and runtime; test individual invalidations and consumer cancellation, then charge retained memory and cold preparation.",
+  "reopen_condition": "This is not a license to construct a universal graph engine. Reuse existing R018/mpv/FFmpeg facilities first; stop if bookkeeping exceeds saved preparation.",
+  "proposal_contract": {
+    "Proposed mechanism": "Separate source identity, selected tracks, transform recipe, metadata epoch and destination representation in reusable prepared state. Share immutable work while keeping live parser/decoder clocks independent.",
+    "Smallest useful experiment": "Open the same source for playback, preview and export; vary one track, recipe or destination at a time. Force cancellation of one consumer and source identity change.",
+    "Correctness gate": "Reuse only when dependencies match, no stale timeline state, original payload checks pass, and selected owners remain isolated through failure.",
+    "Measure only after correctness": "Repeated preparation, distinct assets/compilations and source reads, with retained-memory and invalidation cost."
+  },
+  "reviewed_sources": [
+    {
+      "path": "src/internal/engine-preparation.ts",
+      "sha256": "22c1c3a0a6dc971ffc91fe0df41db6de6ebd5f1a902d6608ff30ec0880a13bb4"
+    },
+    {
+      "path": "web/prepared-engine.js",
+      "sha256": "5a5fa1ef05b35add70f19ed9ebd02b97d1104a54f41bcfa90b7ea02c71d27e59"
+    },
+    {
+      "path": "src/preview/controller.ts",
+      "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+    }
+  ],
+  "executed_contracts": [
+    "tests/engine-preparation.mjs",
+    "tests/preview-range.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB22",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

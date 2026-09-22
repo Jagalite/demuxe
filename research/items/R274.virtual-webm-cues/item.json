@@ -17,7 +17,7 @@
       "line_end": 75,
       "source_kind": "report"
     },
-    "source_excerpt": "The 30-second VP9 WebM was tested in two same-sized forms. The candidate retained normal Cues; the control replaced only the Cues element with an equal-sized Void. All bytes before the Cues\u2014including the Cluster/media region\u2014remain identical. Seeking native Chromium playback to 24 seconds produced the same 24.033 s media frame in both cases. With Cues, the capped-range server observed 10 requests totaling 562,306 bytes. Without Cues, Chromium made 32 requests totaling 2,004,098 bytes, effectively scanning the whole ~2.00 MB file. Thus a truthful source-bound Cues layer can materially reduce native browser seek I/O without rewriting media Cluster bytes. A production virtual index still needs immutable source identity and stale-index rejection.",
+    "source_excerpt": "The 30-second VP9 WebM was tested in two same-sized forms. The candidate retained normal Cues; the control replaced only the Cues element with an equal-sized Void. All bytes before the Cues—including the Cluster/media region—remain identical. Seeking native Chromium playback to 24 seconds produced the same 24.033 s media frame in both cases. With Cues, the capped-range server observed 10 requests totaling 562,306 bytes. Without Cues, Chromium made 32 requests totaling 2,004,098 bytes, effectively scanning the whole ~2.00 MB file. Thus a truthful source-bound Cues layer can materially reduce native browser seek I/O without rewriting media Cluster bytes. A production virtual index still needs immutable source identity and stale-index rejection.",
     "related_reports": [],
     "scope_hash": "0a3cc4e3433c99ba13b11401d749c26582fbdec657fc986b5e7548be26ab8466",
     "legacy_guide_aliases": [
@@ -387,5 +387,16 @@
       "Three full-image seek targets are checked; packet and independent index identity cover complete encoded source. No physical display completeness claim.",
       "Paired estimates apply to this paced localHTTP source and exact lifecycle; do not generalize to all network conditions. Direct oracle duration is subtracted, but observer interference with buffering/cache cannot be mathematically removed."
     ]
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB14",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "path": "research/items/R274.virtual-webm-cues/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Reopen for a specific recording that cannot use the fixed-size/reserved-space baseline. Prove checked convergence across EBML integer-width boundaries, all offset targets, opaque-metadata handling, source identity and bounded failure before timing."
+    }
+  ]
 }

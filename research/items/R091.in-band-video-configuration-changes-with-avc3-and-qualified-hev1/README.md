@@ -35,3 +35,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 **D44 — deferred_profile_followup**: Unchanged-source destination selection is preferable for the accepted multi-description profile. No new generic description projector is justified without a maintained-route failure.
 
 [Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+## Ecosystem follow-up EB08
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **deferred_until_trigger**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The remuxer inspects actual AAC packets when extradata is absent, prepares selected-track configuration before write_header, and rejects changed video extradata with a new-initialization requirement. That source ordering does not prove delayed browser-encoder or later dynamic reconfiguration support.
+
+Next gate / reopening condition: When introducing a browser encoder, gate init on bounded first outputs of every selected track; test mismatched requested/actual config, a delayed track, cancellation and a later epoch before admission.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

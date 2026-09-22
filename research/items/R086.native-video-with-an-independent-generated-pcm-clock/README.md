@@ -23,3 +23,13 @@ Only this declared component/profile is decided. All failed variants retained. R
 | decision | passed |
 
 [Run](../../shared/runs/20260919T205039Z-clock-feedback/run.json) · [Analysis](../../shared/runs/20260919T205039Z-clock-feedback/analysis.md) · [Manifest](../../shared/runs/20260919T205039Z-clock-feedback/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Ecosystem follow-up EB10
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+AudioWorklet increments consumed media frames by available samples only; underrun silence contributes no source progress. AO delay includes queued samples and reported latency, and mpv retains synchronization ownership. Executed tests cover underrun/pause/reset; acoustic synchronization and independent decoded-audio routes remain outside this result.
+
+Next gate / reopening condition: Retain consumed-sample feedback. Reopen for a real independent audio owner with a starvation/rate trace demonstrating drift; then qualify digital markers and acoustic latency separately.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

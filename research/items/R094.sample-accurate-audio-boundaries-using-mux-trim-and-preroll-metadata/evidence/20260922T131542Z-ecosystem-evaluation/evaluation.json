@@ -1,0 +1,38 @@
+{
+  "id": "EB09",
+  "title": "Preserve trim, codec delay and decoder preroll exactly once",
+  "owner": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "followup_required",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Current remux explicitly preserves Opus padding through WebM choice, records initial padding and retains bounded real seek preroll. R094 has scoped sample-boundary evidence, but there is no new proof here that all AAC/MP3/Opus mixed/chunked routes apply trim exactly once.",
+  "novelty": "R094 is the exact trim/preroll owner; R060 captions was a provisional, unrelated link and is not adopted.",
+  "next_action": "Use independently decoded impulse/channel-marked AAC, MP3 and Opus fixtures at head/tail and seek boundaries; declare each trim owner and sample units. Require exact counts/positions before admitting any new wrapper or split route.",
+  "reopen_condition": "A wrapper must not silently discard side data it cannot represent. Preserve a working baseline or reject the new route when sample-accurate semantics are unavailable.",
+  "proposal_contract": {
+    "Proposed mechanism": "Keep audible sample bounds distinct from decoder input/recovery bounds. Use explicit rational/sample units and one responsible component for each trim or codec delay.",
+    "Smallest useful experiment": "Use impulses and channel labels around AAC/MP3/Opus head/tail boundaries; seek near the start and into a stream; compare one-shot decode with chunked/mixed-route output.",
+    "Correctness gate": "Reference sample count and impulse positions, no double trim or priming leakage, correct channel identities, and required recovery packets still supplied.",
+    "Measure only after correctness": "Audio correctness and additional component admission; CPU only after equivalent samples and policies match."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/remux/remux.c",
+      "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+    },
+    {
+      "path": "native/ao_browser.c",
+      "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-packaging-contracts.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB09",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

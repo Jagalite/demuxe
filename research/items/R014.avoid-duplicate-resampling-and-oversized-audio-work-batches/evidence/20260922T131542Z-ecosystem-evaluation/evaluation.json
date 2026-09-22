@@ -1,0 +1,43 @@
+{
+  "id": "EB11",
+  "title": "Make audio preload, batching and render deadlines separate budgets",
+  "owner": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The AO rejects writes beyond a fixed ring capacity, reports free/queued samples, negotiates context sample rate and separates pause from consumption. Current tests exercise variable output quantum and empty input. No new oversized batch or duplicate-resample workload is established.",
+  "novelty": "R014 directly owns rate/batch policy; R086 alone was too broad a provisional mapping.",
+  "next_action": "Keep the existing stop. Reopen with a pre-gesture producer/occupancy trace or measured callback deadline miss; do not infer callback timing from Node execution.",
+  "reopen_condition": "R014/R026-style generic batch/polling changes are not reopened by an example alone. Stop when current bounded queues and deadlines already meet this contract.",
+  "proposal_contract": {
+    "Proposed mechanism": "Bound pre-gesture and decode queues with backpressure rather than silent overflow. Keep worker batch sizes, worklet quantum, warning thresholds and hard starvation deadlines separate.",
+    "Smallest useful experiment": "Preload without a play gesture, exceed the candidate queue cap, vary kernel batch size and stall the producer. Change gain after audio is already enqueued.",
+    "Correctness gate": "No lost initial samples or unbounded allocations, correct gain policy, worklet stays within the measured callback deadline, and source replacement clears only its own samples.",
+    "Measure only after correctness": "Underruns, startup latency, queued media milliseconds and callback work; CPU and latency tradeoffs reported separately."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/ao_browser.c",
+      "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+    },
+    {
+      "path": "web/audio-worklet.js",
+      "sha256": "025b4c58e5cc3083bab952f2b830984d4839f83a9ae430f8b94c1f809080ca50"
+    },
+    {
+      "path": "src/internal/wasm-player.ts",
+      "sha256": "766835c59c8cb04bae38aabd2be4adecac184a5f09252d0f6c7918569ed28765"
+    }
+  ],
+  "executed_contracts": [
+    "tests/audio-worklet.mjs",
+    "tests/buffering-policy.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB11",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

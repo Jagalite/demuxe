@@ -1,0 +1,38 @@
+{
+  "id": "EB10",
+  "title": "Drive split playback from consumed media samples, not elapsed context alone",
+  "owner": "R086.native-video-with-an-independent-generated-pcm-clock",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "AudioWorklet increments consumed media frames by available samples only; underrun silence contributes no source progress. AO delay includes queued samples and reported latency, and mpv retains synchronization ownership. Executed tests cover underrun/pause/reset; acoustic synchronization and independent decoded-audio routes remain outside this result.",
+  "novelty": "Extend the existing split-clock item without replacing mpv synchronization or reviving unrelated timestamp/caption mechanisms.",
+  "next_action": "Retain consumed-sample feedback. Reopen for a real independent audio owner with a starvation/rate trace demonstrating drift; then qualify digital markers and acoustic latency separately.",
+  "reopen_condition": "The observed videojs-libav sink alone does not prove a whole-player bug. Reuse existing mpv clock ownership unless a tested independent audio path requires this contract.",
+  "proposal_contract": {
+    "Proposed mechanism": "Record actual queued/consumed media samples and intentional silence separately. Clock mappings must account for starvation, pause/resume, rate and device latency without inventing source progress.",
+    "Smallest useful experiment": "Starve audio while video is buffered, pause/resume and change playback rate. Compare sink elapsed time, consumed frames and observed A/V markers before and after recovery.",
+    "Correctness gate": "Bounded digital A/V skew with the chosen silence policy, no artificial accumulated progress after starvation, correct user-visible time and cancellation. Acoustic latency remains a separate qualification.",
+    "Measure only after correctness": "Drift/recovery correctness and unnecessary resampling avoided; no generic CPU saving predicted."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/audio-worklet.js",
+      "sha256": "025b4c58e5cc3083bab952f2b830984d4839f83a9ae430f8b94c1f809080ca50"
+    },
+    {
+      "path": "native/ao_browser.c",
+      "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+    }
+  ],
+  "executed_contracts": [
+    "tests/audio-worklet.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB10",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

@@ -23,3 +23,13 @@ Next action: Consider bounded sourceproxy integration only where this exact prea
 | decision | passed | Passed the predeclared complete Player lifecycle benefit gate after correctness. Five alternating fresh-browser pairs, actual source-only index construction charged: median candidate/baseline ratio 0.691228; every pair faster=True. Single-track video-only VP9 finite3,652,612-byte source; <=32MiB bound; unlaced SimpleBlocks,1ms scale, existing SeekHead and reserved tail Void. Local sourceproxy-assisted Native playback, not remote browser-only construction or arbitrary WebM. Player construction/ready/open/play/three fixed seeks/EOF/destroy wall time subtracts directly measured canvas/readback/hash oracle cost (reported separately), retains both rAF presentation waits, and includes actual on-demand sourceproxy child process, full source read/scan/hash/index write/output read. Baseline stat plus requested ranges only; fixture provenance validated outside timing. Common module import/browser process launch excluded. Media bytes are server-written counts, not exact wire/client receipt. Node setup and child construction CPU reported separately; aggregate Chrome CPU, physical memory and energy unmeasured. |
 
 [New run](../../shared/runs/20260920T134814Z-r274-whole-player-index/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Ecosystem follow-up EB14
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **deferred_until_trigger**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The maintained selected-MP4 view preserves file length and payload offsets, avoiding a fixpoint entirely. R274's bounded WebM index relies on reserved space. Neither establishes a general variable-width metadata projection constructor; the broad proposal overlaps these owners but needs a different source profile.
+
+Next gate / reopening condition: Reopen for a specific recording that cannot use the fixed-size/reserved-space baseline. Prove checked convergence across EBML integer-width boundaries, all offset targets, opaque-metadata handling, source identity and bounded failure before timing.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

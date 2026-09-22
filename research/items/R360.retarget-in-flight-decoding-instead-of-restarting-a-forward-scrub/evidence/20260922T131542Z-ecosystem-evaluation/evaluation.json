@@ -1,0 +1,38 @@
+{
+  "id": "EB06",
+  "title": "Map/import only frames needed for presentation",
+  "owner": "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The inspected dedicated worker queues frames and copies on consumer operation 4 rather than on decoder output; generation changes close stale queued frames. Preview jobs cancel/coalesce. This does not qualify every shipped engine or a new lazy GPU presenter, and R360's prior performance gate remains failed.",
+  "novelty": "Merge with in-flight retargeting and its existing negative performance result; mapping avoidance is not decode avoidance.",
+  "next_action": "Reopen only when a measured presenter/preview trace shows avoidable mapping of superseded frames; compare total owner cost and required visible output while retaining dependency decoding.",
+  "reopen_condition": "Do not claim decode savings when only mapping is avoided. Reopen a prior presentation optimization only with the changed work boundary and measured profile.",
+  "proposal_contract": {
+    "Proposed mechanism": "Keep a lazy frame representation until the presenter needs it, then map/import it; discard never-needed outputs without conversion while preserving all dependency-required decode work.",
+    "Smallest useful experiment": "Compare eager versus demand-driven mapping under superseded previews, main-thread stalls and cadence changes. Inject map failure and source replacement while frames are outstanding.",
+    "Correctness gate": "Same required visible pictures/timestamps; no use-after-close; failed mapping cleaned once; no dependency packet dropped merely because its picture will not be shown.",
+    "Measure only after correctness": "GPU imports/conversions/uploads per delivered frame and total lifecycle cost; benchmark steady playback and scrubbing separately."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/browser-decoder-worker.js",
+      "sha256": "ec9447efce32d4e38eb94767f74995661e64a43eac01d17303a2350898fceca5"
+    },
+    {
+      "path": "src/preview/controller.ts",
+      "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+    }
+  ],
+  "executed_contracts": [
+    "tests/browser-decoder-worker.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB06",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

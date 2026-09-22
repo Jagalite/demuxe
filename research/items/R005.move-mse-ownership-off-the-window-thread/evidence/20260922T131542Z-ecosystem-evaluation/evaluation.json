@@ -1,0 +1,38 @@
+{
+  "id": "EB01",
+  "title": "Reconcile intended, committed and observed media inventory",
+  "owner": "R005.move-mse-ownership-off-the-window-thread",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "followup_required",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Buffered seeking already consults observed media/SourceBuffer ranges and current generation. Append receipts are inserted before appendBuffer; a synchronous failure retains an uncommitted receipt, and browser eviction does not reconcile segment byte accounting. The counter is explicitly an upper bound, so this is an accounting/recovery extension, not demonstrated missing playback.",
+  "novelty": "Merge into the maintained MSE owner, not R188 verified-source scheduling: destination residency differs from source verification.",
+  "next_action": "Extend the maintained append owner with bounded intended/committed/failed/observed states only if used for recovery or exact residency reporting. Test synchronous and asynchronous failure, browser eviction, overlapping appends and source replacement in real MSE before measuring avoided work.",
+  "reopen_condition": "Retain only regression coverage if current Native/remux/Shaka ownership already reconciles these states. Do not create a competing controller for packaged streams.",
+  "proposal_contract": {
+    "Proposed mechanism": "Track media submitted to an owner, operations that completed, and media actually observed in destination ranges as distinct states. Include partial failure, source/configuration epoch and uncertainty.",
+    "Smallest useful experiment": "Append overlapping fragments, fail an append, remove a range, then trigger browser eviction. Compare bookkeeping to observed ranges before deciding what to reproduce.",
+    "Correctness gate": "No permanently claimed-but-missing data; no duplicate output after retry; marked A/V remains continuous or reports an explicit gap; late events cannot mutate a new source.",
+    "Measure only after correctness": "Avoided duplicate append/remux/read work and recovery reliability; observe latency and bytes before CPU."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/native-remux-player.js",
+      "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+    },
+    {
+      "path": "web/worker-remux-controller.js",
+      "sha256": "9ee2d709e6667429ef23de2df343707a84677b4c9f40270b53be1e32a3f880ee"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-buffering.mjs"
+  ],
+  "boundary_probes": true,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB01",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

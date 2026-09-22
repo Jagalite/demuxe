@@ -1,0 +1,40 @@
+{
+  "id": "EB16",
+  "title": "Recover reconnect overlap with explicit identity and confidence levels",
+  "owner": "reconnect-overlap-identity",
+  "mapping": "new_item",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review",
+  "finding": "The inspected maintained sources provide bounded VOD ranges and packaged Shaka streaming, not an Icecast compressed-overlap or alternate-encoding alignment owner. Exact sequence overlap and estimated PCM correlation are distinct from R220 clock normalization and R060 captions.",
+  "novelty": "New bounded home: sequence identity/confidence is distinct from transport timestamp normalization. Source-screen stop until a consumer exists, not experimental rejection.",
+  "next_action": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately.",
+  "reopen_condition": "Do not use correlation as a fidelity oracle or automatically delete data on a hash hit. Keep this out of ordinary VOD seeking unless its source contract calls for it.",
+  "proposal_contract": {
+    "Proposed mechanism": "Try bounded exact compressed-sequence overlap first; use PCM correlation only for an explicitly permitted alternative-source alignment. Record exact, estimated, ambiguous and unmatched outcomes.",
+    "Smallest useful experiment": "Reconnect with duplicated compressed frames, changed packetization, a separately encoded overlap, silence, periodic audio and deliberate CRC-collision/false-match controls.",
+    "Correctness gate": "Exact mode does not drop unique samples; byte-verify hash candidates; approximate mode reports confidence and bounded offset; ambiguous matches fall back without claiming continuity.",
+    "Measure only after correctness": "Repeated-audio/stall avoidance, bounded alignment work and recovery latency; quality changes remain explicit."
+  },
+  "reviewed_sources": [
+    {
+      "path": "src/internal/shaka-backend.ts",
+      "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+    },
+    {
+      "path": "src/internal/shaka-network.ts",
+      "sha256": "36e944a911fd309191c598b7438c98cefc6d36d7ac62d064e505f4817ec913d1"
+    },
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    }
+  ],
+  "executed_contracts": [],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB16",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

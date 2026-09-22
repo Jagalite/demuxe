@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "key": "explicit-media-repair-accounting",
+  "title": "Expose repairs and resynchronization instead of silently discarding data",
+  "definition": {
+    "hypothesis": "Every skip, repaired field, inferred duration or rejected metadata element has an explicit reason and input/output range. Separate strict-file fidelity, explicit salvage and live concealment policies.",
+    "scope_contract": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+    "baseline": "Current maintained owners at the recorded source revision; unchanged VOD and Shaka policies.",
+    "success_criteria": "No silent data loss classified as preservation; unchanged path remains byte-identical when valid; repair budget bounded; unsupported semantics return an explicit outcome.",
+    "stop_criteria": "Do not turn a permissive parser into an automatic arbitrary-file fixer. Avoid implementing validation rules that cannot be sourced or independently checked.",
+    "primary_metric": "Correct admission, trustworthy diagnostics and fewer hidden fidelity failures; validation overhead measured separately.",
+    "negative_control": "Inject junk between audio frames, malformed EBML sizes, truncated initialization and metadata disagreements. Compare strict, diagnostic and opt-in repair paths.",
+    "effort_limit": "This run: canonical deduplication, current-source screening and selected contract probes. Media implementation/qualification is a separate run.",
+    "definition_source": {
+      "path": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "sha256": "dc5dadeb7dc80f8f419f2ca3d18b8aa05d0568c564faaad8b6b7dd06144f4c85"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "prepare": {
+      "status": "pending",
+      "basis": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "reason": "Remux records errors/gap skips and performs bounded timestamp/configuration repairs, but there is no uniform input/output-range repair ledger in the inspected native/JS interface. Existing typed route errors distinguish interruption from incompatibility; they do not account for every repaired field or skipped byte.",
+      "scope": "Source screening only",
+      "evidence_level": "current_source_review",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "at": "2026-09-22T13:21:09.078983+00:00"
+    }
+  },
+  "next_action": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "whole_player_qualification": {
+    "status": "not_measured"
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB19",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "path": "research/items/explicit-media-repair-accounting/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening."
+    }
+  ]
+}

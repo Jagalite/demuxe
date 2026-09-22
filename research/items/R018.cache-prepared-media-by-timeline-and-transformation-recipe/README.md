@@ -25,3 +25,13 @@ Next action: Scoped repeated-video-interval component research complete. Product
 [New run](../../shared/runs/20260919T205700Z-prepared-cache-cost/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
 
 Imported follow-up: [focused batch 22](../../campaigns/focused-research-batch22.md) (D88). External component evidence only; current decision and stage gates are unchanged.
+
+## Ecosystem follow-up EB22
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **deferred_until_trigger**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Engine preparation already shares immutable assets and preview work has separate owners. R018 owns source/recipe prepared-media caching and the unified study owns engine sharing. Neither is evidence for sharing live parsers or clocks between export and playback.
+
+Next gate / reopening condition: When a repeated-preparation workload warrants integration, key reuse by immutable source, selected tracks, recipe, metadata epoch, destination and runtime; test individual invalidations and consumer cancellation, then charge retained memory and cold preparation.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

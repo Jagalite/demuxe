@@ -1,0 +1,43 @@
+{
+  "id": "EB07",
+  "title": "Use coherent native/polyfilled constructor families",
+  "owner": "unified-hybrid-software-engine",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The inspected route uses explicit VideoDecoder/EncodedVideoChunk constructors and explicit Software plans. No native/polyfill family mixing was identified in those owners. Future codec-module integration still needs concrete family identity; the unified engine study remains lab-only.",
+  "novelty": "An admission requirement on the unified-engine integration, not a new codec implementation or current failure.",
+  "next_action": "Apply adapter-local family checks if a software WebCodecs adapter is introduced. Reject mixed families before publication and repeat output/fallback qualification; do not install a global shim.",
+  "reopen_condition": "Do not add a global WebCodecs polyfill to solve one missing codec. Keep an adapter-local implementation only when its complete route is qualified.",
+  "proposal_contract": {
+    "Proposed mechanism": "Capability evidence must include the concrete codec implementation and the frame/chunk family accepted by downstream components. Materialization into another family is an explicit transformation, not invisible plumbing.",
+    "Smallest useful experiment": "Run a small source through native-only, software-only and mixed adapters; deliberately supply an incompatible frame family and verify rejection before publication.",
+    "Correctness gate": "No software path labeled native, no implicit color/crop loss, conversion ownership explicit and no global shim contaminates cached capability evidence.",
+    "Measure only after correctness": "Correct route selection, conversion count, actual output format and complete asset cost."
+  },
+  "reviewed_sources": [
+    {
+      "path": "src/internal/playback-plans.ts",
+      "sha256": "b58cc5a342ef37506208c697008154963a6fa68fe214db7910b9e39742d73e9d"
+    },
+    {
+      "path": "src/internal/runtime-capability.ts",
+      "sha256": "c1fde8a04cf36468f5db3ad0762160158bdfb221c37c4aafa6a8aade2464c2b3"
+    },
+    {
+      "path": "web/browser-decoder-worker.js",
+      "sha256": "ec9447efce32d4e38eb94767f74995661e64a43eac01d17303a2350898fceca5"
+    }
+  ],
+  "executed_contracts": [
+    "tests/plan-admission.mjs",
+    "tests/runtime-capability-contracts.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB07",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

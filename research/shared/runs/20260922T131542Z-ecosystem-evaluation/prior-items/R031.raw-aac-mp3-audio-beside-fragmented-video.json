@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+  "title": "Raw AAC/MP3 audio beside fragmented video",
+  "definition": {
+    "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "legacy_id": "R31",
+    "legacy_number": 31,
+    "identity_branch": "proposal",
+    "title": "Raw AAC/MP3 audio beside fragmented video",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S003",
+      "path": "sources/proposals/Demuxe_Sandbox_Experiment_Addendum.md",
+      "sha256": "3c12f8b207ede9aed8e5b9a412437644126e423a3d560a6698db31c006dd1eed",
+      "line_start": 34,
+      "line_end": 55,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "New route candidate \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S006",
+        "path": "sources/reports/RESULTS_R31_R42.md",
+        "sha256": "26270524d73940082e34468219f468f1f621a25ca5a2c4af8e6b53ffa4741ee4",
+        "line_start": 24,
+        "line_end": 37,
+        "source_kind": "report",
+        "reported_heading": "Raw compressed audio beside fMP4 video"
+      }
+    ],
+    "scope_hash": "edaf7bd6ee1a2530b6514ea671f112cd8e77a74170e6359b1debd0686afda719",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 5,
+    "impact_basis": "Potentially changes an eligible file from an expensive/unsupported route to correct native or minimal-transform playback. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q3",
+    "priority_band": 2,
+    "initial_rank": 45,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Exact full-key mechanism, bounded workload, matched baseline and predeclared threshold.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Fixtures, source/runtime hashes, independent PCM oracle, adverse and lifecycle controls pinned.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Actual component executed; no fallback.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual Chrome same-owner raw AAC/MP3 and WebM Opus audio with H264 fragmented video passes digital marker timing within50ms, no audio gaps above5ms (zero measured), presented pictures/geometry against independent standalone destination, parser partial-append abort/reset, unsupported changeType rejection, forward/backward seek, EOF and cleanup. H264160x96 to VP9WebM240x136 to H264 preserves continuous Opus owner and passes same checks. AAC283 and Opus301 payload hashes match wrapped comparators. After correctness,5alternating preparation pairs plus fresh host wrapping show cold candidate/baseline ratios0.19485 AAC and0.16322 Opus against0.9 threshold; prepared browser alone16.945/19.755ms and13.3/13.87ms. Preserved rejected missing-bsf and empty_moov variants; independent reference corrects prior unsupported VP9 RGB expectation.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "New raw measurements and setup costs captured alongside pinned correctness reuse.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "pursue: Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "audio-executed-stage-closure",
+    "record": {
+      "key": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+      "recorded_at_utc": "2026-09-19T21:45:10.321305+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T214510Z-mixed-tracks"
+      ],
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual Chrome same-owner raw AAC/MP3 and WebM Opus audio with H264 fragmented video passes digital marker timing within50ms, no audio gaps above5ms (zero measured), presented pictures/geometry against independent standalone destination, parser partial-append abort/reset, unsupported changeType rejection, forward/backward seek, EOF and cleanup. H264160x96 to VP9WebM240x136 to H264 preserves continuous Opus owner and passes same checks. AAC283 and Opus301 payload hashes match wrapped comparators. After correctness,5alternating preparation pairs plus fresh host wrapping show cold candidate/baseline ratios0.19485 AAC and0.16322 Opus against0.9 threshold; prepared browser alone16.945/19.755ms and13.3/13.87ms. Preserved rejected missing-bsf and empty_moov variants; independent reference corrects prior unsupported VP9 RGB expectation.",
+      "next_action": "Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+      "reopen_condition": "Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+      "evidence": [
+        "research/shared/runs/20260919T214510Z-mixed-tracks/run.json"
+      ]
+    }
+  },
+  "next_action": "Pursue bounded profiles. R031 cost onlyAAC versus optional same-payloadMP4 wrapper; MP3 is capability-only. R032 saves host wrapping in this cold endpoint; no browser decoder speedup. R058 original same-owner codec-change capability has no separate speed claim, performance not applicable. Known encoder priming offsets, digital50ms timing, six-second complete appends only; no sample-exact acoustic sync, live transactional rollback or production admission. Arbitrary invalid incoming append recovery excluded.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

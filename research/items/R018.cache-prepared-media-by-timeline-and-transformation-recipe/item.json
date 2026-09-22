@@ -17,7 +17,7 @@
       "line_end": 418,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Caching \u00b7 New optimization hypothesis \u00b7 P2 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Cache bounded already-generated fragments and initialization data for repeated seeks/replays. Key by immutable source identity, selected tracks, decoder/encoder profile, timeline origin and exact runtime recipe; do not reuse only by URL and time. Source basis. FFmpeg exposes fragmented output, while MSE can reuse valid media segments in a reconstructed presentation. The cache policy and correctness key are proposed Demuxe work. [F1, M1] First agent experiment. Replay a recently converted interval, switch away/back to the same audio, and replace a source at the same URL. Compare generated work, seek delay and total retained bytes against the uncached path.",
+    "source_excerpt": "Caching · New optimization hypothesis · P2 · Risk: Medium First environment: Demuxe source + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Cache bounded already-generated fragments and initialization data for repeated seeks/replays. Key by immutable source identity, selected tracks, decoder/encoder profile, timeline origin and exact runtime recipe; do not reuse only by URL and time. Source basis. FFmpeg exposes fragmented output, while MSE can reuse valid media segments in a reconstructed presentation. The cache policy and correctness key are proposed Demuxe work. [F1, M1] First agent experiment. Replay a recently converted interval, switch away/back to the same audio, and replace a source at the same URL. Compare generated work, seek delay and total retained bytes against the uncached path.",
     "related_reports": [],
     "scope_hash": "4c139e055bc51f1b1d7893eaa5e8a70252449d1597bfde68127a59ff6a0c6d56",
     "legacy_guide_aliases": [],
@@ -143,5 +143,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB22",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "path": "research/items/R018.cache-prepared-media-by-timeline-and-transformation-recipe/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "When a repeated-preparation workload warrants integration, key reuse by immutable source, selected tracks, recipe, metadata epoch, destination and runtime; test individual invalidations and consumer cancellation, then charge retained memory and cold preparation."
+    }
+  ]
 }

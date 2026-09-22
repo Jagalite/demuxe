@@ -1,0 +1,36 @@
+{
+  "id": "EB04",
+  "title": "Budget unique backing allocations separately from logical payload",
+  "owner": "R298.copy-surviving-packets-to-release-oversized-backing-buffers",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "RangeReader charges buffer.byteLength for each retained cache block. The synthetic probe confirms a one-byte view still costs a 1024-byte backing block and an external view survives cache eviction. Existing source-worker copying and bounded blocks do not establish the oversized long-lived packet-slab opportunity required to reopen R298.",
+  "novelty": "R298 is the direct compaction owner; R047/R100 describe adjacent ownership costs, not a separate allocation-accounting win.",
+  "next_action": "Keep the compaction stop. Reopen only with a real owner retaining small live slices after its siblings finish, then measure unique backing retention and copy cost; cache counters are not process memory.",
+  "reopen_condition": "R298 was previously stopped under its scope. This does not reopen it without a changed retention workload and measurable benefit; retain only accounting regressions otherwise.",
+  "proposal_contract": {
+    "Proposed mechanism": "Track unique parent allocations and live views. Consider a bounded compaction copy only when retaining small survivors pins disproportionate storage; account for the copy and ownership transfer.",
+    "Smallest useful experiment": "Keep small packet slices from several large buffers while evicting prefixes; compare logical payload, unique backing bytes and actual retained allocator references before/after candidate compaction.",
+    "Correctness gate": "Identical packet bytes, valid sibling views, no stale pooled storage and no double release; memory counters distinguish proxies from actual owned allocations.",
+    "Measure only after correctness": "Owned allocation retention and copy cost separately; do not report view-byte reduction as freed browser process memory."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    },
+    {
+      "path": "web/native-remux-source-worker.js",
+      "sha256": "bb18a167e5f3aedbbe8863a1b4a944997f217676c59384017df3694444180607"
+    }
+  ],
+  "executed_contracts": [],
+  "boundary_probes": true,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB04",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

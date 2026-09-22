@@ -1,102 +1,262 @@
 {
   "schema": 1,
   "id": "ecosystem-expansion-2026-09-21",
-  "run_id": "20260922T001856Z-research-batches-import",
-  "run": "research/shared/runs/20260922T001856Z-research-batches-import/run.json",
-  "items": [],
+  "run_id": "20260922T131542Z-ecosystem-evaluation",
+  "run": "research/shared/runs/20260922T131542Z-ecosystem-evaluation/run.json",
+  "items": [
+    "R005.move-mse-ownership-off-the-window-thread",
+    "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+    "mpv-cache-browser-stream",
+    "R298.copy-surviving-packets-to-release-oversized-backing-buffers",
+    "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+    "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
+    "unified-hybrid-software-engine",
+    "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+    "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+    "R086.native-video-with-an-independent-generated-pcm-clock",
+    "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+    "R031.raw-aac-mp3-audio-beside-fragmented-video",
+    "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+    "R274.virtual-webm-cues",
+    "R208.make-cancellation-follow-media-dependency-boundaries",
+    "reconnect-overlap-identity",
+    "R220.scoped-transport-clock-normalization",
+    "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+    "explicit-media-repair-accounting",
+    "R192.identity-coded-witness-media",
+    "live-dependency-group-deadlines",
+    "R018.cache-prepared-media-by-timeline-and-transformation-recipe"
+  ],
   "proposals": [
     {
       "id": "EB01",
-      "title": "Reconcile intended, committed and observed media inventory"
+      "title": "Reconcile intended, committed and observed media inventory",
+      "owner": "R005.move-mse-ownership-off-the-window-thread",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "next_action": "Extend the maintained append owner with bounded intended/committed/failed/observed states only if used for recovery or exact residency reporting. Test synchronous and asynchronous failure, browser eviction, overlapping appends and source replacement in real MSE before measuring avoided work.",
+      "evaluation": "research/items/R005.move-mse-ownership-off-the-window-thread/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB02",
-      "title": "Evict and refill complete decoding dependency closures"
+      "title": "Evict and refill complete decoding dependency closures",
+      "owner": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "regression_only",
+      "next_action": "Keep the strict-before-RAP regression. Reopen only for a reproduced long-GOP/configuration/preroll refill failure in a maintained browser route.",
+      "evaluation": "research/items/R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB03",
-      "title": "Advertise cache capabilities, not one ambiguous buffered value"
+      "title": "Advertise cache capabilities, not one ambiguous buffered value",
+      "owner": "mpv-cache-browser-stream",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Retain existing distinct diagnostics. Reopen when a consumer needs a decoder-ready or cross-track readiness contract that these fields cannot express; include sparse-track and missing-audio output witnesses.",
+      "evaluation": "research/items/mpv-cache-browser-stream/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB04",
-      "title": "Budget unique backing allocations separately from logical payload"
+      "title": "Budget unique backing allocations separately from logical payload",
+      "owner": "R298.copy-surviving-packets-to-release-oversized-backing-buffers",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Keep the compaction stop. Reopen only with a real owner retaining small live slices after its siblings finish, then measure unique backing retention and copy cost; cache counters are not process memory.",
+      "evaluation": "research/items/R298.copy-surviving-packets-to-release-oversized-backing-buffers/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB05",
-      "title": "Negotiate resource representation and bounded outstanding ownership"
+      "title": "Negotiate resource representation and bounded outstanding ownership",
+      "owner": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "next_action": "For one concrete new adapter, declare accepted chunk/frame family, format, memory domain, maximum outstanding objects and terminal release. Reject incompatible families and run exhaustion/cancel/source-replacement plus output comparisons before any conversion-cost claim.",
+      "evaluation": "research/items/R100.transfer-owned-packet-storage-into-webcodecs-chunks/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB06",
-      "title": "Map/import only frames needed for presentation"
+      "title": "Map/import only frames needed for presentation",
+      "owner": "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Reopen only when a measured presenter/preview trace shows avoidable mapping of superseded frames; compare total owner cost and required visible output while retaining dependency decoding.",
+      "evaluation": "research/items/R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB07",
-      "title": "Use coherent native/polyfilled constructor families"
+      "title": "Use coherent native/polyfilled constructor families",
+      "owner": "unified-hybrid-software-engine",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "Apply adapter-local family checks if a software WebCodecs adapter is introduced. Reject mixed families before publication and repeat output/fallback qualification; do not install a global shim.",
+      "evaluation": "research/items/unified-hybrid-software-engine/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB08",
-      "title": "Delay mux initialization until actual output configuration is known"
+      "title": "Delay mux initialization until actual output configuration is known",
+      "owner": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "When introducing a browser encoder, gate init on bounded first outputs of every selected track; test mismatched requested/actual config, a delayed track, cancellation and a later epoch before admission.",
+      "evaluation": "research/items/R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB09",
-      "title": "Preserve trim, codec delay and decoder preroll exactly once"
+      "title": "Preserve trim, codec delay and decoder preroll exactly once",
+      "owner": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "next_action": "Use independently decoded impulse/channel-marked AAC, MP3 and Opus fixtures at head/tail and seek boundaries; declare each trim owner and sample units. Require exact counts/positions before admitting any new wrapper or split route.",
+      "evaluation": "research/items/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB10",
-      "title": "Drive split playback from consumed media samples, not elapsed context alone"
+      "title": "Drive split playback from consumed media samples, not elapsed context alone",
+      "owner": "R086.native-video-with-an-independent-generated-pcm-clock",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Retain consumed-sample feedback. Reopen for a real independent audio owner with a starvation/rate trace demonstrating drift; then qualify digital markers and acoustic latency separately.",
+      "evaluation": "research/items/R086.native-video-with-an-independent-generated-pcm-clock/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB11",
-      "title": "Make audio preload, batching and render deadlines separate budgets"
+      "title": "Make audio preload, batching and render deadlines separate budgets",
+      "owner": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Keep the existing stop. Reopen with a pre-gesture producer/occupancy trace or measured callback deadline miss; do not infer callback timing from Node execution.",
+      "evaluation": "research/items/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB12",
-      "title": "Prefer qualified audio wrapping over unnecessary audio decoding"
+      "title": "Prefer qualified audio wrapping over unnecessary audio decoding",
+      "owner": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "Select a real source whose cheapest unchanged route fails, then compare exact compressed frames and decoded timing/channels across the specific wrapper; charge parse/mux/setup. Preserve working direct playback.",
+      "evaluation": "research/items/R031.raw-aac-mp3-audio-beside-fragmented-video/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB13",
-      "title": "Choose seek-versus-skip using validated container boundaries"
+      "title": "Choose seek-versus-skip using validated container boundaries",
+      "owner": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Keep bounded local metadata skipping. Reopen remote policy only with a measured Range-capable transport workload and stale-hint, malformed-size and ignored-Range controls; include index acquisition cost.",
+      "evaluation": "research/items/R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB14",
-      "title": "Construct checked metadata projections with bounded offset fixpoints"
+      "title": "Construct checked metadata projections with bounded offset fixpoints",
+      "owner": "R274.virtual-webm-cues",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "Reopen for a specific recording that cannot use the fixed-size/reserved-space baseline. Prove checked convergence across EBML integer-width boundaries, all offset targets, opaque-metadata handling, source identity and bounded failure before timing.",
+      "evaluation": "research/items/R274.virtual-webm-cues/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB15",
-      "title": "Use consumer-owned source-priority and cancellation leases"
+      "title": "Use consumer-owned source-priority and cancellation leases",
+      "owner": "R208.make-cancellation-follow-media-dependency-boundaries",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Retain isolated preview ownership. Introduce shared leases only for a requested shared scheduler and demonstrate overlapping consumers, stale verified blocks and independent cancellation; never seek/flush the main decoder for previews.",
+      "evaluation": "research/items/R208.make-cancellation-follow-media-dependency-boundaries/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB16",
-      "title": "Recover reconnect overlap with explicit identity and confidence levels"
+      "title": "Recover reconnect overlap with explicit identity and confidence levels",
+      "owner": "reconnect-overlap-identity",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately.",
+      "evaluation": "research/items/reconnect-overlap-identity/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB17",
-      "title": "Keep clock epochs and transition metadata tied to their source"
+      "title": "Keep clock epochs and transition metadata tied to their source",
+      "owner": "R220.scoped-transport-clock-normalization",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "next_action": "Keep existing epoch authorities. Reopen only on a trace showing double offset, stale configuration/GOP metadata or premature final drain at a specific owner boundary; include delayed old-epoch events.",
+      "evaluation": "research/items/R220.scoped-transport-clock-normalization/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB18",
-      "title": "Reuse subtitle content independently of placement updates"
+      "title": "Reuse subtitle content independently of placement updates",
+      "owner": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "next_action": "Compare position-only versus content changes on a persistent moving-ASS workload, font replacement and resize; independently verify glyph/color/placement and measure full rendering/upload cost before adding a tile cache.",
+      "evaluation": "research/items/R021.cache-subtitle-tiles-and-schedule-only-useful-redraws/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB19",
-      "title": "Expose repairs and resynchronization instead of silently discarding data"
+      "title": "Expose repairs and resynchronization instead of silently discarding data",
+      "owner": "explicit-media-repair-accounting",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "next_action": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+      "evaluation": "research/items/explicit-media-repair-accounting/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB20",
-      "title": "Build an oracle matrix with independent structural and behavioral references"
+      "title": "Build an oracle matrix with independent structural and behavioral references",
+      "owner": "R192.identity-coded-witness-media",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "qualification_followup",
+      "next_action": "For EB01/EB09/EB14/EB19 experiments, fill the matrix with a second structural implementation or independently authored parser and a failing negative control. Record lineage, tolerance and exact scope; do not label Node contracts browser conformance.",
+      "evaluation": "research/items/R192.identity-coded-witness-media/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB21",
-      "title": "Limit live work by dependency-group deadlines, not VOD policy"
+      "title": "Limit live work by dependency-group deadlines, not VOD policy",
+      "owner": "live-dependency-group-deadlines",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings.",
+      "evaluation": "research/items/live-dependency-group-deadlines/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     },
     {
       "id": "EB22",
-      "title": "Publish narrow contracts for prepared-media reuse and virtual presentations"
+      "title": "Publish narrow contracts for prepared-media reuse and virtual presentations",
+      "owner": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "next_action": "When a repeated-preparation workload warrants integration, key reuse by immutable source, selected tracks, recipe, metadata epoch, destination and runtime; test individual invalidations and consumer cancellation, then charge retained memory and cold preparation.",
+      "evaluation": "research/items/R018.cache-prepared-media-by-timeline-and-transformation-recipe/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json"
     }
   ],
   "source": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
   "targets": 38,
-  "evidence_level": "imported source review",
-  "canonical_mapping": "Pending novelty and full-key reconciliation; EB labels remain provisional.",
-  "current_decisions_changed": false
+  "evidence_level": "Current source review, 76 Node contract checks and 3 synthetic boundary probes; no new browser or performance qualification.",
+  "canonical_mapping": "Complete: 22 evaluated proposals, 19 existing owners and 3 new bounded homes.",
+  "current_decisions_changed": false,
+  "import_run_id": "20260922T001856Z-research-batches-import",
+  "import_run": "research/shared/runs/20260922T001856Z-research-batches-import/run.json",
+  "evaluation_status": "complete",
+  "new_decisions_created": 3,
+  "decision_scope": "Existing parent decisions preserved; new homes have explicit scoped decisions."
 }

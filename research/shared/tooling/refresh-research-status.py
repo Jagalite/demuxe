@@ -2,9 +2,11 @@
 """Refresh derived navigation from canonical item homes; never owns a decision."""
 from pathlib import Path
 import json,collections,datetime
-root=Path(__file__).resolve().parents[3];area=root/'research';rows=[]
+root=Path(__file__).resolve().parents[3];area=root/'research';rows=[];followups=[]
 for entry in json.load(open(area/'index.json'))['items']:
  j=json.load(open(area/entry['path']/'item.json'));r=j['current_decision'].get('record',j['current_decision']);state=r.get('disposition',r.get('state',r.get('decision','unknown')))
+ for followup in j.get('research_followups',[]):
+  followups.append({'key':j['key'],**followup})
  rows.append({'key':j['key'],'rank':j['definition'].get('initial_rank'),'state':state,'stages':{k:v['status'] for k,v in j['stages'].items()},'next_action':j.get('next_action'),'whole_player':j.get('whole_player_qualification',{}).get('status','not_measured' if state=='pursue' else 'not_required_by_current_scoped_decision'),'imported_current':'ledger' in j['current_decision']})
 rows.sort(key=lambda x:(x['rank'] or 10000,x['key']));counts=collections.Counter(r['state'] for r in rows);stagecounts={s:dict(collections.Counter(r['stages'][s] for r in rows)) for s in rows[0]['stages']};updated=sum(not r['imported_current'] for r in rows);stamp=datetime.datetime.now(datetime.timezone.utc).isoformat()
 administrative=[r for r in rows if r['state']=='closed_source_unavailable']
@@ -22,6 +24,16 @@ lines.append('')
 nextrows=remaining
 if not nextrows:lines.append('No defined items have pending or blocked research gates at their recorded scope. This does not complete deferred whole-player integration.')
 for r in nextrows:lines.append(f"- Rank {r['rank']}: [{r['key']}](items/{r['key']}/README.md) — {r['next_action'] or 'Read the scoped missing gate in the item record.'}")
+if followups:
+ lines+=['','## Evaluated scoped follow-ups','', 'These proposal-level records are separate from parent-item gates. A completed parent profile does not close a later extension. Counts overlap canonical items and must not be added to the item total. This table covers the campaigns using explicit research_followups records; it is not a count of every historical deferred profile.','', '| Campaign | Outcome | Proposals |','|---|---|---:|']
+ # Later runs supersede an earlier scoped assessment without removing history.
+ latest={(f['campaign'],f['id']):f for f in followups}
+ for (campaign,outcome),count in sorted(collections.Counter((f['campaign'],f['outcome']) for f in latest.values()).items()):
+  lines.append(f'| [{campaign}](campaigns/{campaign}.md) | {outcome} | {count} |')
+ lines+=['','Active next gates:','']
+ for f in sorted(latest.values(),key=lambda f:(f['campaign'],f['id'])):
+  if f['outcome'] in ['followup_required','qualification_followup']:
+   lines.append(f"- **{f['id']}** [{f['key']}](items/{f['key']}/README.md): {f['next_action']}")
 if missing:
  lines+=['','## Missing definitions','', 'These remain unresolved identities, not experimental failures: '+', '.join(f"[{r['key'].split('.')[0]}](items/{r['key']}/README.md)" for r in missing)+'.']
 if administrative:

@@ -1,0 +1,895 @@
+{
+  "schema": 1,
+  "run_id": "20260922T131542Z-ecosystem-evaluation",
+  "scope": "Research evaluation and canonical integration; production behavior unchanged.",
+  "items": [
+    {
+      "id": "EB01",
+      "title": "Reconcile intended, committed and observed media inventory",
+      "owner": "R005.move-mse-ownership-off-the-window-thread",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Buffered seeking already consults observed media/SourceBuffer ranges and current generation. Append receipts are inserted before appendBuffer; a synchronous failure retains an uncommitted receipt, and browser eviction does not reconcile segment byte accounting. The counter is explicitly an upper bound, so this is an accounting/recovery extension, not demonstrated missing playback.",
+      "novelty": "Merge into the maintained MSE owner, not R188 verified-source scheduling: destination residency differs from source verification.",
+      "next_action": "Extend the maintained append owner with bounded intended/committed/failed/observed states only if used for recovery or exact residency reporting. Test synchronous and asynchronous failure, browser eviction, overlapping appends and source replacement in real MSE before measuring avoided work.",
+      "reopen_condition": "Retain only regression coverage if current Native/remux/Shaka ownership already reconciles these states. Do not create a competing controller for packaged streams.",
+      "proposal_contract": {
+        "Proposed mechanism": "Track media submitted to an owner, operations that completed, and media actually observed in destination ranges as distinct states. Include partial failure, source/configuration epoch and uncertainty.",
+        "Smallest useful experiment": "Append overlapping fragments, fail an append, remove a range, then trigger browser eviction. Compare bookkeeping to observed ranges before deciding what to reproduce.",
+        "Correctness gate": "No permanently claimed-but-missing data; no duplicate output after retry; marked A/V remains continuous or reports an explicit gap; late events cannot mutate a new source.",
+        "Measure only after correctness": "Avoided duplicate append/remux/read work and recovery reliability; observe latency and bytes before CPU."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/native-remux-player.js",
+          "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+        },
+        {
+          "path": "web/worker-remux-controller.js",
+          "sha256": "9ee2d709e6667429ef23de2df343707a84677b4c9f40270b53be1e32a3f880ee"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-buffering.mjs"
+      ],
+      "boundary_probes": true,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB01",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB02",
+      "title": "Evict and refill complete decoding dependency closures",
+      "owner": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "regression_only",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The current pump evicts strictly before a known RAP; R050 already retains real-MSE evidence for the 4.0001 adverse cutoff. Current contract tests cover the same guard. Broader B-frame/preroll refill behavior is not requalified by these Node checks.",
+      "novelty": "R050 owns dependency-safe eviction directly; R005/R132/R133 are affected owners, not independent new mechanisms.",
+      "next_action": "Keep the strict-before-RAP regression. Reopen only for a reproduced long-GOP/configuration/preroll refill failure in a maintained browser route.",
+      "reopen_condition": "Do not add unnecessary padding or replay when the current implementation already computes the closure. Prior stopped eviction profiles need a genuinely uncovered case.",
+      "proposal_contract": {
+        "Proposed mechanism": "Eviction and replenishment must preserve or recreate the keyframe/configuration/preroll closure needed by remaining samples, rather than treating all byte intervals as independently playable.",
+        "Smallest useful experiment": "Use a long GOP with B-frames; remove the leading random-access sample, append the dependent tail, then refill from a valid recovery point. Include paused and backward-seek cases.",
+        "Correctness gate": "Independent picture order/timestamps, no claimed playable range without required output, and eventual progress after valid refill; distinguish demux EOS from presentation completion.",
+        "Measure only after correctness": "Seek/recovery success, redundant decode/remux work and retained closure bytes."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/native-remux-player.js",
+          "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-buffering.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB02",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB03",
+      "title": "Advertise cache capabilities, not one ambiguous buffered value",
+      "owner": "mpv-cache-browser-stream",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Diagnostics already separate source-cache bytes, mpv demuxer-cache-state, Native buffered/seekable ranges and packet budgets. Native seek readiness checks actual coverage and RAP presence. A new universal readiness enum is not justified by the current API.",
+      "novelty": "Merge into the existing cache investigation; cue-less index items do not own general cache semantics.",
+      "next_action": "Retain existing distinct diagnostics. Reopen when a consumer needs a decoder-ready or cross-track readiness contract that these fields cannot express; include sparse-track and missing-audio output witnesses.",
+      "reopen_condition": "If upstream mpv already provides the needed state, wire and qualify it rather than implement another cache. Never infer all tracks ready from video bytes alone.",
+      "proposal_contract": {
+        "Proposed mechanism": "Distinguish raw bytes available, demuxed packets available, decoder-ready closure, browser-buffered media and a verified seekable interval. Reuse mpv knowledge instead of duplicating it.",
+        "Smallest useful experiment": "Compare cache reports for a sparse subtitle track, missing audio, cue-less file and a source whose byte cache is full but recovery point is absent.",
+        "Correctness gate": "Every exposed readiness level has a demonstrable operation that succeeds; source replacement invalidates observations; sparse tracks do not deadlock unrelated playback.",
+        "Measure only after correctness": "Fewer unnecessary reopen/read operations and more truthful diagnostics; not an automatic steady-state CPU gain."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/wasm-player.ts",
+          "sha256": "766835c59c8cb04bae38aabd2be4adecac184a5f09252d0f6c7918569ed28765"
+        },
+        {
+          "path": "src/internal/native-player.ts",
+          "sha256": "cea75798966adb77bc052515e952f57c999e1918790cd95fcff6770eb0d9d82f"
+        },
+        {
+          "path": "src/internal/buffering.ts",
+          "sha256": "7ec170eb7fc3f92ddb68b5347ecd8bc1a4848a97fab656017c2b52da9e3ec97a"
+        },
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        }
+      ],
+      "executed_contracts": [
+        "tests/buffering-policy.mjs",
+        "tests/seek-boundary-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB03",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB04",
+      "title": "Budget unique backing allocations separately from logical payload",
+      "owner": "R298.copy-surviving-packets-to-release-oversized-backing-buffers",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "RangeReader charges buffer.byteLength for each retained cache block. The synthetic probe confirms a one-byte view still costs a 1024-byte backing block and an external view survives cache eviction. Existing source-worker copying and bounded blocks do not establish the oversized long-lived packet-slab opportunity required to reopen R298.",
+      "novelty": "R298 is the direct compaction owner; R047/R100 describe adjacent ownership costs, not a separate allocation-accounting win.",
+      "next_action": "Keep the compaction stop. Reopen only with a real owner retaining small live slices after its siblings finish, then measure unique backing retention and copy cost; cache counters are not process memory.",
+      "reopen_condition": "R298 was previously stopped under its scope. This does not reopen it without a changed retention workload and measurable benefit; retain only accounting regressions otherwise.",
+      "proposal_contract": {
+        "Proposed mechanism": "Track unique parent allocations and live views. Consider a bounded compaction copy only when retaining small survivors pins disproportionate storage; account for the copy and ownership transfer.",
+        "Smallest useful experiment": "Keep small packet slices from several large buffers while evicting prefixes; compare logical payload, unique backing bytes and actual retained allocator references before/after candidate compaction.",
+        "Correctness gate": "Identical packet bytes, valid sibling views, no stale pooled storage and no double release; memory counters distinguish proxies from actual owned allocations.",
+        "Measure only after correctness": "Owned allocation retention and copy cost separately; do not report view-byte reduction as freed browser process memory."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        },
+        {
+          "path": "web/native-remux-source-worker.js",
+          "sha256": "bb18a167e5f3aedbbe8863a1b4a944997f217676c59384017df3694444180607"
+        }
+      ],
+      "executed_contracts": [],
+      "boundary_probes": true,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB04",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB05",
+      "title": "Negotiate resource representation and bounded outstanding ownership",
+      "owner": "R100.transfer-owned-packet-storage-into-webcodecs-chunks",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Finite plans describe execution owners; the browser worker bounds outstanding inputs/frames and closes stale outputs once. They do not constitute a general representation/family contract across alternative decoder and presenter adapters. Existing tests exercise mocked decoder ownership, not native/polyfill interoperability.",
+      "novelty": "Extend R100 ownership at the actual decoder boundary; preserve R028's failed prefilter benefit result and avoid a universal graph engine.",
+      "next_action": "For one concrete new adapter, declare accepted chunk/frame family, format, memory domain, maximum outstanding objects and terminal release. Reject incompatible families and run exhaustion/cancel/source-replacement plus output comparisons before any conversion-cost claim.",
+      "reopen_condition": "Do not emulate a native allocator the browser does not expose. Stop if this duplicates existing component contracts without revealing a missing edge or ownership bug.",
+      "proposal_contract": {
+        "Proposed mechanism": "Describe memory domain, ownership transfer, permitted representations, maximum outstanding frames and terminal actions at each component boundary. A locally preferred decoder is inadmissible when its consumer requires a costly or unavailable representation.",
+        "Smallest useful experiment": "Connect native and Wasm frame producers to each candidate presenter/audio sink. Exhaust the resource budget, cancel, replace the source and return resources from the previous generation.",
+        "Correctness gate": "One terminal release per owned object, all waits cancelable, representation mismatches explicit, no old-generation resource reused as current, and marked output unchanged.",
+        "Measure only after correctness": "Total conversion/copy edges, retained surfaces, resource wait time and recovery; never infer zero-copy from API shape."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/playback-plans.ts",
+          "sha256": "b58cc5a342ef37506208c697008154963a6fa68fe214db7910b9e39742d73e9d"
+        },
+        {
+          "path": "web/browser-decoder-worker.js",
+          "sha256": "ec9447efce32d4e38eb94767f74995661e64a43eac01d17303a2350898fceca5"
+        }
+      ],
+      "executed_contracts": [
+        "tests/browser-decoder-worker.mjs",
+        "tests/plan-admission.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB05",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB06",
+      "title": "Map/import only frames needed for presentation",
+      "owner": "R360.retarget-in-flight-decoding-instead-of-restarting-a-forward-scrub",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The inspected dedicated worker queues frames and copies on consumer operation 4 rather than on decoder output; generation changes close stale queued frames. Preview jobs cancel/coalesce. This does not qualify every shipped engine or a new lazy GPU presenter, and R360's prior performance gate remains failed.",
+      "novelty": "Merge with in-flight retargeting and its existing negative performance result; mapping avoidance is not decode avoidance.",
+      "next_action": "Reopen only when a measured presenter/preview trace shows avoidable mapping of superseded frames; compare total owner cost and required visible output while retaining dependency decoding.",
+      "reopen_condition": "Do not claim decode savings when only mapping is avoided. Reopen a prior presentation optimization only with the changed work boundary and measured profile.",
+      "proposal_contract": {
+        "Proposed mechanism": "Keep a lazy frame representation until the presenter needs it, then map/import it; discard never-needed outputs without conversion while preserving all dependency-required decode work.",
+        "Smallest useful experiment": "Compare eager versus demand-driven mapping under superseded previews, main-thread stalls and cadence changes. Inject map failure and source replacement while frames are outstanding.",
+        "Correctness gate": "Same required visible pictures/timestamps; no use-after-close; failed mapping cleaned once; no dependency packet dropped merely because its picture will not be shown.",
+        "Measure only after correctness": "GPU imports/conversions/uploads per delivered frame and total lifecycle cost; benchmark steady playback and scrubbing separately."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/browser-decoder-worker.js",
+          "sha256": "ec9447efce32d4e38eb94767f74995661e64a43eac01d17303a2350898fceca5"
+        },
+        {
+          "path": "src/preview/controller.ts",
+          "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+        }
+      ],
+      "executed_contracts": [
+        "tests/browser-decoder-worker.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB06",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB07",
+      "title": "Use coherent native/polyfilled constructor families",
+      "owner": "unified-hybrid-software-engine",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The inspected route uses explicit VideoDecoder/EncodedVideoChunk constructors and explicit Software plans. No native/polyfill family mixing was identified in those owners. Future codec-module integration still needs concrete family identity; the unified engine study remains lab-only.",
+      "novelty": "An admission requirement on the unified-engine integration, not a new codec implementation or current failure.",
+      "next_action": "Apply adapter-local family checks if a software WebCodecs adapter is introduced. Reject mixed families before publication and repeat output/fallback qualification; do not install a global shim.",
+      "reopen_condition": "Do not add a global WebCodecs polyfill to solve one missing codec. Keep an adapter-local implementation only when its complete route is qualified.",
+      "proposal_contract": {
+        "Proposed mechanism": "Capability evidence must include the concrete codec implementation and the frame/chunk family accepted by downstream components. Materialization into another family is an explicit transformation, not invisible plumbing.",
+        "Smallest useful experiment": "Run a small source through native-only, software-only and mixed adapters; deliberately supply an incompatible frame family and verify rejection before publication.",
+        "Correctness gate": "No software path labeled native, no implicit color/crop loss, conversion ownership explicit and no global shim contaminates cached capability evidence.",
+        "Measure only after correctness": "Correct route selection, conversion count, actual output format and complete asset cost."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/playback-plans.ts",
+          "sha256": "b58cc5a342ef37506208c697008154963a6fa68fe214db7910b9e39742d73e9d"
+        },
+        {
+          "path": "src/internal/runtime-capability.ts",
+          "sha256": "c1fde8a04cf36468f5db3ad0762160158bdfb221c37c4aafa6a8aade2464c2b3"
+        },
+        {
+          "path": "web/browser-decoder-worker.js",
+          "sha256": "ec9447efce32d4e38eb94767f74995661e64a43eac01d17303a2350898fceca5"
+        }
+      ],
+      "executed_contracts": [
+        "tests/plan-admission.mjs",
+        "tests/runtime-capability-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB07",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB08",
+      "title": "Delay mux initialization until actual output configuration is known",
+      "owner": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The remuxer inspects actual AAC packets when extradata is absent, prepares selected-track configuration before write_header, and rejects changed video extradata with a new-initialization requirement. That source ordering does not prove delayed browser-encoder or later dynamic reconfiguration support.",
+      "novelty": "R091 owns configuration epochs. R059 payload projection does not own encoder output initialization.",
+      "next_action": "When introducing a browser encoder, gate init on bounded first outputs of every selected track; test mismatched requested/actual config, a delayed track, cancellation and a later epoch before admission.",
+      "reopen_condition": "If the existing FFmpeg route already handles this ordering, add tests only around new browser-encoder or module boundaries. Do not infer dynamic support from initial extradata setup.",
+      "proposal_contract": {
+        "Proposed mechanism": "Prepare bounded initial output from every selected encoded track, collect required decoder configuration, then commit a compatible initialization segment. Later changes create a qualified configuration epoch.",
+        "Smallest useful experiment": "Delay one track’s first packet, return encoder-derived configuration different from the request, cancel before admission and introduce a later config change.",
+        "Correctness gate": "Init configuration matches actual packets; no media emitted against stale config; no unbounded first-track queue; errors release provisional state; selected audio/video timing preserved.",
+        "Measure only after correctness": "Avoided failed startup/reopen and bounded provisional memory; any latency reduction must include first-output preparation."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/remux/remux.c",
+          "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+        },
+        {
+          "path": "web/native-remux-worker.js",
+          "sha256": "f9227e3d0b08aabf1057b1dd2d1f2c9a59d22b27faa0a64e07c02032336fdb8f"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-packaging-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB08",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB09",
+      "title": "Preserve trim, codec delay and decoder preroll exactly once",
+      "owner": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Current remux explicitly preserves Opus padding through WebM choice, records initial padding and retains bounded real seek preroll. R094 has scoped sample-boundary evidence, but there is no new proof here that all AAC/MP3/Opus mixed/chunked routes apply trim exactly once.",
+      "novelty": "R094 is the exact trim/preroll owner; R060 captions was a provisional, unrelated link and is not adopted.",
+      "next_action": "Use independently decoded impulse/channel-marked AAC, MP3 and Opus fixtures at head/tail and seek boundaries; declare each trim owner and sample units. Require exact counts/positions before admitting any new wrapper or split route.",
+      "reopen_condition": "A wrapper must not silently discard side data it cannot represent. Preserve a working baseline or reject the new route when sample-accurate semantics are unavailable.",
+      "proposal_contract": {
+        "Proposed mechanism": "Keep audible sample bounds distinct from decoder input/recovery bounds. Use explicit rational/sample units and one responsible component for each trim or codec delay.",
+        "Smallest useful experiment": "Use impulses and channel labels around AAC/MP3/Opus head/tail boundaries; seek near the start and into a stream; compare one-shot decode with chunked/mixed-route output.",
+        "Correctness gate": "Reference sample count and impulse positions, no double trim or priming leakage, correct channel identities, and required recovery packets still supplied.",
+        "Measure only after correctness": "Audio correctness and additional component admission; CPU only after equivalent samples and policies match."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/remux/remux.c",
+          "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+        },
+        {
+          "path": "native/ao_browser.c",
+          "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-packaging-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB09",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB10",
+      "title": "Drive split playback from consumed media samples, not elapsed context alone",
+      "owner": "R086.native-video-with-an-independent-generated-pcm-clock",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "AudioWorklet increments consumed media frames by available samples only; underrun silence contributes no source progress. AO delay includes queued samples and reported latency, and mpv retains synchronization ownership. Executed tests cover underrun/pause/reset; acoustic synchronization and independent decoded-audio routes remain outside this result.",
+      "novelty": "Extend the existing split-clock item without replacing mpv synchronization or reviving unrelated timestamp/caption mechanisms.",
+      "next_action": "Retain consumed-sample feedback. Reopen for a real independent audio owner with a starvation/rate trace demonstrating drift; then qualify digital markers and acoustic latency separately.",
+      "reopen_condition": "The observed videojs-libav sink alone does not prove a whole-player bug. Reuse existing mpv clock ownership unless a tested independent audio path requires this contract.",
+      "proposal_contract": {
+        "Proposed mechanism": "Record actual queued/consumed media samples and intentional silence separately. Clock mappings must account for starvation, pause/resume, rate and device latency without inventing source progress.",
+        "Smallest useful experiment": "Starve audio while video is buffered, pause/resume and change playback rate. Compare sink elapsed time, consumed frames and observed A/V markers before and after recovery.",
+        "Correctness gate": "Bounded digital A/V skew with the chosen silence policy, no artificial accumulated progress after starvation, correct user-visible time and cancellation. Acoustic latency remains a separate qualification.",
+        "Measure only after correctness": "Drift/recovery correctness and unnecessary resampling avoided; no generic CPU saving predicted."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/audio-worklet.js",
+          "sha256": "025b4c58e5cc3083bab952f2b830984d4839f83a9ae430f8b94c1f809080ca50"
+        },
+        {
+          "path": "native/ao_browser.c",
+          "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+        }
+      ],
+      "executed_contracts": [
+        "tests/audio-worklet.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB10",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB11",
+      "title": "Make audio preload, batching and render deadlines separate budgets",
+      "owner": "R014.avoid-duplicate-resampling-and-oversized-audio-work-batches",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The AO rejects writes beyond a fixed ring capacity, reports free/queued samples, negotiates context sample rate and separates pause from consumption. Current tests exercise variable output quantum and empty input. No new oversized batch or duplicate-resample workload is established.",
+      "novelty": "R014 directly owns rate/batch policy; R086 alone was too broad a provisional mapping.",
+      "next_action": "Keep the existing stop. Reopen with a pre-gesture producer/occupancy trace or measured callback deadline miss; do not infer callback timing from Node execution.",
+      "reopen_condition": "R014/R026-style generic batch/polling changes are not reopened by an example alone. Stop when current bounded queues and deadlines already meet this contract.",
+      "proposal_contract": {
+        "Proposed mechanism": "Bound pre-gesture and decode queues with backpressure rather than silent overflow. Keep worker batch sizes, worklet quantum, warning thresholds and hard starvation deadlines separate.",
+        "Smallest useful experiment": "Preload without a play gesture, exceed the candidate queue cap, vary kernel batch size and stall the producer. Change gain after audio is already enqueued.",
+        "Correctness gate": "No lost initial samples or unbounded allocations, correct gain policy, worklet stays within the measured callback deadline, and source replacement clears only its own samples.",
+        "Measure only after correctness": "Underruns, startup latency, queued media milliseconds and callback work; CPU and latency tradeoffs reported separately."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/ao_browser.c",
+          "sha256": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+        },
+        {
+          "path": "web/audio-worklet.js",
+          "sha256": "025b4c58e5cc3083bab952f2b830984d4839f83a9ae430f8b94c1f809080ca50"
+        },
+        {
+          "path": "src/internal/wasm-player.ts",
+          "sha256": "766835c59c8cb04bae38aabd2be4adecac184a5f09252d0f6c7918569ed28765"
+        }
+      ],
+      "executed_contracts": [
+        "tests/audio-worklet.mjs",
+        "tests/buffering-policy.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB11",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB12",
+      "title": "Prefer qualified audio wrapping over unnecessary audio decoding",
+      "owner": "R031.raw-aac-mp3-audio-beside-fragmented-video",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Packet-copy remux and destination-specific packaging already exist. R031 has scoped raw-audio evidence and R032 records a working direct AVC/Vorbis baseline. The external wrapper list does not expose a new unsupported source or prove a faster browser decoder.",
+      "novelty": "Merge into R031 with R032 related; do not create a general wrapping subsystem from MIME lists.",
+      "next_action": "Select a real source whose cheapest unchanged route fails, then compare exact compressed frames and decoded timing/channels across the specific wrapper; charge parse/mux/setup. Preserve working direct playback.",
+      "reopen_condition": "Do not treat a wrapper’s output MIME list as a browser support matrix. Stop at an unsupported destination and retain the existing route.",
+      "proposal_contract": {
+        "Proposed mechanism": "Reuse already parsed compressed frames, select a destination-specific audio container, and keep the browser as audio decoder where the exact configuration and fidelity are verified.",
+        "Smallest useful experiment": "Feed identical parsed AAC/MP3/FLAC/Opus/Vorbis frames into applicable container alternatives, including partial-frame input, codec updates and discontinuity.",
+        "Correctness gate": "Exact selected payloads where copy is promised; reference decoded duration/channels/timing; discarded bytes explicitly reported; true output verification rather than MIME acceptance.",
+        "Measure only after correctness": "Avoided decode/encode work and native component coverage; include mux/parse/setup cost."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/remux/remux.c",
+          "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+        },
+        {
+          "path": "web/remux-packaging.js",
+          "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433"
+        },
+        {
+          "path": "src/internal/playback-plans.ts",
+          "sha256": "b58cc5a342ef37506208c697008154963a6fa68fe214db7910b9e39742d73e9d"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-packaging-contracts.mjs",
+        "tests/plan-admission.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB12",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB13",
+      "title": "Choose seek-versus-skip using validated container boundaries",
+      "owner": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The local metadata probe walks checked box lengths with box/read budgets, handles safe extended top-level sizes and fails closed to deep inspection. Source reads are bounded. R045's source-map latency regression remains relevant; no new remote seek-versus-skip threshold is measured.",
+      "novelty": "R045 owns source-bound access decisions; this screen does not reopen R003's failed whole-player cost gate.",
+      "next_action": "Keep bounded local metadata skipping. Reopen remote policy only with a measured Range-capable transport workload and stale-hint, malformed-size and ignored-Range controls; include index acquisition cost.",
+      "reopen_condition": "Do not reopen R003’s stopped profile without a changed mechanism/source. If normal inspection already reads only useful ranges, keep adverse tests instead.",
+      "proposal_contract": {
+        "Proposed mechanism": "Use known box lengths or verified metadata hints to avoid scanning irrelevant payload; decide whether to skip or reopen a range using measured source costs, not a copied constant.",
+        "Smallest useful experiment": "Compare front/tail moov, large free boxes, stale hints, 64-bit sizes, zero-sized/truncated boxes, a server ignoring Range and local Blob input.",
+        "Correctness gate": "Identical parsed metadata and selected sample offsets; no out-of-bounds read or unbounded retry; stale identity rejected; ignored Range responses handled explicitly.",
+        "Measure only after correctness": "Requests, fetched bytes and startup delay including request overhead; no expected gain percentage."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/cheap-mp4-probe.js",
+          "sha256": "551fdb484be554808cd8b330d868b734bbf0d8de2fd0091c81d534d71148d7c8"
+        },
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        }
+      ],
+      "executed_contracts": [
+        "tests/cheap-mp4-probe.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB13",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB14",
+      "title": "Construct checked metadata projections with bounded offset fixpoints",
+      "owner": "R274.virtual-webm-cues",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The maintained selected-MP4 view preserves file length and payload offsets, avoiding a fixpoint entirely. R274's bounded WebM index relies on reserved space. Neither establishes a general variable-width metadata projection constructor; the broad proposal overlaps these owners but needs a different source profile.",
+      "novelty": "R274 is the direct variable-index comparison home, with R059 and R162 related; do not duplicate their fixed-layout constructors.",
+      "next_action": "Reopen for a specific recording that cannot use the fixed-size/reserved-space baseline. Prove checked convergence across EBML integer-width boundaries, all offset targets, opaque-metadata handling, source identity and bounded failure before timing.",
+      "reopen_condition": "Do not generalize ts-ebml’s recording assumptions to arbitrary Matroska. A server packager’s architecture is not evidence that an equivalent browser view is cheap.",
+      "proposal_contract": {
+        "Proposed mechanism": "For an explicitly eligible source, create seek metadata or a virtual presentation without rewriting payload. Solve metadata-size/offset dependencies with checked arithmetic, a convergence bound and a failure fallback.",
+        "Smallest useful experiment": "Use WebM recordings with cue offsets near encoded-size boundaries and MP4 mapped views; retain cluster/sample hashes and independently inspect the projected structure.",
+        "Correctness gate": "All offsets resolve to intended source bytes; original file remains unchanged; unknown required metadata survives or eligibility rejects; malformed sizes and nonconvergence fail closed.",
+        "Measure only after correctness": "Prepared bytes avoided, seek coverage and metadata construction cost, including index acquisition and source identity."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/selected-mp4-view.js",
+          "sha256": "ca26c70155d89a34f64fe3d9adf6bbebb1ee97e4fd1d5c08ddf920b0ae6be088"
+        },
+        {
+          "path": "web/cheap-mp4-probe.js",
+          "sha256": "551fdb484be554808cd8b330d868b734bbf0d8de2fd0091c81d534d71148d7c8"
+        }
+      ],
+      "executed_contracts": [
+        "tests/cheap-mp4-probe.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB14",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB15",
+      "title": "Use consumer-owned source-priority and cancellation leases",
+      "owner": "R208.make-cancellation-follow-media-dependency-boundaries",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "The current preview path uses copied resident bytes or an isolated low-priority reader; playback preempts background reads and preview cancellation does not cancel playback. Shaka preview policies fork their network owner. Executed tests cover this supported ownership model, not shared torrent subscription leases.",
+      "novelty": "R208 owns cancellation. Dropped R006 and R176 are rejected as dependency links; the proposal does not restore non-pthread or JSPI paths.",
+      "next_action": "Retain isolated preview ownership. Introduce shared leases only for a requested shared scheduler and demonstrate overlapping consumers, stale verified blocks and independent cancellation; never seek/flush the main decoder for previews.",
+      "reopen_condition": "Do not duplicate an already correct source scheduler. WebTorrent’s local iterator does not prove the scheduler’s overlap accounting; inspect that layer before adoption.",
+      "proposal_contract": {
+        "Proposed mechanism": "Attach requested ranges/groups, priorities and cancellation to playback, preview and inspection consumers. Releasing one consumer removes only its demand, not shared work still needed elsewhere.",
+        "Smallest useful experiment": "Overlap playback and preview reads, cancel the preview, replace the source and deliver a late verified block. Inspect scheduler selections and producer completion.",
+        "Correctness gate": "Playback continues; canceled consumers receive no stale data; shared verified data stays usable; no orphan demand/listener; unverified bytes never enter a trusted parser path.",
+        "Measure only after correctness": "Unnecessary fetched/verified bytes and cancel-to-quiescence time, preserving useful shared reads."
+      },
+      "reviewed_sources": [
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        },
+        {
+          "path": "src/preview/controller.ts",
+          "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+        },
+        {
+          "path": "src/internal/shaka-network.ts",
+          "sha256": "36e944a911fd309191c598b7438c98cefc6d36d7ac62d064e505f4817ec913d1"
+        }
+      ],
+      "executed_contracts": [
+        "tests/preview-range.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB15",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB16",
+      "title": "Recover reconnect overlap with explicit identity and confidence levels",
+      "owner": "reconnect-overlap-identity",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review",
+      "finding": "The inspected maintained sources provide bounded VOD ranges and packaged Shaka streaming, not an Icecast compressed-overlap or alternate-encoding alignment owner. Exact sequence overlap and estimated PCM correlation are distinct from R220 clock normalization and R060 captions.",
+      "novelty": "New bounded home: sequence identity/confidence is distinct from transport timestamp normalization. Source-screen stop until a consumer exists, not experimental rejection.",
+      "next_action": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately.",
+      "reopen_condition": "Do not use correlation as a fidelity oracle or automatically delete data on a hash hit. Keep this out of ordinary VOD seeking unless its source contract calls for it.",
+      "proposal_contract": {
+        "Proposed mechanism": "Try bounded exact compressed-sequence overlap first; use PCM correlation only for an explicitly permitted alternative-source alignment. Record exact, estimated, ambiguous and unmatched outcomes.",
+        "Smallest useful experiment": "Reconnect with duplicated compressed frames, changed packetization, a separately encoded overlap, silence, periodic audio and deliberate CRC-collision/false-match controls.",
+        "Correctness gate": "Exact mode does not drop unique samples; byte-verify hash candidates; approximate mode reports confidence and bounded offset; ambiguous matches fall back without claiming continuity.",
+        "Measure only after correctness": "Repeated-audio/stall avoidance, bounded alignment work and recovery latency; quality changes remain explicit."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/shaka-backend.ts",
+          "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+        },
+        {
+          "path": "src/internal/shaka-network.ts",
+          "sha256": "36e944a911fd309191c598b7438c98cefc6d36d7ac62d064e505f4817ec913d1"
+        },
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        }
+      ],
+      "executed_contracts": [],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB16",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB17",
+      "title": "Keep clock epochs and transition metadata tied to their source",
+      "owner": "R220.scoped-transport-clock-normalization",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Current owners already separate remux source generations, timeline bias, audio epochs and Shaka timeline ownership. R220 records a qualified 33-bit rollover profile. No observed disagreement justifies a second clock normalizer.",
+      "novelty": "R220 owns normalization; configuration continuity items remain related rather than independently reopened.",
+      "next_action": "Keep existing epoch authorities. Reopen only on a trace showing double offset, stale configuration/GOP metadata or premature final drain at a specific owner boundary; include delayed old-epoch events.",
+      "reopen_condition": "Do not replace Shaka or mpv clock management wholesale. Add a boundary adapter only where existing owners demonstrably disagree.",
+      "proposal_contract": {
+        "Proposed mechanism": "Model source-time to presentation-time mappings as epochs with explicit rate/offset and flush rules. Clear GOP/configuration alignment state together when the epoch changes.",
+        "Smallest useful experiment": "Combine nonzero starts, rate changes, seeks, period discontinuity and a delayed old-epoch metadata or sample event. Include unequal track tails and final drain.",
+        "Correctness gate": "No offset applied twice, no stale GOP alignment, correct subtitle/audio/video markers, and EOS only after required presented output drains.",
+        "Measure only after correctness": "Correct transitions and fewer avoidable reopenings; source timestamp fidelity before responsiveness."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/remux/remux.c",
+          "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+        },
+        {
+          "path": "web/native-remux-player.js",
+          "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+        },
+        {
+          "path": "src/internal/shaka-backend.ts",
+          "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+        }
+      ],
+      "executed_contracts": [
+        "tests/remux-buffering.mjs",
+        "tests/audio-worklet.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB17",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB18",
+      "title": "Reuse subtitle content independently of placement updates",
+      "owner": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "evidence_level": "current_source_review",
+      "finding": "Current rendering already suppresses unchanged output and closes discarded bitmaps. The standalone libass bridge treats any nonzero change as bitmap work; position-only changes are not separately exposed there. The current mpv subtitle service is another boundary and must be measured separately. R021's cold-owner failed benefit gate is retained.",
+      "novelty": "R021 directly owns subtitle reuse. New position-only work is a conditional extension, not evidence that the prior negative disappeared.",
+      "next_action": "Compare position-only versus content changes on a persistent moving-ASS workload, font replacement and resize; independently verify glyph/color/placement and measure full rendering/upload cost before adding a tile cache.",
+      "reopen_condition": "R021 remains scoped by its existing negative result. This is only a reopening candidate if the change-class boundary removes work the prior experiment did not.",
+      "proposal_contract": {
+        "Proposed mechanism": "Use renderer-provided output-change classes to separate unchanged content from position updates, while respecting frame/image lifetimes and font/layout generations.",
+        "Smallest useful experiment": "Exercise static captions, moving ASS text, karaoke, font replacement and viewport resize; compare a full redraw baseline with reuse of unchanged content only.",
+        "Correctness gate": "Independent libass/image reference where possible, identical required glyphs/colors/positions at sampled times, no stale pointer use or missed animated change.",
+        "Measure only after correctness": "Rasterizations/uploads versus placement updates and actual whole-player cost; no benefit assumed on already cached overlays."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/subtitles/ass.c",
+          "sha256": "c899e47f4672e4ecdc854c57ac841543b4ae40feff8966dbabac76712e9ba202"
+        },
+        {
+          "path": "src/internal/native-mpv-subtitles.ts",
+          "sha256": "fd920e734e11692c81a7391ccf4e62da806fe4d13d1ab655026234b78b83f979"
+        },
+        {
+          "path": "web/mpv-subtitle-worker.js",
+          "sha256": "61194dff8b833d05bb1097ee30cbb66b0cd846f475bfed558cdf16517bafdf9a"
+        }
+      ],
+      "executed_contracts": [],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB18",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB19",
+      "title": "Expose repairs and resynchronization instead of silently discarding data",
+      "owner": "explicit-media-repair-accounting",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "followup_required",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Remux records errors/gap skips and performs bounded timestamp/configuration repairs, but there is no uniform input/output-range repair ledger in the inspected native/JS interface. Existing typed route errors distinguish interruption from incompatibility; they do not account for every repaired field or skipped byte.",
+      "novelty": "New diagnostic/fidelity home. R131 repair search, R311 trusted corruption repair and codec-specific normalization do not own cross-operation repair provenance.",
+      "next_action": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+      "reopen_condition": "Do not turn a permissive parser into an automatic arbitrary-file fixer. Avoid implementing validation rules that cannot be sourced or independently checked.",
+      "proposal_contract": {
+        "Proposed mechanism": "Every skip, repaired field, inferred duration or rejected metadata element has an explicit reason and input/output range. Separate strict-file fidelity, explicit salvage and live concealment policies.",
+        "Smallest useful experiment": "Inject junk between audio frames, malformed EBML sizes, truncated initialization and metadata disagreements. Compare strict, diagnostic and opt-in repair paths.",
+        "Correctness gate": "No silent data loss classified as preservation; unchanged path remains byte-identical when valid; repair budget bounded; unsupported semantics return an explicit outcome.",
+        "Measure only after correctness": "Correct admission, trustworthy diagnostics and fewer hidden fidelity failures; validation overhead measured separately."
+      },
+      "reviewed_sources": [
+        {
+          "path": "native/remux/remux.c",
+          "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+        },
+        {
+          "path": "web/native-remux-player.js",
+          "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+        },
+        {
+          "path": "src/internal/runtime-capability.ts",
+          "sha256": "c1fde8a04cf36468f5db3ad0762160158bdfb221c37c4aafa6a8aade2464c2b3"
+        }
+      ],
+      "executed_contracts": [
+        "tests/repair-evidence-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB19",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB20",
+      "title": "Build an oracle matrix with independent structural and behavioral references",
+      "owner": "R192.identity-coded-witness-media",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "qualification_followup",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Research already requires independent output and adverse controls. Existing selected-view tests compare decoded output through FFmpeg, so adding ffprobe alone is not an independent structural vote. This run integrates a concrete oracle matrix separating structure, samples, timing, metadata, lifecycle and route ownership; external corpora were not downloaded or executed.",
+      "novelty": "Integrate as a qualification extension of witness-media R192 and the research process, not a separate performance optimization.",
+      "next_action": "For EB01/EB09/EB14/EB19 experiments, fill the matrix with a second structural implementation or independently authored parser and a failing negative control. Record lineage, tolerance and exact scope; do not label Node contracts browser conformance.",
+      "reopen_condition": "Do not download/run every corpus blindly or let majority agreement replace a clear contract. Stop broad fixture expansion that does not change a research decision.",
+      "proposal_contract": {
+        "Proposed mechanism": "Separate container validity, decoded output, metadata fidelity, lifecycle and route ownership. Record implementation lineage so two FFmpeg-based tools are not counted as independent votes.",
+        "Smallest useful experiment": "Select one relevant positive and negative fixture per mechanism, use a second structural parser, and add WPT-style reset/flush sequences to the same marked-output playback fixture.",
+        "Correctness gate": "The negative control actually fails for the expected reason; spec version and oracle tolerance recorded; fixture validity is not mistaken for browser playback or HDR fidelity.",
+        "Measure only after correctness": "Evidence quality and regression detection, with corpus/licensing/setup costs recorded; not a playback speed experiment."
+      },
+      "reviewed_sources": [
+        {
+          "path": "tests/selected-mp4-view.mjs",
+          "sha256": "84fa214d67e5abf0c6915209d5cf49f7264e04a12223df49f47e3ba3d3fc8b8f"
+        },
+        {
+          "path": "tests/remux-output-identity.mjs",
+          "sha256": "bd1c9e4e617b4d8c0a7dd3e3ddec866ffeef294e530d0d29fcf82341298268b3"
+        },
+        {
+          "path": "tests/repair-evidence-contracts.mjs",
+          "sha256": "53cc4dd29ee882d033c325baf502236c744b245fe5520f99a9e3ae79d9d6442e"
+        },
+        {
+          "path": "research/PROCESS.md",
+          "sha256": "5b40d2985bd3b945f6d7a2873cc0f215c4674d6d989be7067fec793e4f735561"
+        }
+      ],
+      "executed_contracts": [
+        "tests/repair-evidence-contracts.mjs",
+        "tests/runtime-capability-contracts.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB20",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB21",
+      "title": "Limit live work by dependency-group deadlines, not VOD policy",
+      "owner": "live-dependency-group-deadlines",
+      "mapping": "new_item",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review",
+      "finding": "Live playback already requires explicit Shaka permission; the byte reader is finite VOD. No maintained MoQ dependency-group consumer or loss policy is present in the inspected owners. Existing R208 cancellation and R267 deadline attribution do not authorize dropping required VOD content.",
+      "novelty": "New live-policy home, deferred until a consumer exists. Keep Shaka ownership and dropped JSPI/non-pthread decisions intact.",
+      "next_action": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings.",
+      "reopen_condition": "No new transport dependency unless product scope needs it. Preserve the existing packaged-stream owner and avoid conflating evolving protocol behavior with standards guarantees.",
+      "proposal_contract": {
+        "Proposed mechanism": "For a declared live-latency policy, stop consuming superseded media groups and select a valid newer random-access group. Tie subscription demand to active playback, not unconditional producer work.",
+        "Smallest useful experiment": "Delay one group while delivering later groups, pause/resume the consumer and vary queue pressure. Run a separate strict-VOD control that must not use lossy skipping.",
+        "Correctness gate": "No display of dependent frames without their closure; skipped intervals reported; timeline and audio/subtitles resynchronize; VOD control retains required content.",
+        "Measure only after correctness": "Live lateness and stale-work reduction under explicit loss policy, not equal-output CPU savings."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/shaka-backend.ts",
+          "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+        },
+        {
+          "path": "src/internal/native-player.ts",
+          "sha256": "cea75798966adb77bc052515e952f57c999e1918790cd95fcff6770eb0d9d82f"
+        },
+        {
+          "path": "web/range-reader.js",
+          "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+        }
+      ],
+      "executed_contracts": [],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB21",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    },
+    {
+      "id": "EB22",
+      "title": "Publish narrow contracts for prepared-media reuse and virtual presentations",
+      "owner": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+      "mapping": "existing_owner",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "evidence_level": "current_source_review_and_node_contracts",
+      "finding": "Engine preparation already shares immutable assets and preview work has separate owners. R018 owns source/recipe prepared-media caching and the unified study owns engine sharing. Neither is evidence for sharing live parsers or clocks between export and playback.",
+      "novelty": "Merge into R018; retain engine-sharing links without counting their savings again or inventing a universal graph.",
+      "next_action": "When a repeated-preparation workload warrants integration, key reuse by immutable source, selected tracks, recipe, metadata epoch, destination and runtime; test individual invalidations and consumer cancellation, then charge retained memory and cold preparation.",
+      "reopen_condition": "This is not a license to construct a universal graph engine. Reuse existing R018/mpv/FFmpeg facilities first; stop if bookkeeping exceeds saved preparation.",
+      "proposal_contract": {
+        "Proposed mechanism": "Separate source identity, selected tracks, transform recipe, metadata epoch and destination representation in reusable prepared state. Share immutable work while keeping live parser/decoder clocks independent.",
+        "Smallest useful experiment": "Open the same source for playback, preview and export; vary one track, recipe or destination at a time. Force cancellation of one consumer and source identity change.",
+        "Correctness gate": "Reuse only when dependencies match, no stale timeline state, original payload checks pass, and selected owners remain isolated through failure.",
+        "Measure only after correctness": "Repeated preparation, distinct assets/compilations and source reads, with retained-memory and invalidation cost."
+      },
+      "reviewed_sources": [
+        {
+          "path": "src/internal/engine-preparation.ts",
+          "sha256": "22c1c3a0a6dc971ffc91fe0df41db6de6ebd5f1a902d6608ff30ec0880a13bb4"
+        },
+        {
+          "path": "web/prepared-engine.js",
+          "sha256": "5a5fa1ef05b35add70f19ed9ebd02b97d1104a54f41bcfa90b7ea02c71d27e59"
+        },
+        {
+          "path": "src/preview/controller.ts",
+          "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+        }
+      ],
+      "executed_contracts": [
+        "tests/engine-preparation.mjs",
+        "tests/preview-range.mjs"
+      ],
+      "boundary_probes": false,
+      "browser_executed": false,
+      "performance_executed": false,
+      "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "source_anchor": "EB22",
+      "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+    }
+  ]
+}

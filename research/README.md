@@ -4,7 +4,7 @@
 
 Start with the [item directory](ITEMS.md), using its full stable key. Each item
 owns its definition, stages, current decision, history and evidence index.
-The [identity index](index.json) covers all 436 records, including missing
+The [identity index](index.json) covers all 439 records, including missing
 definitions and distinct mechanisms with reused R-numbers.
 
 The [current stage summary](STATUS.md) and [latest advancement campaign](campaigns/2026-09-19-stage-advancement.md) distinguish new execution from evidence reconciliation.
@@ -59,4 +59,4 @@ Production decision: [R006 non-isolated remux](items/R006.offer-a-non-pthread-re
 New imported batches:
 
 - [Focused batch 22: D86–D88](campaigns/focused-research-batch22.md) — component screens with original evidence, linked to existing owners.
-- [Ecosystem expansion: EB01–EB22](campaigns/ecosystem-expansion-2026-09-21.md) — 38 additional source-review targets; canonical novelty reconciliation pending.
+- [Ecosystem expansion: EB01–EB22](campaigns/ecosystem-expansion-2026-09-21.md) — 22 proposals evaluated and integrated into 19 existing owners and 3 new homes; explicit follow-up and deferred gates are listed in the campaign.

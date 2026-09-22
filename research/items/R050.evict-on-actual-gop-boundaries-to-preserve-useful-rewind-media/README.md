@@ -110,3 +110,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D53 — A sub-millisecond eviction error can discard a full extra GOP**: regression_only. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch11_D52-D55/demuxe_batch11/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+## Ecosystem follow-up EB02
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **regression_only**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The current pump evicts strictly before a known RAP; R050 already retains real-MSE evidence for the 4.0001 adverse cutoff. Current contract tests cover the same guard. Broader B-frame/preroll refill behavior is not requalified by these Node checks.
+
+Next gate / reopening condition: Keep the strict-before-RAP regression. Reopen only for a reproduced long-GOP/configuration/preroll refill failure in a maintained browser route.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

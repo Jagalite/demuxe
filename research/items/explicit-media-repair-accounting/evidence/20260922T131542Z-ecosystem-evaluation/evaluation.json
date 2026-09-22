@@ -1,0 +1,42 @@
+{
+  "id": "EB19",
+  "title": "Expose repairs and resynchronization instead of silently discarding data",
+  "owner": "explicit-media-repair-accounting",
+  "mapping": "new_item",
+  "evaluation_status": "complete",
+  "outcome": "followup_required",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Remux records errors/gap skips and performs bounded timestamp/configuration repairs, but there is no uniform input/output-range repair ledger in the inspected native/JS interface. Existing typed route errors distinguish interruption from incompatibility; they do not account for every repaired field or skipped byte.",
+  "novelty": "New diagnostic/fidelity home. R131 repair search, R311 trusted corruption repair and codec-specific normalization do not own cross-operation repair provenance.",
+  "next_action": "Start with existing AAC timestamp and AVC/HEVC DTS repairs: emit bounded reason/source-epoch/input-output identities with unchanged-media controls. Then inject junk, truncated init and inconsistent metadata; distinguish strict rejection, requested salvage and live concealment before broadening.",
+  "reopen_condition": "Do not turn a permissive parser into an automatic arbitrary-file fixer. Avoid implementing validation rules that cannot be sourced or independently checked.",
+  "proposal_contract": {
+    "Proposed mechanism": "Every skip, repaired field, inferred duration or rejected metadata element has an explicit reason and input/output range. Separate strict-file fidelity, explicit salvage and live concealment policies.",
+    "Smallest useful experiment": "Inject junk between audio frames, malformed EBML sizes, truncated initialization and metadata disagreements. Compare strict, diagnostic and opt-in repair paths.",
+    "Correctness gate": "No silent data loss classified as preservation; unchanged path remains byte-identical when valid; repair budget bounded; unsupported semantics return an explicit outcome.",
+    "Measure only after correctness": "Correct admission, trustworthy diagnostics and fewer hidden fidelity failures; validation overhead measured separately."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/remux/remux.c",
+      "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+    },
+    {
+      "path": "web/native-remux-player.js",
+      "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+    },
+    {
+      "path": "src/internal/runtime-capability.ts",
+      "sha256": "c1fde8a04cf36468f5db3ad0762160158bdfb221c37c4aafa6a8aade2464c2b3"
+    }
+  ],
+  "executed_contracts": [
+    "tests/repair-evidence-contracts.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB19",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

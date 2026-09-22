@@ -17,7 +17,7 @@
       "line_end": 342,
       "source_kind": "proposal"
     },
-    "source_excerpt": "Audio \u00b7 New optimization hypothesis \u00b7 P1 \u00b7 Risk: Medium First environment: Matching mpv audio path + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Account for source, mpv-filter, AudioContext and device-side rates as separate stages. Compare output policies that eliminate redundant intermediate conversion and tune bounded PCM batches to playback rather than per-packet message timing. Source basis. mpv documents insertion of swresample when its selected output rate differs from media. Web Audio has context-rate processing; Chrome\u2019s worklet guidance separates compute workers from real-time output. [V1, A1, A2] First agent experiment. Trace the actual rate/layout at every accessible stage for 44.1 and 48 kHz files. Compare existing buffering against a small set of PCM batch sizes under seek, rate change and simulated worker delay.",
+    "source_excerpt": "Audio · New optimization hypothesis · P1 · Risk: Medium First environment: Matching mpv audio path + browser. Dependencies: None; verify prerequisites locally. Status: Untested hypothesis. Proposed mechanism. Account for source, mpv-filter, AudioContext and device-side rates as separate stages. Compare output policies that eliminate redundant intermediate conversion and tune bounded PCM batches to playback rather than per-packet message timing. Source basis. mpv documents insertion of swresample when its selected output rate differs from media. Web Audio has context-rate processing; Chrome’s worklet guidance separates compute workers from real-time output. [V1, A1, A2] First agent experiment. Trace the actual rate/layout at every accessible stage for 44.1 and 48 kHz files. Compare existing buffering against a small set of PCM batch sizes under seek, rate change and simulated worker delay.",
     "related_reports": [],
     "scope_hash": "111a6a6451c9b64b1341a74f2512cafa884feb5a9b626533668579b434839966",
     "legacy_guide_aliases": [],
@@ -138,5 +138,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB11",
+      "evaluation_status": "complete",
+      "outcome": "no_new_work_current_scope",
+      "path": "research/items/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Keep the existing stop. Reopen with a pre-gesture producer/occupancy trace or measured callback deadline miss; do not infer callback timing from Node execution."
+    }
+  ]
 }

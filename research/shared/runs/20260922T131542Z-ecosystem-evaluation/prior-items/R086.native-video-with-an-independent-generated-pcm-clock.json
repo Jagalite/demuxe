@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "key": "R086.native-video-with-an-independent-generated-pcm-clock",
+  "title": "Native video with an independent generated-PCM clock",
+  "definition": {
+    "key": "R086.native-video-with-an-independent-generated-pcm-clock",
+    "legacy_id": "R86",
+    "legacy_number": 86,
+    "identity_branch": "report-defined",
+    "title": "Native video with an independent generated-PCM clock",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S039",
+      "path": "sources/reports/R82-R87-report.md",
+      "sha256": "dcc63ab3a83f8aa8324d5f2abfe0e9baaf8e171ef3f67e524a37e3fb5efc4263",
+      "line_start": 76,
+      "line_end": 91,
+      "source_kind": "report"
+    },
+    "source_excerpt": "AudioContext.audioWorklet is not exposed on the permitted opaque page, so the intended AudioWorklet implementation is blocked. A ScriptProcessor fallback generated a 440 Hz PCM signal whose phase was derived from an explicit media-time mapping. Native video remained on its own media element. The controller rebased the audio mapping after the first video frame, after a seek to 5 s, and again when playback rate changed to 1.5\u00d7. Across three runs, median absolute drift summaries were: This measures agreement between the two browser clocks/models, not acoustic speaker output. ScriptProcessor is only a fallback feasibility tool. Still, the result weakens the assumption that a second browser audio clock is intrinsically unusable: with explicit synchronization transactions, the modeled drift stayed in the low-millisecond range here.",
+    "related_reports": [],
+    "scope_hash": "6b338b1ff85d1f01d7f50725b5399054832ab69074ba2c701c9751798dd2f680",
+    "legacy_guide_aliases": [],
+    "family": "route",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E0",
+    "qualification_burden": "Q3",
+    "priority_band": 1,
+    "initial_rank": 22,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used.",
+    "minimum_probe": "Prerequisite-only first: Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route. If absent, record HOLD_ENV; if present, decide whether the small probe is warranted. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "initial_screen": "Trace actual input representation, requested tracks/features, current accepted plan and the decoder boundary. Check whether this adapter or destination is already used. Use one tiny admitted source plus one unsupported/near-boundary control through the existing destination or adapter; compare required output identity with the cheapest correct route. No broad codec port.",
+    "primary_metric": "Correct additional admitted source/destination capability; otherwise full startup and CPU/resource cost.",
+    "scope_contract": "Configuration and ordered codec payloads where copy is intended; requested frames/audio/timeline/features at the declared output boundary.",
+    "negative_control": "Alter one admission-critical configuration, remove a required dependency, or preserve video while making selected audio unsupported. Candidate must reject or use a declared fallback.",
+    "stop_boundary": "Stop before a new demuxer, player, codec build family or delivery service is needed. Record precisely which next implementation would unlock the screen.",
+    "shared_prerequisite": "Exact destination/configuration and existing source/worker assets; feature availability is not a pass for the complete route.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "conditional",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Original exact full-key scope plus bounded profile and falsifier recorded.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Real generated fixtures, independent output reference, adverse controls, commands and source/runtime hashes pinned.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Actual component executed without fallback.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Actual worklet output-timestamp feedback with bounded video-rate adjustment and starvation pause was compared in3 alternating trace pairs. Correctness35ms settled digital-clock bound: True; median95th absolute error baseline0.027766s candidate0.014008s, predeclared performance gate True. Old epoch callback is actually rejected without publishing ring frames; seek/rate/recovery, tone, wrong+200ms mapping and close controls exercised.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Actual worklet output-timestamp feedback with bounded video-rate adjustment and starvation pause was compared in3 alternating trace pairs. Correctness35ms settled digital-clock bound: True; median95th absolute error baseline0.027766s candidate0.014008s, predeclared performance gate True. Old epoch callback is actually rejected without publishing ring frames; seek/rate/recovery, tone, wrong+200ms mapping and close controls exercised.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Fresh measurements and all meaningful failed variants retained in immutable run.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "pursue: Generated-PCM digital clock controller only; acoustic A/V synchronization, decoded-audio pitch preservation and production admission remain separate. Reopen for a real integrated player workload.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "audio-executed-stage-closure",
+    "record": {
+      "key": "R086.native-video-with-an-independent-generated-pcm-clock",
+      "recorded_at_utc": "2026-09-19T20:50:39.914275+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T205039Z-clock-feedback"
+      ],
+      "evidence_level": "actual_component_execution",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Actual worklet output-timestamp feedback with bounded video-rate adjustment and starvation pause was compared in3 alternating trace pairs. Correctness35ms settled digital-clock bound: True; median95th absolute error baseline0.027766s candidate0.014008s, predeclared performance gate True. Old epoch callback is actually rejected without publishing ring frames; seek/rate/recovery, tone, wrong+200ms mapping and close controls exercised.",
+      "next_action": "Generated-PCM digital clock controller only; acoustic A/V synchronization, decoded-audio pitch preservation and production admission remain separate. Reopen for a real integrated player workload.",
+      "reopen_condition": "Generated-PCM digital clock controller only; acoustic A/V synchronization, decoded-audio pitch preservation and production admission remain separate. Reopen for a real integrated player workload.",
+      "evidence": [
+        "research/shared/runs/20260919T205039Z-clock-feedback/run.json"
+      ]
+    }
+  },
+  "next_action": "Generated-PCM digital clock controller only; acoustic A/V synchronization, decoded-audio pitch preservation and production admission remain separate. Reopen for a real integrated player workload.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

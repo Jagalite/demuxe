@@ -53,3 +53,13 @@ association was invented during migration.
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/sources/proposals/Demuxe_Routing_Optimization_Ideas.md)
 - [results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md](../../../results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/work/batch_d/audits/R014.avoid-duplicate-resampling-and-oversized-audio-work-batches.md)
+
+## Ecosystem follow-up EB11
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The AO rejects writes beyond a fixed ring capacity, reports free/queued samples, negotiates context sample rate and separates pause from consumption. Current tests exercise variable output quantum and empty input. No new oversized batch or duplicate-resample workload is established.
+
+Next gate / reopening condition: Keep the existing stop. Reopen with a pre-gesture producer/occupancy trace or measured callback deadline miss; do not infer callback timing from Node execution.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

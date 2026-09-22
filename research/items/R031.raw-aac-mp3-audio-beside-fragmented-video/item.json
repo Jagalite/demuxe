@@ -17,7 +17,7 @@
       "line_end": 55,
       "source_kind": "proposal"
     },
-    "source_excerpt": "New route candidate \u00b7 P1 \u00b7 extends R15 \u00b7 PROPOSED \u2014 NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
+    "source_excerpt": "New route candidate · P1 · extends R15 · PROPOSED — NOT TESTED IN THIS PASS Hypothesis. For a controlled MSE presentation, avoid wrapping an already usable compressed audio elementary stream in MP4. Keep H.264 video in its own fMP4 buffer and try raw ADTS AAC or MPEG audio in the audio buffer, with one video element owning A/V playback. New question versus prior work. R15 changed audio codecs inside MP4 packaging. This asks whether the audio mux stage can be omitted entirely. It is not a replacement for original Native playback when that already works. Source primitive. The MPEG-audio MSE note defines audio/aac and audio/mpeg. The registry marks these as generated-timestamp streams. [S1, S2] Why testable here. Uses native FFmpeg packaging and ordinary window MSE. Tiny destination checks can run using injected bytes, without a secure-origin encoder or new Wasm.",
     "related_reports": [
       {
         "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
@@ -134,5 +134,16 @@
   },
   "qualification": {
     "status": "not_assessed_by_migration"
-  }
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB12",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "path": "research/items/R031.raw-aac-mp3-audio-beside-fragmented-video/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Select a real source whose cheapest unchanged route fails, then compare exact compressed frames and decoded timing/channels across the specific wrapper; charge parse/mux/setup. Preserve working direct playback."
+    }
+  ]
 }

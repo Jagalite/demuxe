@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+  "title": "Cache prepared media by timeline and transformation recipe",
+  "definition": {
+    "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+    "legacy_id": "R18",
+    "legacy_number": 18,
+    "identity_branch": "proposal",
+    "title": "Cache prepared media by timeline and transformation recipe",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S002",
+      "path": "sources/proposals/Demuxe_Routing_Optimization_Ideas.md",
+      "sha256": "4ec4c212d04226edecd5631a588253a03ce09195cfe20c858690049c20da7084",
+      "line_start": 400,
+      "line_end": 418,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Caching \u00b7 New optimization hypothesis \u00b7 P2 \u00b7 Risk: Medium First environment: Demuxe source + browser. Dependencies: R01. Status: Untested hypothesis. Proposed mechanism. Cache bounded already-generated fragments and initialization data for repeated seeks/replays. Key by immutable source identity, selected tracks, decoder/encoder profile, timeline origin and exact runtime recipe; do not reuse only by URL and time. Source basis. FFmpeg exposes fragmented output, while MSE can reuse valid media segments in a reconstructed presentation. The cache policy and correctness key are proposed Demuxe work. [F1, M1] First agent experiment. Replay a recently converted interval, switch away/back to the same audio, and replace a source at the same URL. Compare generated work, seek delay and total retained bytes against the uncached path.",
+    "related_reports": [],
+    "scope_hash": "4c139e055bc51f1b1d7893eaa5e8a70252449d1597bfde68127a59ff6a0c6d56",
+    "legacy_guide_aliases": [],
+    "family": "tooling",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 60,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness.",
+    "minimum_probe": "Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "initial_screen": "Specify one concrete wrong-output or provenance failure the proposed tool must detect beyond the existing harness. Inject that failure in a tiny known-good fixture, demonstrate detection and run an unchanged control; do not build a general research platform.",
+    "primary_metric": "Decision power, reproducibility or diagnostic cost without changing the measured player outcome.",
+    "scope_contract": "Independent known truth plus a specific expected observation, not self-reported counters from the candidate.",
+    "negative_control": "A different failure, stale source/hash or malformed record must not count as the intended finding.",
+    "stop_boundary": "No dashboard, generic planner or broad testing framework. Retain a small reproducible assertion and move to the next item.",
+    "shared_prerequisite": "Existing fixtures and minimal observation surface; instrumentation overhead must be recorded separately.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [
+      {
+        "key": "R200.content-addressed-reuse-across-different-files",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      },
+      {
+        "key": "R334.share-one-demux-pass-across-independent-playback-and-export-timelines",
+        "relation": "REVIEW_OVERLAP_NOT_A_VERDICT",
+        "note": "Reusable bytes/groups/packets under independent authority and timelines."
+      }
+    ],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R018.cache-prepared-media-by-timeline-and-transformation-recipe.md"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Historical fixture/runtime setup and actual outputs reconciled; latest declared artifact hashes match. No new setup or execution.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical outcome retained and individually reconciled. Prepared fragment artifact cache hit returns exact bytes; five independent source/track/interval/recipe/runtime identity changes miss; corrupt entry rejects and entry limit is 1 MiB. Accepted immutable artifact cache component, no production concurrent cache lifecycle.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Prepared fragment artifact cache hit returns exact bytes; five independent source/track/interval/recipe/runtime identity changes miss; corrupt entry rejects and entry limit is 1 MiB. Accepted immutable artifact cache component, no production concurrent cache lifecycle.",
+      "evidence": [
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/acceptance-review.json",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/analysis.md",
+        "research/shared/runs/20260919T201644Z-top100-31-65-reconciliation/manifest.json",
+        "results/top100/ownership/result.json"
+      ]
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate.",
+      "evidence": [
+        "research/shared/runs/20260919T205700Z-prepared-cache-cost/run.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate.",
+      "evidence": [
+        "research/shared/runs/20260919T205700Z-prepared-cache-cost/run.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate.",
+      "evidence": [
+        "research/shared/runs/20260919T205700Z-prepared-cache-cost/run.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "key": "R018.cache-prepared-media-by-timeline-and-transformation-recipe",
+    "disposition": "pursue",
+    "evidence_level": "actual_repeated_interval_complete_cost",
+    "new_media_execution": true,
+    "reason": "Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate.",
+    "next_action": "Scoped repeated-video-interval component research complete. Production browser cache integration must carry full immutable source/track/recipe/runtime identity and bounded retention; measure real hit rate separately.",
+    "stages": {
+      "performance": {
+        "status": "passed",
+        "basis": "Cold-empty-cache five-open jobs: nine alternating pairs, complete host remux/decode/output copies and source/recipe identity verification included. Every decoded picture equals original H264 oracle; four changed identities miss, poisoned prepared bytes reject. Median complete cost368.54ms uncached versus206.43ms cached; paired median saving39.48%,95%bootstrap[32.82,48.81] passes declared10% gate."
+      }
+    },
+    "recorded_at_utc": "2026-09-19T21:01:39.073225+00:00",
+    "run_ids": [
+      "20260919T205700Z-prepared-cache-cost"
+    ],
+    "stage": "decision",
+    "evidence": [
+      "research/shared/runs/20260919T205700Z-prepared-cache-cost/run.json"
+    ]
+  },
+  "next_action": "Scoped repeated-video-interval component research complete. Production browser cache integration must carry full immutable source/track/recipe/runtime identity and bounded retention; measure real hit rate separately.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  }
+}

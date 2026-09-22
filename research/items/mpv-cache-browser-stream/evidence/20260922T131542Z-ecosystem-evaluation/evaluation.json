@@ -1,0 +1,47 @@
+{
+  "id": "EB03",
+  "title": "Advertise cache capabilities, not one ambiguous buffered value",
+  "owner": "mpv-cache-browser-stream",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "Diagnostics already separate source-cache bytes, mpv demuxer-cache-state, Native buffered/seekable ranges and packet budgets. Native seek readiness checks actual coverage and RAP presence. A new universal readiness enum is not justified by the current API.",
+  "novelty": "Merge into the existing cache investigation; cue-less index items do not own general cache semantics.",
+  "next_action": "Retain existing distinct diagnostics. Reopen when a consumer needs a decoder-ready or cross-track readiness contract that these fields cannot express; include sparse-track and missing-audio output witnesses.",
+  "reopen_condition": "If upstream mpv already provides the needed state, wire and qualify it rather than implement another cache. Never infer all tracks ready from video bytes alone.",
+  "proposal_contract": {
+    "Proposed mechanism": "Distinguish raw bytes available, demuxed packets available, decoder-ready closure, browser-buffered media and a verified seekable interval. Reuse mpv knowledge instead of duplicating it.",
+    "Smallest useful experiment": "Compare cache reports for a sparse subtitle track, missing audio, cue-less file and a source whose byte cache is full but recovery point is absent.",
+    "Correctness gate": "Every exposed readiness level has a demonstrable operation that succeeds; source replacement invalidates observations; sparse tracks do not deadlock unrelated playback.",
+    "Measure only after correctness": "Fewer unnecessary reopen/read operations and more truthful diagnostics; not an automatic steady-state CPU gain."
+  },
+  "reviewed_sources": [
+    {
+      "path": "src/internal/wasm-player.ts",
+      "sha256": "766835c59c8cb04bae38aabd2be4adecac184a5f09252d0f6c7918569ed28765"
+    },
+    {
+      "path": "src/internal/native-player.ts",
+      "sha256": "cea75798966adb77bc052515e952f57c999e1918790cd95fcff6770eb0d9d82f"
+    },
+    {
+      "path": "src/internal/buffering.ts",
+      "sha256": "7ec170eb7fc3f92ddb68b5347ecd8bc1a4848a97fab656017c2b52da9e3ec97a"
+    },
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    }
+  ],
+  "executed_contracts": [
+    "tests/buffering-policy.mjs",
+    "tests/seek-boundary-contracts.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB03",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

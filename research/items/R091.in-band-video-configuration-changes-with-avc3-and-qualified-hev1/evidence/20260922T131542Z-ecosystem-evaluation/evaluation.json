@@ -1,0 +1,38 @@
+{
+  "id": "EB08",
+  "title": "Delay mux initialization until actual output configuration is known",
+  "owner": "R091.in-band-video-configuration-changes-with-avc3-and-qualified-hev1",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The remuxer inspects actual AAC packets when extradata is absent, prepares selected-track configuration before write_header, and rejects changed video extradata with a new-initialization requirement. That source ordering does not prove delayed browser-encoder or later dynamic reconfiguration support.",
+  "novelty": "R091 owns configuration epochs. R059 payload projection does not own encoder output initialization.",
+  "next_action": "When introducing a browser encoder, gate init on bounded first outputs of every selected track; test mismatched requested/actual config, a delayed track, cancellation and a later epoch before admission.",
+  "reopen_condition": "If the existing FFmpeg route already handles this ordering, add tests only around new browser-encoder or module boundaries. Do not infer dynamic support from initial extradata setup.",
+  "proposal_contract": {
+    "Proposed mechanism": "Prepare bounded initial output from every selected encoded track, collect required decoder configuration, then commit a compatible initialization segment. Later changes create a qualified configuration epoch.",
+    "Smallest useful experiment": "Delay one track’s first packet, return encoder-derived configuration different from the request, cancel before admission and introduce a later config change.",
+    "Correctness gate": "Init configuration matches actual packets; no media emitted against stale config; no unbounded first-track queue; errors release provisional state; selected audio/video timing preserved.",
+    "Measure only after correctness": "Avoided failed startup/reopen and bounded provisional memory; any latency reduction must include first-output preparation."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/remux/remux.c",
+      "sha256": "b60ebf59c8a49144f2b59eb9771d3bdcc326bd915624eff5adbe89e21ae40e2d"
+    },
+    {
+      "path": "web/native-remux-worker.js",
+      "sha256": "f9227e3d0b08aabf1057b1dd2d1f2c9a59d22b27faa0a64e07c02032336fdb8f"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-packaging-contracts.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB08",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

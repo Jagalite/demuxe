@@ -1,0 +1,42 @@
+{
+  "id": "EB15",
+  "title": "Use consumer-owned source-priority and cancellation leases",
+  "owner": "R208.make-cancellation-follow-media-dependency-boundaries",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The current preview path uses copied resident bytes or an isolated low-priority reader; playback preempts background reads and preview cancellation does not cancel playback. Shaka preview policies fork their network owner. Executed tests cover this supported ownership model, not shared torrent subscription leases.",
+  "novelty": "R208 owns cancellation. Dropped R006 and R176 are rejected as dependency links; the proposal does not restore non-pthread or JSPI paths.",
+  "next_action": "Retain isolated preview ownership. Introduce shared leases only for a requested shared scheduler and demonstrate overlapping consumers, stale verified blocks and independent cancellation; never seek/flush the main decoder for previews.",
+  "reopen_condition": "Do not duplicate an already correct source scheduler. WebTorrent’s local iterator does not prove the scheduler’s overlap accounting; inspect that layer before adoption.",
+  "proposal_contract": {
+    "Proposed mechanism": "Attach requested ranges/groups, priorities and cancellation to playback, preview and inspection consumers. Releasing one consumer removes only its demand, not shared work still needed elsewhere.",
+    "Smallest useful experiment": "Overlap playback and preview reads, cancel the preview, replace the source and deliver a late verified block. Inspect scheduler selections and producer completion.",
+    "Correctness gate": "Playback continues; canceled consumers receive no stale data; shared verified data stays usable; no orphan demand/listener; unverified bytes never enter a trusted parser path.",
+    "Measure only after correctness": "Unnecessary fetched/verified bytes and cancel-to-quiescence time, preserving useful shared reads."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    },
+    {
+      "path": "src/preview/controller.ts",
+      "sha256": "62794d0fa2c8c2af0472cb91a0f571713a17c24851d6b9d63a647563eb4f07f2"
+    },
+    {
+      "path": "src/internal/shaka-network.ts",
+      "sha256": "36e944a911fd309191c598b7438c98cefc6d36d7ac62d064e505f4817ec913d1"
+    }
+  ],
+  "executed_contracts": [
+    "tests/preview-range.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB15",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

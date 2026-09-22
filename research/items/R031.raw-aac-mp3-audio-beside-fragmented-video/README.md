@@ -23,3 +23,13 @@ No production integration or release qualification. Original provisional directo
 | decision | passed |
 
 [Run](../../shared/runs/20260919T214510Z-mixed-tracks/run.json) · [Analysis](../../shared/runs/20260919T214510Z-mixed-tracks/analysis.md) · [Manifest](../../shared/runs/20260919T214510Z-mixed-tracks/manifest.json) · [History](history.jsonl) · [Evidence](evidence/index.json)
+
+## Ecosystem follow-up EB12
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **deferred_until_trigger**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Packet-copy remux and destination-specific packaging already exist. R031 has scoped raw-audio evidence and R032 records a working direct AVC/Vorbis baseline. The external wrapper list does not expose a new unsupported source or prove a faster browser decoder.
+
+Next gate / reopening condition: Select a real source whose cheapest unchanged route fails, then compare exact compressed frames and decoded timing/channels across the specific wrapper; charge parse/mux/setup. Preserve working direct playback.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

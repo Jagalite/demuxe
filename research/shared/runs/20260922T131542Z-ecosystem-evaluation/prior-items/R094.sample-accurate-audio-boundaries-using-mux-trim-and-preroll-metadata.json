@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+  "title": "Sample-accurate audio boundaries using mux trim and preroll metadata",
+  "definition": {
+    "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+    "legacy_id": "R94",
+    "legacy_number": 94,
+    "identity_branch": "proposal",
+    "title": "Sample-accurate audio boundaries using mux trim and preroll metadata",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S041",
+      "path": "sources/proposals/R88-R101-research-backlog.md",
+      "sha256": "a22344109cea677cdee8658c8a81e27d7fa6c2e6f33bd6ae8d7d6691f8dd882c",
+      "line_start": 208,
+      "line_end": 234,
+      "source_kind": "proposal"
+    },
+    "source_excerpt": "Question. Can a compressed audio excerpt have exact audible boundaries without decoding and re-encoding its edge? What differs from earlier work. Deepens excerpt/queue work: the new target is sample-domain trim semantics rather than packet alignment or visible clock continuity. Input scope. Start with Ogg Opus direct playback, whose pre-skip and end-trim semantics explicitly support encoded-stream cropping; WebM and MP4 are separately qualified mappings. Mechanism to test. Keep the encoded frames needed for decoder state, then describe which leading/trailing decoded samples should be omitted through appropriate container metadata. Smallest experiment. 1. Start with Ogg Opus whole-stream priming/end-trimming and arbitrary sample-accurate crops, then test equivalent WebM/MP4 constructions separately. 2. Cut a deterministic impulse/tone source inside a codec frame with explicit preroll. 3. Compare decoded and captured browser output lengths and boundary markers, then concatenate short excerpts.",
+    "related_reports": [
+      {
+        "identity_match": "REVIEW_MECHANISM_BEFORE_USING_VERDICT",
+        "source_key": "S040",
+        "path": "sources/reports/R88-R101-report.md",
+        "sha256": "b40f8c6ccf662c694c5904d5cce2009ad6707493f652cac86d0e35eef9ddb1a0",
+        "line_start": 79,
+        "line_end": 94,
+        "source_kind": "report",
+        "reported_heading": "sample-accurate compressed Opus crop — PROMISING"
+      }
+    ],
+    "scope_hash": "7affc730fd0255b95ff85622728b53f9b8631031fc867f082c9a439621bac7f7",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E2",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 160,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source contract refined to explicit component profile and exclusions in current decision.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Generated fixtures, source/runtime identities, baseline/oracle and adverse controls pinned in shared run.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Copied-packet Ogg Opus sample crop is feasible: host and Chrome each produce exactly the expected 55545-sample source slice; 72 packet payload hashes match and missing crop pre-skip fails the length oracle.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Bounded retained-prefix Ogg crop matches independent continuous-source slices exactly in host and Chrome; wrong pre-skip rejected, contexts closed.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "This run answers sample fidelity, not speed; retains the full compressed prefix and makes no performance claim.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Positive, negative and setup-failure observations preserved with source/output manifest and commands.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Scoped pursue decision; no production integration or release qualification.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "audio-stage-reconciliation",
+    "record": {
+      "key": "R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata",
+      "recorded_at_utc": "2026-09-19T20:07:16.715931+00:00",
+      "stage": "decision",
+      "disposition": "pursue",
+      "state": "pursue",
+      "run_ids": [
+        "20260919T200716Z-ogg-crop"
+      ],
+      "evidence_level": "component_test",
+      "profile": "Mono Ogg Opus at 48kHz, interior samples 12345:67890, complete decoder prefix retained, host and browser decodeAudioData",
+      "candidate_executed": true,
+      "fallback_observed": false,
+      "reason": "Copied-packet Ogg Opus sample crop is feasible: host and Chrome each produce exactly the expected 55545-sample source slice; 72 packet payload hashes match and missing crop pre-skip fails the length oracle.",
+      "next_action": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
+      "reopen_condition": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
+      "evidence": [
+        "research/shared/runs/20260919T200716Z-ogg-crop/run.json"
+      ]
+    }
+  },
+  "next_action": "Qualify minimal retained preroll and concatenated playback only if needed; retain separate destination gates for WebM, MP4 and MSE.",
+  "integration": {
+    "status": "not_integrated"
+  },
+  "qualification": {
+    "status": "not_release_qualified"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D63"
+      ],
+      "path": "research/items/R094.sample-accurate-audio-boundaries-using-mux-trim-and-preroll-metadata/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ],
+  "external_followups": [
+    {
+      "run_id": "20260921T030620Z-screened-owner-completion",
+      "ids": [
+        "D63"
+      ],
+      "path": "research/shared/runs/20260921T030620Z-screened-owner-completion/triage.json",
+      "outcomes": {
+        "D63": "deferred_profile_followup"
+      }
+    }
+  ]
+}

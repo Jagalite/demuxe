@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "key": "reconnect-overlap-identity",
+  "title": "Recover reconnect overlap with explicit identity and confidence levels",
+  "definition": {
+    "hypothesis": "Try bounded exact compressed-sequence overlap first; use PCM correlation only for an explicitly permitted alternative-source alignment. Record exact, estimated, ambiguous and unmatched outcomes.",
+    "scope_contract": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately.",
+    "baseline": "Current maintained owners at the recorded source revision; unchanged VOD and Shaka policies.",
+    "success_criteria": "Exact mode does not drop unique samples; byte-verify hash candidates; approximate mode reports confidence and bounded offset; ambiguous matches fall back without claiming continuity.",
+    "stop_criteria": "Do not use correlation as a fidelity oracle or automatically delete data on a hash hit. Keep this out of ordinary VOD seeking unless its source contract calls for it.",
+    "primary_metric": "Repeated-audio/stall avoidance, bounded alignment work and recovery latency; quality changes remain explicit.",
+    "negative_control": "Reconnect with duplicated compressed frames, changed packetization, a separately encoded overlap, silence, periodic audio and deliberate CRC-collision/false-match controls.",
+    "effort_limit": "This run: canonical deduplication, current-source screening and selected contract probes. Media implementation/qualification is a separate run.",
+    "definition_source": {
+      "path": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+      "sha256": "dc5dadeb7dc80f8f419f2ca3d18b8aa05d0568c564faaad8b6b7dd06144f4c85"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "prepare": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "correctness": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Source-screen stop: no current consumer for this new policy. Reopen only under the recorded trigger.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Bounded current-source screening and canonical novelty assessment; no new media implementation executed.",
+      "evidence": [
+        "research/shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "stop_current_profile",
+      "reason": "The inspected maintained sources provide bounded VOD ranges and packaged Shaka streaming, not an Icecast compressed-overlap or alternate-encoding alignment owner. Exact sequence overlap and estimated PCM correlation are distinct from R220 clock normalization and R060 captions.",
+      "scope": "Source screening only",
+      "evidence_level": "current_source_review",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "at": "2026-09-22T13:21:09.078983+00:00"
+    }
+  },
+  "next_action": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started"
+  },
+  "whole_player_qualification": {
+    "status": "not_required_by_current_scoped_decision"
+  },
+  "research_followups": [
+    {
+      "campaign": "ecosystem-expansion-2026-09-21",
+      "run_id": "20260922T131542Z-ecosystem-evaluation",
+      "id": "EB16",
+      "evaluation_status": "complete",
+      "outcome": "deferred_until_trigger",
+      "path": "research/items/reconnect-overlap-identity/evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json",
+      "next_action": "Reopen only for an explicit reconnecting audio source contract. Byte-verify hash candidates, retain unique samples, bound overlap, reject silence/periodic ambiguity and label estimated alternate-source alignment separately."
+    }
+  ]
+}

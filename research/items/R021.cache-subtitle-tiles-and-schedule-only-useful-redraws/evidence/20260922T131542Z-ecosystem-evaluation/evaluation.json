@@ -1,0 +1,40 @@
+{
+  "id": "EB18",
+  "title": "Reuse subtitle content independently of placement updates",
+  "owner": "R021.cache-subtitle-tiles-and-schedule-only-useful-redraws",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "followup_required",
+  "evidence_level": "current_source_review",
+  "finding": "Current rendering already suppresses unchanged output and closes discarded bitmaps. The standalone libass bridge treats any nonzero change as bitmap work; position-only changes are not separately exposed there. The current mpv subtitle service is another boundary and must be measured separately. R021's cold-owner failed benefit gate is retained.",
+  "novelty": "R021 directly owns subtitle reuse. New position-only work is a conditional extension, not evidence that the prior negative disappeared.",
+  "next_action": "Compare position-only versus content changes on a persistent moving-ASS workload, font replacement and resize; independently verify glyph/color/placement and measure full rendering/upload cost before adding a tile cache.",
+  "reopen_condition": "R021 remains scoped by its existing negative result. This is only a reopening candidate if the change-class boundary removes work the prior experiment did not.",
+  "proposal_contract": {
+    "Proposed mechanism": "Use renderer-provided output-change classes to separate unchanged content from position updates, while respecting frame/image lifetimes and font/layout generations.",
+    "Smallest useful experiment": "Exercise static captions, moving ASS text, karaoke, font replacement and viewport resize; compare a full redraw baseline with reuse of unchanged content only.",
+    "Correctness gate": "Independent libass/image reference where possible, identical required glyphs/colors/positions at sampled times, no stale pointer use or missed animated change.",
+    "Measure only after correctness": "Rasterizations/uploads versus placement updates and actual whole-player cost; no benefit assumed on already cached overlays."
+  },
+  "reviewed_sources": [
+    {
+      "path": "native/subtitles/ass.c",
+      "sha256": "c899e47f4672e4ecdc854c57ac841543b4ae40feff8966dbabac76712e9ba202"
+    },
+    {
+      "path": "src/internal/native-mpv-subtitles.ts",
+      "sha256": "fd920e734e11692c81a7391ccf4e62da806fe4d13d1ab655026234b78b83f979"
+    },
+    {
+      "path": "web/mpv-subtitle-worker.js",
+      "sha256": "61194dff8b833d05bb1097ee30cbb66b0cd846f475bfed558cdf16517bafdf9a"
+    }
+  ],
+  "executed_contracts": [],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB18",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

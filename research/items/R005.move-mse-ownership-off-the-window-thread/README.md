@@ -32,3 +32,13 @@ Next action: Research component gates complete for paced ingress under UI load. 
 | decision | passed | Actual matched worker/window MSE benchmark:11 alternating pairs, same bytes/pixels and lifecycle. Under512-byte/8ms paced ingress and45ms/60ms main-thread load, median append completion window1672.4ms versus worker647.9ms; paired savings1023.7ms, bootstrap95% [972.4000000357628, 1025.300000011921]. Predeclared positive-savings gate passes. Unpaced variant adds worker startup cost and finishes before load begins; retained as a scope control. |
 
 [New run](../../shared/runs/20260919T204100Z-worker-paced/run.json) · [Evidence index](evidence/index.json) · [Complete history](history.jsonl) · [Item contract](item.json)
+
+## Ecosystem follow-up EB01
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **followup_required**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Buffered seeking already consults observed media/SourceBuffer ranges and current generation. Append receipts are inserted before appendBuffer; a synchronous failure retains an uncommitted receipt, and browser eviction does not reconcile segment byte accounting. The counter is explicitly an upper bound, so this is an accounting/recovery extension, not demonstrated missing playback.
+
+Next gate / reopening condition: Extend the maintained append owner with bounded intended/committed/failed/observed states only if used for recovery or exact residency reporting. Test synchronous and asynchronous failure, browser eviction, overlapping appends and source replacement in real MSE before measuring avoided work.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

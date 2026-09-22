@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "key": "mpv-cache-browser-stream",
+  "title": "Bounded mpv cache over Demuxe browser RangeReader",
+  "definition": {
+    "hypothesis": "cache=yes improves bounded Hybrid/Software interruption tolerance and packet seek reuse over brange.",
+    "scope_contract": "Four remote VOD files, fixed decode/presentation owners, 32 MiB forward / 8 MiB back packet budgets. Native Direct behavioral reference. No production change.",
+    "baseline": "Current cache=no and Native Direct.",
+    "success_criteria": "Lower network-correlated rebuffer time with equivalent output/decoder identity and bounded cache/memory; preserve counterexamples.",
+    "stop_criteria": "Do not make a qualified performance comparison after failed output or lifecycle gates.",
+    "primary_metric": "Network-correlated rebuffer duration in an eight-second throughput interruption.",
+    "negative_control": "Wrong-time FFmpeg reference picture and current cache=no baseline.",
+    "effort_limit": "Four fixtures x five configurations, targeted repeats, constrained startup and practical rate follow-up.",
+    "definition_source": {
+      "path": "research/items/mpv-cache-browser-stream/PLAN.md",
+      "sha256": "e036f8ab84cccbc7ae7ac29c4b815fa18fcccc2a2ef88322ff60c77a46093330"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Predeclared in PLAN.md before network timing.",
+      "evidence": [
+        "PLAN.md",
+        "evidence/20260920T235500Z-screen-01/results.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Frozen runtime and licensed media with hashes, independent RGB references, controlled Range pacing test passed.",
+      "evidence": [
+        "PLAN.md",
+        "evidence/20260920T235500Z-screen-01/results.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "All five H.264 backend/cache variants executed and cleaned up.",
+      "evidence": [
+        "PLAN.md",
+        "evidence/20260920T235500Z-screen-01/results.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "All 22 corrected v2 cells passed independent pictures, nonzero audio, completed seeks and cleanup. Original acknowledgement-only observation failure retained and excluded from completed-seek claims.",
+      "evidence": [
+        "REPORT.md",
+        "METHOD-NOTES.md",
+        "evidence/metrics.json",
+        "evidence/runs.json"
+      ]
+    },
+    "performance": {
+      "status": "passed",
+      "basis": "20 base 1x network trials, 5 high-bitrate repeat/tuned trials, 10 constrained cold starts, and 5 2x stress trials completed. Single-host exploratory backend results; 2x is not full fidelity qualification.",
+      "evidence": [
+        "REPORT.md",
+        "METHOD-NOTES.md",
+        "evidence/metrics.json",
+        "evidence/runs.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Raw results, property/event samples, request/write logs, CPU/RSS, screenshots, fixture/runtime hashes, original observer failures and derived metrics retained.",
+      "evidence": [
+        "REPORT.md",
+        "METHOD-NOTES.md",
+        "evidence/metrics.json",
+        "evidence/runs.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue further qualification: mpv cache looks promising for Hybrid/Software. Keep shipping defaults unchanged.",
+      "evidence": [
+        "REPORT.md",
+        "METHOD-NOTES.md",
+        "evidence/metrics.json",
+        "evidence/runs.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "record": {
+      "state": "pursue",
+      "date": "2026-09-21T00:40:11.023166+00:00",
+      "scope": "Chrome 152/macOS 26.5.2, frozen Demuxe backends, four movie-derived remote MP4 fixtures, current 32/8 and tuned 24/16 MiB packet budgets.",
+      "reason": "At 1x cache=yes removed the observed ~8s outage freezes; at 2x it reduced interruption count/duration. Same-budget tuning improved a high-bitrate back seek. Preload, byte caps, request deadlines, RTT and broader device qualification remain tradeoffs.",
+      "evidence_level": "actual-route screen and bounded backend measurements",
+      "production_defaults_changed": false,
+      "raw_trial_count": 89,
+      "raw_pass_count": 88,
+      "excluded_observation": "One original acknowledgement-only seek picture failure; all corrected 22 cells passed.",
+      "recommendation": "mpv cache looks promising for Hybrid/Software",
+      "evidence": [
+        "REPORT.md",
+        "evidence/metrics.json",
+        "evidence/runs.json"
+      ]
+    }
+  },
+  "next_action": "Resolve the recorded Firefox Remux seek exception and qualify another low-memory device; investigate latency-amortized bounded source reads separately from cache policy.",
+  "integration": {
+    "status": "implemented_locally",
+    "basis": "User-authorized automatic portable buffering policy on main, uncommitted. Balanced mpv cache=yes 32/8 MiB; routing unchanged. Original experiment evidence and decision retained.",
+    "evidence": [
+      "../../../docs/BUFFERING-VALIDATION.md",
+      "../../../results/buffering/summary/index.json"
+    ]
+  },
+  "qualification": {
+    "status": "incomplete",
+    "basis": "Fresh Chrome/Firefox practical matrices, profile pictures, 18-second outage, RTT, seeks and lifecycle evidence recorded. Remaining release scope includes low-memory device/soak, full 2x fidelity, and the explicit Firefox high-bitrate Remux seek exception; see current validation report."
+  }
+}

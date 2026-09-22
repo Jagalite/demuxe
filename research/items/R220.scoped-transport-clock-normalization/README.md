@@ -34,3 +34,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 **D50 — deferred_profile_followup**: Use only a regression at a demonstrated integer-to-browser-time boundary. Existing rollover normalization remains; do not add a second unconditional post-demux normalizer.
 
 [Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+## Ecosystem follow-up EB17
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Current owners already separate remux source generations, timeline bias, audio epochs and Shaka timeline ownership. R220 records a qualified 33-bit rollover profile. No observed disagreement justifies a second clock normalizer.
+
+Next gate / reopening condition: Keep existing epoch authorities. Reopen only on a trace showing double offset, stale configuration/GOP metadata or premature final drain at a specific owner boundary; include delayed old-epoch events.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

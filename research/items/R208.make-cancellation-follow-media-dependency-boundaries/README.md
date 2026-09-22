@@ -38,3 +38,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 **D12 — deferred_profile_followup**: Keep source-generation publication checks. A real decompression sink/aggregate-budget cancellation stress test remains a separate hardening follow-up; simulated stale-byte counters do not close it.
 
 [Shared report](../../shared/runs/20260921T030620Z-screened-owner-completion/REPORT.md) · [Current item state](item.json) · [Append-only history](history.jsonl).
+
+## Ecosystem follow-up EB15
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+The current preview path uses copied resident bytes or an isolated low-priority reader; playback preempts background reads and preview cancellation does not cancel playback. Shaka preview policies fork their network owner. Executed tests cover this supported ownership model, not shared torrent subscription leases.
+
+Next gate / reopening condition: Retain isolated preview ownership. Introduce shared leases only for a requested shared scheduler and demonstrate overlapping consumers, stale verified blocks and independent cancellation; never seek/flush the main decoder for previews.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

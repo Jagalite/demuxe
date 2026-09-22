@@ -1,0 +1,40 @@
+{
+  "id": "EB21",
+  "title": "Limit live work by dependency-group deadlines, not VOD policy",
+  "owner": "live-dependency-group-deadlines",
+  "mapping": "new_item",
+  "evaluation_status": "complete",
+  "outcome": "deferred_until_trigger",
+  "evidence_level": "current_source_review",
+  "finding": "Live playback already requires explicit Shaka permission; the byte reader is finite VOD. No maintained MoQ dependency-group consumer or loss policy is present in the inspected owners. Existing R208 cancellation and R267 deadline attribution do not authorize dropping required VOD content.",
+  "novelty": "New live-policy home, deferred until a consumer exists. Keep Shaka ownership and dropped JSPI/non-pthread decisions intact.",
+  "next_action": "Reopen for an explicit live transport/latency policy outside the current packaged-stream owner. Test late groups, dependency closure, pause/resume, A/V/subtitle resync and a strict VOD no-drop control; report skipped intervals and latency, not equal-output savings.",
+  "reopen_condition": "No new transport dependency unless product scope needs it. Preserve the existing packaged-stream owner and avoid conflating evolving protocol behavior with standards guarantees.",
+  "proposal_contract": {
+    "Proposed mechanism": "For a declared live-latency policy, stop consuming superseded media groups and select a valid newer random-access group. Tie subscription demand to active playback, not unconditional producer work.",
+    "Smallest useful experiment": "Delay one group while delivering later groups, pause/resume the consumer and vary queue pressure. Run a separate strict-VOD control that must not use lossy skipping.",
+    "Correctness gate": "No display of dependent frames without their closure; skipped intervals reported; timeline and audio/subtitles resynchronize; VOD control retains required content.",
+    "Measure only after correctness": "Live lateness and stale-work reduction under explicit loss policy, not equal-output CPU savings."
+  },
+  "reviewed_sources": [
+    {
+      "path": "src/internal/shaka-backend.ts",
+      "sha256": "bd043467f11c277b9eec2ad7f0ec499d6826a8cb803ce457d9b38593ca1725c9"
+    },
+    {
+      "path": "src/internal/native-player.ts",
+      "sha256": "cea75798966adb77bc052515e952f57c999e1918790cd95fcff6770eb0d9d82f"
+    },
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    }
+  ],
+  "executed_contracts": [],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB21",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

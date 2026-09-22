@@ -70,3 +70,13 @@ and Software's idle render could be counted as a first frame. Those raw values
 remain archived. Use corrected `qualifiedSourceFrame` metrics and v2 completed
 seeks. The corrected 22-cell picture/audio/seek/cleanup matrix passed; the original
 wrong-picture capture is not established as a production defect or cache fix.
+
+## Ecosystem follow-up EB03
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **no_new_work_current_scope**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Diagnostics already separate source-cache bytes, mpv demuxer-cache-state, Native buffered/seekable ranges and packet budgets. Native seek readiness checks actual coverage and RAP presence. A new universal readiness enum is not justified by the current API.
+
+Next gate / reopening condition: Retain existing distinct diagnostics. Reopen when a consumer needs a decoder-ready or cross-track readiness contract that these fields cannot express; include sparse-track and missing-audio output witnesses.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

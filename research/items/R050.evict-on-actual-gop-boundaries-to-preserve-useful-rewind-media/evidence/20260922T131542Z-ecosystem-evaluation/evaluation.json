@@ -1,0 +1,34 @@
+{
+  "id": "EB02",
+  "title": "Evict and refill complete decoding dependency closures",
+  "owner": "R050.evict-on-actual-gop-boundaries-to-preserve-useful-rewind-media",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "regression_only",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The current pump evicts strictly before a known RAP; R050 already retains real-MSE evidence for the 4.0001 adverse cutoff. Current contract tests cover the same guard. Broader B-frame/preroll refill behavior is not requalified by these Node checks.",
+  "novelty": "R050 owns dependency-safe eviction directly; R005/R132/R133 are affected owners, not independent new mechanisms.",
+  "next_action": "Keep the strict-before-RAP regression. Reopen only for a reproduced long-GOP/configuration/preroll refill failure in a maintained browser route.",
+  "reopen_condition": "Do not add unnecessary padding or replay when the current implementation already computes the closure. Prior stopped eviction profiles need a genuinely uncovered case.",
+  "proposal_contract": {
+    "Proposed mechanism": "Eviction and replenishment must preserve or recreate the keyframe/configuration/preroll closure needed by remaining samples, rather than treating all byte intervals as independently playable.",
+    "Smallest useful experiment": "Use a long GOP with B-frames; remove the leading random-access sample, append the dependent tail, then refill from a valid recovery point. Include paused and backward-seek cases.",
+    "Correctness gate": "Independent picture order/timestamps, no claimed playable range without required output, and eventual progress after valid refill; distinguish demux EOS from presentation completion.",
+    "Measure only after correctness": "Seek/recovery success, redundant decode/remux work and retained closure bytes."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/native-remux-player.js",
+      "sha256": "f7de6137f4cd9c701850909a3cc0b905bc8d247b2b65d31d209162a6c1527110"
+    }
+  ],
+  "executed_contracts": [
+    "tests/remux-buffering.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB02",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

@@ -1,0 +1,38 @@
+{
+  "id": "EB13",
+  "title": "Choose seek-versus-skip using validated container boundaries",
+  "owner": "R045.use-a-source-bound-seek-map-rather-than-repeated-fragment-scanning",
+  "mapping": "existing_owner",
+  "evaluation_status": "complete",
+  "outcome": "no_new_work_current_scope",
+  "evidence_level": "current_source_review_and_node_contracts",
+  "finding": "The local metadata probe walks checked box lengths with box/read budgets, handles safe extended top-level sizes and fails closed to deep inspection. Source reads are bounded. R045's source-map latency regression remains relevant; no new remote seek-versus-skip threshold is measured.",
+  "novelty": "R045 owns source-bound access decisions; this screen does not reopen R003's failed whole-player cost gate.",
+  "next_action": "Keep bounded local metadata skipping. Reopen remote policy only with a measured Range-capable transport workload and stale-hint, malformed-size and ignored-Range controls; include index acquisition cost.",
+  "reopen_condition": "Do not reopen R003’s stopped profile without a changed mechanism/source. If normal inspection already reads only useful ranges, keep adverse tests instead.",
+  "proposal_contract": {
+    "Proposed mechanism": "Use known box lengths or verified metadata hints to avoid scanning irrelevant payload; decide whether to skip or reopen a range using measured source costs, not a copied constant.",
+    "Smallest useful experiment": "Compare front/tail moov, large free boxes, stale hints, 64-bit sizes, zero-sized/truncated boxes, a server ignoring Range and local Blob input.",
+    "Correctness gate": "Identical parsed metadata and selected sample offsets; no out-of-bounds read or unbounded retry; stale identity rejected; ignored Range responses handled explicitly.",
+    "Measure only after correctness": "Requests, fetched bytes and startup delay including request overhead; no expected gain percentage."
+  },
+  "reviewed_sources": [
+    {
+      "path": "web/cheap-mp4-probe.js",
+      "sha256": "551fdb484be554808cd8b330d868b734bbf0d8de2fd0091c81d534d71148d7c8"
+    },
+    {
+      "path": "web/range-reader.js",
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe"
+    }
+  ],
+  "executed_contracts": [
+    "tests/cheap-mp4-probe.mjs"
+  ],
+  "boundary_probes": false,
+  "browser_executed": false,
+  "performance_executed": false,
+  "source_report": "research/shared/runs/20260922T001856Z-research-batches-import/snapshots/demuxe-ecosystem-expansion-2026-09-21.md",
+  "source_anchor": "EB13",
+  "upstream_evidence": "Imported 2026-09-21 source review, not fetched or revalidated in this run."
+}

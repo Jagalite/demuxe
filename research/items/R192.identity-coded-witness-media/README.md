@@ -80,3 +80,13 @@ Existing decisions and stage gates above remain unchanged. These are external co
 - **D13 — A route needs track-output and timing witnesses, not only video and EOF**: merge_existing. [Original report](../../shared/runs/20260921T023214Z-screened-ideas-d01-d73/snapshots/batches/batch02_D08-D13/demuxe_batch2/REPORT.md); [indexed contract and follow-up](evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json).
 
 [Campaign reconciliation](../../campaigns/screened-ideas-d01-d73.md). Current-owner retesting is required before promoting this supplement.
+
+## Ecosystem follow-up EB20
+
+Evaluated at `20260922T131542Z-ecosystem-evaluation`: **qualification_followup**. [Assessment](evidence/20260922T131542Z-ecosystem-evaluation/evaluation.json) · [Shared report](../../shared/runs/20260922T131542Z-ecosystem-evaluation/REPORT.md).
+
+Research already requires independent output and adverse controls. Existing selected-view tests compare decoded output through FFmpeg, so adding ffprobe alone is not an independent structural vote. This run integrates a concrete oracle matrix separating structure, samples, timing, metadata, lifecycle and route ownership; external corpora were not downloaded or executed.
+
+Next gate / reopening condition: For EB01/EB09/EB14/EB19 experiments, fill the matrix with a second structural implementation or independently authored parser and a failing negative control. Record lineage, tolerance and exact scope; do not label Node contracts browser conformance.
+
+This scoped supplement does not broaden earlier correctness or performance qualification.

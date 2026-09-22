@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "key": "R220.scoped-transport-clock-normalization",
+  "title": "scoped transport-clock normalization",
+  "definition": {
+    "key": "R220.scoped-transport-clock-normalization",
+    "legacy_id": "R220",
+    "legacy_number": 220,
+    "identity_branch": "report-defined",
+    "title": "scoped transport-clock normalization",
+    "definition_status": "SOURCE_BODY_AVAILABLE",
+    "definition_source": {
+      "source_key": "S018",
+      "path": "sources/reports/R214-R222-report.md",
+      "sha256": "f7b90c8e11e0265f98db42a738866840cd682b47bae38bec91fa831baa98b883",
+      "line_start": 73,
+      "line_end": 80,
+      "source_kind": "report"
+    },
+    "source_excerpt": "The model uses a 33-bit 90 kHz modulus and permits automatic epoch selection only when exactly one candidate timestamp lies inside a bounded ±2-second continuity/reordering window. Explicit discontinuities reset the scope. It passed forward rollover, a late reordered packet straddling rollover, explicit discontinuity, ordinary monotonic timing, and an A/V pair whose 45,000-tick (0.5 s) offset remained unchanged. An unmarked large discontinuity and a roughly half-modulus jump were refused rather than silently normalized. This validates the policy model. It is not yet wired into a real MPEG-TS parser.",
+    "related_reports": [],
+    "scope_hash": "e2f18699d303768de0daac4760831757e5d2341f35fcbdaff05a37ecd830bce9",
+    "legacy_guide_aliases": [],
+    "family": "mux",
+    "impact": 4,
+    "impact_basis": "Potentially removes substantial work from an eligible playback, seek, preparation, retention or repeated interaction. Scope comes from the cited card; exposure and effect size are unmeasured.",
+    "screen_effort": "E1",
+    "qualification_burden": "Q2",
+    "priority_band": 2,
+    "initial_rank": 96,
+    "local_screen_state": "UNSCREENED",
+    "evidence_level": "PROPOSAL_OR_HISTORICAL_REPORT_ONLY",
+    "default_next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+    "minimum_probe": "Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "initial_screen": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior. Construct one bounded positive output and one invalid-edge control using the same coded samples. Keep unrelated fragment/default policies fixed.",
+    "primary_metric": "Complete preparation/startup/refill work, bytes and ownership; output parser acceptance alone is not the metric.",
+    "scope_contract": "Independent parsing of sample payload, configuration, PTS/DTS/duration and required output; valid container plus continuing playback when this is the tested claim.",
+    "negative_control": "Wrong size/offset/configuration or a non-random-access cut must fail specifically; cancellation cannot publish another generation.",
+    "stop_boundary": "Do not implement a universal mux engine, virtual file gateway or recovery journal to answer a tiny screen. Escalate scope explicitly.",
+    "shared_prerequisite": "Existing parser/mux destination and matching native build where touched; no host-to-Wasm performance extrapolation.",
+    "exposure": "UNKNOWN_UNTIL_LOCAL_AUDIT",
+    "reopen_condition": "A new applicable workload, resolved prerequisite, better independent oracle, or materially different bounded implementation changes the recorded decision.",
+    "related_keys": [],
+    "target_relevance": "core-playback",
+    "relevance_basis": "Editorial fit to ordinary Demuxe playback goals, not measured prevalence; rerank after one local opportunity audit."
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Existing source-grounded definition imported; acceptance criteria must be reviewed before a new run.",
+      "evidence": [
+        "results/full-catalogue-v4/Demuxe_All_Items_Screening_v4/catalogue/cards/R220.scoped-transport-clock-normalization.md"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Existing fixture/tool/runtime results and archived output/control identities reconciled; no new setup claimed.",
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Historical bounded screening disposition recorded. This is completion of screening, not candidate correctness.",
+      "evidence": [
+        "results/top100/decisions.jsonl"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Authored33bitPES/PCR rollover preserves payload and commonPTS/DTS/A/V offsets through existingdemux; exact hostpixels/PCM plus maintainedRemuxPlayer seek/play and cleanup. Late reorder andlarge-jump controls pass.",
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ]
+    },
+    "performance": {
+      "status": "not_applicable",
+      "basis": "Already handled tested profile: do not introduce a second post-demux normalizer.",
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ]
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Archived observations and hashes reconciled, prior mismatches retained explicitly; no new execution.",
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Normalized historical scoped decision with stage-specific acceptance and remaining limitations.",
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "campaign": "canonical-stage-reconciliation",
+    "record": {
+      "key": "R220.scoped-transport-clock-normalization",
+      "state": "already_implemented",
+      "reason": "Authored raw PES/PCR rollover across33-bit boundary already unwraps consistently through demux; selected packet payload and A/V offsets preserved. Existing RemuxPlayer plays/seeks with exact host decoded pixels/PCM. Bounded late-reorder policy and large-jump refusal pass; no second normalizer should be inserted after authoritative demux.",
+      "recorded_at_utc": "2026-09-19T20:20:33.394574+00:00",
+      "evidence_level": "reconciled_component_test",
+      "run_ids": [
+        "20260919T204000Z-stage-reconciliation"
+      ],
+      "evidence": [
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/results.json",
+        "research/items/R220.scoped-transport-clock-normalization/evidence/20260919T204000Z-stage-reconciliation/manifest.json",
+        "results/top100/clock/result.json",
+        "results/top100/clock/browser-result.json"
+      ],
+      "new_experiment": false,
+      "original_state": "ALREADY_HANDLED_PROFILE",
+      "scope": "Authored33bitPES/PCR rollover preserves payload and commonPTS/DTS/A/V offsets through existingdemux; exact hostpixels/PCM plus maintainedRemuxPlayer seek/play and cleanup. Late reorder andlarge-jump controls pass.",
+      "performance_gate": "Already handled tested profile: do not introduce a second post-demux normalizer.",
+      "next_test": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+      "reopen_condition": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior."
+    }
+  },
+  "next_action": "Find where bytes/timestamps actually change, are copied, or are withheld. Compare against current persistent mux/parser behavior.",
+  "integration": {
+    "status": "not_assessed_by_migration"
+  },
+  "qualification": {
+    "status": "not_assessed_by_migration"
+  },
+  "external_screenings": [
+    {
+      "campaign": "screened-ideas-d01-d73",
+      "run_id": "20260921T023214Z-screened-ideas-d01-d73",
+      "ids": [
+        "D50"
+      ],
+      "path": "research/items/R220.scoped-transport-clock-normalization/evidence/20260921T023214Z-screened-ideas-d01-d73/screenings.json",
+      "acceptance": "supplemental_import_only; current-owner retest required before promotion"
+    }
+  ],
+  "external_followups": [
+    {
+      "run_id": "20260921T030620Z-screened-owner-completion",
+      "ids": [
+        "D50"
+      ],
+      "path": "research/shared/runs/20260921T030620Z-screened-owner-completion/triage.json",
+      "outcomes": {
+        "D50": "deferred_profile_followup"
+      }
+    }
+  ]
+}
