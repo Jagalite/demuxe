@@ -46,14 +46,14 @@ export class YUVPresenter {
   gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,this.textures[3]);
   if(this.overlayShape!==shape){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,this.canvas.width,this.canvas.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);this.overlayShape=shape;this.lastSnapshot=null;this.lastBounds=null;}
   if(this.lastSnapshot!==snapshot){
-   const bounds=parts=>parts.length?[Math.max(0,Math.floor(Math.min(...parts.map(p=>p.x)))),Math.max(0,Math.floor(Math.min(...parts.map(p=>p.y)))),Math.min(this.canvas.width,Math.ceil(Math.max(...parts.map(p=>p.x+p.dw)))),Math.min(this.canvas.height,Math.ceil(Math.max(...parts.map(p=>p.y+p.dh))))]:null;
-   const current=bounds(snapshot.parts),both=[current,this.lastBounds].filter(Boolean);
+   const current=snapshot.surface?[snapshot.x,snapshot.y,snapshot.x+snapshot.surface.width,snapshot.y+snapshot.surface.height]:null;
+   const both=[current,this.lastBounds].filter(Boolean);
    if(both.length){const x=Math.min(...both.map(b=>b[0])),y=Math.min(...both.map(b=>b[1])),w=Math.max(...both.map(b=>b[2]))-x,h=Math.max(...both.map(b=>b[3]))-y;
     if(w>0&&h>0){this.overlay.width=w;this.overlay.height=h;this.overlayContext.setTransform(1,0,0,1,-x,-y);this.subtitles.draw(this.overlayContext,snapshot);gl.texSubImage2D(gl.TEXTURE_2D,0,x,y,gl.RGBA,gl.UNSIGNED_BYTE,this.overlay);this.stats.subtitleUploads++;this.stats.subtitleUploadBytes+=w*h*4;}
    }
    this.lastSnapshot=snapshot;this.lastBounds=current;
   }
-  if(snapshot.parts.length){gl.viewport(0,0,this.canvas.width,this.canvas.height);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1i(this.loc.overlayPass,1);gl.drawArrays(gl.TRIANGLES,0,3);}
+  if(snapshot.surface){gl.viewport(0,0,this.canvas.width,this.canvas.height);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1i(this.loc.overlayPass,1);gl.drawArrays(gl.TRIANGLES,0,3);}
   const error=gl.getError();if(error)throw Error(`YUV GL error ${error}`);
   this.stats.frames++;this.stats.lastPts=d.pts;this.stats.drawMs+=performance.now()-begin;
  }

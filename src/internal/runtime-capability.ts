@@ -59,6 +59,7 @@ export function compatibilityFailure(error:unknown):boolean {
   // allowlist exact so unrelated resource, transport and unknown errors stay terminal.
   const message=(error instanceof Error?error.message:String(error)).split('\n')[0].replace(/^Error: /,'');
   if(/^FFmpeg error -\d+: TS timestamp repair requires AVC with optional AAC audio$/.test(message))return true;
+  if(/^(?:Error: )*Subtitle (?:bitmap budget exceeded|composition failed)$/.test(message))return true;
   if(['Remux random-access interval exceeds fragment production budget',
     'Remux timeline gap exceeds forward buffer budget',
     'Adapted track timelines cannot progress within the preparation budget; use Hybrid'].includes(message))return true;

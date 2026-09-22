@@ -18,6 +18,12 @@ static int reorder,nal_size,is_avc,repair_dts,generic_video,hevc_video,mux_webm;
 static int64_t pts_queue[17],last_dts[64];
 static uint8_t config_nals[64][4096];static int config_sizes[64],config_count;
 static char video_codec[96],audio_codec[32],failure[160];
+static void track_metadata(AVStream *stream){
+ const AVDictionaryEntry *title=av_dict_get(stream->metadata,"title",NULL,0);
+ const AVDictionaryEntry *language=av_dict_get(stream->metadata,"language",NULL,0);
+ EM_ASM({Object.assign(Module.tracks[Module.tracks.length-1],{title:UTF8ToString($0),lang:UTF8ToString($1),default:!!$2,forced:!!$3,channels:$4});},
+  title?title->value:"",language?language->value:"",!!(stream->disposition&AV_DISPOSITION_DEFAULT),!!(stream->disposition&AV_DISPOSITION_FORCED),stream->codecpar->ch_layout.nb_channels);
+}
 static int reject(const char *reason){snprintf(failure,sizeof(failure),"%s",reason);return AVERROR_INVALIDDATA;}
 EMSCRIPTEN_KEEPALIVE const char *rm_error(void){return failure;}
 static int visit_nal(const uint8_t*p,int n,int record){
@@ -256,6 +262,7 @@ EMSCRIPTEN_KEEPALIVE int rm_probe(double size){
   int aac_object=p->codec_id==AV_CODEC_ID_AAC&&p->extradata_size>0?p->extradata[0]>>3:0;
   EM_ASM({Module.tracks.push({id:String($0),index:$1,type:['video','audio','sub'][$2],codec:UTF8ToString($3),default:!!$4,forced:!!$5,channels:$6,aacObject:$7,attachedPicture:!!$8});},
    ++ids[type],i,type,avcodec_get_name(p->codec_id),!!(st->disposition&AV_DISPOSITION_DEFAULT),!!(st->disposition&AV_DISPOSITION_FORCED),p->ch_layout.nb_channels,aac_object,!!(st->disposition&AV_DISPOSITION_ATTACHED_PIC));
+  track_metadata(st);
   // Declared source metadata is admission evidence, not proof of later packets.
   // Missing track ends stay unknown; never substitute the overall movie duration.
   double start=st->start_time==AV_NOPTS_VALUE?-1:st->start_time*av_q2d(st->time_base);
@@ -320,6 +327,7 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
   AVCodecParameters *par=in->streams[i]->codecpar;
   if(par->codec_type!=AVMEDIA_TYPE_VIDEO&&par->codec_type!=AVMEDIA_TYPE_AUDIO)continue;
   EM_ASM({Module.tracks.push({id:String($0+1),type:$1?'video':'audio',codec:UTF8ToString($2),selected:!!$3});},i,par->codec_type==AVMEDIA_TYPE_VIDEO,avcodec_get_name(par->codec_id),(int)i==video||(int)i==audio);
+  track_metadata(in->streams[i]);
  }
  EM_ASM({Module.trackBounds=({videoEnd:$0,audioEnd:$1});},video>=0?declared_track_end(in->streams[video])-origin:-1,audio>=0?declared_track_end(in->streams[audio])-origin:-1);
  packet=av_packet_alloc();return 0;

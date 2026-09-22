@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import type {BufferingPolicy, BufferingResolution} from './types.js';
+import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection} from './internal/track-policy.js';
+import type {TrackPolicy} from './types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './internal/plain-vtt.js';
 import {RuntimeCapabilities, compatibilityFailure, evidenceInterrupted} from './internal/runtime-capability.js';
 import type {CapabilityEvidence} from './internal/runtime-capability.js';
@@ -22,7 +24,7 @@ import type {Backend, Session} from './internal/backend.js';
 import {PreviewController} from './preview/controller.js';
 import {SoftwarePreviewProvider} from './preview/software.js';
 import {LocalVideoPreviewProvider} from './preview/providers.js';
-type Source = {kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}};
+type Source = ({kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}}) & {trackPolicy?:TrackPolicy};
 class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
 }
@@ -122,6 +124,8 @@ export class Player extends EventTarget {
   private nativeRemux: 'auto' | 'never' | 'always';
   private softwarePresenter: 'rgb' | 'experimental-yuv';
   private settings: Settings;
+  private configuredTrackPolicy:TrackPolicy;
+  get trackPolicy():TrackPolicy{return this.source?.trackPolicy??this.configuredTrackPolicy;}
   private audioOutput: AudioOutput;
   private audioFallback: 'stereo' | 'reject';
   private toneMapping: ToneMapping;
@@ -145,6 +149,7 @@ export class Player extends EventTarget {
 
   constructor(container: HTMLElement, options: PlayerOptions = {}) {
     super();
+    this.configuredTrackPolicy=normalizeTrackPolicy(options.trackPolicy);
     const prepare=preparationComponents(options.prepare??[]);
     if (typeof HTMLElement==='undefined') throw new PlayerError('INVALID_ARGUMENT','Player construction requires a browser');
     this.buffering=bufferingPolicy(options.buffering);
@@ -213,18 +218,60 @@ export class Player extends EventTarget {
     if(this.publishQueued)return;this.publishQueued=true;
     queueMicrotask(()=>{this.publishQueued=false;if(!this.busy)this.publish();});
   }
-  private sourceTracks():RawTrack[] {
-    let raw=(this.properties.get('track-list')??[]) as RawTrack[];
-    if(this.automatic&&this.mode==='native'&&this.sourceInspection&&this.sourceInspection.source===this.source){
-      const embedded=this.sourceInspection!.probe.tracks.filter(t=>t.type==='sub'&&!raw.some(r=>r.type==='sub'&&r['ff-index']===t.index));
-      raw=[...raw,...embedded.map(t=>({id:String(t.index+1),type:'sub',codec:t.codec,'ff-index':t.index,selected:false}))];
+  private sessionTracks(session=this.current,source=this.source,mode=this.mode,settings=this.settings):RawTrack[] {
+    let raw=(session?.backend.properties.get('track-list')??[]) as RawTrack[];
+    if(mode==='native'&&this.sourceInspection?.source===source&&this.sourceInspection){
+      const plan=(session?.backend.diagnostics as {plan?:string})?.plan;
+      raw=raw.map(track=>{
+        const key=trackKey(track,mode,plan),match=/^(audio|sub|video):stream:(\d+)$/.exec(key);
+        const metadata=match?this.sourceInspection!.probe.tracks.find(t=>t.type===match[1]&&t.index===Number(match[2])):undefined;
+        return metadata?{...metadata,...track,title:track.title||metadata.title,lang:track.lang||metadata.lang}:track;
+      });
     }
-    if(!this.sourceInspection||this.mode!=='native'||usesRemuxTracks((this.current?.backend.diagnostics as {plan?:string})?.plan)||this.sourceInspection?.source!==this.source)return raw;
+    if(this.automatic&&mode==='native'&&this.sourceInspection&&this.sourceInspection.source===source){
+      const embedded=this.sourceInspection!.probe.tracks.filter(t=>t.type==='sub'&&!raw.some(r=>r.type==='sub'&&r['ff-index']===t.index));
+      raw=[...raw,...embedded.map(t=>({...t,id:String(t.index+1),type:'sub','ff-index':t.index,selected:false}))];
+    }
+    if(!this.sourceInspection||mode!=='native'||usesRemuxTracks((session?.backend.diagnostics as {plan?:string})?.plan)||this.sourceInspection?.source!==source)return raw;
     const audio=this.sourceInspection!.probe.tracks.filter(t=>t.type==='audio');
     const fallback=audio.find(t=>t.default)??audio[0];
     // Expose demux source identities even if HTMLMediaElement has no track API.
     // These are selectable requirements, not a claim of in-place browser support.
-    return [...raw.filter(t=>t.type!=='audio'),...audio.map(t=>({...t,id:t.id,'ff-index':t.index,selected:this.settings.aid!=='no'&&t===fallback}))];
+    return [...raw.filter(t=>t.type!=='audio'),...audio.map(t=>({...t,id:t.id,'ff-index':t.index,selected:settings.aid!=='no'&&t===fallback}))];
+  }
+  private sourceTracks():RawTrack[]{return this.sessionTracks();}
+  private assertSubtitleAddition(title:string,language:string|undefined,codec:string){
+    const track=tracks([{id:'external',type:'sub',title,lang:language,codec,external:true}],this.sourceSerial,this.mode)[0];
+    assertTrackSelection(this.trackPolicy.subtitles,track.id,track);
+  }
+  private confirmTrackSelection(session:Session,source:Source|undefined,mode:PlaybackMode,settings:Settings,type:TrackType,id:string):Promise<void>{
+    const matches=()=>{const raw=this.sessionTracks(session,source,mode,settings).filter(t=>t.type===type);return id==='no'?!raw.some(t=>t.selected):id==='auto'||raw.some(t=>String(t.id)===id&&t.selected);};
+    if(matches())return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+      const signal=this.activeOperation?.controller.signal;
+      const finish=(error?:Error)=>{clearTimeout(timer);session.backend.removeEventListener('mpv',check);signal?.removeEventListener('abort',abort);error?reject(error):resolve();};
+      const check=()=>{if(matches())finish();};
+      const abort=()=>finish(new PlayerError('ABORTED','Track selection aborted'));
+      const timer=setTimeout(()=>finish(new PlayerError('UNSUPPORTED_FEATURE','Backend did not apply the required track selection')),5000);
+      session.backend.addEventListener('mpv',check);signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();else check();
+    });
+  }
+  private async applyTrackPolicy(session:Session,source:Source,mode:PlaybackMode,settings:Settings,preserve:boolean){
+    const policy=source.trackPolicy;if(!policy)return;
+    for(const type of ['audio','sub'] as const){
+      const rule=type==='audio'?policy.audio:policy.subtitles;if(!rule)continue;
+      const raw=this.sessionTracks(session,source,mode,settings),plan=(session.backend.diagnostics as {plan?:string})?.plan;
+      const inventory=tracks(raw,this.sourceSerial,mode,plan).filter(t=>t.type===(type==='audio'?'audio':'subtitle'));
+      const current=inventory.find(t=>t.selected),key=type==='audio'?'aid':'sid';
+      if(preserve&&(current?trackAllowed(current,rule):settings[key]==='no'&&rule.allowOff!==false))continue;
+      const chosen=defaultTrack(inventory,rule);
+      if(chosen&&type==='sub'&&!settings.subtitles){await session.backend.subtitleVisible(true);settings.subtitles=true;}
+      if(chosen?.id===current?.id&&chosen){settings[key]=String(raw.find(t=>`${this.sourceSerial}:${trackKey(t,mode,plan)}`===chosen.id)!.id);continue;}
+      const selected=chosen?raw.find(t=>`${this.sourceSerial}:${trackKey(t,mode,plan)}`===chosen.id):undefined;
+      const id=selected?String(selected.id):'no';
+      await session.backend.selectTrack(type,id);settings[key]=id;
+      await this.confirmTrackSelection(session,source,mode,settings,type,id);
+    }
   }
   private previewBuffering(){
     return !this.settings.pause&&(this.observedWaiting||this.properties.get('paused-for-cache')===true||this.properties.get('native-waiting')===true);
@@ -233,7 +280,7 @@ export class Player extends EventTarget {
     const previous=this.snapshot,p=this.properties;
     let raw=this.sourceTracks();
     if(this.mode==='native'&&(this.surface as HTMLVideoElement|undefined)?.videoWidth&&!raw.some(t=>t.type==='video'))raw=[...raw,{id:'1',type:'video',selected:true}];
-    const list=this.current?tracks(raw,this.sourceSerial,this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan):[];
+    const list=this.current?tracks(raw,this.sourceSerial,this.mode,(this.current.backend.diagnostics as {plan?:string})?.plan).filter(t=>trackAllowed(t,t.type==='audio'?this.trackPolicy.audio:t.type==='subtitle'?this.trackPolicy.subtitles:undefined)):[];
     const d=p.get('duration'),reportedDuration=typeof d==='number'&&Number.isFinite(d)&&d>=0?d:null;
     const observedLive=p.get('native-live');
     const live=typeof observedLive==='boolean'?observedLive:this.source?.kind==='remote'&&this.source.options.streaming?.live===true;
@@ -246,7 +293,7 @@ export class Player extends EventTarget {
     const next:PlayerState={status,playbackIntent:this.settings.pause?'pause':'play',pendingOperation:this.pendingOperation,sourceId:this.current?this.sourceSerial:null,
       currentTime:Math.max(0,Number(p.get('time-pos'))||0),duration,streamType,subtitlesVisible:this.settings.subtitles,volume:this.settings.volume/100,muted:this.muted,playbackRate:this.settings.speed,
       activeMode:this.current?this.mode:null,automaticSelection:this.automatic,buffered:this.mode==='native'&&this.current?ranges(p.get('native-buffered')):null,seekable,
-      audioTracks:list.filter(t=>t.type==='audio'),subtitleTracks:list.filter(t=>t.type==='subtitle'),mediaInfo:mediaInfo(p,this.mode,this.surface,list),capabilities:caps,error:this.sessionError};
+      trackPolicy:this.trackPolicy,audioTracks:list.filter(t=>t.type==='audio'),subtitleTracks:list.filter(t=>t.type==='subtitle'),mediaInfo:mediaInfo(p,this.mode,this.surface,list),capabilities:caps,error:this.sessionError};
     // Priority can change even when the externally visible snapshot is identical.
     this.preview.setSuspended(this.busy||!!this.activeOperation||this.previewBuffering());
     this.preview.setDuration(this.current&&!this.busy&&streamType==='vod'?duration:null);
@@ -378,6 +425,11 @@ export class Player extends EventTarget {
           this.schedulePublish();return;
         }
         if(type==='mpv') {
+          if(detail.event==='property-change'&&detail.name==='track-list'&&!this.sessionError){
+            const inventory=tracks(this.sourceTracks(),this.sourceSerial,this.mode,(session.backend.diagnostics as {plan?:string})?.plan);
+            const forbidden=inventory.some(t=>t.selected&&!trackAllowed(t,t.type==='audio'?this.trackPolicy.audio:t.type==='subtitle'?this.trackPolicy.subtitles:undefined));
+            if(forbidden){this.settings.pause=true;void backend.pause().catch(()=>{});this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
+          }
           if(detail.event==='property-change'&&detail.name==='time-pos'&&!this.settings.pause&&Number(detail.data)>this.state.currentTime){this.observedPlaying=true;this.observedWaiting=false;}
           if(detail.event==='property-change'&&detail.name==='pause'&&detail.data===true&&!this.activeOperation)this.settings.pause=true;
           this.schedulePublish();
@@ -549,6 +601,7 @@ export class Player extends EventTarget {
         if(!track)throw new PlayerError('UNSUPPORTED_FEATURE',`Cannot preserve explicit public track selection across playback modes (${key}; available ${raw.map(t=>trackKey(t,mode,plan)).join(', ')})`);
         const id=String(track.id);await p.selectTrack(type,id);desired[type==='audio'?'aid':'sid']=id;
       }
+      await this.applyTrackPolicy(candidate,source,mode,desired,preserve);
       await this.settled(candidate, mode, 0);
       if(overlapping){
         this.assertOperation();await old!.backend.pause();
@@ -778,6 +831,7 @@ export class Player extends EventTarget {
         if(input instanceof ArrayBuffer&&input.byteLength>32*1024*1024)throw Error('ArrayBuffer sources are limited to 32 MiB; use File for larger sources');
         source={kind:'local',file:input instanceof File?input:input.slice(0),input:{demuxer:options.demuxer}};
       }
+      source.trackPolicy=normalizeTrackPolicy({...this.configuredTrackPolicy,...normalizeTrackPolicy(options.trackPolicy)});
     } catch(error){return Promise.reject(playerError(error));}
     return this.enqueue(async()=>{
       const inspection=this.sourceInspection,lossless=this.losslessInspection;
@@ -888,8 +942,12 @@ export class Player extends EventTarget {
       if(!this.current)throw Error('No source');
       const raw=this.sourceTracks();
       const plan=(this.current.backend.diagnostics as {plan?:string})?.plan;
-      const track=raw.find(t=>t.type===type&&`${this.sourceSerial}:${trackKey(t,this.mode,plan)}`===id);
+      let track=raw.find(t=>t.type===type&&`${this.sourceSerial}:${trackKey(t,this.mode,plan)}`===id);
       if(id!==null&&id!=='auto'&&!track)throw new PlayerError('INVALID_ARGUMENT','Unknown or stale public track ID');
+      const rule=type==='audio'?this.trackPolicy.audio:this.trackPolicy.subtitles;
+      const inventory=tracks(raw,this.sourceSerial,this.mode,plan).filter(t=>t.type===(type==='audio'?'audio':'subtitle'));
+      assertTrackSelection(rule,id,inventory.find(t=>t.id===id));
+      if(id==='auto'&&rule){const chosen=defaultTrack(inventory,rule);id=chosen?.id??null;track=chosen?raw.find(t=>`${this.sourceSerial}:${trackKey(t,this.mode,plan)}`===chosen.id):undefined;}
       const backendId=id===null?'no':id==='auto'?'auto':String(track!.id);
       if(this.settings[type==='audio'?'aid':'sid']===backendId&&(!track||track.selected))return;
       if(type==='sub'&&this.mode==='native'&&this.automatic&&this.source&&this.settings.subtitles&&backendId!=='no'&&!['shaka-mse','remux-mpv'].includes(plan??'')){
@@ -911,6 +969,7 @@ export class Player extends EventTarget {
         return;
       }
       await this.current.backend.selectTrack(type,backendId);this.settings[type==='audio'?'aid':'sid']=backendId;
+      await this.confirmTrackSelection(this.current,this.source,this.mode,this.settings,type,backendId);
       if(track)this.publicSelections.set(type,trackKey(track,this.mode,plan));else this.publicSelections.delete(type);
       this.schedulePromotion();
     },'switching');
@@ -932,11 +991,13 @@ export class Player extends EventTarget {
       const plan=(this.current?.backend.diagnostics as {plan?:string})?.plan;
       return this.selectPublicTrack(type,id==='no'?null:id==='auto'?'auto':track?`${this.sourceSerial}:${trackKey(track,this.mode,plan)}`:'missing');
     }
+    assertTrackSelection(type==='audio'?this.trackPolicy.audio:this.trackPolicy.subtitles,id==='no'?null:id);
     return this.setting(p => p.selectTrack(type, id), () => {this.settings[type === 'audio' ? 'aid' : 'sid'] = id;this.publicSelections.delete(type);this.schedulePromotion();});
   }
   subtitleVisible(visible: boolean) {
     if(typeof visible!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Expected boolean subtitle visibility');
     return this.enqueue(async()=>{
+      if(visible!==this.settings.subtitles)assertTrackSelection(this.trackPolicy.subtitles,visible?'visible':null);
       if(visible===this.settings.subtitles){if(!visible)this.schedulePromotion();return;}
       const settings={...this.settings,subtitles:visible};
       if(this.automatic&&this.source&&this.mode==='native'&&!['shaka-mse','remux-mpv'].includes((this.current?.backend.diagnostics as {plan?:string})?.plan??'')&&visible&&!this.settings.subtitles)await this.select(this.source,settings,true,this.nativeTracks);
@@ -949,6 +1010,7 @@ export class Player extends EventTarget {
     if(!['ass','ssa','srt','vtt'].includes(format??'')||file.size>8*1024*1024) return Promise.reject(new PlayerError('INVALID_ARGUMENT','Expected an SRT, ASS, SSA or WebVTT file up to 8 MiB'));
     return this.enqueue(async()=>{
       if(!this.source)throw Error('Open a movie before adding subtitles');
+      this.assertSubtitleAddition(options.label??file.name,options.language,format!);
       if(this.subtitleAssets.length>=16||this.subtitleAssets.reduce((n,a)=>n+a.bytes.byteLength,0)+file.size>16*1024*1024)throw Error('Subtitle budget exceeded');
       const bytes=await this.interruptible(file.arrayBuffer());
       const old=this.subtitleAssets,previousSelection=this.publicSelections.get('sub');
@@ -976,6 +1038,7 @@ export class Player extends EventTarget {
     const source = {...track};
     return this.enqueue(async () => {
       if (this.mode !== 'native' || !this.current) throw new Error('External browser text tracks require an open native player');
+      this.assertSubtitleAddition(source.label,source.language,'webvtt');
       await this.current.backend.addTextTrack!(source);this.nativeTracks.push(source);
     });
   }

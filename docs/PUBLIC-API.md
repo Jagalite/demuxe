@@ -351,3 +351,64 @@ authoritative. In-place gain updates refresh plan diagnostics without rerouting.
 ### Plain external WebVTT
 
 `addSubtitle(file, {select, label, language})` can retain Native A/V for plain UTF-8 WebVTT on file presentations. Admission excludes cue settings, markup, CSS, regions, identifiers and timestamp maps; richer files use the existing admitted renderer. Malformed admitted plain cue timing and invalid UTF-8 reject without replacing the working source. Browser-loaded cue count, text and timestamps are verified. Captions retain external track identities and are cleared on source replacement. Manifest timelines and adapted-audio combinations require separate qualification. See [component routing and evidence](COMPONENT-ROUTING.md).
+
+### Audio and subtitle policy
+
+`PlayerOptions.trackPolicy` supplies defaults for each source. `open(source,
+{trackPolicy})` overrides the supplied `audio` or `subtitles` section for that
+open; omitted sections inherit constructor configuration. Policies are copied
+and frozen. A failed or canceled open preserves the previous source and policy.
+Omitting policy preserves existing file-default selection.
+
+```js
+const player = new Player(container, {
+  trackPolicy: {
+    audio: {
+      default: [{language: 'ja'}, {language: 'en'}],
+      allowed: [{language: 'ja'}, {language: 'en'}],
+      allowOff: false,
+    },
+    subtitles: {
+      default: 'file',
+      allowed: [{language: 'en'}],
+    },
+  },
+});
+await player.open(file);
+```
+
+Each section accepts:
+
+- `default`: `'file'`, `'off'`, a matcher, or an ordered array of matchers.
+  Unmatched preferences fall back to the file default among permitted tracks,
+  then the selected permitted track, then the first permitted track.
+- `allowed`: an array of matchers. Omitted permits all tracks; `[]` permits none.
+  Matchers are ORed; fields within a matcher are ANDed.
+- `allowOff` and `allowAuto`: whether callers may select `null` or `'auto'`.
+  Both default to `true`. With a policy, `'auto'` reapplies the host's default.
+- `locked`: prevents subsequent track changes through public and legacy track
+  APIs. Defaults to `false`. It also prevents adding external subtitles to a
+  locked subtitle section.
+
+Matchers accept `language`, `title`, `codec`, and `streamIndex`. Titles and
+codecs compare exactly, ignoring case. Languages match base languages and ISO
+aliases (`en`, `en-US`, and `eng` match English). `streamIndex` is the zero-based
+container stream index, not a position in the filtered menu. A matcher cannot
+match unavailable metadata.
+
+Selections are applied while the candidate is paused, before it is accepted.
+If no permitted track exists, that type is disabled, unless `allowOff:false`
+requires opening to fail. Defaults of `'off'` with `allowOff:false` are rejected.
+Explicit modes fail if they cannot satisfy the policy; automatic mode can try
+another backend. Accepted selections are retained across backend changes.
+
+`state.audioTracks` and `state.subtitleTracks` contain only permitted tracks.
+Their source-scoped IDs still identify the original streams. Tracks expose
+`title`, `language`, `codec`, `streamIndex`, `default`, `forced`, and `channels`
+in addition to the readable `label`. Unknown metadata remains null; unknown
+flags are false. `player.trackPolicy` and `state.trackPolicy` report the applied
+policy. Selection restrictions apply to legacy `selectTrack` and subtitle
+visibility/attachment APIs as well as public selectors.
+
+These are playback-selection restrictions, not access control or a promise to
+avoid reading other streams from the container.

@@ -83,6 +83,34 @@ button{transition:background .16s,color .16s,border-color .16s,scale .18s var(--
 @starting-style{.settings:not([hidden]),.diagnostics-overlay:not([hidden]),.empty:not([hidden]),.notice:not([hidden]){opacity:0;translate:0 -5px;scale:.985}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto;transition:none!important;animation:none!important}}
 
+/* Track labels need room for language, title and format. */
+.settings:has(#playback-options:not([hidden])){width:360px}
+.settings .track-setting{display:grid;gap:4px;padding:10px 0}
+.settings .track-setting>span{font-size:11px;color:var(--demuxe-muted-foreground)}
+.settings .track-setting select{width:100%;max-width:100%;text-align:left;padding:8px 10px;background:var(--demuxe-control-background);color:var(--demuxe-foreground)}
+
+/* Source menu: a compact file action followed by clearly grouped inputs. */
+.settings.source-menu{width:360px;padding:6px 16px 16px;border-radius:12px}
+.source-menu header{margin-bottom:14px}.source-menu header strong{font-size:13px;font-weight:600}
+#source-options{display:flex;flex-direction:column;gap:14px}
+.source-menu .media-picker{margin:0;gap:6px;padding:14px;border:1px solid color-mix(in srgb,var(--demuxe-foreground) 9%,transparent);border-radius:9px;background:color-mix(in srgb,var(--demuxe-foreground) 3%,transparent)}
+.source-menu #media-file-label,.source-menu #subtitle-file-label,.source-menu #url-label,.source-menu #format-label{font-size:11px;font-weight:550;color:var(--demuxe-muted-foreground)}
+.source-menu #current-source{font-size:12px;line-height:1.5}
+.source-menu #choose-file{justify-self:stretch;width:100%;margin-top:6px;background:var(--demuxe-foreground);color:var(--demuxe-background);border-color:transparent;font-weight:600;border-radius:7px}
+.source-menu #choose-file:hover{background:color-mix(in srgb,var(--demuxe-foreground) 85%,var(--demuxe-background))}
+.source-menu ::slotted(button){width:100%;min-height:36px;margin:0;border:1px solid color-mix(in srgb,var(--demuxe-foreground) 10%,transparent);border-radius:7px;background:transparent;color:var(--demuxe-muted-foreground);font:inherit;cursor:pointer}
+.source-menu .subtitle-picker{margin:0;padding:0;gap:8px}
+.source-menu input[type=file]{font-size:11px;color:var(--demuxe-muted-foreground)}
+.source-menu input[type=file]::file-selector-button{font:inherit;color:var(--demuxe-foreground);background:var(--demuxe-control-background);border:1px solid color-mix(in srgb,var(--demuxe-foreground) 9%,transparent);border-radius:6px;padding:9px 12px;margin-right:10px;cursor:pointer}
+.source-menu #remote{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;margin:0;padding-top:14px}
+.source-menu #remote label{margin:0;gap:6px;min-width:0}
+.source-menu #remote>label:first-child,.source-menu #url-submit{grid-column:1/-1}
+.source-menu #remote .check{align-self:end;min-height:40px;font-size:11px;gap:6px}
+.source-menu #format{min-height:40px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--demuxe-foreground) 9%,transparent);background:var(--demuxe-control-background);color:var(--demuxe-foreground)}
+.source-menu #url{min-height:40px;font-size:12px}.source-menu #url-submit{min-height:40px;border-radius:7px;font-weight:550}
+.source-menu .queue-section{margin:0;padding-top:12px}.source-menu .queue-header strong{font-size:11px;color:var(--demuxe-muted-foreground);font-weight:550}.source-menu .queue-header button{min-height:32px;border:0;color:var(--demuxe-muted-foreground);background:transparent}
+.source-menu #queue-list{margin-top:6px}.source-menu #queue-list li{gap:6px}.source-menu #queue-list .queue-item{border-radius:6px;font-size:12px}.source-menu #queue-list .queue-remove{min-width:32px;padding:4px;border:0;color:var(--demuxe-muted-foreground)}
+
 @media(forced-colors:active){button,select,.shell,.settings{border:1px solid ButtonText}.transport .play{border-color:ButtonText}.stage{background:Canvas}.settings,.source-menu{background:Canvas}.timeline{appearance:auto;accent-color:Highlight}.icon-button,.time,.empty,.help{color:CanvasText}}
 .thumbnail-preview{position:absolute;bottom:calc(100% - 4px);transform:translateX(-50%);width:240px;max-width:100%;pointer-events:none;overflow:hidden;border-radius:6px;background:var(--demuxe-overlay-background);border:1px solid color-mix(in srgb,var(--demuxe-foreground) 20%,transparent);box-shadow:0 3px 12px #0008;text-align:center;font:12px/1.6 system-ui;color:var(--demuxe-foreground)}
 .thumbnail-preview[hidden]{display:none}.thumbnail-preview img{display:block;width:100%;max-height:135px;object-fit:contain}.thumbnail-preview span{display:block;padding:2px 6px}

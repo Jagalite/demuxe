@@ -8,7 +8,7 @@ s=Path('experiments/retained-presenter/player.c').read_text().replace('    if(!r
 Path('experiments/retained-subtitles/player.c').write_text(s)
 s=Path('experiments/retained-presenter/compile-hook.py').read_text().replace('retained-presenter','retained-subtitles').replace('build/retained','build/retained-subs')
 Path('experiments/retained-subtitles/compile-hook.py').write_text(s)
-s=Path('experiments/retained-presenter/link.sh').read_text().replace('retained-presenter/player.c','retained-subtitles/player.c experiments/retained-subtitles/subtitles.c').replace('build/retained/','build/retained-subs/').replace('web/engine-retained','web/engine-retained-subs')
+s=Path('experiments/retained-presenter/link.sh').read_text().replace('retained-presenter/player.c','retained-subtitles/player.c native/subtitles/bitmap.c').replace('-msimd128 -Inative ', '-msimd128 -Inative -Ibuild/sources/mpv -Ibuild/obj-mpv ').replace('build/retained/','build/retained-subs/').replace('web/engine-retained','web/engine-retained-subs')
 Path('experiments/retained-subtitles/link.sh').write_text(s)
 s=Path('web/retained-engine-worker.js').read_text()
 s="import {SubtitleOverlay} from './subtitle-overlay.js';\nconst subtitles=new SubtitleOverlay();let frameGeneration=-1,minGeneration=-1;\n"+s

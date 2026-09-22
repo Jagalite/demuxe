@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Player } from '../unified-player.js';
 import { PLAYER_EVENTS } from '../types.js';
+import { normalizeTrackPolicy } from '../internal/track-policy.js';
 import { PlayerError, playerError } from '../internal/errors.js';
 import { formatTime, outputDimensions, shortcut } from './interaction.js';
 import { ScrubberPreview } from './preview.js';
@@ -278,6 +279,7 @@ export class DemuxePlayerElement extends Base {
         this.$('empty').hidden = !this.showSourceControls || !!this.core?.state.sourceId;
         for (const id of ['open-menu', 'open', 'choose-file', 'file', 'subtitleFile', 'url', 'format', 'live', 'url-submit'])
             this.$(id).disabled = !this.showSourceControls;
+        this.$('subtitleFile').disabled = !this.showSourceControls || !!this.core?.state.trackPolicy.subtitles?.locked || this.core?.state.trackPolicy.subtitles?.allowed?.length === 0;
         this.$('source-options').inert = !this.showSourceControls;
         if (!this.showSourceControls)
             this.$('source-options').hidden = true;
@@ -298,6 +300,9 @@ export class DemuxePlayerElement extends Base {
     sourceVersion = 0;
     lastSource;
     lastOptions;
+    trackConfiguration = {};
+    get trackPolicy() { return this.trackConfiguration; }
+    set trackPolicy(value) { this.trackConfiguration = normalizeTrackPolicy(value); }
     resolveReady;
     rejectReady;
     readiness;
@@ -377,7 +382,7 @@ export class DemuxePlayerElement extends Base {
         const token = ++this.connection;
         if (this.terminal)
             return;
-        for (const name of ['previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
+        for (const name of ['trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
             if (Object.prototype.hasOwnProperty.call(this, name)) {
                 const value = this[name];
                 delete this[name];
@@ -538,7 +543,7 @@ export class DemuxePlayerElement extends Base {
             this.lastSource = source;
             this.lastOptions = { ...options, signal: undefined };
             this.clearError();
-            await core.open(source, { ...options, signal: controller.signal });
+            await core.open(source, { ...options, trackPolicy: { ...this.trackConfiguration, ...normalizeTrackPolicy(options.trackPolicy) }, signal: controller.signal });
             if (version === this.sourceVersion && !controller.signal.aborted && this.core === core) {
                 this.sourceName = sourceTitle(source);
                 this.sourceNameId = core.state.sourceId;
@@ -668,12 +673,13 @@ export class DemuxePlayerElement extends Base {
             this.$('duration').textContent = state.streamType === 'live' ? labels.live : state.duration === null ? labels.unknown : formatTime(state.duration);
             this.timelineProgress();
         }
-        const signature = JSON.stringify([state.audioTracks, state.subtitleTracks]);
+        const signature = JSON.stringify([state.audioTracks, state.subtitleTracks, state.trackPolicy]);
         if (signature !== this.trackSignature) {
             this.trackSignature = signature;
-            this.trackOptions('audio', state.audioTracks);
-            this.trackOptions('subtitles', state.subtitleTracks);
+            this.trackOptions('audio', state.audioTracks, state.trackPolicy.audio);
+            this.trackOptions('subtitles', state.subtitleTracks, state.trackPolicy.subtitles);
         }
+        this.$('subtitleFile').disabled = !this.showSourceControls || !!state.trackPolicy.subtitles?.locked || state.trackPolicy.subtitles?.allowed?.length === 0;
         this.$('speed').value = String(state.playbackRate);
         const buffering = state.status === 'buffering' && state.playbackIntent === 'play' && !pending;
         this.$('buffering-indicator').hidden = !buffering;
@@ -716,6 +722,25 @@ export class DemuxePlayerElement extends Base {
         this.diagnosticsUpdated = now;
         const s = this.core.state, d = this.core.diagnostics, m = s.mediaInfo;
         const lines = [this.labels.diagnostics, `Engine  ${s.activeMode ?? '—'} · ${s.automaticSelection ? 'automatic' : 'manual'}`, `State   ${s.status}${s.pendingOperation ? ' · ' + s.pendingOperation.kind : ''}`, `Time    ${formatTime(s.currentTime)} / ${s.streamType === 'live' ? this.labels.live : s.duration === null ? '—' : formatTime(s.duration)} · ${s.playbackRate}×`, `Video   ${m.video?.codec ?? '—'} · ${m.displayWidth ?? '—'} × ${m.displayHeight ?? '—'}`, `Audio   ${m.audio?.codec ?? '—'} · ${s.muted ? 'muted' : Math.round(s.volume * 100) + '%'}`];
+        if (s.activeMode && !['opening', 'switching', 'closing'].includes(s.pendingOperation?.kind ?? '')) {
+            if (!s.automaticSelection)
+                lines.push('Selection  Selected manually.');
+            else {
+                const modes = ['native', 'hybrid', 'software'];
+                const attempts = (d.selection?.attempts ?? []).filter(a => modes.includes(a.mode) && modes.indexOf(a.mode) < modes.indexOf(s.activeMode) && a.outcome !== 'selected');
+                if (attempts.length) {
+                    lines.push('', `Why ${s.activeMode}?`);
+                    for (const mode of modes) {
+                        const candidates = attempts.filter(a => a.mode === mode);
+                        for (const reason of new Set([...candidates.filter(a => a.outcome === 'failed'), ...candidates.filter(a => a.outcome === 'skipped')].map(a => `${a.mode} ${a.outcome}: ${a.reason}`)))
+                            lines.push(reason);
+                    }
+                    lines.push('');
+                }
+                else if (s.activeMode !== 'native')
+                    lines.push('Selection  No earlier route rejection recorded.');
+            }
+        }
         for (const [key, value] of Object.entries(d.backend ?? {}))
             if (['string', 'number', 'boolean'].includes(typeof value))
                 lines.push(`${key}  ${String(value)}`);
@@ -729,8 +754,21 @@ export class DemuxePlayerElement extends Base {
     timelineProgress() { const input = this.input('timeline'), min = Number(input.min), max = Number(input.max); input.style.setProperty('--progress', `${max > min ? Math.max(0, Math.min(100, (Number(input.value) - min) / (max - min) * 100)) : 0}%`); }
     skip(delta) { const state = this.core?.state, ranges = state?.seekable; if (!state || state.pendingOperation || !ranges?.length)
         return; const target = state.currentTime + delta; const range = ranges.find(r => target <= r.end) ?? ranges.at(-1); this.run(this.seek(Math.max(range.start, Math.min(range.end - .05, target)))); }
-    trackOptions(id, list) { const select = this.$(id); select.replaceChildren(new Option(this.labels.automatic, 'auto'), new Option(this.labels.off, '')); for (const t of list)
-        select.add(new Option(t.label, t.id)); select.value = list.find(t => t.selected)?.id ?? (list.length ? '' : 'auto'); select.disabled = !list.length; }
+    trackOptions(id, list, policy) {
+        const select = this.$(id);
+        select.replaceChildren();
+        if (policy?.allowAuto !== false)
+            select.add(new Option(this.labels.automatic, 'auto'));
+        if (policy?.allowOff !== false)
+            select.add(new Option(this.labels.off, ''));
+        for (const t of list)
+            select.add(new Option(t.label, t.id));
+        select.value = list.find(t => t.selected)?.id ?? (list.length ? '' : 'auto');
+        if (!list.some(t => t.selected) && policy?.allowOff !== false)
+            select.value = '';
+        select.disabled = !!policy?.locked || !list.length;
+        select.title = select.selectedOptions[0]?.textContent ?? '';
+    }
     settings(open, restoreFocus = true, trigger = 'settings-toggle') { if (open && trigger === 'open-menu' && !this.showSourceControls)
         return; if (open)
         this.menuTrigger = trigger; this.revealControls(); this.$('settings').hidden = !open; this.$('shell').classList.toggle('menu-open', open); if (open) {
@@ -762,7 +800,7 @@ export class DemuxePlayerElement extends Base {
         this.$(id + '-label').textContent = this.labels[id]; this.$('settings-title').textContent = this.menuTrigger === 'open-menu' ? this.labels.open : this.labels.settings; this.$('media-file-label').textContent = this.labels.mediaFile; this.$('subtitle-file-label').textContent = this.labels.subtitleFile; for (const id of ['url', 'format', 'live'])
         this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id]; }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div><div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div><div id="transport" part="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><div id="thumbnail-preview" class="thumbnail-preview" part="preview" aria-hidden="true" hidden><img id="thumbnail-image" alt=""><span id="thumbnail-time"></span></div><input id="timeline" part="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><div class="row" part="volume"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div><div id="queue-navigation" class="queue-navigation" hidden><button id="previous-file" type="button"></button><span id="queue-count"></span><button id="next-file" type="button"></button></div><span class="space"></span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="check"><input id="preview-toggle" type="checkbox" checked><span id="previews-label"></span></label><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label></div><div id="source-options" hidden><slot id="source-actions" name="source-actions"></slot><div class="media-picker" role="group" aria-labelledby="media-file-label"><span id="media-file-label"></span><span id="current-source"></span><button id="choose-file" type="button" aria-describedby="current-source"></button><input id="file" type="file" multiple hidden></div><section id="queue-section" class="queue-section" aria-labelledby="queue-heading" hidden><div class="queue-header"><strong id="queue-heading"></strong><button id="clear-queue" type="button"></button></div><ol id="queue-list"></ol></section><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><pre id="diagnostics-overlay" class="diagnostics-overlay" tabindex="0" role="region" hidden></pre><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
+        this.shadowRoot.innerHTML = `<style>${styles}</style><section id="shell" class="shell" part="container" aria-label="Media player"><div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen"></button></div><div id="stage" class="stage" part="stage" tabindex="0"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div><div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div><div id="transport" part="transport" class="transport" hidden><button id="back" disabled></button><button id="play" class="play" disabled></button><button id="forward" disabled></button></div><div id="controls" class="controls" part="controls"><slot name="before-controls"></slot><div id="thumbnail-preview" class="thumbnail-preview" part="preview" aria-hidden="true" hidden><img id="thumbnail-image" alt=""><span id="thumbnail-time"></span></div><input id="timeline" part="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled><div class="times"><span id="time" class="time">0:00</span><div class="row" part="volume"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div><div id="queue-navigation" class="queue-navigation" hidden><button id="previous-file" type="button"></button><span id="queue-count"></span><button id="next-file" type="button"></button></div><span class="space"></span><span id="duration" class="time">—</span></div><slot name="after-controls"></slot></div><section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="check"><input id="preview-toggle" type="checkbox" checked><span id="previews-label"></span></label><label class="setting-row"><span id="speed-label"></span><select id="speed">${[.5, .75, 1, 1.25, 1.5, 1.75, 2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label><label class="setting-row track-setting"><span id="audio-label"></span><select id="audio" disabled></select></label><label class="setting-row track-setting"><span id="subtitles-label"></span><select id="subtitles" disabled></select></label></div><div id="source-options" hidden><div class="media-picker" role="group" aria-labelledby="media-file-label"><span id="media-file-label"></span><span id="current-source"></span><button id="choose-file" type="button" aria-describedby="current-source"></button><input id="file" type="file" multiple hidden></div><slot id="source-actions" name="source-actions"></slot><section id="queue-section" class="queue-section" aria-labelledby="queue-heading" hidden><div class="queue-header"><strong id="queue-heading"></strong><button id="clear-queue" type="button"></button></div><ol id="queue-list"></ol></section><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div></section><div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div><pre id="diagnostics-overlay" class="diagnostics-overlay" tabindex="0" role="region" hidden></pre><div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div></section>`;
         this.labelControls();
         this.updateTitle();
         this.updateUtilities();
@@ -884,7 +922,7 @@ export class DemuxePlayerElement extends Base {
             if (key === '[' || key === ']')
                 action = p.setPlaybackRate(Math.max(.5, Math.min(2, state.playbackRate + (key === ']' ? .25 : -.25))));
             if (!state.pendingOperation && state.sourceId) {
-                if (key === 'c')
+                if (key === 'c' && !state.trackPolicy.subtitles?.locked && (!state.subtitlesVisible || state.trackPolicy.subtitles?.allowOff !== false))
                     action = p.subtitleVisible(!state.subtitlesVisible);
                 const ranges = state.seekable;
                 if (ranges?.length) {

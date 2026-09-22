@@ -8,7 +8,7 @@ over the real retained VideoFrame selected by mpv. Full video pixels still avoid
 the Wasm copy-back and software-render paths.
 
 `subtitles.c` exports a bounded packet of A8/color or premultiplied BGRA tiles.
-`web/subtitle-overlay.js` converts changed tiles into cached browser surfaces.
+`web/subtitle-overlay.js` displays mpv-composited overlays. Rebuild with the maintained `native/subtitles/bitmap.c` bridge; legacy tile-engine binaries are incompatible.
 Each pending presentation holds the subtitle snapshot for its selected media
 timestamp. Paused redraws reuse the held video frame and update the overlay;
 seeks clear retained ownership and reject frames from earlier decoder generations.

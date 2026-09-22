@@ -42,7 +42,7 @@ await check('external subtitles have distinct identities and preserve explicit s
   await page.evaluate(mode=>player.setMode(mode),mode);
   const state=await page.evaluate(()=>player.state);
   assert.deepEqual(state.subtitleTracks.map(t=>t.id),initial.map(t=>t.id));
-  assert.equal(state.mediaInfo.subtitle.id,initial[1].id);assert.equal(state.mediaInfo.subtitle.label,'second.srt');
+  assert.equal(state.mediaInfo.subtitle.id,initial[1].id);assert.equal(state.mediaInfo.subtitle.title,'second.srt');assert.match(state.mediaInfo.subtitle.label,/second\.srt/);
  }
 });
 for(const mode of ['native','hybrid','software'])await check(mode+' fatal end-file reaches normalized state before error (adapter injection)',async()=>{

@@ -11,3 +11,21 @@ test('external subtitle demuxers do not alias one another or embedded stream IDs
  const hybrid=tracks(raw,1,'hybrid'),software=tracks(raw,1,'software');
  assert.equal(new Set(hybrid.map(t=>t.id)).size,3);assert.deepEqual(hybrid.map(t=>t.id),software.map(t=>t.id));
 });
+test('multi-track labels retain language, title and file dispositions without changing selection',()=>{
+ const raw=[{id:'1',type:'audio',lang:'jpn',title:'2.0 FLAC',codec:'flac',default:true,selected:true},{id:'2',type:'audio',lang:'eng',title:'2.0 FLAC',codec:'flac',selected:false},{id:'1',type:'sub',lang:'eng',title:'Signs & Songs',codec:'ass',default:true,selected:true},{id:'2',type:'sub',lang:'eng',title:'Dialogue',codec:'ass',selected:false},{id:'3',type:'sub',lang:'fra',title:'Forced dialogue',forced:true}];
+ const list=tracks(raw,1,'hybrid');
+ assert.deepEqual(list.map(t=>t.label),['Japanese · 2.0 FLAC · File default','English · 2.0 FLAC','English · Signs & Songs · ASS · File default','English · Dialogue · ASS','French · Forced dialogue · Forced']);
+ assert.deepEqual(list.map(t=>t.selected),[true,false,true,false,false]);
+ assert.equal(list[0].language,'jpn');
+});
+test('missing or duplicate metadata remains distinguishable without inventing languages or layouts',()=>{
+ const raw=[{id:'1',type:'audio',title:'2.0 FLAC',codec:'flac'},{id:'2',type:'audio',title:'2.0 FLAC',codec:'flac'},{id:'3',type:'audio',lang:'und',codec:'aac',channels:6},{id:'1',type:'sub',lang:'not_a_valid_language!'},{id:'2',type:'sub'}];
+ const list=tracks(raw,3,'native','remux');
+ assert.deepEqual(list.map(t=>t.label),['2.0 FLAC · Track 1','2.0 FLAC · Track 2','AAC · 6 channels','not_a_valid_language!','Subtitle 2']);
+ assert.notEqual(list[0].id,list[1].id);
+});
+test('known language titles avoid repetition and labels survive backend switches',()=>{
+ const raw=[{id:'1',type:'audio',title:'English commentary',lang:'eng',codec:'aac','demux-channel-count':2,'ff-index':1},{id:'1',type:'sub',title:'English SDH',lang:'en','ff-index':2}];
+ assert.deepEqual(tracks(raw,4,'hybrid').map(t=>t.label),['English commentary · AAC · Stereo','English SDH']);
+ assert.deepEqual(tracks(raw,4,'hybrid'),tracks(raw,4,'software'));
+});

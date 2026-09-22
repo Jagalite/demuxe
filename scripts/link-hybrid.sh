@@ -10,7 +10,7 @@ export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 OUTPUT="$ROOT/web/engine-hybrid"
 SOURCE=native/vd_browser.c
-PLAYER_SOURCES=(experiments/retained-subtitles/player.c experiments/retained-subtitles/subtitles.c build/retained-subs/vo_libmpv.o)
+PLAYER_SOURCES=(experiments/retained-subtitles/player.c native/subtitles/bitmap.c build/retained-subs/vo_libmpv.o)
 mkdir -p "$OUTPUT"
 read -r -a LIBS <<< "$(pkg-config --cflags --libs --static mpv)"
 for i in "${!LIBS[@]}"; do

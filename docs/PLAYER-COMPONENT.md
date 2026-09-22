@@ -247,3 +247,22 @@ meaning. The component fullscreen container includes subtitle canvases. Native
 ASS and adaptation require explicit core constructor options and optional assets;
 there are no new component attributes or silently enabled experimental defaults.
 See [core options and restrictions](PUBLIC-API.md#experimental-playback-optimizations).
+
+### Track defaults and permitted choices
+
+Set `element.trackPolicy` before opening media to configure future opens,
+including file-picker and queue opens. Per-open `trackPolicy` takes precedence.
+The property does not change the currently accepted source; reopen to apply a
+new policy. The component uses the core's applied policy to hide forbidden
+tracks, omit disallowed Automatic/Off choices, and disable locked selectors.
+
+```js
+viewer.trackPolicy = {
+  audio: {default: {language: 'en'}, allowOff: false},
+  subtitles: {default: 'file', locked: true},
+};
+await viewer.open(file);
+```
+
+See [Audio and subtitle policy](PUBLIC-API.md#audio-and-subtitle-policy) for
+matching, fallback, and API enforcement. File metadata is not rewritten.

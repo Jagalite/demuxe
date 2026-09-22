@@ -47,3 +47,10 @@ test('TS construction limits never veto direct playback or block runtime fallbac
  assert.equal(compatibilityFailure(new Error('FFmpeg error -1: Unknown failure')),false);
  probe.tracks[0].codec='h264';assert.equal(remuxRejection(probe,{aid:'auto'}),undefined);
 });
+
+test('subtitle transfer budget permits fallback but malformed packets and typed terminal errors do not',()=>{
+ for(const text of ['Subtitle bitmap budget exceeded','Error: Subtitle bitmap budget exceeded','Error: Error: Subtitle bitmap budget exceeded\n at SubtitleOverlay.read'])assert.equal(compatibilityFailure(new Error(text)),true);
+ assert.equal(compatibilityFailure(new Error('Invalid subtitle packet')),false);
+ assert.equal(compatibilityFailure(new Error('Invalid subtitle tile')),false);
+ assert.equal(compatibilityFailure(new PlayerError('ASSET_LOAD_FAILED','Subtitle bitmap budget exceeded')),false);
+});

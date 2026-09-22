@@ -188,6 +188,8 @@ export class WasmPlayer extends EventTarget {
   async inspectMetadata() {
     const value=await this.request({type:'command',args:['expand-text','${seekable}']});
     if(value==='yes'||value==='no')this.properties.set('seekable',value==='yes');
+    if(!Array.isArray(this.properties.get('track-list'))||!(this.properties.get('track-list') as unknown[]).length)
+      await this.waitForEvent(event=>event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)&&event.data.length>0);
   }
   async command(...args:string[]):Promise<void> {await this.ready;return this.request({type:'command',args});}
   private async setPause(paused:boolean) {

@@ -13,7 +13,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
     mode: "native";
@@ -32,7 +32,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
     mode: "native";
@@ -51,7 +51,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
     mode: "native";
@@ -70,7 +70,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
     mode: "native";
@@ -89,7 +89,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
     mode: "native";
@@ -108,7 +108,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
     mode: "native";
@@ -127,7 +127,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
     mode: "native";
@@ -146,7 +146,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
     mode: "native";
@@ -165,7 +165,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
     mode: "native";
@@ -184,7 +184,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
     mode: "native";
@@ -203,7 +203,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
     mode: "native";
@@ -222,7 +222,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
     mode: "native";
@@ -241,7 +241,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
     mode: "native";
@@ -260,7 +260,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
     mode: "native";
@@ -279,7 +279,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
     mode: "native";
@@ -298,7 +298,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
     mode: "native";
@@ -317,7 +317,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
     mode: "native";
@@ -336,7 +336,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
     mode: "hybrid";
@@ -355,7 +355,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
     mode: "hybrid";
@@ -374,7 +374,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
     mode: "hybrid";
@@ -393,7 +393,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
     mode: "hybrid";
@@ -412,7 +412,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
     mode: "software";
@@ -431,7 +431,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
     mode: "software";
@@ -458,7 +458,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
     mode: "native";
@@ -477,7 +477,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
     mode: "native";
@@ -496,7 +496,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
     mode: "native";
@@ -515,7 +515,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
     mode: "native";
@@ -534,7 +534,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
     mode: "native";
@@ -553,7 +553,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
     mode: "native";
@@ -572,7 +572,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
     mode: "native";
@@ -591,7 +591,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
     mode: "native";
@@ -610,7 +610,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
     mode: "native";
@@ -629,7 +629,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
     mode: "native";
@@ -648,7 +648,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
     mode: "native";
@@ -667,7 +667,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
     mode: "native";
@@ -686,7 +686,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
     mode: "native";
@@ -705,7 +705,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
     mode: "native";
@@ -724,7 +724,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
     mode: "native";
@@ -743,7 +743,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
     mode: "native";
@@ -762,7 +762,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
     mode: "native";
@@ -781,7 +781,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
     mode: "hybrid";
@@ -800,7 +800,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
     mode: "hybrid";
@@ -819,7 +819,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
     mode: "hybrid";
@@ -838,7 +838,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
     mode: "hybrid";
@@ -857,7 +857,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
     mode: "software";
@@ -876,7 +876,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     prerequisites: string;
     subtitles: "embedded ASS/SSA via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "separate bounded remux and subtitle Wasm heaps, range reads and one mpv-composited subtitle overlay up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
     mode: "software";

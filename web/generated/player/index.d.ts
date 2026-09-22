@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Player } from '../unified-player.js';
+import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
@@ -110,6 +111,9 @@ export declare class DemuxePlayerElement extends Base {
     private sourceVersion;
     private lastSource?;
     private lastOptions?;
+    private trackConfiguration;
+    get trackPolicy(): TrackPolicy;
+    set trackPolicy(value: TrackPolicy);
     private resolveReady;
     private rejectReady;
     private readiness;

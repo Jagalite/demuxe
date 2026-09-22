@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import type { TrackPolicy } from './types.js';
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { PreparationOptions, PreparationReport } from './types.js';
 import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Diagnostics, TrackType } from './types.js';
@@ -58,6 +59,8 @@ export declare class Player extends EventTarget {
     private nativeRemux;
     private softwarePresenter;
     private settings;
+    private configuredTrackPolicy;
+    get trackPolicy(): TrackPolicy;
     private audioOutput;
     private audioFallback;
     private toneMapping;
@@ -95,7 +98,11 @@ export declare class Player extends EventTarget {
     removeEventListener<K extends keyof PlayerEventMap>(type: K, listener: ((this: Player, ev: PlayerEventMap[K]) => any) | null, options?: boolean | EventListenerOptions): void;
     removeEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions): void;
     private schedulePublish;
+    private sessionTracks;
     private sourceTracks;
+    private assertSubtitleAddition;
+    private confirmTrackSelection;
+    private applyTrackPolicy;
     private previewBuffering;
     private publish;
     private featureCapabilities;

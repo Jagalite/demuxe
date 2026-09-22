@@ -39,7 +39,21 @@ export type PreparationOptions = 'all' | readonly PreparationComponent[];
 export type PreparationAsset = {name:PreparationComponent|'font';status:'ready'|'failed'|'aborted';bytes:number;milliseconds:number;error?:string};
 export type PreparationReport = {milliseconds:number;assets:PreparationAsset[]};
 export type PreparationProgress = {name:PreparationAsset['name'];status:PreparationAsset['status']|'queued'|'loading'|'compiling'};
+/** Match fields are combined with AND; language aliases and regions match their base language. */
+export type TrackMatch = Readonly<{language?:string; title?:string; codec?:string; streamIndex?:number}>;
+export type TrackTypePolicy = Readonly<{
+  /** Ordered preferences fall back to the file default among allowed tracks. */
+  default?:'file'|'off'|TrackMatch|readonly TrackMatch[];
+  /** OR of matchers; omitted permits all tracks, [] permits none. */
+  allowed?:readonly TrackMatch[];
+  allowOff?:boolean;
+  allowAuto?:boolean;
+  /** Prevent subsequent public track changes, including legacy selectors. */
+  locked?:boolean;
+}>;
+export type TrackPolicy = Readonly<{audio?:TrackTypePolicy; subtitles?:TrackTypePolicy}>;
 export type PlayerOptions = {
+  trackPolicy?:TrackPolicy;
   /** Download and compile selected components at construction; omitted means lazy loading. */
   prepare?:PreparationOptions;
   preview?:PreviewOptions|false;
@@ -109,7 +123,7 @@ export type Diagnostics = {
   backend?: Record<string, unknown>;
 };
 
-export type OpenOptions = MediaInputOptions & {signal?: AbortSignal};
+export type OpenOptions = MediaInputOptions & {signal?: AbortSignal; trackPolicy?:TrackPolicy};
 export type MediaSourceInput = File | ArrayBuffer | string | URL | RemoteSource;
 export type OperationKind = 'opening' | 'seeking' | 'switching' | 'closing';
 export type PendingOperation = Readonly<{id: number; kind: OperationKind}>;
@@ -123,7 +137,7 @@ export type PlayerCapabilities = Readonly<Capabilities & {
   deployment: Readonly<{isolated: boolean; webCodecs: boolean; mediaSource: boolean}>;
   features: Readonly<Record<FeatureName, FeatureAvailability>>;
 }>;
-export type MediaTrack = Readonly<{id: string; type: 'audio' | 'subtitle' | 'video'; label: string; language: string | null; codec: string | null; selected: boolean; external: boolean}>;
+export type MediaTrack = Readonly<{id: string; type: 'audio' | 'subtitle' | 'video'; label: string; language: string | null; codec: string | null; selected: boolean; external: boolean; title:string|null; streamIndex:number|null; default:boolean; forced:boolean; channels:number|null}>;
 export type MediaInfo = Readonly<{
   displayWidth: number | null; displayHeight: number | null; aspectRatio: number | null;
   rotation: number | null; video: MediaTrack | null; audio: MediaTrack | null; subtitle: MediaTrack | null;
@@ -135,6 +149,7 @@ export type PlayerState = Readonly<{
   streamType: 'unknown' | 'vod' | 'live'; subtitlesVisible:boolean; volume: number; muted: boolean; playbackRate: number;
   activeMode: PlaybackMode | null; automaticSelection: boolean;
   buffered: readonly TimeRange[] | null; seekable: readonly TimeRange[] | null;
+  trackPolicy:TrackPolicy;
   audioTracks: readonly MediaTrack[]; subtitleTracks: readonly MediaTrack[];
   mediaInfo: MediaInfo; capabilities: PlayerCapabilities; error: SessionError | null;
 }>;

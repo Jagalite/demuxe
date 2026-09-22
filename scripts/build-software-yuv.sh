@@ -21,7 +21,7 @@ done
 source scripts/decoder-simd.sh
 emcc -O2 -pthread -msimd128 -Inative -Ibuild/sources/mpv -Ibuild/obj-mpv \
  "$OUT/yuv.o" "$OUT/rgb.o" native/player.c native/events.c native/stream_bridge.c \
- experiments/retained-subtitles/subtitles.c "${DECODER_SIMD_SOURCES[@]}" "${LIBS[@]}" \
+ native/subtitles/bitmap.c "${DECODER_SIMD_SOURCES[@]}" "${LIBS[@]}" \
  "$ROOT/build/obj-software-full-ffmpeg/libpostproc/libpostproc.a" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine -sENVIRONMENT=worker \
  -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \

@@ -126,7 +126,29 @@ export type PreparationProgress = {
     name: PreparationAsset['name'];
     status: PreparationAsset['status'] | 'queued' | 'loading' | 'compiling';
 };
+/** Match fields are combined with AND; language aliases and regions match their base language. */
+export type TrackMatch = Readonly<{
+    language?: string;
+    title?: string;
+    codec?: string;
+    streamIndex?: number;
+}>;
+export type TrackTypePolicy = Readonly<{
+    /** Ordered preferences fall back to the file default among allowed tracks. */
+    default?: 'file' | 'off' | TrackMatch | readonly TrackMatch[];
+    /** OR of matchers; omitted permits all tracks, [] permits none. */
+    allowed?: readonly TrackMatch[];
+    allowOff?: boolean;
+    allowAuto?: boolean;
+    /** Prevent subsequent public track changes, including legacy selectors. */
+    locked?: boolean;
+}>;
+export type TrackPolicy = Readonly<{
+    audio?: TrackTypePolicy;
+    subtitles?: TrackTypePolicy;
+}>;
 export type PlayerOptions = {
+    trackPolicy?: TrackPolicy;
     /** Download and compile selected components at construction; omitted means lazy loading. */
     prepare?: PreparationOptions;
     preview?: PreviewOptions | false;
@@ -237,6 +259,7 @@ export type Diagnostics = {
 };
 export type OpenOptions = MediaInputOptions & {
     signal?: AbortSignal;
+    trackPolicy?: TrackPolicy;
 };
 export type MediaSourceInput = File | ArrayBuffer | string | URL | RemoteSource;
 export type OperationKind = 'opening' | 'seeking' | 'switching' | 'closing';
@@ -288,6 +311,11 @@ export type MediaTrack = Readonly<{
     codec: string | null;
     selected: boolean;
     external: boolean;
+    title: string | null;
+    streamIndex: number | null;
+    default: boolean;
+    forced: boolean;
+    channels: number | null;
 }>;
 export type MediaInfo = Readonly<{
     displayWidth: number | null;
@@ -314,6 +342,7 @@ export type PlayerState = Readonly<{
     automaticSelection: boolean;
     buffered: readonly TimeRange[] | null;
     seekable: readonly TimeRange[] | null;
+    trackPolicy: TrackPolicy;
     audioTracks: readonly MediaTrack[];
     subtitleTracks: readonly MediaTrack[];
     mediaInfo: MediaInfo;
