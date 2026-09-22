@@ -2,7 +2,7 @@
 import {bufferingPolicy, resolveBuffering} from './buffering.js';
 import type {BufferingPolicy} from '../types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './plain-vtt.js';
-import {nativeMediaError,compatibilityFailure,StartupEvidenceTimeout} from './runtime-capability.js';
+import {nativeMediaError,compatibilityFailure,StartupEvidenceTimeout,NativeLoadTimeout} from './runtime-capability.js';
 import {PlayerError} from './errors.js';
 import type {CapabilityEvidence} from './runtime-capability.js';
 import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset} from '../types.js';
@@ -90,7 +90,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private cancelers = new Set<(error: Error) => void>();
   private listeners: Array<() => void> = [];
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy()) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000) {
     super();
     video.playsInline = true;
     video.preload = this.buffering.preload;
@@ -127,7 +127,8 @@ export class NativePlayer extends EventTarget implements Backend {
       const done = () => finish();
       const failed = () => finish(nativeMediaError(this.video.error));
       const cancel = (error: Error) => finish(error);
-      const timer = setTimeout(() => finish(new Error(`Native ${event} timed out`)), 25000);
+      const loading=event==='loadeddata'||event==='loadedmetadata';
+      const timer = setTimeout(() => finish(loading?new NativeLoadTimeout(event,this.loadTimeoutMs):new Error(`Native ${event} timed out`)), loading?this.loadTimeoutMs:25000);
       this.cancelers.add(cancel);this.video.addEventListener(event, done, {once: true});this.video.addEventListener('error', failed, {once: true});
       try {start();} catch (error) {finish(error as Error);}
     });

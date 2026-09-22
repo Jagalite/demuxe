@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
-import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout } from './runtime-capability.js';
+import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError } from './errors.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export class NativePlayer extends EventTarget {
@@ -15,6 +15,7 @@ export class NativePlayer extends EventTarget {
     fonts;
     requestedPlan;
     buffering;
+    loadTimeoutMs;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
@@ -89,7 +90,7 @@ export class NativePlayer extends EventTarget {
     subsVisible = true;
     cancelers = new Set();
     listeners = [];
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy()) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -101,6 +102,7 @@ export class NativePlayer extends EventTarget {
         this.fonts = fonts;
         this.requestedPlan = requestedPlan;
         this.buffering = buffering;
+        this.loadTimeoutMs = loadTimeoutMs;
         video.playsInline = true;
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -144,7 +146,8 @@ export class NativePlayer extends EventTarget {
             const done = () => finish();
             const failed = () => finish(nativeMediaError(this.video.error));
             const cancel = (error) => finish(error);
-            const timer = setTimeout(() => finish(new Error(`Native ${event} timed out`)), 25000);
+            const loading = event === 'loadeddata' || event === 'loadedmetadata';
+            const timer = setTimeout(() => finish(loading ? new NativeLoadTimeout(event, this.loadTimeoutMs) : new Error(`Native ${event} timed out`)), loading ? this.loadTimeoutMs : 25000);
             this.cancelers.add(cancel);
             this.video.addEventListener(event, done, { once: true });
             this.video.addEventListener('error', failed, { once: true });

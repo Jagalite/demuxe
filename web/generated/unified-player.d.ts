@@ -134,6 +134,7 @@ export declare class Player extends EventTarget {
     private select;
     private acceptEvidence;
     private evidence;
+    private localRemuxRetry;
     private discover;
     private recover;
     setAutomaticSelection(enabled?: boolean): Promise<void>;

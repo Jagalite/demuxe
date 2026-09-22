@@ -7,8 +7,14 @@ const run=work=>work.catch(error=>{if(error.code!=='ABORTED')$('status').textCon
 function playbackSummary(state){
   const opening=state.pendingOperation?.kind==='opening';
   const engine={native:'Native',hybrid:'Hybrid',software:'Software'}[state.activeMode];
-  const description={native:'Browser playback, with remuxing when needed.',hybrid:'WebCodecs-assisted decoding with Wasm support.',software:'FFmpeg/mpv software decoding in WebAssembly.'}[state.activeMode]||'';
   const media=state.mediaInfo,details=[];
+  const components=[];
+  if(engine){
+    if(media.video||media.displayWidth)components.push(`Video (${state.activeMode==='software'?'Wasm':state.activeMode==='hybrid'?'native · WebCodecs':'native'})`);
+    if(media.audio)components.push(`Audio (${state.activeMode==='native'?'native':'Wasm'})`);
+    components.push(`Subtitles (${!state.subtitlesVisible?'off':!media.subtitle?'none selected':state.activeMode==='native'?'on':'Wasm'})`);
+  }
+  const description=components.join(' - ');
   if(state.sourceId!==null){
     details.push(media.video||media.displayWidth?'Video':media.audio?'Audio':'Media');
     if(media.displayWidth&&media.displayHeight)details.push(`${Math.round(media.displayWidth)} × ${Math.round(media.displayHeight)}`);

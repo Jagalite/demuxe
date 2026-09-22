@@ -87,4 +87,14 @@ export class StartupEvidenceTimeout extends Error {
     evidenceTimeout = true;
     constructor(stage) { super(`Native ${stage} evidence timed out`); this.name = 'StartupEvidenceTimeout'; }
 }
+/** Missing readiness is inconclusive, not proof of codec incompatibility. */
+export class NativeLoadTimeout extends StartupEvidenceTimeout {
+    budgetMs;
+    constructor(event, budgetMs = 25000) {
+        super(event);
+        this.budgetMs = budgetMs;
+        this.name = 'NativeLoadTimeout';
+        this.message = `Native ${event} timed out`;
+    }
+}
 export function evidenceInterrupted(error) { return error instanceof StartupEvidenceTimeout || ['ABORTED', 'AUTOPLAY_BLOCKED', 'NETWORK_TIMEOUT'].includes(playerError(error).code); }

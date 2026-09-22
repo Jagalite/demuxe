@@ -2,7 +2,7 @@
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
-import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted } from './internal/runtime-capability.js';
+import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeLoadTimeout } from './internal/runtime-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
 import { EnginePreparation, preparationComponents } from './internal/engine-preparation.js';
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
@@ -529,7 +529,7 @@ export class Player extends EventTarget {
             this.dispatchEvent(new CustomEvent('preparationchange', { detail: freeze(this.preparationProgress) })); });
         return this.preparationTask = this.preparation.warm(selected);
     }
-    async create(mode, aid = 'auto', adaptation, forcePreparation = false, planId) {
+    async create(mode, aid = 'auto', adaptation, forcePreparation = false, planId, loadTimeoutMs) {
         let backend;
         const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
         surface.width = this.width;
@@ -541,7 +541,7 @@ export class Player extends EventTarget {
         this.assertOperation();
         this.root.append(surface);
         try {
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared });
         }
         catch (error) {
             surface.remove();
@@ -679,7 +679,7 @@ export class Player extends EventTarget {
         this.failedStreamingPlans.set(this.source, rejected);
         return true;
     }
-    async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic, planId) {
+    async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic, planId, directLoadBudget) {
         if (!planId)
             return this.discover(source, settings, preserve, nativeTracks, requestedTarget, automaticAdmission, mode);
         if (this.sourceInspection?.source !== source)
@@ -772,7 +772,7 @@ export class Player extends EventTarget {
                 }, 100);
             }
             const adaptation = planId.startsWith('native-flac') ? 'flac' : planId.startsWith('native-opus') ? 'opus' : undefined;
-            candidate = this.candidate = await this.create(mode, desired.aid, adaptation, !planId.startsWith('native-direct'), planId);
+            candidate = this.candidate = await this.create(mode, desired.aid, adaptation, !planId.startsWith('native-direct'), planId, directLoadBudget);
             this.assertOperation();
             const p = candidate.backend;
             await this.interruptible(p.ready);
@@ -1036,6 +1036,12 @@ export class Player extends EventTarget {
         return { metadata: true, decoderOutput: !!d?.rendered, videoPresented: !!d?.rendered,
             ...(d?.decoderStats?.supportCheck ? { apiHint: JSON.stringify(d.decoderStats.supportCheck) } : {}) };
     }
+    localRemuxRetry(source, planId, settings) {
+        // Match complete, existing plans: preserve gain and subtitle ownership.
+        const remux = { 'native-direct': 'native-remux', 'native-direct-gain': 'native-remux-gain', 'native-direct-ass': 'native-remux-ass', 'native-direct-ass-gain': 'native-remux-ass-gain' }[planId];
+        if (source.kind === 'local' && this.sourceInspection?.source === source && remux && this.planDecisions.some(p => p.eligible && p.id === remux) && !this.tierAttempts.reason(source, this.tierConfiguration(settings), remux))
+            return remux;
+    }
     async discover(source, settings, preserve, tracks, target, automatic, pinnedMode, start = 0) {
         const nativeReason = automatic ? this.admissionContext.nativeReason : undefined;
         this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
@@ -1047,6 +1053,18 @@ export class Player extends EventTarget {
         }
         const errors = [];
         let captionFailure;
+        let interruptedDirect;
+        const attempt = async (plan, budget) => {
+            // Only discovery owns the replacement and full-budget restoration below.
+            // Other callers of replace retain the ordinary direct readiness deadline.
+            const loadBudget = budget ?? (this.localRemuxRetry(source, plan.id, settings) && this.sourceInspection?.probe.format?.split(',').includes('matroska') ? 1500 : undefined);
+            this.runtimeCapabilities.update(plan.id, 'probing');
+            await this.replace(source, plan.mode, settings, preserve, tracks, target, automatic, plan.id, loadBudget);
+            this.acceptEvidence(plan.id);
+            this.record({ mode: plan.mode, outcome: 'selected', reason: `${plan.id}: Playback requirements and actual startup accepted` });
+            if (this.current?.error && !this.recovering)
+                this.recover(this.current);
+        };
         // The finite registry supplies a deterministic order. No speculative engines.
         for (let index = 0; index < this.planDecisions.length; index++) {
             this.assertOperation();
@@ -1104,22 +1122,47 @@ export class Player extends EventTarget {
                 this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: cached compatibility rejection: ${prior}` });
                 continue;
             }
-            this.runtimeCapabilities.update(plan.id, 'probing');
             try {
-                await this.replace(source, plan.mode, settings, preserve, tracks, target, automatic, plan.id);
-                this.acceptEvidence(plan.id);
-                this.record({ mode: plan.mode, outcome: 'selected', reason: `${plan.id}: Playback requirements and actual startup accepted` });
-                if (this.current?.error && !this.recovering)
-                    this.recover(this.current);
+                await attempt(plan);
                 return;
             }
             catch (error) {
                 const compatible = compatibilityFailure(error);
+                // An inspected local File has no remote transport to retry or bypass.
+                // A direct parser readiness deadline may try the already-admitted remux
+                // route once, without caching a codec failure or broadening admission.
+                const retryLocalLoad = error instanceof NativeLoadTimeout ? this.localRemuxRetry(source, plan.id, settings) : undefined;
+                if (retryLocalLoad && error instanceof NativeLoadTimeout && error.budgetMs < 25000)
+                    interruptedDirect = { id: plan.id, remux: retryLocalLoad };
                 if (compatible && !evidenceInterrupted(error))
                     this.tierAttempts.failure(source, this.tierConfiguration(settings), plan.id, String(error));
-                this.runtimeCapabilities.update(plan.id, evidenceInterrupted(error) ? 'untested' : 'failed', undefined, String(error), compatible ? 'compatibility' : 'terminal');
+                this.runtimeCapabilities.update(plan.id, evidenceInterrupted(error) ? 'untested' : 'failed', undefined, String(error), retryLocalLoad ? undefined : compatible ? 'compatibility' : 'terminal');
                 this.record({ mode: plan.mode, outcome: 'failed', reason: `${plan.id}: ${String(error)}` });
-                if (this.destroyed || this.activeOperation?.controller.signal.aborted || !compatible)
+                // Admission does not prove remux will work. A short scheduling trial
+                // must not discard a playable original when its replacement is missing
+                // or fails. Restore the original once with its full readiness budget.
+                // Cancellation, source permissions/identity and autoplay stay terminal.
+                if (interruptedDirect?.remux === plan.id && (compatible || ['ASSET_LOAD_FAILED', 'NETWORK_TIMEOUT', 'ISOLATION_REQUIRED'].includes(playerError(error).code))) {
+                    const direct = interruptedDirect;
+                    interruptedDirect = undefined;
+                    this.assertOperation();
+                    try {
+                        await attempt({ id: direct.id, mode: 'native' }, 25000);
+                        return;
+                    }
+                    catch (originalError) {
+                        const originalCompatible = compatibilityFailure(originalError);
+                        if (originalCompatible && !evidenceInterrupted(originalError))
+                            this.tierAttempts.failure(source, this.tierConfiguration(settings), direct.id, String(originalError));
+                        this.runtimeCapabilities.update(direct.id, evidenceInterrupted(originalError) ? 'untested' : 'failed', undefined, String(originalError), originalCompatible ? 'compatibility' : 'terminal');
+                        this.record({ mode: 'native', outcome: 'failed', reason: `${direct.id}: full-budget retry: ${String(originalError)}` });
+                        this.assertOperation();
+                        if (!originalCompatible)
+                            throw originalError;
+                        errors.push(`${direct.id}: ${String(originalError)}`);
+                    }
+                }
+                if (this.destroyed || this.activeOperation?.controller.signal.aborted || (!compatible && !retryLocalLoad))
                     throw error;
                 if (error instanceof BrowserCaptionUnsupported)
                     captionFailure = error.message;

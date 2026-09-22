@@ -76,4 +76,8 @@ export function nativeMediaError(error:MediaError|null):Error {
 }
 
 export class StartupEvidenceTimeout extends Error { readonly evidenceTimeout=true; constructor(stage:string){super(`Native ${stage} evidence timed out`);this.name='StartupEvidenceTimeout';} }
+/** Missing readiness is inconclusive, not proof of codec incompatibility. */
+export class NativeLoadTimeout extends StartupEvidenceTimeout {
+  constructor(event:'loadeddata'|'loadedmetadata',readonly budgetMs=25000) {super(event);this.name='NativeLoadTimeout';this.message=`Native ${event} timed out`;}
+}
 export function evidenceInterrupted(error:unknown):boolean {return error instanceof StartupEvidenceTimeout||['ABORTED','AUTOPLAY_BLOCKED','NETWORK_TIMEOUT'].includes(playerError(error).code);}

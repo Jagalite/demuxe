@@ -56,4 +56,9 @@ export declare class StartupEvidenceTimeout extends Error {
     readonly evidenceTimeout = true;
     constructor(stage: string);
 }
+/** Missing readiness is inconclusive, not proof of codec incompatibility. */
+export declare class NativeLoadTimeout extends StartupEvidenceTimeout {
+    readonly budgetMs: number;
+    constructor(event: 'loadeddata' | 'loadedmetadata', budgetMs?: number);
+}
 export declare function evidenceInterrupted(error: unknown): boolean;
