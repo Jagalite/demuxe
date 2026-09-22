@@ -124,6 +124,8 @@ export declare class DemuxePlayerElement extends Base {
     private stageWasIdle;
     private isScreenPress;
     private wasSeeking;
+    private openingStage;
+    private openingOperation;
     private diagnosticsUpdated;
     private dragging;
     private dimensions;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Packet-only metadata preflight. No decoded audio or video is produced.
-export async function probeSource(source,signal,audioAdaptation){
+export async function probeSource(source,signal,audioAdaptation,compiledWasm){
  const jspi=!globalThis.crossOriginIsolated;
  if(jspi&&(audioAdaptation||typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Non-isolated source inspection requires JSPI');
  if(signal.aborted)throw new DOMException('Aborted','AbortError');
@@ -18,8 +18,8 @@ export async function probeSource(source,signal,audioAdaptation){
    if(data.type==='ready'){
     const probe=make('./native-remux-worker.js');probe.onmessage=({data:message})=>{
      if(message.type==='error')finish(Error(message.message));
-     if(message.type==='probed')finish(null,{tracks:message.tracks,duration:message.duration,format:message.format,identity:data.identity});
-    };probe.postMessage({type:'probe',size:data.size,mailbox,audioAdaptation,jspi,port:channel?.port2},channel?[channel.port2]:[]);
+     if(message.type==='probed')finish(null,{tracks:message.tracks,hybridRejection:message.hybridRejection,duration:message.duration,format:message.format,identity:data.identity});
+    };probe.postMessage({type:'probe',size:data.size,mailbox,audioAdaptation,compiledWasm,jspi,port:channel?.port2},channel?[channel.port2]:[]);
    }
   };
   const {refreshAuthorization,...transport}=source;reader.postMessage({type:'init',mailbox,...transport,port:channel?.port1},channel?[channel.port1]:[]);

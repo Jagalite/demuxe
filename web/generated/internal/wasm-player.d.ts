@@ -84,7 +84,11 @@ export declare class WasmPlayer extends EventTarget {
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    constructor(canvas: HTMLCanvasElement, { buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase }?: {
+    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase }?: {
+        prepared?: {
+            module?: WebAssembly.Module;
+            font?: ArrayBuffer;
+        };
         buffering?: BufferingPolicy;
         assetBase?: URL;
         audioOutput?: AudioOutput;

@@ -31,14 +31,14 @@ npx demuxe copy-assets public/assets/demuxe
 ```
 
 Serve the copied directory at `/assets/demuxe/`, preserving its relative tree.
-Hybrid, Software, audio adaptation, and pthread Native remux require cross-origin isolation headers:
+Hybrid, Software, audio adaptation, and the pthread Native remux runtime require cross-origin isolation headers:
 
 ```text
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-On JSPI-capable browsers, finite single-video AVC / single-audio AAC MPEG-TS files can use Native remux without these headers. See [non-isolated remux](docs/NON-ISOLATED-REMUX.md).
+On JSPI-capable browsers, qualified finite MPEG-TS, Matroska/WebM and video-only MP4 files can use Native remux without these headers. This path uses the shipped `engine-remux-jspi` assets; other remux profiles retain the isolation requirement. See [non-isolated remux](docs/NON-ISOLATED-REMUX.md).
 
 See [production playback paths](docs/PRODUCTION-PIPELINE.md) for worker-owned MSE, selected-track MP4 views, bounded separate-buffer delivery, and their qualification limits.
 
@@ -56,6 +56,25 @@ await player.play();
 // When finished: await player.destroy();
 ```
 
+Optionally prepare engine assets before the user chooses media:
+
+```js
+const player = new Player(container, { prepare: 'all' });
+// Or: { prepare: ['inspector', 'software'] }
+const report = await player.preparationReady;
+// Preparation can also be requested during playback: await player.prepare(['hybrid']);
+```
+
+Preparation downloads and compiles the selected Wasm components and loads the
+fallback font when Hybrid or Software is selected. It does not open media,
+initialize playback engines, create workers, or activate audio. Omit `prepare`
+or pass `[]` for lazy loading. Playback shares any in-flight preparation for
+its required components, and failed preparation falls back to normal loading; inspect `report.assets` for each asset's status, bytes, and
+elapsed milliseconds. `destroy()` aborts preparation and releases cached assets.
+The `all` option covers the inspector, Hybrid, and Software; browser-native
+playback needs no Wasm preparation. Codec decoders still initialize after opening
+media. Preparation can increase initial bandwidth and memory use.
+
 ## Ready-made player
 
 ```js
@@ -66,6 +85,10 @@ definePlayerElement();
 ```html
 <demuxe-player controls asset-base="/assets/demuxe/"></demuxe-player>
 ```
+
+Set `prepare="all"` or `prepare="inspector software"` on the element before it
+connects to opt into startup preparation. Its core player exposes
+`preparationReady` through `await element.ready`.
 
 The component includes local-file and URL opening, subtitles, playback controls,
 keyboard shortcuts, and optional session diagnostics. Local files stay in the
@@ -233,3 +256,5 @@ From the source checkout, run `npm ci`, build the engines using
 [the release recipe](docs/RELEASE.md), then run `npm run build` and `npm run dev`.
 Open http://127.0.0.1:4179/. Maintained source and issues are at
 [Jagalite/demuxe](https://github.com/Jagalite/demuxe).
+
+Playback tier promotion, opt-in Native + mpv subtitles, and bounded background preparation are documented in [Playback tier policy](docs/PLAYBACK-TIER-POLICY.md). The new subtitle route remains opt-in pending broader Firefox seek qualification.

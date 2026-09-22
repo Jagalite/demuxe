@@ -18,6 +18,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     readonly properties: Map<string, unknown>;
     private stopped;
     private capability;
+    private mpvSubs?;
     private ass?;
     private assAssets;
     private assIndex;
@@ -86,6 +87,14 @@ export declare class NativePlayer extends EventTarget implements Backend {
         };
         path: string;
         projection: Record<string, unknown> | undefined;
+        mpvSubtitles: {
+            position: number;
+            renders: number;
+            bitmapUpdates: number;
+            bytes: number;
+            peakBytes: number;
+            discarded: number;
+        } | undefined;
         plan: string;
         subtitleOverlay: {
             renders: number;
@@ -127,6 +136,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;
+    private seekVideo;
     private seekPresented;
     rate(value: number): Promise<void>;
     volume(value: number): Promise<void>;

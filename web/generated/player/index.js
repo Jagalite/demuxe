@@ -317,6 +317,8 @@ export class DemuxePlayerElement extends Base {
     stageWasIdle = false;
     isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay')); }
     wasSeeking = false;
+    openingStage = '';
+    openingOperation = null;
     diagnosticsUpdated = 0;
     dragging = false;
     dimensions = '';
@@ -389,14 +391,20 @@ export class DemuxePlayerElement extends Base {
                 return;
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
-                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, preview: this.previewConfiguration });
+                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.dimensions = '';
                 this.trackSignature = '';
-                for (const type of [...PLAYER_EVENTS, 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])
+                for (const type of [...PLAYER_EVENTS, 'preparationchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])
                     core.addEventListener(type, event => {
                         if (this.core !== core || this.terminal)
                             return;
                         const detail = event.detail;
+                        if (type === 'preparationchange')
+                            this.update(core.state);
+                        if (type === 'modechange' && detail.phase === 'loading' && core.state.pendingOperation?.kind === 'opening') {
+                            this.openingStage = `Starting ${{ native: 'Native', hybrid: 'Hybrid', software: 'Software' }[detail.mode]} playback…`;
+                            this.update(core.state);
+                        }
                         if (type === 'error')
                             this.showError(detail);
                         if (type === 'ended')
@@ -671,11 +679,29 @@ export class DemuxePlayerElement extends Base {
         this.$('buffering-indicator').hidden = !buffering;
         this.$('shell').classList.toggle('buffering', buffering);
         this.bufferedProgress(state);
-        const activity = state.pendingOperation?.kind === 'opening' ? labels.loading : state.pendingOperation?.kind === 'switching' ? labels.switching : state.pendingOperation?.kind === 'seeking' ? labels.seeking : state.status === 'buffering' ? labels.buffering : '';
-        this.$('busy').hidden = !activity || seeking || buffering;
-        this.$('busy').textContent = activity;
+        const opening = state.pendingOperation?.kind === 'opening';
+        if (opening && this.openingOperation !== state.pendingOperation.id) {
+            this.openingOperation = state.pendingOperation.id;
+            this.openingStage = 'Inspecting media…';
+        }
+        if (!opening) {
+            this.openingOperation = null;
+            this.openingStage = '';
+        }
+        const preparation = this.core?.preparationProgress ?? [];
+        const preparing = preparation.filter(a => ['queued', 'loading', 'compiling'].includes(a.status));
+        const ready = preparation.filter(a => a.status === 'ready').length;
+        const names = { inspector: 'media inspector', hybrid: 'Hybrid', software: 'Software', font: 'subtitle font' };
+        const phase = preparing.find(a => a.status === 'compiling') ?? preparing[0];
+        const preparationText = phase ? `${phase.status === 'compiling' ? 'Compiling' : 'Loading'} ${names[phase.name]}… · ${ready}/${preparation.length} ready` : preparation.length ? ready === preparation.length ? `Components ready · ${ready}/${preparation.length}` : `Ready · ${ready}/${preparation.length} prepared; others load when needed` : '';
+        const activity = state.pendingOperation?.kind === 'opening' ? (phase ? preparationText : this.openingStage || labels.loading) : state.pendingOperation?.kind === 'switching' ? labels.switching : state.pendingOperation?.kind === 'seeking' ? labels.seeking : state.status === 'buffering' ? labels.buffering : '';
+        const pill = activity || (!state.sourceId ? preparationText : '');
+        this.$('busy').hidden = !pill || seeking || buffering;
+        this.$('busy').textContent = pill;
+        this.$('busy').dataset.complete = String(!activity && !phase);
+        this.$('busy').setAttribute('aria-label', preparation.length && !activity ? preparation.map(a => `${names[a.name]}: ${a.status}`).join('; ') : pill);
         if (!this.lastFailure)
-            this.announce(activity || (state.streamType === 'live' && !window?.length ? labels.noWindow : ''), !activity);
+            this.announce(activity || (!state.sourceId ? preparationText : '') || (state.streamType === 'live' && !window?.length ? labels.noWindow : ''), !pill);
         this.geometry(state);
         this.updateDiagnostics();
     }

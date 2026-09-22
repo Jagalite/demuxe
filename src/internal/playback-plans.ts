@@ -4,6 +4,7 @@ import type {PlaybackMode} from '../types.js';
 /** Finite execution plans; qualification is local to a feature, not a browser claim. */
 export const PLAYBACK_PLANS = Object.freeze(([
   {id:'native-direct', mode:'native', video:'browser', audio:'original', qualification:'existing'},
+  {id:'native-remux-mpv', mode:'native', video:'packet-copy', audio:'packet-copy', qualification:'experimental'},
   {id:'native-remux', mode:'native', video:'packet-copy', audio:'packet-copy', qualification:'existing'},
   {id:'native-direct-gain', mode:'native', video:'browser', audio:'web-audio-gain', qualification:'experimental'},
   {id:'shaka-mse', mode:'native', video:'browser-mse', audio:'browser-mse', qualification:'runtime-verified'},
@@ -26,12 +27,12 @@ export const PLAYBACK_PLANS = Object.freeze(([
   {id:'software-gain', mode:'software', video:'ffmpeg', audio:'mpv+web-audio-gain', qualification:'experimental'},
   {id:'software', mode:'software', video:'ffmpeg', audio:'mpv', qualification:'existing'},
 ] as const).map(plan=>Object.freeze({...plan,
-  owners:Object.freeze({video:plan.mode==='native'?'browser-media-element':plan.mode==='hybrid'?'browser-webcodecs':'ffmpeg',audio:plan.mode==='native'?'browser-media-element':'mpv-pcm-worklet',subtitle:plan.id.startsWith('shaka-')?'shaka-text':plan.id.includes('-ass')?'independent-libass':plan.mode==='native'?'browser-text-track':'mpv',demux:plan.id.startsWith('shaka-')?'shaka-manifest-segments-mse':plan.mode==='native'?(plan.id.startsWith('native-direct')?'browser':'ffmpeg-preparation'):'mpv',presentation:plan.mode==='native'?'browser-media-element':'demuxe-retained-frame'}),
-  source:plan.id.startsWith('shaka-')?'authorized HLS/DASH adaptive source':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'qualified random-access file and selected codec packaging':plan.mode==='native'?'browser-supported source and selected tracks':'existing mpv source/track contract',
-  prerequisites:plan.id.startsWith('shaka-')?'MSE and lazy Shaka runtime; qualified browser codecs':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'MSE, qualified MIME; isolation or JSPI for qualified AVC/AAC MPEG-TS packet copy':plan.mode==='native'?'HTMLMediaElement'+(plan.id.endsWith('gain')?', Web Audio and CORS-clean media':''):'cross-origin isolation'+(plan.mode==='hybrid'?', supported complete WebCodecs configuration':''),
-  subtitles:plan.id.startsWith('shaka-')?'Shaka manifest text selection and rendering':plan.id.includes('-ass')?'external ASS/SSA via pinned libass; container presentation only':plan.mode==='native'?'browser text tracks':'mpv/libass',
+  owners:Object.freeze({video:plan.mode==='native'?'browser-media-element':plan.mode==='hybrid'?'browser-webcodecs':'ffmpeg',audio:plan.mode==='native'?'browser-media-element':'mpv-pcm-worklet',subtitle:plan.id==='native-remux-mpv'?'mpv-subtitle-service':plan.id.startsWith('shaka-')?'shaka-text':plan.id.includes('-ass')?'independent-libass':plan.mode==='native'?'browser-text-track':'mpv',demux:plan.id==='native-remux-mpv'?'ffmpeg-preparation+mpv-subtitle-demux':plan.id.startsWith('shaka-')?'shaka-manifest-segments-mse':plan.mode==='native'?(plan.id.startsWith('native-direct')?'browser':'ffmpeg-preparation'):'mpv',presentation:plan.mode==='native'?'browser-media-element':'demuxe-retained-frame'}),
+  source:plan.id==='native-remux-mpv'?'inspected local Matroska with one embedded ASS/SSA track':plan.id.startsWith('shaka-')?'authorized HLS/DASH adaptive source':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'qualified random-access file and selected codec packaging':plan.mode==='native'?'browser-supported source and selected tracks':'existing mpv source/track contract',
+  prerequisites:plan.id==='native-remux-mpv'?'MSE, cross-origin isolation, mpv subtitle service assets':plan.id.startsWith('shaka-')?'MSE and lazy Shaka runtime; qualified browser codecs':(plan.id.startsWith('native-remux')||plan.id.startsWith('native-flac')||plan.id.startsWith('native-opus'))?'MSE, qualified MIME; isolation or JSPI for qualified finite packet copy':plan.mode==='native'?'HTMLMediaElement'+(plan.id.endsWith('gain')?', Web Audio and CORS-clean media':''):'cross-origin isolation'+(plan.mode==='hybrid'?', supported complete WebCodecs configuration':''),
+  subtitles:plan.id==='native-remux-mpv'?'embedded ASS/SSA via mpv; container presentation only':plan.id.startsWith('shaka-')?'Shaka manifest text selection and rendering':plan.id.includes('-ass')?'external ASS/SSA via pinned libass; container presentation only':plan.mode==='native'?'browser text tracks':'mpv/libass',
   fidelity:plan.id.startsWith('native-opus')?'Explicitly permitted lossy audio; no resampling/downmix; video copied':plan.id.startsWith('native-flac')?'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample':'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
-  resources:plan.id.startsWith('shaka-')?'Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque':plan.mode==='native'?'existing bounded remux buffers when used; browser decoder allocations are opaque':'existing mpv allocation, PCM ring and retained-frame limits',
+  resources:plan.id==='native-remux-mpv'?'separate bounded remux and subtitle Wasm heaps, range reads and 2 MiB subtitle tile budget; browser allocations opaque':plan.id.startsWith('shaka-')?'Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque':plan.mode==='native'?'existing bounded remux buffers when used; browser decoder allocations are opaque':'existing mpv allocation, PCM ring and retained-frame limits',
   fallback:plan.mode==='software'?'terminal':'existing diagnosed-path fallback with source and user intent preserved',
 })));
 
@@ -50,6 +51,7 @@ export function featureRejection(mode: PlaybackMode, features: {vf:string; af:st
   if (!qualifiedAudioFilter(features.af)) return 'This audio filter has not been qualified for Hybrid';
 }
 export function executionPlan(mode:PlaybackMode, packaging:unknown, audioFilter:string, gain=1, nativeASS=false) {
+  if(mode==='native'&&packaging==='remux-mpv')return PLAYBACK_PLANS.find(plan=>plan.id==='native-remux-mpv')!;
   if(mode==='native'&&packaging==='shaka-mse')return PLAYBACK_PLANS.find(plan=>plan.id===(gain!==1?'shaka-mse-gain':'shaka-mse'))!;
   let id:string=(mode === 'native' ? packaging === 'adapted-opus' ? gain!==1?'native-opus-gain':'native-opus' : packaging === 'adapted-flac' ? gain!==1?'native-flac-gain':'native-flac' : packaging === 'remux' ? gain!==1?'native-remux-gain':'native-remux' : gain!==1?'native-direct-gain':'native-direct' : mode === 'hybrid' ? audioFilter ? gain!==1?'hybrid-audio-filter-gain':'hybrid-audio-filter' : gain!==1?'hybrid-gain':'hybrid' : gain!==1?'software-gain':'software');
   if(mode==='native'&&nativeASS)id=gain!==1?id.replace(/-gain$/,'-ass-gain'):id+'-ass';
@@ -58,6 +60,7 @@ export function executionPlan(mode:PlaybackMode, packaging:unknown, audioFilter:
 
 export type PlanRejectionCode='FEATURE_UNSUPPORTED'|'POLICY_PROHIBITS_TRANSFORM'|'QUALIFICATION_REQUIRED'|'SOURCE_UNSUPPORTED'|'DEPLOYMENT_UNAVAILABLE'|'PLAN_NOT_REQUESTED'|'ISOLATION_REQUIRED';
 export type PlanFacts={
+  mpvSubtitles?:boolean;mpvSubtitleSourceQualified?:boolean;mpvSubtitleAVRejection?:string;
   automatic:boolean;vf:string;af:string;gain:number;toneMapping:string;hybridAudioFilters:boolean;
   adaptation?:'flac'|'opus';allowLossy:boolean;nativeASS:boolean;externalFormats:string[];
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
@@ -77,6 +80,14 @@ export function planAdmission(f:PlanFacts){
     if(effect)reject('FEATURE_UNSUPPORTED',effect);
     else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
     else if(gain&&!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Web Audio is unavailable');
+    else if(plan.id==='native-remux-mpv'){
+      if(!f.mpvSubtitles||!f.mpvSubtitleSourceQualified)reject('QUALIFICATION_REQUIRED','mpv subtitle service requires opted-in inspected local Matroska ASS/SSA');
+      else if(!f.isolated)reject('ISOLATION_REQUIRED','mpv subtitle service requires cross-origin isolation');
+      else if(f.externalFormats.length||f.browserTextTracks||f.manifest)reject('QUALIFICATION_REQUIRED','mpv subtitle service currently owns embedded file subtitles only');
+      else if(f.audioOutput!=='stereo')reject('FEATURE_UNSUPPORTED','Explicit PCM layout requires mpv A/V');
+      else if(f.nativeRemux==='never'||!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires permitted MSE');
+      else if(f.mpvSubtitleAVRejection||f.remuxSourceRejection)reject('SOURCE_UNSUPPORTED',f.mpvSubtitleAVRejection??f.remuxSourceRejection!);
+    }
     else if(plan.id.startsWith('shaka-')){
       if(!f.manifest)reject('SOURCE_UNSUPPORTED','Shaka is only used for adaptive HLS/DASH sources');
       else if(!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Shaka requires MediaSource');
@@ -101,7 +112,7 @@ export function planAdmission(f:PlanFacts){
       else if(ass&&!f.isolated)reject('ISOLATION_REQUIRED','Native libass requires cross-origin isolation');
       else if(prepared&&f.manifest)reject('QUALIFICATION_REQUIRED','File preparation is not qualified for manifest sources');
       else if(prepared&&!f.isolated&&(flac||opus||!f.jspi))reject('ISOLATION_REQUIRED','Native preparation requires cross-origin isolation or JSPI packet-copy support');
-      else if(prepared&&!f.isolated&&!f.nonisolatedRemuxQualified)reject('QUALIFICATION_REQUIRED','Non-isolated remux requires inspected finite AVC/AAC MPEG-TS');
+      else if(prepared&&!f.isolated&&!f.nonisolatedRemuxQualified)reject('QUALIFICATION_REQUIRED','Non-isolated remux requires an inspected qualified finite packet-copy profile');
       else if(prepared&&(f.nativeRemux==='never'||!f.mse))reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires permitted MSE');
       else if(!prepared&&(f.nativeRemux==='always'||f.requiresRemux))reject('SOURCE_UNSUPPORTED','This source policy requires controlled remux transport');
       else if((flac||opus)&&(f.automatic?(!flac||!f.automaticLossless):f.adaptation!==(flac?'flac':'opus')))reject('QUALIFICATION_REQUIRED','Audio adaptation requires explicit profile or qualified automatic lossless policy');

@@ -9,7 +9,7 @@ export function ranges(value: unknown): readonly TimeRange[] | null {
   return out.every(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.start>=0&&r.end>=r.start)?out:null;
 }
 export type RawTrack = Record<string, any>;
-export function usesRemuxTracks(plan?: string): boolean {return plan==='remux'||plan==='adapted-flac'||plan==='adapted-opus';}
+export function usesRemuxTracks(plan?: string): boolean {return (plan==='remux'||plan==='remux-mpv')||plan==='adapted-flac'||plan==='adapted-opus';}
 export function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string {
   const type = track.type;
   if(plan==='shaka-mse')return `${type}:shaka:${track.id}`;

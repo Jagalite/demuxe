@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
+import type { PreparationOptions, PreparationReport } from './types.js';
 import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Diagnostics, TrackType } from './types.js';
 import { PreviewController } from './preview/controller.js';
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
@@ -27,10 +28,21 @@ export declare class Player extends EventTarget {
     private automatic;
     private attempts;
     private runtimeCapabilities;
+    private tierAttempts;
+    private promotionTimer?;
+    private promotionEpoch;
+    private promotionRunning;
+    private promotionController?;
+    private backgroundPromotion?;
+    private tierConfiguration;
+    private cancelPromotion;
+    private schedulePromotion;
     private sourceInspection?;
     private inspection?;
     private recovering;
     private lifetime;
+    private preparation?;
+    private preparationTask;
     private recoveredSessions;
     private failedStreamingPlans;
     private audioAdaptation?;
@@ -39,6 +51,7 @@ export declare class Player extends EventTarget {
     private bufferedNativeSeeks;
     private hybridAudioFilters;
     private nativeASS;
+    private mpvSubtitles;
     private allowLossy;
     private planDecisions;
     private admissionContext;
@@ -101,6 +114,10 @@ export declare class Player extends EventTarget {
     private enqueue;
     private interruptible;
     private dispose;
+    /** Prepare immutable engine code and fonts without opening media or audio devices. */
+    get preparationReady(): Promise<PreparationReport>;
+    get preparationProgress(): import("./types.js").PreparationProgress[];
+    prepare(components?: PreparationOptions): Promise<PreparationReport>;
     private create;
     private settled;
     private admissible;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {preparedEngine} from './prepared-engine.js';
 let audioChannels=2;
 import {drawRetainedVideo} from './retained-video.js';
 let videoTrack;
@@ -206,7 +207,7 @@ self.onmessage = async ({data}) => {
       audio = new Int32Array(data.audio, 0, 16);
       pcm = new Float32Array(data.audio, 64);
       const createEngine=(await import(data.decoder==='webcodecs'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
-      engine = await createEngine({printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+      engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
       if (closing) return;
       engine.FS.mkdir('/fonts');
       engine.FS.writeFile('/fonts/DejaVuSans.ttf', new Uint8Array(data.font));

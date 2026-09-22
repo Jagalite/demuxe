@@ -91,8 +91,16 @@ test('non-isolated source gate excludes priming and unqualified track selection'
  const {nonisolatedRemuxRejection}=await import('../web/generated/internal/selection.js');
  const probe={format:'mpegts',duration:4,tracks:[{id:'1',type:'video',codec:'h264'},{id:'1',type:'audio',codec:'aac'}]};
  assert.equal(nonisolatedRemuxRejection(probe,{aid:'auto'}),undefined);
- for(const format of ['mov,mp4,m4a,3gp,3g2,mj2','matroska,webm',undefined])assert.ok(nonisolatedRemuxRejection({...probe,format},{aid:'auto'}));
+ for(const format of ['mov,mp4,m4a,3gp,3g2,mj2',undefined])assert.ok(nonisolatedRemuxRejection({...probe,format},{aid:'auto'}));
+ assert.equal(nonisolatedRemuxRejection({...probe,format:'matroska,webm'},{aid:'auto'}),undefined);
  for(const aid of ['no','2'])assert.ok(nonisolatedRemuxRejection(probe,{aid}));
  assert.ok(nonisolatedRemuxRejection({...probe,duration:Infinity},{aid:'auto'}));
- assert.ok(nonisolatedRemuxRejection({...probe,tracks:[...probe.tracks,probe.tracks[1]]},{aid:'auto'}));
+ assert.equal(nonisolatedRemuxRejection({...probe,tracks:[...probe.tracks,{...probe.tracks[1],id:'2'}]},{aid:'2'}),undefined);
+ assert.ok(nonisolatedRemuxRejection({...probe,tracks:[...probe.tracks,probe.tracks[0]]},{aid:'auto'}));
+ for(const duration of [0,-1,NaN,Infinity])assert.ok(nonisolatedRemuxRejection({...probe,duration},{aid:'auto'}));
+ const mkv={...probe,format:'matroska,webm'};
+ assert.ok(nonisolatedRemuxRejection({...mkv,tracks:[probe.tracks[0],{...probe.tracks[1],initialPadding:1024}]},{aid:'auto'}));
+ for(const codec of ['aac','flac'])assert.equal(nonisolatedRemuxRejection({...mkv,tracks:[{...probe.tracks[1],codec}]},{aid:'auto'}),undefined);
+ for(const codec of ['opus','ac3','mp3'])assert.ok(nonisolatedRemuxRejection({...mkv,tracks:[probe.tracks[0],{...probe.tracks[1],codec}]},{aid:'auto'}));
+ assert.equal(nonisolatedRemuxRejection({...mkv,tracks:[{...probe.tracks[0],codec:'vp9'},{...probe.tracks[1],codec:'opus'}]},{aid:'auto'}),undefined);
 });

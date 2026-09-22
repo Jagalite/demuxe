@@ -12,6 +12,7 @@ export type ProbeTrack = {
     aacObject?: number;
     attachedPicture?: boolean;
     sampleRate?: number;
+    initialPadding?: number;
     bits?: number;
     startTime?: number;
     endTime?: number;
@@ -22,6 +23,7 @@ export type Probe = {
     tracks: ProbeTrack[];
     duration: number;
     format?: string;
+    hybridRejection?: string;
     identity?: {
         size: string;
         etag?: string;
@@ -57,7 +59,9 @@ export declare function nativeRejection(probe: Probe, settings: {
 export declare function remuxRejection(probe: Probe, settings: {
     aid: string;
 }): string | undefined;
-/** The no-pthread route is deliberately limited to the qualified TS profile. */
+/** Finite packet-copy profiles qualified with the no-pthread transport.
+ * Codec/container pairs remain explicit: MP4 AAC edits and AVC/Opus padding
+ * cannot be inferred from successful browser startup. */
 export declare function nonisolatedRemuxRejection(probe: Probe, settings: {
     aid: string;
 }): string | undefined;

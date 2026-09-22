@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {PlaybackMode, RemoteSource} from '../types.js';
-export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
-export type Probe = {tracks: ProbeTrack[]; duration: number; format?:string; identity?: {size: string; etag?: string}};
+export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;initialPadding?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
+export type Probe = {tracks: ProbeTrack[]; duration: number; format?:string; hybridRejection?:string; identity?: {size: string; etag?: string}};
 /** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
  * The runtime still verifies packets, samples, actual MSE output and work bounds. */
 export function losslessAdaptationRejection(probe:Probe,settings:{aid:string;sid:string;subtitles:boolean}):string|undefined {
@@ -50,9 +50,22 @@ export function remuxRejection(probe:Probe,settings:{aid:string}):string|undefin
  if((video?.codec==='vp8'&&audio&&!['opus','vorbis'].includes(audio.codec))||(audio?.codec==='vorbis'&&video&&!['vp8','vp9','av1'].includes(video.codec)))return 'Selected packets have no common Demuxe muxing contract';
 }
 
-/** The no-pthread route is deliberately limited to the qualified TS profile. */
+/** Finite packet-copy profiles qualified with the no-pthread transport.
+ * Codec/container pairs remain explicit: MP4 AAC edits and AVC/Opus padding
+ * cannot be inferred from successful browser startup. */
 export function nonisolatedRemuxRejection(probe:Probe,settings:{aid:string}):string|undefined {
  const video=probe.tracks.filter(t=>t.type==='video'&&!t.attachedPicture);
- const audio=probe.tracks.filter(t=>t.type==='audio');
- if(probe.format!=='mpegts'||!Number.isFinite(probe.duration)||probe.duration<=0||video.length!==1||video[0].codec!=='h264'||audio.length!==1||audio[0].codec!=='aac'||settings.aid==='no'||(!['auto',audio[0].id].includes(settings.aid)))return 'Non-isolated remux requires finite single-video AVC and single-audio AAC MPEG-TS';
+ const audio=probe.tracks.filter(t=>t.type==='audio'),a=settings.aid==='auto'?(audio.find(t=>t.default)??audio[0]):audio.find(t=>t.id===settings.aid);
+ const reject='Non-isolated remux requires a qualified finite packet-copy container and selected codec pair';
+ if(!Number.isFinite(probe.duration)||probe.duration<=0||video.length>1||settings.aid==='no'||(settings.aid!=='auto'&&!a)||(!video.length&&!a))return reject;
+ if(a?.codec==='aac'&&(a.initialPadding??0)!==0)return 'Non-isolated AAC remux does not yet preserve declared encoder priming';
+ const v=video[0]?.codec,format=probe.format?.split(',')??[];
+ if(format.includes('mpegts')&&v==='h264'&&(!a||a.codec==='aac'))return;
+ if(format.includes('mov')&&v==='h264'&&!a)return;
+ if(format.includes('matroska')){
+  if((!v||v==='h264')&&(!a||['aac','flac'].includes(a.codec)))return;
+  if((!v||v==='vp9')&&a?.codec==='opus')return;
+  if(v==='vp8'&&a?.codec==='vorbis')return;
+ }
+ return reject;
 }

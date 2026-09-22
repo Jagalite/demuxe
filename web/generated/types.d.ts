@@ -109,7 +109,26 @@ export type PreviewOptions = {
     maxEntries?: number;
     timeoutMs?: number;
 };
+export type PreparationComponent = 'inspector' | 'hybrid' | 'software';
+export type PreparationOptions = 'all' | readonly PreparationComponent[];
+export type PreparationAsset = {
+    name: PreparationComponent | 'font';
+    status: 'ready' | 'failed' | 'aborted';
+    bytes: number;
+    milliseconds: number;
+    error?: string;
+};
+export type PreparationReport = {
+    milliseconds: number;
+    assets: PreparationAsset[];
+};
+export type PreparationProgress = {
+    name: PreparationAsset['name'];
+    status: PreparationAsset['status'] | 'queued' | 'loading' | 'compiling';
+};
 export type PlayerOptions = {
+    /** Download and compile selected components at construction; omitted means lazy loading. */
+    prepare?: PreparationOptions;
     preview?: PreviewOptions | false;
     /** Automatic balanced buffering and auto preload when omitted. */
     buffering?: BufferingOptions;
@@ -133,6 +152,13 @@ export type PlayerOptions = {
     allowLossyAudio?: boolean;
     /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction. */
     experimentalNativeASS?: boolean;
+    /** Local Matroska embedded ASS/SSA with browser A/V and bounded mpv subtitle service. */
+    experimentalMpvSubtitles?: boolean;
+    /** Opt-in Native candidate preparation during playback. Budget covers known
+     * Wasm and packet allocations, not opaque browser/GPU memory. */
+    experimentalBackgroundPromotion?: {
+        maxKnownBytes: number;
+    };
     nativeRemux?: 'auto' | 'never' | 'always';
     /** Optional Software presenter; RGB remains the default. */
     softwarePresenter?: 'rgb' | 'experimental-yuv';

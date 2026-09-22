@@ -15,5 +15,6 @@ export {AuthoredPreviewProvider,LocalVideoPreviewProvider} from './preview/provi
 
 export {SoftwarePreviewProvider} from './preview/software.js';
 
+export type {PreparationComponent,PreparationOptions,PreparationAsset,PreparationReport,PreparationProgress} from './types.js';
 
 export type {PreviewPregeneration} from './types.js';

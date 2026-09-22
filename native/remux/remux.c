@@ -5,9 +5,12 @@
 #include <libavcodec/bsf.h>
 #include <libavutil/avutil.h>
 #include <libavutil/mem.h>
+#include <libavutil/opt.h>
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 #include <libavcodec/h264_parse.h>
+#include <libavcodec/hevc/parse.h>
 #include <libavutil/intreadwrite.h>
 #include <libavutil/pixdesc.h>
 static H264ParamSets ps;
@@ -41,6 +44,20 @@ static int configure_video(AVCodecParameters*p){
     while(count--){if(at+2>p->extradata_size)return reject("Truncated hvcC");int n=AV_RB16(p->extradata+at);at+=2;if(at+n>p->extradata_size)return reject("Truncated hvcC");int r=visit_nal(p->extradata+at,n,1);if(r<0)return r;at+=n;}
    }}else{int r=scan_nals(p->extradata,p->extradata_size,0,1);if(r<0)return r;}
    if(!config_count)return reject("Missing HEVC parameter sets");
+   if(repair_dts){
+    // Matroska carries presentation timestamps. Use the signalled HEVC DPB
+    // reorder bound, as for AVC, instead of treating reordered PTS as DTS.
+    HEVCParamSets sets={0};HEVCSEI sei={0};int nalff=0,length=0;
+    int parsed=ff_hevc_decode_extradata(p->extradata,p->extradata_size,&sets,&sei,&nalff,&length,AV_EF_EXPLODE,0,NULL);
+    reorder=-1;
+    if(parsed>=0)for(int i=0;i<HEVC_MAX_SPS_COUNT;i++)if(sets.sps_list[i]){
+     const HEVCSPS *s=sets.sps_list[i];
+     for(int layer=0;layer<s->max_sub_layers;layer++)reorder=FFMAX(reorder,s->temporal_layer[layer].num_reorder_pics);
+    }
+    ff_hevc_ps_uninit(&sets);ff_hevc_reset_sei(&sei);
+    if(parsed<0||reorder<0||reorder>16)return reject("Invalid or excessive HEVC reorder bound");
+    p->video_delay=reorder;
+   }
   }
   const AVPixFmtDescriptor *fmt=av_pix_fmt_desc_get(p->format);
   EM_ASM({Module.videoConfig=({kind:$0,description:HEAPU8.slice($1,$1+$2),width:$3,height:$4,profile:$5,level:$6,depth:$7});},kind,p->extradata,p->extradata_size,p->width,p->height,p->profile,p->level,fmt?fmt->comp[0].depth:8);
@@ -254,6 +271,12 @@ EMSCRIPTEN_KEEPALIVE int rm_probe(double size){
   double end=declared_track_end(st);
   int bits=p->codec_id==AV_CODEC_ID_PCM_S16LE?16:p->codec_id==AV_CODEC_ID_PCM_S24LE?24:p->bits_per_raw_sample;
   EM_ASM({Object.assign(Module.tracks[Module.tracks.length-1],{sampleRate:$0,bits:$1,startTime:$2,endTime:$3,width:$4,height:$5});},p->sample_rate,bits,start,end,p->width,p->height);
+  EM_ASM({Module.tracks[Module.tracks.length-1].initialPadding=$0;},p->initial_padding);
+  // Bounded AVC/HEVC initialization records allow capability rejection before
+  // downloading and initializing a playback engine. No decoder is created here.
+  if(type==0&&p->extradata_size>0&&p->extradata_size<=65536&&p->extradata[0]==1&&
+     (p->codec_id==AV_CODEC_ID_H264||p->codec_id==AV_CODEC_ID_HEVC))
+   EM_ASM({Module.tracks[Module.tracks.length-1].browserConfig=({kind:$0,description:HEAPU8.slice($1,$1+$2),width:$3,height:$4});},p->codec_id==AV_CODEC_ID_H264?1:2,p->extradata,p->extradata_size,p->width,p->height);
  }
  return 0;
 }
@@ -266,11 +289,7 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  if(selected_video>=0)video=selected_video;if(selected_audio>=0)audio=selected_audio;
  if((video<0&&audio<0)||(video>=0&&video>=in->nb_streams)||(audio>=0&&audio>=in->nb_streams))return reject("Invalid selected tracks");
  // Browser packet contracts are checked separately from FFmpeg demux availability.
- repair_dts=video>=0&&strstr(in->iformat->name,"matroska")!=NULL&&in->streams[video]->codecpar->codec_id==AV_CODEC_ID_H264;is_ts=strstr(in->iformat->name,"mpegts")!=NULL;
-#ifdef DEMUXE_REMUX_JSPI
- if(!is_ts||video<0||audio<0||in->streams[video]->codecpar->codec_id!=AV_CODEC_ID_H264||in->streams[audio]->codecpar->codec_id!=AV_CODEC_ID_AAC)
-  return reject("Non-isolated remux requires AVC/AAC MPEG-TS");
-#endif
+ repair_dts=video>=0&&strstr(in->iformat->name,"matroska")!=NULL&&(in->streams[video]->codecpar->codec_id==AV_CODEC_ID_H264||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_HEVC);is_ts=strstr(in->iformat->name,"mpegts")!=NULL;
  int r;
  if(video>=0&&in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP9){
   int found=0,bytes=0;
@@ -286,7 +305,9 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  }
  generic_video=hevc_video=0;video_codec[0]=0;if(video>=0){r=configure_video(in->streams[video]->codecpar);if(r<0)return r;}
  AVCodecParameters*ap=audio>=0?in->streams[audio]->codecpar:NULL;audio_codec[0]=0;
- mux_webm=(video>=0&&in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP8)||(ap&&ap->codec_id==AV_CODEC_ID_VORBIS)||(video<0&&ap&&ap->codec_id==AV_CODEC_ID_OPUS);
+ // WebM retains Opus discard padding, which the fragmented MP4 packet-copy
+ // path does not represent. Prefer it whenever the selected video permits it.
+ mux_webm=(video>=0&&in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP8)||(ap&&ap->codec_id==AV_CODEC_ID_VORBIS)||(ap&&ap->codec_id==AV_CODEC_ID_OPUS&&(video<0||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP9||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_AV1));
  EM_ASM({Module.container=$0?'webm':'mp4';},mux_webm);
  if(is_ts&&(video<0||generic_video||(ap&&ap->codec_id!=AV_CODEC_ID_AAC)))return reject("TS timestamp repair requires AVC with optional AAC audio");
  if(is_ts&&ap){
@@ -455,7 +476,7 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
     // Adjacent PCM packets use the established sample clock. Matroska's
     // millisecond timestamps can round across the final partial FLAC frame;
     // restarting an otherwise continuous encoder would create an overlap.
-    int64_t shifted=packet->pts-(int64_t)((origin-1.0)/av_q2d(st->time_base));
+    int64_t shifted=packet->pts-av_rescale_q(llround((origin-1.0)*AV_TIME_BASE),AV_TIME_BASE_Q,st->time_base);
     int64_t next=av_rescale_q(shifted,st->time_base,adapt_encoder->time_base);
     int64_t tolerance=FFMAX(1,av_rescale_q(1,st->time_base,adapt_encoder->time_base));
     if(llabs(next-adapt_first_pts-adapt_decoded_samples)>tolerance){r=adaptation_seek_restart();if(r<0)return r;}
@@ -488,15 +509,20 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
   }
   if(packet->dts==AV_NOPTS_VALUE)return reject("Missing selected packet DTS");
   if(last_dts[idx]!=AV_NOPTS_VALUE&&packet->dts<=last_dts[idx])return reject("Selected timeline discontinuity");last_dts[idx]=packet->dts;
-  if(((idx==video&&idr(packet))||(video<0&&idx==audio))&&packet->pts!=AV_NOPTS_VALUE)note_rap(packet->pts*av_q2d(src->time_base)-origin);
   double time=packet->dts==AV_NOPTS_VALUE?0:packet->dts*av_q2d(src->time_base)-origin;
   if(fragment_start<0)fragment_start=time;
   // Preserve the source timeline, including PTS-DTS reordering and A/V offsets.
   // One-second positive mux bias permits negative decoder preroll in tfdt.
   // The media element retains this bias; the public API subtracts it. Reject deeper preroll.
-  int64_t shift=(int64_t)((origin-1.0)/av_q2d(src->time_base));
+  // Truncation can lose one tick (e.g. -1.023 / .001 becomes -1022),
+  // placing the coded keyframe before its advertised eviction boundary.
+  int64_t shift=av_rescale_q(llround((origin-1.0)*AV_TIME_BASE),AV_TIME_BASE_Q,src->time_base);
   if(packet->pts!=AV_NOPTS_VALUE)packet->pts-=shift;
   if(packet->dts!=AV_NOPTS_VALUE)packet->dts-=shift;
+  // Buffer removal must use the coded timestamp, including output-timebase
+  // rounding, rather than an independently calculated source-time estimate.
+  if((idx==video&&idr(packet))||(video<0&&idx==audio))
+   note_rap(av_rescale_q(packet->pts,src->time_base,dst->time_base)*av_q2d(dst->time_base)-1.0);
   if(packet->dts<0)return AVERROR(ERANGE);
 #ifdef DEMUXE_AUDIO_ADAPTATION
   if(adapt_enabled){
@@ -526,7 +552,12 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
    // Do not cut a video WebM cluster immediately after its first keyframe.
    // Let the muxer close clusters before the following boundary/keyframe.
    r=mux_webm&&video>=0?0:av_write_frame(out,NULL);
-   avio_flush(output_io);fragment_start=time;fragment_count++;
+   avio_flush(output_io);
+   // A custom flush cannot infer the next DTS from a rounded Matroska packet
+   // duration. Honor explicit timestamps at every fragment boundary; otherwise
+   // movenc shifts the first sample by a tick to match the previous duration.
+   if(!mux_webm&&r>=0)r=av_opt_set(out->priv_data,"movflags","+frag_discont",0);
+   fragment_start=time;fragment_count++;
 #ifdef DEMUXE_AUDIO_ADAPTATION
    if(adapt_enabled)adaptation_stats();
 #endif

@@ -12,7 +12,7 @@ export function ranges(value) {
     const out = value.map(r => ({ start: Number(r.start), end: Number(r.end) }));
     return out.every(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.start >= 0 && r.end >= r.start) ? out : null;
 }
-export function usesRemuxTracks(plan) { return plan === 'remux' || plan === 'adapted-flac' || plan === 'adapted-opus'; }
+export function usesRemuxTracks(plan) { return (plan === 'remux' || plan === 'remux-mpv') || plan === 'adapted-flac' || plan === 'adapted-opus'; }
 export function trackKey(track, mode, plan) {
     const type = track.type;
     if (plan === 'shaka-mse')

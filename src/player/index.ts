@@ -233,6 +233,8 @@ export class DemuxePlayerElement extends Base {
   private stageWasIdle=false;
   private isScreenPress(event:Event){return !event.composedPath().some(node=>node instanceof Element&&node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay'));}
   private wasSeeking=false;
+  private openingStage='';
+  private openingOperation:number|null=null;
   private diagnosticsUpdated=0;
   private dragging=false;
   private dimensions='';
@@ -267,9 +269,11 @@ export class DemuxePlayerElement extends Base {
     for(const name of ['previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
     this.connecting=(async()=>{await this.cleanup;if(!this.isConnected||token!==this.connection||this.terminal)return;
-      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,preview:this.previewConfiguration});this.dimensions='';this.trackSignature='';
-        for(const type of [...PLAYER_EVENTS,'modechange','selectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
+      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
+        for(const type of [...PLAYER_EVENTS,'preparationchange','modechange','selectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
+          if(type==='preparationchange')this.update(core.state);
+          if(type==='modechange'&&detail.phase==='loading'&&core.state.pendingOperation?.kind==='opening'){this.openingStage=`Starting ${{native:'Native',hybrid:'Hybrid',software:'Software'}[detail.mode as 'native'|'hybrid'|'software']} playback…`;this.update(core.state);}
           if(type==='error')this.showError(detail);
           if(type==='ended')queueMicrotask(()=>{if(this.core===core)this.advanceQueue();});
           this.dispatchEvent(new CustomEvent(type,{detail}));
@@ -363,9 +367,21 @@ export class DemuxePlayerElement extends Base {
     const signature=JSON.stringify([state.audioTracks,state.subtitleTracks]);if(signature!==this.trackSignature){this.trackSignature=signature;this.trackOptions('audio',state.audioTracks);this.trackOptions('subtitles',state.subtitleTracks);}
     (this.$('speed') as HTMLSelectElement).value=String(state.playbackRate);
     const buffering=state.status==='buffering'&&state.playbackIntent==='play'&&!pending;this.$('buffering-indicator').hidden=!buffering;this.$('shell').classList.toggle('buffering',buffering);this.bufferedProgress(state);
-    const activity=state.pendingOperation?.kind==='opening'?labels.loading:state.pendingOperation?.kind==='switching'?labels.switching:state.pendingOperation?.kind==='seeking'?labels.seeking:state.status==='buffering'?labels.buffering:'';
-    this.$('busy').hidden=!activity||seeking||buffering;this.$('busy').textContent=activity;
-    if(!this.lastFailure)this.announce(activity||(state.streamType==='live'&&!window?.length?labels.noWindow:''),!activity);
+    const opening=state.pendingOperation?.kind==='opening';
+    if(opening&&this.openingOperation!==state.pendingOperation!.id){this.openingOperation=state.pendingOperation!.id;this.openingStage='Inspecting media…';}
+    if(!opening){this.openingOperation=null;this.openingStage='';}
+    const preparation=this.core?.preparationProgress??[];
+    const preparing=preparation.filter(a=>['queued','loading','compiling'].includes(a.status));
+    const ready=preparation.filter(a=>a.status==='ready').length;
+    const names={inspector:'media inspector',hybrid:'Hybrid',software:'Software',font:'subtitle font'};
+    const phase=preparing.find(a=>a.status==='compiling')??preparing[0];
+    const preparationText=phase?`${phase.status==='compiling'?'Compiling':'Loading'} ${names[phase.name]}… · ${ready}/${preparation.length} ready`:preparation.length?ready===preparation.length?`Components ready · ${ready}/${preparation.length}`:`Ready · ${ready}/${preparation.length} prepared; others load when needed`:'';
+    const activity=state.pendingOperation?.kind==='opening'?(phase?preparationText:this.openingStage||labels.loading):state.pendingOperation?.kind==='switching'?labels.switching:state.pendingOperation?.kind==='seeking'?labels.seeking:state.status==='buffering'?labels.buffering:'';
+    const pill=activity||(!state.sourceId?preparationText:'');
+    this.$('busy').hidden=!pill||seeking||buffering;this.$('busy').textContent=pill;
+    this.$('busy').dataset.complete=String(!activity&&!phase);
+    this.$('busy').setAttribute('aria-label',preparation.length&&!activity?preparation.map(a=>`${names[a.name]}: ${a.status}`).join('; '):pill);
+    if(!this.lastFailure)this.announce(activity||(!state.sourceId?preparationText:'')||(state.streamType==='live'&&!window?.length?labels.noWindow:''),!pill);
     this.geometry(state);this.updateDiagnostics();
   }
   private setDiagnostics(show:boolean){show=show&&this.showDiagnostics&&this.controls;this.$('diagnostics-overlay').hidden=!show;this.$('diagnostics-toggle').setAttribute('aria-pressed',String(show));this.iconButton('diagnostics-toggle',show?'eyeOff':'eye',this.labels.diagnostics);if(show)this.updateDiagnostics(true);}

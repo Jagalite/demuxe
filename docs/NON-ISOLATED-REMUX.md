@@ -1,8 +1,20 @@
 # Non-isolated Native remux
 
-Demuxe can inspect and remux a finite MPEG-TS file without COOP/COEP when the browser exposes both `WebAssembly.Suspending` and `WebAssembly.promising`. The public mode remains `native` and the execution plan remains `native-remux`. Automatic selection and `nativeRemux: 'always'` use the no-pthread runtime on non-isolated pages.
+Demuxe can inspect and remux qualified finite files without COOP/COEP when the browser exposes both `WebAssembly.Suspending` and `WebAssembly.promising`. The public mode remains `native` and the execution plan remains `native-remux`. Automatic selection and `nativeRemux: 'always'` use the no-pthread runtime on non-isolated pages.
 
-The admitted profile is one AVC/H.264 video track and one AAC audio track, with a positive finite inspected duration. The existing TS packet, parameter-set, IDR, timestamp and ADTS checks still apply. MP4/AAC priming, other containers/codecs, audio-only/video-only inputs, multiple A/V tracks, audio adaptation, Native ASS, Hybrid and Software are not admitted by this non-isolated route. Unsupported browsers reject controlled remux before starting playback workers. Direct browser playback and Shaka retain their own capability rules.
+Admitted packet-copy profiles require a positive finite inspected duration and at most one video track:
+
+| Input | Selected video | Selected audio |
+| --- | --- | --- |
+| MPEG-TS | H.264 | AAC or none |
+| Matroska | H.264 or none | AAC, FLAC, or none |
+| Matroska/WebM | VP9 or none | Opus |
+| Matroska/WebM | VP8 | Vorbis |
+| MP4/MOV | H.264 | none |
+
+At least one playable track is required. AAC tracks must not declare encoder priming. Multiple audio tracks are allowed; the selected track must satisfy the table. Existing packet, parameter-set, timestamp, codec-configuration, MSE support and resource-budget checks still apply. VP9/Opus prefers WebM output to preserve Opus discard padding. FLAC here means copying an existing FLAC track, not converting audio to FLAC.
+
+MP4/AAC edits, declared Matroska AAC priming and H.264/Opus padding do not yet pass exact decoded-output checks. AC-3 and MP3 packet-copy packaging was rejected by the tested Chrome MSE implementation. Those combinations, multiple video tracks, explicit disabled-audio selection, audio adaptation, Native ASS, Hybrid and Software remain outside this route. Unsupported browsers reject controlled remux before starting playback workers. Direct browser playback and Shaka retain their own capability rules.
 
 ## Runtime and build
 
@@ -17,6 +29,8 @@ The existing source worker owns `RangeReader` or `LocalFileReader`. Its authoriz
 Only one Wasm operation may be active per mux worker. JSPI suspends synchronous FFmpeg AVIO until the source response arrives. The read bridge copies into the current Wasm heap after suspension. Seeking/replacement creates a new generation and source identity is retained across seeks. Close, cancellation and destruction terminate both workers, including suspended work; stale generations cannot publish buffers. Independent players have independent heaps and channels.
 
 ## Validation
+
+Run `npm run test:remux-jspi:expansion` for the expanded public Player profiles, exact decoded pixels/PCM, seeking and explicit audio selection. `ISOLATED=1 node tests/remux-jspi-expansion.mjs` checks the same profiles using pthreads. `SCREEN=1 node tests/remux-jspi-expansion.mjs` bypasses public admission to investigate remaining runtime limitations; screening success is not qualification.
 
 Run `npm run test:remux-jspi` for the non-isolated public Player suite and `ISOLATED=1 node tests/remux-jspi.mjs` for the corresponding pthread regression suite. `BROWSER=firefox` exercises the installed Firefox runtime; when JSPI is absent only the capability-rejection contract applies.
 

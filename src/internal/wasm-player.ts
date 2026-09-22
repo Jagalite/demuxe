@@ -42,7 +42,7 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
-  constructor(canvas:HTMLCanvasElement, {buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='rgb',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url)}: {buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'rgb'|'experimental-yuv'}={}) {
+  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='rgb',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url)}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'rgb'|'experimental-yuv'}={}) {
     super();this.buffering=buffering;
     const decoder=mode==='hybrid'?'webcodecs':'software';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');
@@ -93,18 +93,18 @@ export class WasmPlayer extends EventTarget {
         }
       };
       void (async()=>{
-        await this.audioContext.audioWorklet.addModule(new URL('web/audio-worklet.js',assetBase));
+        const [font]=await Promise.all([
+          prepared?.font?Promise.resolve(prepared.font):(async()=>{const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});if(!response.ok)throw Error('Could not load the bundled subtitle font');return response.arrayBuffer();})(),
+          this.audioContext.audioWorklet.addModule(new URL('web/audio-worklet.js',assetBase)),
+        ]);
         if(this.destroyed) throw new Error('Player destroyed during initialization');
         this.audioNode=new AudioWorkletNode(this.audioContext,'demuxe-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.outputChannels],channelCount:this.outputChannels,channelCountMode:'explicit',processorOptions:{buffer:audio,capacity:8192,channels:this.outputChannels,measureOutput}});
         this.audioNode.port.onmessage=({data})=>{const stamp=this.audioContext.getOutputTimestamp();const wallTime=stamp.performanceTime!==undefined&&stamp.contextTime!==undefined?performance.timeOrigin+stamp.performanceTime+(data.audioFrame/data.sampleRate-stamp.contextTime)*1000:null;this.dispatchEvent(new CustomEvent('output',{detail:{...data,wallTime,stamp}}));};
         this.analyser=this.audioContext.createAnalyser();
         this.audioNode.connect(this.analyser);this.audioNode.connect(this.audioContext.destination);
-        const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});
-        if(!response.ok) throw new Error('Could not load the bundled subtitle font');
-        const font=await response.arrayBuffer();
         if(this.destroyed) throw new Error('Player destroyed during initialization');
         const offscreen=canvas.transferControlToOffscreen();
-        this.worker.postMessage({type:'init',canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0},[offscreen,font]);
+        this.worker.postMessage({type:'init',compiledWasm:prepared?.module,canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0},[offscreen,font]);
         this.timing=setInterval(()=>this.sendTiming(),20);
         this.sendTiming();
       })().catch(error=>{clearTimeout(timeout);reject(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+String(error),null,null,'operation',true));});

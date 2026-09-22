@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {preparedEngine} from './prepared-engine.js';
 import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
 import {remuxPackaging} from './remux-packaging.js';
+import {hybridPreflight} from './hybrid-preflight.js';
 import {ProgressiveMP4} from './progressive-mp4.js';
 let operationActive=false,delivery,progressiveEnabled=false,fragmentDelivery;
 let engine,chunks=[],bytes=0,emptyBatches=0,negotiation,splitter,timing;
@@ -17,7 +19,7 @@ self.onmessage=async({data})=>{
    fragmentDelivery=data.fragmentDelivery??'gather';
    if(data.jspi&&data.audioAdaptation)throw Error('Non-isolated audio adaptation is unavailable');
    const {default:createRemux}=await import(data.audioAdaptation?'./engine-adaptation/remux.mjs':data.jspi?'./engine-remux-jspi/remux.mjs':'./engine-remux/remux.mjs');
-   engine=await createRemux({printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];stats.transport=data.jspi?'jspi':'pthread';stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
+   engine=await createRemux({...preparedEngine(data.compiledWasm),printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];stats.transport=data.jspi?'jspi':'pthread';stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
    if(data.jspi){
     if(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'||!data.port)throw Error('JSPI source transport unavailable');
     let sequence=0,pending;
@@ -28,7 +30,7 @@ self.onmessage=async({data})=>{
      pending={id,resolve,reject,timer};data.port.postMessage({id,offset,count});
     });
    }
-   if(data.type==='probe'){if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}check(await engine._rm_probe(data.size));const tracks=engine.tracks.map(({browserConfig,...track})=>track);postMessage({type:'probed',tracks,duration:engine._rm_duration(),format:engine.format});return;}
+   if(data.type==='probe'){if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}check(await engine._rm_probe(data.size));const hybridRejection=await hybridPreflight(engine.tracks);const tracks=engine.tracks.map(({browserConfig,...track})=>track);postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;}
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');if(delivery){delivery.push(b);if(!delivery.active)chunks.push(b);else chunks=[];}else chunks.push(b);};
    if(data.audioAdaptation){if(!['flac','opus'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='opus'?2:1));adaptationABI();}
    check(await engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));let duration=engine._rm_duration();

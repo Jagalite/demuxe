@@ -19,6 +19,7 @@ export class NativePlayer extends EventTarget {
     properties = new Map();
     stopped = false;
     capability = {};
+    mpvSubs;
     ass;
     assAssets = [];
     assIndex = -1;
@@ -164,6 +165,8 @@ export class NativePlayer extends EventTarget {
     refresh() {
         const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.captionAssets.has(t) ? { external: true, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
         tracks.push(...this.assAssets.map((a, i) => ({ id: String(100001 + i), type: 'sub', codec: a.format, title: a.label, lang: a.language, external: true, 'external-index': i + 1, selected: (this.selectedSub === 'auto' || Number(this.selectedSub) === 100001 + i) && this.assIndex === i })));
+        if (this.mpvSubs)
+            tracks.push(...this.mpvSubs.tracks);
         const audio = this.video.audioTracks;
         if (this.projection)
             tracks.push(...this.projection.tracks.filter(t => t.type === 'audio').map(t => ({ ...t, selected: t.selected && !this.video.muted })));
@@ -180,7 +183,7 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, plan: this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvSubtitles: this.mpvSubs ? { ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.mpvSubs ? 'remux-mpv' : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
         // open promises metadata even when speculative preload was disabled.
         if (this.buffering.preload === 'none')
@@ -200,6 +203,7 @@ export class NativePlayer extends EventTarget {
      * verifyOutput can promote this evidence to executed playback. */
     async verifyStartup(expected, output = false) {
         this.assertActive();
+        await this.mpvSubs?.verify();
         this.expectedOutput = expected ?? this.expectedOutput;
         expected = this.expectedOutput;
         const previouslyVerified = this.capability.outputVerified === true;
@@ -410,6 +414,16 @@ export class NativePlayer extends EventTarget {
         this.objectURL = URL.createObjectURL(local);
         try {
             await this.loadPlan({ file: local, audioTrack: this.initialAudioTrack }, () => this.load(this.objectURL));
+            if (this.requestedPlan === 'native-remux-mpv') {
+                const { NativeMpvSubtitles } = await import('./native-mpv-subtitles.js');
+                this.assertActive();
+                this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, local, error => this.emit('error', error));
+                await this.mpvSubs.ready;
+                this.assertActive();
+                await this.mpvSubs.select('auto');
+                this.mpvSubs.visible(false);
+                this.refresh();
+            }
         }
         catch (error) {
             URL.revokeObjectURL(this.objectURL);
@@ -498,6 +512,17 @@ export class NativePlayer extends EventTarget {
     else
         this.video.pause(); this.refresh(); }
     async seek(seconds) {
+        this.assertActive();
+        this.mpvSubs?.suspend(true);
+        try {
+            await this.seekVideo(seconds);
+            await this.mpvSubs?.seek(seconds);
+        }
+        finally {
+            this.mpvSubs?.suspend(false);
+        }
+    }
+    async seekVideo(seconds) {
         this.assertActive();
         if (this.remux) {
             const paused = this.remux.playbackPaused ?? this.video.paused;
@@ -618,6 +643,13 @@ export class NativePlayer extends EventTarget {
             Array.from(audio).forEach((t, i) => { t.enabled = i === Number(id) - 1; });
         }
         else {
+            if (this.mpvSubs) {
+                await this.mpvSubs.select(id);
+                this.selectedSub = id;
+                this.applySubtitles();
+                this.refresh();
+                return;
+            }
             if (Number(id) >= 100001 && Number(id) < 200001) {
                 const index = Number(id) - 100001;
                 if (!this.assAssets[index])
@@ -633,6 +665,7 @@ export class NativePlayer extends EventTarget {
         this.refresh();
     }
     applySubtitles() {
+        this.mpvSubs?.visible(this.subsVisible && this.selectedSub !== 'no');
         this.ass?.visible(this.assIndex >= 0 && this.subsVisible && this.selectedSub !== 'no' && (this.selectedSub === 'auto' || (Number(this.selectedSub) >= 100001 && Number(this.selectedSub) < 200001)));
         const preferred = this.video.querySelector('track[default]')?.track;
         const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
@@ -752,6 +785,8 @@ export class NativePlayer extends EventTarget {
     }
     async dispose() {
         this.stopped = true;
+        await this.mpvSubs?.destroy();
+        this.mpvSubs = undefined;
         this.ass?.destroy();
         this.ass = undefined;
         this.assAssets = [];

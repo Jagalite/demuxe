@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import {preparedEngine} from './prepared-engine.js';
 let audioChannels=2;
 let previewSnapshot;
 let YUVPresenter,uploader,gpuPauseIntent;
@@ -156,7 +157,7 @@ self.onmessage = async ({data}) => {
       pcm = new Float32Array(data.audio, 64);
       if(data.decoder!=='software')throw Error('This build supports software decoding only');
       const createEngine=(await import(uploader?'./engine-software-yuv/player.mjs':'./engine-software-full/player.mjs')).default;
-      engine = await createEngine({printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+      engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
       if(uploader){engine.failOutput=message=>{pumpFailed=true;post({type:'error',message});};engine.drawYUV=d=>{try{uploader.draw(engine,d);}catch(e){engine.failOutput(String(e));}};engine.drawRGB=(...a)=>{try{uploader.drawRGB(engine,...a);}catch(e){engine.failOutput(String(e));}};}
       if (closing) return;
       engine.FS.mkdir('/fonts');

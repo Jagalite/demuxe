@@ -30,6 +30,7 @@ export class NativePlayer extends EventTarget implements Backend {
   readonly properties = new Map<string, unknown>();
   private stopped = false;
   private capability:CapabilityEvidence={};
+  private mpvSubs?:import('./native-mpv-subtitles.js').NativeMpvSubtitles;
   private ass?: import('./native-ass.js').NativeASS;
   private assAssets:SubtitleAsset[]=[];
   private assIndex=-1;
@@ -140,6 +141,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private refresh() {
     const tracks: object[] = Array.from(this.video.textTracks, t => ({id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing',...(this.captionAssets.has(t)?{external:true,'external-index':this.captionAssets.get(t)!.index,codec:'webvtt'}:{})}));
     tracks.push(...this.assAssets.map((a,i)=>({id:String(100001+i),type:'sub',codec:a.format,title:a.label,lang:a.language,external:true,'external-index':i+1,selected:(this.selectedSub==='auto'||Number(this.selectedSub)===100001+i)&&this.assIndex===i})));
+    if(this.mpvSubs)tracks.push(...this.mpvSubs.tracks);
     const audio = (this.video as VideoWithAudioTracks).audioTracks;
     if(this.projection)tracks.push(...this.projection.tracks.filter(t=>t.type==='audio').map(t=>({...t,selected:t.selected&&!this.video.muted})));
     else if(this.remux?.tracks)tracks.push(...this.remux.tracks.filter(t=>t.type==='audio').map(t=>({...t,selected:t.selected&&!this.video.muted})));
@@ -151,7 +153,7 @@ export class NativePlayer extends EventTarget implements Backend {
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,plan:this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvSubtitles:this.mpvSubs?{...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvSubs?'remux-mpv':this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
   private async load(url: string) {
     // open promises metadata even when speculative preload was disabled.
     if(this.buffering.preload==='none')this.video.preload='metadata';
@@ -164,7 +166,7 @@ export class NativePlayer extends EventTarget implements Backend {
   /** A paused candidate may prepare current data without presenting it. Only
    * verifyOutput can promote this evidence to executed playback. */
   async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false) {
-    this.assertActive();this.expectedOutput=expected??this.expectedOutput;
+    this.assertActive();await this.mpvSubs?.verify();this.expectedOutput=expected??this.expectedOutput;
     expected=this.expectedOutput;
     const previouslyVerified=this.capability.outputVerified===true;
     if(output){this.capability.completedAtEOF=false;this.capability.outputVerified=false;this.capability.videoPresented=false;this.capability.playbackReady=false;this.capability.audioProgress=false;}
@@ -272,7 +274,14 @@ export class NativePlayer extends EventTarget implements Backend {
     this.assertActive();
     const local=file instanceof File?file:new File([file],'media');
     this.objectURL=URL.createObjectURL(local);
-    try {await this.loadPlan({file:local,audioTrack:this.initialAudioTrack},()=>this.load(this.objectURL!));}
+    try {
+      await this.loadPlan({file:local,audioTrack:this.initialAudioTrack},()=>this.load(this.objectURL!));
+      if(this.requestedPlan==='native-remux-mpv'){
+        const {NativeMpvSubtitles}=await import('./native-mpv-subtitles.js');this.assertActive();
+        this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,local,error=>this.emit('error',error));
+        await this.mpvSubs.ready;this.assertActive();await this.mpvSubs.select('auto');this.mpvSubs.visible(false);this.refresh();
+      }
+    }
     catch(error){URL.revokeObjectURL(this.objectURL);this.objectURL=undefined;throw error;}
   }
   async openRemote(source: RemoteSource) {
@@ -324,7 +333,12 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   async play() {this.assertActive();await this.resumeGain();this.assertActive();if(this.remux)await this.remux.play();else await this.video.play();this.refresh();}
   async pause() {this.assertActive();if(this.remux)this.remux.pause();else this.video.pause();this.refresh();}
-  async seek(seconds: number) {
+  async seek(seconds:number){
+    this.assertActive();this.mpvSubs?.suspend(true);
+    try{await this.seekVideo(seconds);await this.mpvSubs?.seek(seconds);}
+    finally{this.mpvSubs?.suspend(false);}
+  }
+  private async seekVideo(seconds: number) {
     this.assertActive();
     if(this.remux){
       const paused=this.remux.playbackPaused??this.video.paused;
@@ -388,6 +402,7 @@ export class NativePlayer extends EventTarget implements Backend {
       if (!audio || !audio[Number(id) - 1]) throw new Error('Native audio track selection is not supported for this source/browser');
       this.video.muted = false;Array.from(audio).forEach((t, i) => {t.enabled = i === Number(id) - 1;});
     } else {
+      if(this.mpvSubs){await this.mpvSubs.select(id);this.selectedSub=id;this.applySubtitles();this.refresh();return;}
       if(Number(id)>=100001&&Number(id)<200001){const index=Number(id)-100001;if(!this.assAssets[index])throw Error('Unknown Native ASS track');await this.ass!.load(this.assAssets[index]);this.assIndex=index;}
       if (!['auto', 'no'].includes(id) && !this.assAssets[Number(id)-100001] && !Array.from(this.video.textTracks).some(t=>this.textTrackId(t)===id)) throw new Error('Unknown native subtitle track');
       this.selectedSub = id;this.applySubtitles();
@@ -395,6 +410,7 @@ export class NativePlayer extends EventTarget implements Backend {
     this.refresh();
   }
   private applySubtitles() {
+    this.mpvSubs?.visible(this.subsVisible&&this.selectedSub!=='no');
     this.ass?.visible(this.assIndex>=0&&this.subsVisible&&this.selectedSub!=='no'&&(this.selectedSub==='auto'||(Number(this.selectedSub)>=100001&&Number(this.selectedSub)<200001)));
     const preferred = this.video.querySelector<HTMLTrackElement>('track[default]')?.track;
     const autoIndex = preferred?Array.from(this.video.textTracks).indexOf(preferred):Array.from(this.video.textTracks).findIndex(t=>!this.captionAssets.has(t));
@@ -457,7 +473,7 @@ export class NativePlayer extends EventTarget implements Backend {
     this.destruction=this.dispose();return this.destruction;
   }
   private async dispose() {
-    this.stopped = true;this.ass?.destroy();this.ass=undefined;this.assAssets=[];for (const cancel of this.cancelers) cancel(new Error('Player is destroyed'));
+    this.stopped = true;await this.mpvSubs?.destroy();this.mpvSubs=undefined;this.ass?.destroy();this.ass=undefined;this.assAssets=[];for (const cancel of this.cancelers) cancel(new Error('Player is destroyed'));
     await this.remux?.destroy();
     this.gainSource?.disconnect();this.gainNode?.disconnect();if(this.gainContext)await this.gainContext.close();
     this.listeners.forEach(remove => remove());this.listeners = [];
