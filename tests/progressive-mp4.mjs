@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {ProgressiveMP4,fragmentSamples} from '../web/progressive-mp4.js';
-// Retained, independently decoded R006 output is a real FFmpeg fragment oracle.
+// Historical R006 output remains a generic fragment-parser fixture, not a runtime dependency.
 const movie=new Uint8Array(readFileSync('results/remux-jspi/2026-09-21T19-49-23.972Z/public-player.mp4'));
 let start=0;while(String.fromCharCode(...movie.subarray(start+4,start+8))!=='moof')start+=new DataView(movie.buffer,movie.byteOffset+start).getUint32(0);
 const moofSize=new DataView(movie.buffer,movie.byteOffset+start).getUint32(0),mdatSize=new DataView(movie.buffer,movie.byteOffset+start+moofSize).getUint32(0),fragment=movie.slice(start,start+moofSize+mdatSize),ends=fragmentSamples(fragment.subarray(0,moofSize),mdatSize);

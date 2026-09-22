@@ -59,9 +59,3 @@ export declare function nativeRejection(probe: Probe, settings: {
 export declare function remuxRejection(probe: Probe, settings: {
     aid: string;
 }): string | undefined;
-/** Finite packet-copy profiles qualified with the no-pthread transport.
- * Codec/container pairs remain explicit: MP4 AAC edits and AVC/Opus padding
- * cannot be inferred from successful browser startup. */
-export declare function nonisolatedRemuxRejection(probe: Probe, settings: {
-    aid: string;
-}): string | undefined;

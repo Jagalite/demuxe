@@ -33,12 +33,12 @@ npx demuxe copy-assets public/assets/demuxe
 Serve the copied directory at `/assets/demuxe/`, preserving its relative tree.
 Hybrid, Software, audio adaptation, and the pthread Native remux runtime require cross-origin isolation headers:
 
-```text
+```http
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-On JSPI-capable browsers, qualified finite MPEG-TS, Matroska/WebM and video-only MP4 files can use Native remux without these headers. This path uses the shipped `engine-remux-jspi` assets; other remux profiles retain the isolation requirement. See [non-isolated remux](docs/NON-ISOLATED-REMUX.md).
+Browser-native playback remains available without these headers. Advanced pthread Wasm routes require this or another configuration producing `crossOriginIsolated === true`. See [runtime requirements and research disposition](docs/NON-ISOLATED-REMUX.md).
 
 See [production playback paths](docs/PRODUCTION-PIPELINE.md) for worker-owned MSE, selected-track MP4 views, bounded separate-buffer delivery, and their qualification limits.
 

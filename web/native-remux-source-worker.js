@@ -3,10 +3,9 @@ import {LocalFileReader} from './file-reader.js';
 import {RangeReader} from './range-reader.js';
 let reader,file,h,view,buffer,stopped=false;
 let refreshPending;
-let port,reading=false;
 self.onmessage=async({data})=>{
  if(data.type==='refreshed'){const p=refreshPending;refreshPending=null;clearTimeout(p?.timer);if(p)data.error?p.reject(Error(data.error)):p.resolve(data.update);return;}
- if(data.type==='close'){stopped=true;reader?.close();port?.close();clearTimeout(refreshPending?.timer);refreshPending?.reject(new DOMException('Closed','AbortError'));refreshPending=null;if(h){Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}return;}
+ if(data.type==='close'){stopped=true;reader?.close();clearTimeout(refreshPending?.timer);refreshPending?.reject(new DOMException('Closed','AbortError'));refreshPending=null;if(h){Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}return;}
  if(data.type!=='init')return;
  try{
   if(data.mailbox){h=new Int32Array(data.mailbox,0,16);view=new DataView(data.mailbox);buffer=new Uint8Array(data.mailbox,64);}
@@ -15,21 +14,7 @@ self.onmessage=async({data})=>{
   if(file){reader=new LocalFileReader(file);size=Number((await reader.open()).size);}
   else{reader=new RangeReader({...data.options,cacheBytes:2*1024*1024,blockBytes:65536,readDeadlineMs:45000},resource=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Authorization refresh timeout')),5000);refreshPending={resolve,reject,timer};postMessage({type:'refresh',resource});}));if(data.identity){reader.etag=data.identity.etag;reader.total=BigInt(data.identity.size);}
    identity=await reader.open();size=Number(identity.size);}
-  if(data.port){
-   port=data.port;
-   port.onmessage=async({data:request})=>{
-    if(stopped)return;
-    if(reading||!Number.isSafeInteger(request.id)||!Number.isSafeInteger(request.offset)||request.offset<0||!Number.isInteger(request.count)||request.count<1||request.count>262144){port.postMessage({id:request.id,error:'Invalid or concurrent source read'});return;}
-    reading=true;
-    try{
-     const bytes=await reader.read(BigInt(request.offset),request.count);
-     if(!stopped){const owned=bytes.slice();port.postMessage({id:request.id,bytes:owned},[owned.buffer]);postMessage({type:'stats',stats:reader.stats});}
-    }catch(error){if(!stopped)port.postMessage({id:request.id,error:String(error)});}
-    finally{reading=false;}
-   };
-  }
   postMessage({type:'ready',size,identity});
-  if(port)return;
   while(!stopped){
    if(Atomics.load(h,0)!==1){if(Atomics.waitAsync)await Atomics.waitAsync(h,0,Atomics.load(h,0),100).value;else await new Promise(r=>setTimeout(r,4));continue;}
    const offset=view.getFloat64(32,true),n=Atomics.load(h,2);let bytes;

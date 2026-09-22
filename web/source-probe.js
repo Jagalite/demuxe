@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Packet-only metadata preflight. No decoded audio or video is produced.
 export async function probeSource(source,signal,audioAdaptation,compiledWasm){
- const jspi=!globalThis.crossOriginIsolated;
- if(jspi&&(audioAdaptation||typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Non-isolated source inspection requires JSPI');
+ if(!globalThis.crossOriginIsolated)throw Error('Source inspection requires cross-origin isolation');
  if(signal.aborted)throw new DOMException('Aborted','AbortError');
- const mailbox=jspi?null:new SharedArrayBuffer(64+262144),channel=jspi?new MessageChannel():null,workers=[];let abort;
+ const mailbox=new SharedArrayBuffer(64+262144),workers=[];let abort;
  try{return await new Promise((resolve,reject)=>{
   const timer=setTimeout(()=>reject(Error('Source inspection timed out')),20000);
   const finish=(error,value)=>{clearTimeout(timer);error?reject(error):resolve(value);};
@@ -19,12 +18,12 @@ export async function probeSource(source,signal,audioAdaptation,compiledWasm){
     const probe=make('./native-remux-worker.js');probe.onmessage=({data:message})=>{
      if(message.type==='error')finish(Error(message.message));
      if(message.type==='probed')finish(null,{tracks:message.tracks,hybridRejection:message.hybridRejection,duration:message.duration,format:message.format,identity:data.identity});
-    };probe.postMessage({type:'probe',size:data.size,mailbox,audioAdaptation,compiledWasm,jspi,port:channel?.port2},channel?[channel.port2]:[]);
+    };probe.postMessage({type:'probe',size:data.size,mailbox,audioAdaptation,compiledWasm});
    }
   };
-  const {refreshAuthorization,...transport}=source;reader.postMessage({type:'init',mailbox,...transport,port:channel?.port1},channel?[channel.port1]:[]);
+  const {refreshAuthorization,...transport}=source;reader.postMessage({type:'init',mailbox,...transport});
  });}finally{
-  signal.removeEventListener('abort',abort);channel?.port1.close();channel?.port2.close();if(mailbox){const h=new Int32Array(mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}
+  signal.removeEventListener('abort',abort);if(mailbox){const h=new Int32Array(mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);}
   for(const worker of workers)worker.terminate();
  }
 }

@@ -196,7 +196,7 @@ class LicenseBoundaries(unittest.TestCase):
         for folder in ['web', 'src', 'docs', 'bin', 'fixtures', 'scripts', 'examples', 'third_party']:
             shutil.copytree(ROOT / folder, root / folder, dirs_exist_ok=True,
                             ignore=lambda folder,names:[n for n in names if n=='__pycache__' or (n.startswith('engine-') and (pathlib.Path(folder)/n).is_dir())])
-        for folder, stem in [('engine-remux', 'remux'), ('engine-remux-jspi', 'remux'), ('engine-hybrid', 'player'), ('engine-software-full', 'player')]:
+        for folder, stem in [('engine-remux', 'remux'), ('engine-hybrid', 'player'), ('engine-software-full', 'player')]:
             for extension in ['mjs', 'wasm']:
                 file = root / 'web' / folder / (stem + '.' + extension)
                 file.parent.mkdir(parents=True, exist_ok=True)

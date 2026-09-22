@@ -905,8 +905,6 @@ export type PlanFacts = {
     manifest: boolean;
     requiresRemux: boolean;
     isolated: boolean;
-    jspi?: boolean;
-    nonisolatedRemuxQualified?: boolean;
     mse: boolean;
     webCodecs: boolean;
     webAudio: boolean;

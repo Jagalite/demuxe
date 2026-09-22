@@ -2,6 +2,20 @@
 
 # Offer a non-pthread remux path without isolation
 
+## Current status: Dropped / intentionally removed
+
+JSPI/non-isolated remux was evaluated and intentionally removed from the production architecture. Its primary benefit was deployment compatibility without cross-origin isolation, while it introduced an additional Wasm runtime, invocation model, packaging path, qualification surface, and long-term maintenance burden. Maintenance complexity outweighs present production value; it did not materially advance Demuxe’s primary objective of maximizing native/near-native playback performance. The pthread runtime remains the maintained advanced Wasm runtime. Browser-native functionality remains usable without isolation. Revisit only if concrete deployment demand appears later.
+
+Asyncify is not a replacement runtime in this decision. No new research or benchmarks were performed. See [runtime requirements and disposition](../../../docs/NON-ISOLATED-REMUX.md).
+
+## Historical record — superseded production status
+
+The text below describes earlier work only. References to integration, maintained assets, tests, and next actions are historical and no longer apply.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Offer a non-pthread remux path without isolation
+
 ## Production integration — 2026-09-21
 
 **production_integrated**. Scoped non-isolated JSPI AVC/AAC TS remains integrated and qualified in the exact package. Its producer now feeds either worker-owned or window-owned MSE without being coupled to the window. No broader source admission or general speed claim.

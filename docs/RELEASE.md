@@ -187,4 +187,4 @@ configure npm trusted publishing for the exact GitHub workflow used for later re
 
 ## Non-isolated remux release gate
 
-The standard engine build includes the no-pthread JSPI remux runtime. Run `ARCHIVE=<candidate.tgz> node tests/remux-jspi.mjs` against the exact candidate, then pass its `result.json` to `verify-beta-release.py --jspi`. This requires the complete non-isolated Chrome playback/correctness/lifecycle suite; missing-JSPI rejection alone does not qualify the runtime. See [profile and ownership](NON-ISOLATED-REMUX.md).
+The standard engine build ships the maintained pthread remux runtime. Qualify isolated remux and non-isolated browser-native routing; JSPI/Asyncify are not production runtime variants. See [runtime requirements](NON-ISOLATED-REMUX.md).

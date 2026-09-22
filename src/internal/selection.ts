@@ -49,23 +49,3 @@ export function remuxRejection(probe:Probe,settings:{aid:string}):string|undefin
  if(audio&&!['aac','mp3','opus','vorbis','flac','ac3','eac3'].includes(audio.codec))return `Demuxe has no packet-copy audio construction contract for ${audio.codec}`;
  if((video?.codec==='vp8'&&audio&&!['opus','vorbis'].includes(audio.codec))||(audio?.codec==='vorbis'&&video&&!['vp8','vp9','av1'].includes(video.codec)))return 'Selected packets have no common Demuxe muxing contract';
 }
-
-/** Finite packet-copy profiles qualified with the no-pthread transport.
- * Codec/container pairs remain explicit: MP4 AAC edits and AVC/Opus padding
- * cannot be inferred from successful browser startup. */
-export function nonisolatedRemuxRejection(probe:Probe,settings:{aid:string}):string|undefined {
- const video=probe.tracks.filter(t=>t.type==='video'&&!t.attachedPicture);
- const audio=probe.tracks.filter(t=>t.type==='audio'),a=settings.aid==='auto'?(audio.find(t=>t.default)??audio[0]):audio.find(t=>t.id===settings.aid);
- const reject='Non-isolated remux requires a qualified finite packet-copy container and selected codec pair';
- if(!Number.isFinite(probe.duration)||probe.duration<=0||video.length>1||settings.aid==='no'||(settings.aid!=='auto'&&!a)||(!video.length&&!a))return reject;
- if(a?.codec==='aac'&&(a.initialPadding??0)!==0)return 'Non-isolated AAC remux does not yet preserve declared encoder priming';
- const v=video[0]?.codec,format=probe.format?.split(',')??[];
- if(format.includes('mpegts')&&v==='h264'&&(!a||a.codec==='aac'))return;
- if(format.includes('mov')&&v==='h264'&&!a)return;
- if(format.includes('matroska')){
-  if((!v||v==='h264')&&(!a||['aac','flac'].includes(a.codec)))return;
-  if((!v||v==='vp9')&&a?.codec==='opus')return;
-  if(v==='vp8'&&a?.codec==='vorbis')return;
- }
- return reject;
-}

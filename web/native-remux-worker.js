@@ -17,23 +17,13 @@ self.onmessage=async({data})=>{
   const start=performance.now();
   if(data.type==='init'||data.type==='probe'){
    fragmentDelivery=data.fragmentDelivery??'gather';
-   if(data.jspi&&data.audioAdaptation)throw Error('Non-isolated audio adaptation is unavailable');
-   const {default:createRemux}=await import(data.audioAdaptation?'./engine-adaptation/remux.mjs':data.jspi?'./engine-remux-jspi/remux.mjs':'./engine-remux/remux.mjs');
-   engine=await createRemux({...preparedEngine(data.compiledWasm),printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];stats.transport=data.jspi?'jspi':'pthread';stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
-   if(data.jspi){
-    if(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'||!data.port)throw Error('JSPI source transport unavailable');
-    let sequence=0,pending;
-    data.port.onmessage=({data:reply})=>{if(!pending||reply.id!==pending.id)return;const p=pending;pending=null;clearTimeout(p.timer);reply.error?p.reject(Error(reply.error)):p.resolve(reply.bytes);};
-    engine.readAsync=(offset,count)=>new Promise((resolve,reject)=>{
-     if(pending){reject(Error('Concurrent source read rejected'));return;}
-     const id=++sequence,timer=setTimeout(()=>{pending=null;reject(Error('Source read timed out'));},45000);
-     pending={id,resolve,reject,timer};data.port.postMessage({id,offset,count});
-    });
-   }
-   if(data.type==='probe'){if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}check(await engine._rm_probe(data.size));const hybridRejection=await hybridPreflight(engine.tracks);const tracks=engine.tracks.map(({browserConfig,...track})=>track);postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;}
+   if(!globalThis.crossOriginIsolated)throw Error('Remux requires cross-origin isolation');
+   const {default:createRemux}=await import(data.audioAdaptation?'./engine-adaptation/remux.mjs':'./engine-remux/remux.mjs');
+   engine=await createRemux({...preparedEngine(data.compiledWasm),printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];stats.transport='pthread';stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
+   if(data.type==='probe'){if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}check(engine._rm_probe(data.size));const hybridRejection=await hybridPreflight(engine.tracks);const tracks=engine.tracks.map(({browserConfig,...track})=>track);postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;}
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');if(delivery){delivery.push(b);if(!delivery.active)chunks.push(b);else chunks=[];}else chunks.push(b);};
    if(data.audioAdaptation){if(!['flac','opus'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='opus'?2:1));adaptationABI();}
-   check(await engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));let duration=engine._rm_duration();
+   check(engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));let duration=engine._rm_duration();
    const video=engine.videoConfig?videoCodecConfig({...engine.videoConfig,maxWidth:8192,maxHeight:8192}).configuration.codec:engine.UTF8ToString(engine._rm_video_codec());
    const audio=engine.UTF8ToString(engine._rm_audio_codec());
    const bounds=engine.trackBounds;
@@ -52,12 +42,12 @@ self.onmessage=async({data})=>{
    const {duration,target}=negotiation;negotiation=null;progressiveEnabled=selected.container==='mp4'&&!splitter&&!engine.preparationInterface;
    if(engine.preparationInterface===2&&selected.container!=='webm'){const {MP4VideoTiming}=await import('./split-mp4.js');timing=new MP4VideoTiming();}
    check(engine._rm_set_container(selected.container==='webm'?1:0));
-   check(await engine._rm_start(target));const buffer=flush().buffer;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
+   check(engine._rm_start(target));const buffer=flush().buffer;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
    const presentationFrames=timing?.read(buffer),buffers=splitter?splitter.split(buffer):undefined;
    postMessage({type:'ready',producedAt:performance.timeOrigin+performance.now(),presentationFrames,duration,mime:selected.mime,tracks:engine.tracks,buffer:buffers?undefined:buffer,buffers,stats:{...stats}},buffers??[buffer]);
   }else if(data.type==='next'){
    if(progressiveEnabled&&fragmentDelivery==='progressive')delivery=new ProgressiveMP4(b=>{const buffer=b.byteOffset===0&&b.byteLength===b.buffer.byteLength?b.buffer:b.slice().buffer;postMessage({type:'fragment-part',producedAt:performance.timeOrigin+performance.now(),id:data.id,buffer},[buffer]);});
-   const more=check(await engine._rm_step());
+   const more=check(engine._rm_step());
    const progressive=delivery?.finish(),noGather=!progressive&&progressiveEnabled&&fragmentDelivery!=='gather'&&bytes>=131072&&chunks.length>1&&chunks.length<=32;
    let parts,buffer;
    if(progressive||noGather){

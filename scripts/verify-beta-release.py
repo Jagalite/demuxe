@@ -4,7 +4,7 @@
 import argparse, hashlib, json, os, pathlib, subprocess, tarfile, tempfile
 from license_policy import Policy, archive_files, LEGAL
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);p.add_argument('--shaka',type=pathlib.Path,nargs=2);p.add_argument('--jspi',type=pathlib.Path);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);p.add_argument('--shaka',type=pathlib.Path,nargs=2);args=p.parse_args()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def archive_sha(path):
  h=hashlib.sha256()
@@ -55,17 +55,6 @@ from optional_release import required_consumer_cases
 consumer_cases=required_consumer_cases(manifest)
 streaming_cases={f'{mode}:{test}'for mode in ['hybrid','software']for test in ['seek-completes-packet','seek-deadline','destroy-progress']}
 evidence=[]
-if manifest.get('nonisolatedRemux'):
- if not args.jspi:raise SystemExit('JSPI runtime release requires exact-archive non-isolated Chrome evidence (--jspi)')
- data=json.loads(args.jspi.read_text())
- expected={'cancellation barrier rejects initialization-only evidence','default automatic selection chooses Native remux for TS','bounded long-file playback and forward/backward seeks','public Player remote playback, seek, and source replacement','local File playback and independent players','unqualified MP4 rejects and preserves accepted playback','missing JSPI rejects before worker startup','authorization refresh uses the production range reader','close cancels a suspended remux and permits a fresh open','seek rejects changed remote identity','destroy cancels delayed inspection'}
- if data.get('archiveSHA256')!=runtime_hash or data.get('isolated') is not False or data.get('jspi') is not True or data.get('family')!='chrome':raise SystemExit('JSPI evidence must use this archive on a non-isolated JSPI-capable Chrome origin')
- if not data.get('passed') or {c['name'] for c in data['cases']}!=expected or not all(c.get('passed') for c in data['cases']):raise SystemExit('Incomplete/failed JSPI consumer suite')
- cancellation=next(c['evidence'] for c in data['cases'] if c['name']=='close cancels a suspended remux and permits a fresh open')
- control=next(c['evidence'] for c in data['cases'] if c['name']=='cancellation barrier rejects initialization-only evidence')
- if cancellation.get('readObserved') is not True or cancellation.get('settled') is not False or control.get('readObserved') is not False or control.get('settled') is not False:raise SystemExit('JSPI cancellation requires an observed pending read and initialization-only negative control')
- if data.get('testHarnessSHA256')!=source['files'].get('demuxe/tests/remux-jspi.mjs'):raise SystemExit('JSPI consumer harness differs from tagged source')
- evidence.append({'file':str(args.jspi.resolve()),'sha256':archive_sha(args.jspi),'suite':'jspi-exact-archive','cases':len(data['cases'])})
 if manifest.get('adaptiveStreaming'):
  if not args.shaka:raise SystemExit('Shaka runtime release requires exact-archive Chrome and Firefox streaming consumer evidence (--shaka)')
  families=set()

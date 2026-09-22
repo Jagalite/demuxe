@@ -31,9 +31,6 @@
     "build:software-yuv": "bash scripts/build-software-yuv.sh",
     "test:remux-negotiation": "npm run build && node --test tests/remux-packaging-contracts.mjs && node tests/remux-negotiation.mjs",
     "test:software-yuv": "npm run build && node experiments/software-yuv-integration/qualify.mjs",
-    "build:remux-jspi": "DEMUXE_REMUX_PROFILE=jspi bash scripts/build-remux.sh",
-    "test:remux-jspi:expansion": "npm run build && node tests/remux-jspi-expansion.mjs",
-    "test:remux-jspi": "npm run build && node tests/remux-jspi.mjs",
     "build:subtitles": "python3 scripts/build-subtitles.py",
     "test:tier-policy": "npm run build && node --test tests/tier-policy.mjs tests/plan-admission.mjs && node tests/tier-promotion-browser.mjs && node tests/mpv-subtitle-service.mjs",
     "build:remux": "bash scripts/build-remux.sh",
@@ -60,7 +57,10 @@
     "test:shaka-package": "node tests/shaka-package.mjs",
     "test:shaka": "npm run build && node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/native-selection.mjs tests/plan-admission.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs && node tests/shaka-lifecycle.mjs",
     "test:buffering": "npm run build && node --test tests/buffering-policy.mjs tests/remux-buffering.mjs tests/shaka-backend.mjs tests/range-reader-deadline.mjs tests/buffering-server.mjs tests/buffering-analyzer.mjs && node tests/buffering/run.mjs",
-    "test:buffering:qualify": "npm run build && STAGE=qualification node tests/buffering/run.mjs"
+    "test:buffering:qualify": "npm run build && STAGE=qualification node tests/buffering/run.mjs",
+    "test:remux-pthread": "npm run build && node tests/remux-pthread.mjs",
+    "test:runtime-isolation": "npm run build && node tests/runtime-isolation.mjs",
+    "test:remux-profiles": "npm run build && node tests/remux-profiles.mjs"
   },
   "devDependencies": {
     "playwright": "1.58.2",

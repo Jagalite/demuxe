@@ -6,8 +6,8 @@ import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const out=`results/fragment-delivery/${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const results={browser:browser.version(),measurements:[],scope:'Real Wasm emit boundary; no artificial fragment tail delay; full costs include Player open, playback, seeks and EOF'};
 try{
- for(const isolated of [false,true]){
-  const server=await serve({isolated,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac-24s.ts'}});
+ for(const isolated of [true]){
+  const server=await serve({isolated,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac-24s.ts'}});
   try{for(let pair=0;pair<2;pair++)for(const mode of pair%2?['progressive','separate','gather']:['gather','separate','progressive']){
    const page=await browser.newPage();page.setDefaultTimeout(30000);
    await page.route('**/native-remux-player.js',async route=>{const body=await readFile('web/native-remux-player.js','utf8');await route.fulfill({contentType:'text/javascript',body:body.replace("fragmentDelivery='separate'",`fragmentDelivery='${mode}'`)});});

@@ -287,7 +287,7 @@ manifests, merge subtitles or select representations. Explicit quality constrain
 HLS subtitle renditions, multi-period/text DASH and unsupported extensions reject
 instead of being silently dropped. Source and permission failures are terminal.
 Prepared Native, Hybrid and Software require matching Wasm/worker assets.
-The [JSPI Native remux route](NON-ISOLATED-REMUX.md) supports finite single-video AVC / single-audio AAC MPEG-TS without isolation. Other prepared routes, Hybrid and Software retain the isolation requirement. Deployment failure is not codec incompatibility.
+Prepared Native, Hybrid and Software require cross-origin isolation. Native Direct and Shaka remain available without isolation where browser/source requirements are met. Deployment failure is not codec incompatibility. See [runtime requirements](NON-ISOLATED-REMUX.md).
 
 ## Processing and playback features
 

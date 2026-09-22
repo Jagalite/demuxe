@@ -24,8 +24,8 @@ Current derived view of 435 item homes, ranked by the original catalogue. Open e
 | 16 | [R088.native-hls-playlist-views-over-compatible-existing-media](items/R088.native-hls-playlist-views-over-compatible-existing-media/README.md) | pursue | passed | passed | passed | not_measured |
 | 17 | [R183.native-color-with-separately-decoded-transparency](items/R183.native-color-with-separately-decoded-transparency/README.md) | pursue | passed | passed | passed | not_measured |
 | 18 | [R114.use-webrtc-native-media-reception-as-a-packet-copy-destination](items/R114.use-webrtc-native-media-reception-as-a-packet-copy-destination/README.md) | pursue | passed | passed | not_applicable | not_measured |
-| 19 | [R176.jspi-backed-synchronous-wasm-i-o](items/R176.jspi-backed-synchronous-wasm-i-o/README.md) | already_implemented | passed | passed | passed | measured_scoped_integration_tradeoffs |
-| 20 | [R006.offer-a-non-pthread-remux-path-without-isolation](items/R006.offer-a-non-pthread-remux-path-without-isolation/README.md) | already_implemented | passed | passed | passed | measured_scoped_integration_tradeoffs |
+| 19 | [R176.jspi-backed-synchronous-wasm-i-o](items/R176.jspi-backed-synchronous-wasm-i-o/README.md) | dropped | passed | passed | passed | not_required_dropped |
+| 20 | [R006.offer-a-non-pthread-remux-path-without-isolation](items/R006.offer-a-non-pthread-remux-path-without-isolation/README.md) | dropped | passed | passed | passed | not_required_dropped |
 | 21 | [R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output](items/R024.compare-raw-yuv-videoframe-presentation-with-existing-software-output/README.md) | stop_current_profile | passed | failed | not_applicable | correctness_failed |
 | 22 | [R086.native-video-with-an-independent-generated-pcm-clock](items/R086.native-video-with-an-independent-generated-pcm-clock/README.md) | pursue | passed | passed | passed | not_measured |
 | 23 | [R097.mux-color-and-alpha-into-native-transparent-webm](items/R097.mux-color-and-alpha-into-native-transparent-webm/README.md) | pursue | passed | passed | failed | not_measured |

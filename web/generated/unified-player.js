@@ -9,7 +9,7 @@ import { runtimeBase } from './internal/assets.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
-import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection, nonisolatedRemuxRejection } from './internal/selection.js';
+import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
 import { PreviewController } from './preview/controller.js';
 import { SoftwarePreviewProvider } from './preview/software.js';
 import { LocalVideoPreviewProvider } from './preview/providers.js';
@@ -571,8 +571,6 @@ export class Player extends EventTarget {
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
-            jspi: typeof WebAssembly.Suspending === 'function' && typeof WebAssembly.promising === 'function',
-            nonisolatedRemuxQualified: !!inspected && !nonisolatedRemuxRejection(inspected.probe, inspected.settings),
             isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
             nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
         const explicit = inspected?.probe.tracks.find(t => t.type === 'audio' && t.id === inspected.settings.aid);
@@ -904,29 +902,31 @@ export class Player extends EventTarget {
                     }
                     this.assertOperation();
                     const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
-                    if (!probe) {
+                    if (!probe && globalThis.crossOriginIsolated) {
                         const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
-                        const compiledWasm = await this.interruptible(this.preparation?.readyModule(globalThis.crossOriginIsolated ? 'engine-remux' : 'engine-remux-jspi') ?? Promise.resolve(undefined));
+                        const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
                         this.assertOperation();
                         probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
                     }
                     if (!probe)
-                        throw Error('Source inspection returned no metadata');
-                    if (source.kind === 'remote' && probe.identity)
-                        source.options.identity ??= probe.identity;
-                    // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
-                    let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : !this.source ? settings.aid : 'auto';
-                    let sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
-                    if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
-                        aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
-                    const publicAudio = preserve ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
-                    const publicSub = preserve ? /^sub:stream:(\d+)$/.exec(this.publicSelections.get('sub') ?? '') : null;
-                    if (publicSub)
-                        sid = probe.tracks.find(t => t.type === 'sub' && t.index === Number(publicSub[1]))?.id ?? 'missing';
-                    if (publicAudio)
-                        aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(publicAudio[1]))?.id ?? 'missing';
-                    nativeReason = nativeRejection(probe, { ...settings, aid, sid }, document.createElement('video'));
-                    this.sourceInspection = { source, probe, settings: { aid, sid, subtitles: settings.subtitles } };
+                        this.record({ mode: 'probe', outcome: 'skipped', reason: 'Wasm inspection requires cross-origin isolation; browser-native routes remain available' });
+                    if (probe) {
+                        if (source.kind === 'remote' && probe.identity)
+                            source.options.identity ??= probe.identity;
+                        // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
+                        let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : !this.source ? settings.aid : 'auto';
+                        let sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
+                        if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
+                            aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
+                        const publicAudio = preserve ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
+                        const publicSub = preserve ? /^sub:stream:(\d+)$/.exec(this.publicSelections.get('sub') ?? '') : null;
+                        if (publicSub)
+                            sid = probe.tracks.find(t => t.type === 'sub' && t.index === Number(publicSub[1]))?.id ?? 'missing';
+                        if (publicAudio)
+                            aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(publicAudio[1]))?.id ?? 'missing';
+                        nativeReason = nativeRejection(probe, { ...settings, aid, sid }, document.createElement('video'));
+                        this.sourceInspection = { source, probe, settings: { aid, sid, subtitles: settings.subtitles } };
+                    }
                 }
                 catch (error) {
                     if (this.destroyed || this.activeOperation?.controller.signal.aborted || ['AUTOPLAY_BLOCKED', 'ABORTED', 'SOURCE_CHANGED', 'SOURCE_PERMISSION', 'NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED'].includes(playerError(error).code) || terminalSourceFailure(error))

@@ -2,7 +2,7 @@
 
 # Current research status
 
-Derived from all 435 canonical item homes at 2026-09-21T21:23:03.643640+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
+Derived from all 435 canonical item homes at 2026-09-22T00:23:13.513242+00:00. Run `python3 research/shared/tooling/refresh-research-status.py` to refresh. Item folders remain authoritative.
 
 400 items have concluded all applicable research gates at their recorded scope; 27 are administratively closed for permanently unavailable sources; 0 await definitions and 8 have other incomplete gates. Concluded includes positive results, measured negatives and justified no-opportunity stops; it does not mean production-qualified.
 
@@ -32,9 +32,10 @@ Whole-player qualification is a separate follow-up: earlier scoped research comp
 | correctness_failed | 2 |
 | deferred_integration_not_prioritized | 1 |
 | measured_lab_benefit | 3 |
-| measured_scoped_integration_tradeoffs | 7 |
+| measured_scoped_integration_tradeoffs | 5 |
 | not_measured | 140 |
 | not_required_by_current_scoped_decision | 277 |
+| not_required_dropped | 2 |
 
 - Rank None: [chained-ogg-native-link-scheduling](items/chained-ogg-native-link-scheduling/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.
 - Rank None: [native-audio-isolated-cycle-loop](items/native-audio-isolated-cycle-loop/README.md) — Inspect the current maintained owner, then run the smallest applicable source/destination test specified in the imported report and handoff; preserve controls and prior scoped decisions before any promotion.

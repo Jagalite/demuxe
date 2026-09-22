@@ -13,8 +13,8 @@ async function setup(server,owner='worker'){
 }
 async function cleanup(page){await page.evaluate(()=>player.destroy());await page.waitForFunction(()=>!document.querySelector('video')?.srcObject);await page.waitForTimeout(100);assert.equal(page.workers().length,0);await page.close();}
 try{
- for(const isolated of [false,true]){
-  const server=await serve({isolated,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+ for(const isolated of [true]){
+  const server=await serve({isolated,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
   try{
    for(const scenario of [{name:'idle',load:0,delay:0},{name:'ui',load:35,delay:0},{name:'paced-ui',load:35,delay:40}])for(let pair=0;pair<Number(process.env.PAIRS??3);pair++)for(const owner of pair%2?['worker','window']:['window','worker']){
     const page=await setup(server,owner),cdp=await page.context().newCDPSession(page);await cdp.send('Performance.enable');
@@ -29,7 +29,7 @@ try{
     },{url:server.origin+`/media/ts?delay=${scenario.delay}&id=${isolated}-${scenario.name}-${pair}-${owner}`,load:scenario.load});
     const after=await cdp.send('Performance.getMetrics');const metric=(m,n)=>m.metrics.find(v=>v.name===n)?.value??0;
     row.mainTaskSeconds=metric(after,'TaskDuration')-metric(before,'TaskDuration');
-    assert.equal(row.snapshot.mseOwner??'window',owner);assert.ok(row.quality.frames>20);assert.equal(row.snapshot.remux.transport,isolated?'pthread':'jspi');assert.deepEqual(row.snapshot.stats.errors,[]);
+    assert.equal(row.snapshot.mseOwner??'window',owner);assert.ok(row.quality.frames>20);assert.equal(row.snapshot.remux.transport,'pthread');assert.deepEqual(row.snapshot.stats.errors,[]);
     const started=Date.now();await cleanup(page);results.measurements.push({isolated,scenario:scenario.name,pair,owner,...row,cleanupMs:Date.now()-started});console.log('PASS',isolated,scenario.name,pair,owner);await writeFile(out+'/result.json',JSON.stringify(results,null,2)+'\n');
    }
    const page=await setup(server);
@@ -45,9 +45,9 @@ try{
 
   }finally{await server.close();}
  }
- const server=await serve({isolated:false,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+ const server=await serve({isolated:true,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
  try{const page=await setup(server);await page.route('**/native-mse-worker.js',route=>route.abort());await page.evaluate(url=>player.openRemote({url}),server.origin+'/media/ts');const s=await page.evaluate(()=>player.current.backend.remux.snapshot());assert.equal(s.mseOwner,'window');assert.match(s.ownerFallback,/worker/i);await cleanup(page);results.cases.push({name:'worker bootstrap failure uses window owner',passed:true});}finally{await server.close();}
- const suspended=await serve({isolated:true,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac-24s.ts'}});
+ const suspended=await serve({isolated:true,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac-24s.ts'}});
  try{
   const page=await browser.newPage();await page.goto(suspended.origin+'/experiment/page.html');
   await page.evaluate(async url=>{const {RemuxPlayer}=await import('/web/native-remux-player.js');const video=document.createElement('video');document.body.append(video);window.owner=new RemuxPlayer(video);window.pending=owner.open({options:{url}}).then(()=>false,()=>true);},suspended.origin+'/media/ts?delay=400&id=suspended');
@@ -57,12 +57,12 @@ try{
   const deadline=Date.now()+1500;while(page.workers().length&&Date.now()<deadline)await page.waitForTimeout(25);assert.equal(page.workers().length,0);
   await page.waitForTimeout(450);assert.equal(await page.evaluate(()=>owner.video.srcObject),null);await page.close();results.cases.push({name:'destroy wakes an actual suspended pthread source read; late response cannot reattach',passed:true});
  }finally{await suspended.close();}
- const rejected=await serve({isolated:false,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+ const rejected=await serve({isolated:true,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
  try{
   const page=await setup(rejected);await page.route('**/native-mse-worker.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:'MediaSource.isTypeSupported=()=>false;\n'+await response.text()});});
   await page.evaluate(url=>player.openRemote({url}),rejected.origin+'/media/ts');assert.equal(await page.evaluate(()=>player.current.backend.remux.snapshot().mseOwner),'window');await cleanup(page);results.cases.push({name:'worker SourceBuffer capability rejection falls back before appending',passed:true});
  }finally{await rejected.close();}
- const crash=await serve({isolated:false,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+ const crash=await serve({isolated:true,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
  try{
   const page=await browser.newPage();await page.goto(crash.origin+'/experiment/page.html');
   await page.evaluate(async url=>{const {RemuxPlayer}=await import('/web/native-remux-player.js');const video=document.createElement('video');document.body.append(video);window.owner=new RemuxPlayer(video);owner.onError=message=>window.ownerFailure=message;await owner.open({options:{url}});},crash.origin+'/media/ts');
@@ -70,7 +70,7 @@ try{
   await page.waitForFunction(()=>window.ownerFailure?.includes('Injected MSE owner failure'));await page.evaluate(()=>owner.destroy());const deadline=Date.now()+1500;while(page.workers().length&&Date.now()<deadline)await page.waitForTimeout(25);assert.equal(page.workers().length,0);await page.close();results.cases.push({name:'MSE owner runtime failure propagates and retires its workers',passed:true});
  }finally{await crash.close();}
  for(let recoveryAttempt=0;recoveryAttempt<Number(process.env.RECOVERY_REPEATS??1);recoveryAttempt++){
- const recovery=await serve({isolated:false,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+ const recovery=await serve({isolated:true,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
  try{
   const page=await browser.newPage();await page.goto(recovery.origin+'/experiment/page.html');
   await page.evaluate(async url=>{const {RemuxPlayer}=await import('/web/native-remux-player.js');const video=document.createElement('video');document.body.append(video);window.owner=new RemuxPlayer(video);owner.onError=message=>window.recoveryFailure=message;await owner.open({options:{url}});await owner.play();},recovery.origin+'/media/ts');

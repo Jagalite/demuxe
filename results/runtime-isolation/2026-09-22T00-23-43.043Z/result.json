@@ -1,0 +1,95 @@
+{
+  "cases": [
+    {
+      "name": "non-isolated Native playback and optional preparation",
+      "passed": true,
+      "isolated": false,
+      "preparation": {
+        "milliseconds": 0,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "failed",
+            "bytes": 0,
+            "milliseconds": 0.6999999284744263,
+            "error": "Error: Wasm preparation requires cross-origin isolation"
+          },
+          {
+            "name": "hybrid",
+            "status": "failed",
+            "bytes": 0,
+            "milliseconds": 0.10000002384185791,
+            "error": "Error: Wasm preparation requires cross-origin isolation"
+          },
+          {
+            "name": "software",
+            "status": "failed",
+            "bytes": 0,
+            "milliseconds": 0,
+            "error": "Error: Wasm preparation requires cross-origin isolation"
+          },
+          {
+            "name": "font",
+            "status": "failed",
+            "bytes": 0,
+            "milliseconds": 0,
+            "error": "Error: Wasm preparation requires cross-origin isolation"
+          }
+        ]
+      },
+      "plan": "native-direct",
+      "width": 320
+    },
+    {
+      "name": "non-isolated HLS falls through to Shaka playback",
+      "passed": true,
+      "plan": "shaka-mse",
+      "width": 320
+    },
+    {
+      "name": "pthread-only route rejects qualification cleanly",
+      "passed": true,
+      "code": "ISOLATION_REQUIRED",
+      "error": "PlayerError: Native preparation requires cross-origin isolation",
+      "preserved": true
+    },
+    {
+      "name": "no Wasm assets or producers requested without isolation",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "requests": [
+    "http://127.0.0.1:52120/experiment/page.html",
+    "http://127.0.0.1:52120/experiment/remux-player.js",
+    "http://127.0.0.1:52120/web/generated/index.js",
+    "http://127.0.0.1:52120/web/generated/unified-player.js",
+    "http://127.0.0.1:52120/web/generated/types.js",
+    "http://127.0.0.1:52120/web/generated/internal/errors.js",
+    "http://127.0.0.1:52120/web/generated/preview/controller.js",
+    "http://127.0.0.1:52120/web/generated/preview/providers.js",
+    "http://127.0.0.1:52120/web/generated/preview/software.js",
+    "http://127.0.0.1:52120/web/generated/internal/buffering.js",
+    "http://127.0.0.1:52120/web/generated/internal/plain-vtt.js",
+    "http://127.0.0.1:52120/web/generated/internal/runtime-capability.js",
+    "http://127.0.0.1:52120/web/generated/internal/playback-plans.js",
+    "http://127.0.0.1:52120/web/generated/internal/engine-preparation.js",
+    "http://127.0.0.1:52120/web/generated/internal/tier-policy.js",
+    "http://127.0.0.1:52120/web/generated/internal/assets.js",
+    "http://127.0.0.1:52120/web/generated/internal/state.js",
+    "http://127.0.0.1:52120/web/generated/internal/selection.js",
+    "http://127.0.0.1:52120/web/generated/preview/pregeneration.js",
+    "http://127.0.0.1:52120/web/generated/internal/wasm-player.js",
+    "http://127.0.0.1:52120/web/generated/internal/native-player.js",
+    "http://127.0.0.1:52120/media/movie",
+    "http://127.0.0.1:52120/web/generated/internal/shaka-backend.js",
+    "http://127.0.0.1:52120/web/generated/internal/shaka-network.js",
+    "http://127.0.0.1:52120/web/generated/preview/images.js",
+    "http://127.0.0.1:52120/web/vendor/shaka-player.js",
+    "http://127.0.0.1:52120/stream.m3u8",
+    "http://127.0.0.1:52120/media/ts",
+    "http://127.0.0.1:52120/media/ts",
+    "http://127.0.0.1:52120/web/native-remux-player.js",
+    "http://127.0.0.1:52120/web/worker-remux-controller.js"
+  ]
+}

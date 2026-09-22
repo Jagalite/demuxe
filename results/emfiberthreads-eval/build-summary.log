@@ -1,0 +1,85 @@
+{
+  "build": {
+    "command": [
+      "make",
+      "-j4",
+      "CC=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "AR=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emar",
+      "RANLIB=/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emranlib",
+      "STACK_SIZE=2097152",
+      "ASYNCIFY_STACK_SIZE=65536"
+    ],
+    "returncode": 0
+  },
+  "install": {
+    "command": [
+      "make",
+      "install-interpose",
+      "PREFIX=/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix"
+    ],
+    "returncode": 0
+  },
+  "asyncify": {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O1",
+      "-I/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix/include",
+      "/Volumes/seed2/Projects/demuxe/experiments/emfiberthreads-eval/probe.c",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix/lib/libemfiberthreads.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sENVIRONMENT=worker",
+      "-sASSERTIONS=1",
+      "-sSTACK_SIZE=2097152",
+      "-sEXPORTED_FUNCTIONS=[\"_probe\",\"_emfiberthreads_timeout_expiry\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"HEAPU8\",\"HEAPU32\"]",
+      "-sASYNCIFY=1",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/asyncify.mjs"
+    ],
+    "returncode": 0
+  },
+  "jspi": {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-O1",
+      "-I/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix/include",
+      "/Volumes/seed2/Projects/demuxe/experiments/emfiberthreads-eval/probe.c",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix/lib/libemfiberthreads.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sENVIRONMENT=worker",
+      "-sASSERTIONS=1",
+      "-sSTACK_SIZE=2097152",
+      "-sEXPORTED_FUNCTIONS=[\"_probe\",\"_emfiberthreads_timeout_expiry\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"HEAPU8\",\"HEAPU32\"]",
+      "-sJSPI=1",
+      "-sJSPI_EXPORTS=[\"probe\"]",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/jspi.mjs"
+    ],
+    "returncode": 0
+  },
+  "mpv-wrapper": {
+    "command": [
+      "/Volumes/seed2/Projects/webmpv/build/emsdk-4.0.14/upstream/emscripten/emcc",
+      "-c",
+      "-I/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/prefix/include",
+      "-I/Volumes/seed2/Projects/webmpv/build/sources/mpv",
+      "-I/Volumes/seed2/Projects/webmpv/build/obj-mpv",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/mpv-wrapper.c",
+      "-o",
+      "/Volumes/seed2/Projects/demuxe/build/emfiberthreads-eval/mpv-wrapper.o"
+    ],
+    "returncode": 1
+  },
+  "upstreamCommit": "0f026c5600b472448fadb3c646d3c8f1c2048a18",
+  "mpvCommit": "a1e72a10ccbc1ee4e392e1f485e0258a7fef5f26",
+  "hashes": {
+    "/Volumes/seed2/Projects/webmpv/build/sources/mpv/osdep/threads-posix.h": "5e044e7c020cc9ff4ea085cf8c3f08e47b47065d608ea243d3286b5942f174a5",
+    "/Volumes/seed2/Projects/webmpv/build/obj-mpv/config.h": "6d81971517392dd0bf7f494fc0376e162a92c968788c0f186b4c3f6b4adcb5bc",
+    "/Volumes/seed2/Projects/demuxe/native/stream_bridge.c": "51ca03fbd59307142c2bc8c7b0163fe1a2bdca92cfb8ee27e768adcba424d18f",
+    "/Volumes/seed2/Projects/demuxe/native/vd_browser.c": "6808dfb7a4db9522d2b4ea143f98e76d9da03ce53af42f4b06988ddf5c64fe19",
+    "/Volumes/seed2/Projects/demuxe/native/ao_browser.c": "cd8adbf0347b47341b67a5f312a9633eacf8bd9831185fe05ad0ebe4c7781963"
+  }
+}

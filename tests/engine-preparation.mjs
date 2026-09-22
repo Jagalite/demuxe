@@ -48,14 +48,13 @@ test('playback shares in-flight preparation without requesting unrelated compone
  assert.ok(result.module instanceof WebAssembly.Module);assert.equal(result.font.byteLength,8);assert.equal(requests.length,2);assets.destroy();
 });
 
-test('non-isolated inspector prepares the matching no-pthread module',async t=>{
+test('non-isolated preparation reports unavailable without fetching assets',async t=>{
  globalThis.crossOriginIsolated=false;
  try{
-  const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return new Response(wasm);});
-  const assets=new EnginePreparation(base);await assets.warm(['inspector']);
-  assert.ok((await assets.readyModule('engine-remux-jspi')) instanceof WebAssembly.Module);
-  assert.equal(assets.module('engine-remux'),undefined);
-  assert.ok(requests[0].includes('/engine-remux-jspi/'));assets.destroy();
+  t.mock.method(globalThis,'fetch',()=>{throw Error('unexpected fetch');});
+  const assets=new EnginePreparation(base),report=await assets.warm('all');
+  assert.ok(report.assets.every(a=>a.status==='failed'&&a.error.includes('cross-origin isolation')));
+  assert.equal(await assets.readyModule('engine-remux'),undefined);assets.destroy();
  }finally{globalThis.crossOriginIsolated=true;}
 });
 

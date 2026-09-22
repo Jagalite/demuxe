@@ -175,13 +175,6 @@ static int seek_ts(double target){
 }
 
 
-#ifdef DEMUXE_REMUX_JSPI
-EM_ASYNC_JS(int, source_read, (uint8_t *dst, int count, double offset), {
- const bytes=await Module.readAsync(offset,count);
- if(!(bytes instanceof Uint8Array)||bytes.length>count)throw Error('Invalid asynchronous source read');
- HEAPU8.set(bytes,dst);return bytes.length;
-});
-#else
 EM_JS(int, source_read, (uint8_t *dst, int count, double offset), {
  const h=new Int32Array(Module.io,0,16),v=new DataView(Module.io);
  if(Atomics.load(h,4))return -1;
@@ -190,7 +183,7 @@ EM_JS(int, source_read, (uint8_t *dst, int count, double offset), {
  const n=Atomics.load(h,3);if(Atomics.load(h,0)!==2||n<0||n>count)return -1;
  HEAPU8.set(new Uint8Array(Module.io,64,n),dst);Atomics.store(h,0,0);return n;
 });
-#endif
+
 EM_JS(void, emit_bytes, (uint8_t *ptr,int length), {
  Module.emit(HEAPU8.slice(ptr,ptr+length));
 });

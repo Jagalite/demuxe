@@ -10,14 +10,9 @@ export EM_CONFIG="${WEBMPV_EM_CONFIG:-$ROOT/build/gap.emscripten}"
 export PATH="$SDK/upstream/emscripten:$SDK:$PATH"
 export SOURCE_DATE_EPOCH=1740000000
 export GIT_CEILING_DIRECTORIES="$ROOT/build/sources"
-PROFILE=${DEMUXE_REMUX_PROFILE:-pthread}
-case "$PROFILE" in
- pthread) THREAD_CONFIG=--enable-pthreads; FLAGS=(-pthread -msimd128); JSPI=(); SUFFIX= ;;
- jspi) THREAD_CONFIG=--disable-pthreads; FLAGS=(-DDEMUXE_REMUX_JSPI=1); JSPI=(-sJSPI=1 '-sJSPI_EXPORTS=["rm_open","rm_probe","rm_start","rm_step"]'); SUFFIX=-jspi ;;
- *) echo "Unknown remux profile: $PROFILE" >&2; exit 1 ;;
-esac
-OBJ="${WEBMPV_REMUX_FFMPEG_DIR:-$ROOT/build/native-remux$SUFFIX/ffmpeg}"
-OUT="$ROOT/web/engine-remux$SUFFIX"
+FLAGS=(-pthread -msimd128)
+OBJ="${WEBMPV_REMUX_FFMPEG_DIR:-$ROOT/build/native-remux/ffmpeg}"
+OUT="$ROOT/web/engine-remux"
 mkdir -p "$OBJ" "$OUT" "$ROOT/build/native-remux"
 if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ] && { [ ! -f "$OBJ/Makefile" ] || ! rg -q -- "--enable-muxer='?mp4,webm'?" "$OBJ/ffbuild/config.mak"; }; then
  (cd "$OBJ"
@@ -27,20 +22,15 @@ if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ] && { [ ! -f "$OBJ/Makefile" ] || ! rg -
  --enable-static --disable-shared --disable-programs --disable-doc --disable-debug \
  --disable-autodetect --disable-network --disable-asm --disable-everything \
  --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample --disable-postproc \
- --enable-avformat --enable-avcodec --enable-avutil "$THREAD_CONFIG" \
+ --enable-avformat --enable-avcodec --enable-avutil --enable-pthreads \
  --enable-demuxers \
  --enable-muxer=mp4,webm --enable-parsers \
  --enable-bsfs \
  --extra-cflags="-O2 ${FLAGS[*]} -ffile-prefix-map=$ROOT=/demuxe" --extra-ldflags="${FLAGS[*]}")
 fi
 if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ]; then python3 scripts/normalize-build-paths.py "$OBJ/config.h"; (cd "$OBJ"; emmake make -j 4); fi
-if [ "$PROFILE" = jspi ] && ! rg -q '^#define HAVE_PTHREADS 0$' "$OBJ/config.h"; then
- echo 'JSPI remux requires FFmpeg built without pthreads' >&2; exit 1
-fi
 LINK_OUT=$(mktemp -d "$ROOT/build/native-remux/link.XXXXXX")
-# Bash 3.2 treats an empty array as unset under nounset. Omit JSPI flags
-# entirely for pthread builds without expanding an unset array.
-emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" "${FLAGS[@]}" ${JSPI[@]+"${JSPI[@]}"} -I"$OBJ" -Ibuild/sources/ffmpeg \
+emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" "${FLAGS[@]}" -I"$OBJ" -Ibuild/sources/ffmpeg \
  native/remux/remux.c \
  "$OBJ/libavformat/libavformat.a" "$OBJ/libavcodec/libavcodec.a" "$OBJ/libavutil/libavutil.a" \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createRemux -sENVIRONMENT=worker \

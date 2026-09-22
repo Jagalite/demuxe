@@ -6,7 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const baseline=process.env.BASELINE??'build/production-main-baseline',out=`results/production-pipeline/${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});
-const fixtures={mp4:'results/full-completion/r59/two-front.mp4',fmp4:'results/production-pipeline-fixtures/canonical_rate.mp4',remux:'build/remux-jspi-fixtures-v1/avc-aac-24s.ts'};
+const fixtures={mp4:'results/full-completion/r59/two-front.mp4',fmp4:'results/production-pipeline-fixtures/canonical_rate.mp4',remux:'build/remux-fixtures-v1/avc-aac-24s.ts'};
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
 const result={browser:browser.version(),baseline:execFileSync('git',['-C',baseline,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),sharedRemuxWasmSHA256:createHash('sha256').update(await readFile('web/engine-remux/remux.wasm')).digest('hex'),note:'Same current pthread artifact used for both source revisions; no clean historical engine rebuild or release claim. MP4 local acquisition is included. Timings are descriptive paired samples, not additive component savings.',measurements:[]};
 try{

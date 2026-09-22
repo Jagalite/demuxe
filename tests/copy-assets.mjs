@@ -3,7 +3,7 @@ import {test} from 'node:test';import {createHash} from 'node:crypto';import ass
 const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-4/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/copy-qualification-'));execFileSync('tar',['-xzf',archive,'-C',root]);const pkg=path.join(root,'package'),cli=path.join(pkg,'bin/demuxe.mjs');
 const run=dest=>execFileSync(process.execPath,[cli,'copy-assets',dest],{encoding:'utf8',stdio:'pipe'});
 const failure=dest=>{try{run(dest);assert.fail('Expected copy rejection');}catch(error){return String(error.stderr||error);}};
-test('copy preserves unrelated files and is repeatable',async()=>{const dir=path.join(root,'success');await mkdir(dir);await writeFile(path.join(dir,'host.txt'),'owned by consumer');run(dir);run(dir);assert.equal(await readFile(path.join(dir,'host.txt'),'utf8'),'owned by consumer');const m=JSON.parse(await readFile(path.join(dir,'demuxe-runtime.json')));assert.ok(m.files['web/engine-hybrid/player.wasm']);assert.ok(m.files['web/engine-remux-jspi/remux.wasm']);assert.ok(m.files['third_party/notices.json']);assert.ok(m.files['web/vendor/shaka-player.js']);assert.ok(m.files['web/vendor/shaka-player.transmuxer-worker.js']);assert.ok(m.files['third_party/shaka-player.json']);});
+test('copy preserves unrelated files and is repeatable',async()=>{const dir=path.join(root,'success');await mkdir(dir);await writeFile(path.join(dir,'host.txt'),'owned by consumer');run(dir);run(dir);assert.equal(await readFile(path.join(dir,'host.txt'),'utf8'),'owned by consumer');const m=JSON.parse(await readFile(path.join(dir,'demuxe-runtime.json')));assert.ok(m.files['web/engine-hybrid/player.wasm']);assert.ok(m.files['third_party/notices.json']);assert.ok(m.files['web/vendor/shaka-player.js']);assert.ok(m.files['web/vendor/shaka-player.transmuxer-worker.js']);assert.ok(m.files['third_party/shaka-player.json']);});
 test('copy refuses unrelated collisions and symlinks',async()=>{const dir=path.join(root,'collision');await mkdir(path.join(dir,'web'),{recursive:true});await writeFile(path.join(dir,'web/io-worker.js'),'owned by consumer');assert.match(failure(dir),/unrelated destination/);assert.equal(await readFile(path.join(dir,'web/io-worker.js'),'utf8'),'owned by consumer');const link=path.join(root,'symlink');await symlink(dir,link);assert.match(failure(link),/symlink/);});
 test('copy rejects tampered and missing assets before writing runtime files',async()=>{const file=path.join(pkg,'web/io-worker.js'),original=await readFile(file);try{await writeFile(file,'corrupt');assert.match(failure(path.join(root,'tampered')),/hash mismatch/);}finally{await writeFile(file,original);}const manifestFile=path.join(pkg,'release-manifest.json'),before=await readFile(manifestFile);try{const m=JSON.parse(before);m.files['missing.js']={bytes:1,sha256:'bad'};await writeFile(manifestFile,JSON.stringify(m));assert.match(failure(path.join(root,'missing')),/Missing package asset/);}finally{await writeFile(manifestFile,before);}});
 test('copy rejects incompatible package manifest version',async()=>{const file=path.join(pkg,'package.json'),before=await readFile(file);try{const p=JSON.parse(before);p.version='999.0.0';await writeFile(file,JSON.stringify(p));assert.match(failure(path.join(root,'incompatible')),/Incompatible package/);}finally{await writeFile(file,before);}});
@@ -67,7 +67,29 @@ with tarfile.open(sys.argv[1]) as archive:
 `,path.join(path.dirname(archive),manifest.sourceCompanion.filename)],{stdio:'pipe'});
 });
 
-test('non-isolated runtime cannot be silently omitted from the asset manifest',async()=>{
- const file=path.join(pkg,'release-manifest.json'),before=await readFile(file);
- try{const manifest=JSON.parse(before);delete manifest.files['web/engine-remux-jspi/remux.wasm'];await writeFile(file,JSON.stringify(manifest));assert.match(failure(path.join(root,'missing-jspi')),/Required runtime asset absent: web\/engine-remux-jspi\/remux.wasm/);}finally{await writeFile(file,before);}
+
+test('package ships only the maintained standard Wasm engines',async()=>{
+ const manifest=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));
+ assert.deepEqual(Object.keys(manifest.engines).sort(),['hybrid','remux','software']);
+});
+
+test('upgrade removes only unchanged obsolete managed assets',async()=>{
+ const dir=path.join(root,'upgrade');run(dir);
+ const file=path.join(dir,'demuxe-runtime.json'),manifest=JSON.parse(await readFile(file));
+ const old=Buffer.from('retired runtime'),digest=createHash('sha256').update(old).digest('hex');
+ for(const [name,bytes]of [['obsolete.wasm',old],['modified.wasm',Buffer.from('consumer edit')]]){
+  await writeFile(path.join(dir,'web',name),bytes);manifest.files['web/'+name]={bytes:old.length,sha256:digest};
+ }
+ await writeFile(path.join(dir,'web/unrelated.txt'),'consumer');await writeFile(file,JSON.stringify(manifest));run(dir);
+ await assert.rejects(readFile(path.join(dir,'web/obsolete.wasm')),e=>e.code==='ENOENT');
+ assert.equal(await readFile(path.join(dir,'web/modified.wasm'),'utf8'),'consumer edit');
+ assert.equal(await readFile(path.join(dir,'web/unrelated.txt'),'utf8'),'consumer');
+});
+test('upgrade refuses traversal and symlink paths in previous manifests',async()=>{
+ for(const name of ['../outside.wasm','web/retired/link.wasm']){
+  const dir=path.join(root,name.startsWith('..')?'traversal-upgrade':'symlink-upgrade');run(dir);
+  if(!name.startsWith('..'))await symlink(root,path.join(dir,'web/retired'));
+  const file=path.join(dir,'demuxe-runtime.json'),manifest=JSON.parse(await readFile(file));manifest.files[name]={bytes:0,sha256:createHash('sha256').update('').digest('hex')};await writeFile(file,JSON.stringify(manifest));
+  assert.match(failure(dir),/Unsafe previous runtime path|Unsafe obsolete asset directory/);
+ }
 });

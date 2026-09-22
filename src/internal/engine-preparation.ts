@@ -19,7 +19,7 @@ export class EnginePreparation {
   module(name:string){return this.modules.get(name);}
   fontCopy(){return this.font?.slice(0);}
   async readyModule(name:string){
-    await this.pending.get(name.startsWith('engine-remux')?'inspector':name==='engine-hybrid'?'hybrid':'software');
+    await this.pending.get(name==='engine-remux'?'inspector':name==='engine-hybrid'?'hybrid':'software');
     return this.module(name);
   }
   async readyEngine(name:string){
@@ -42,8 +42,9 @@ export class EnginePreparation {
     const abort=()=>controller.abort();parent.addEventListener('abort',abort,{once:true});if(parent.aborted)abort();
     const timer=setTimeout(abort,15000);let bytes=0;
     try{
+      if(!globalThis.crossOriginIsolated)throw Error('Wasm preparation requires cross-origin isolation');
       this.phase(name,'loading');
-      const engine=name==='inspector'?(globalThis.crossOriginIsolated?'engine-remux':'engine-remux-jspi'):name==='hybrid'?'engine-hybrid':this.software;
+      const engine=name==='inspector'?('engine-remux'):name==='hybrid'?'engine-hybrid':this.software;
       const path=name==='font'?'fixtures/DejaVuSans.ttf':`web/${engine}/${name==='inspector'?'remux':'player'}.wasm`;
       const response=await fetch(new URL(path,this.base),{signal:controller.signal,priority:'low'});
       if(!response.ok)throw Error(`Preparation asset unavailable: ${path} (${response.status})`);

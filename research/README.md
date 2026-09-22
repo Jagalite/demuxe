@@ -42,3 +42,5 @@ section of the process before adding or exporting artifacts.
 [Progressive and reduced-decode preview research](campaigns/preview-research.md): imported native component screens, mapped to five existing owners with browser/provider qualification limits preserved.
 
 [Native production pipeline integration](shared/runs/20260921T203100Z-production-pipeline/analysis.md): R005, bounded R059 and R133 are integrated; R132 remains conditional; R162 existing repairs are requalified while the patch constructor is deferred. Measured regressions and release limits are retained.
+
+Production decision: [R006 non-isolated remux](items/R006.offer-a-non-pthread-remux-path-without-isolation/README.md) and [R176 JSPI I/O](items/R176.jspi-backed-synchronous-wasm-i-o/README.md) are **Dropped / intentionally removed**. Maintenance complexity outweighs present production value. Advanced Wasm retains pthreads; browser-native paths remain usable without isolation. Revisit only on concrete deployment demand. Earlier evidence remains historical.

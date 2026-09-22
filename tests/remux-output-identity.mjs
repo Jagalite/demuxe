@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const out=`results/remux-output-identity/${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const result={browser:browser.version(),cases:[]};
-const fixtures={reference:'results/production-pipeline-fixtures/canonical_rate.mp4',D09:'results/production-pipeline-fixtures/absolute.mp4',D10:'results/production-pipeline-fixtures/missing_tfdt.mp4',long:'build/remux-jspi-fixtures-v1/avc-aac-24s.ts'};
+const fixtures={reference:'results/production-pipeline-fixtures/canonical_rate.mp4',D09:'results/production-pipeline-fixtures/absolute.mp4',D10:'results/production-pipeline-fixtures/missing_tfdt.mp4',long:'build/remux-fixtures-v1/avc-aac-24s.ts'};
 const server=await serve({isolated:true,mediaPaths:fixtures});
 const outputs={};
 const digest=b=>createHash('sha256').update(b).digest('hex');

@@ -7,8 +7,8 @@ import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const out=`results/worker-mse-review/${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
 const result={browser:browser.version(),baseline:!!process.env.REVIEW_BASELINE,cases:[]};
-try{for(const isolated of [false,true]){
- const server=await serve({isolated,mediaPaths:{ts:'build/remux-jspi-fixtures-v1/avc-aac.ts'}});
+try{for(const isolated of [true]){
+ const server=await serve({isolated,mediaPaths:{ts:'build/remux-fixtures-v1/avc-aac.ts'}});
  try{
   const page=await browser.newPage();
   if(process.env.REVIEW_BASELINE)for(const file of ['worker-remux-controller.js','native-mse-worker.js'])await page.route('**/'+file,r=>r.fulfill({contentType:'text/javascript',body:execFileSync('git',['show','78385fc:web/'+file],{encoding:'utf8'})}));

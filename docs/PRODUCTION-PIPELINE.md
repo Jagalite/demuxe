@@ -2,7 +2,7 @@
 
 # Maintained Native playback paths
 
-Worker-capable browsers now run the existing remux scheduler and MSE owner in a dedicated worker. Its source-reader and FFmpeg workers remain separate. Transferable encoded buffers travel directly from the producer to the MSE owner; the window receives a MediaSourceHandle, element operations, and bounded diagnostic snapshots. This works with the isolated pthread producer and the scoped non-isolated R006 JSPI producer.
+Worker-capable browsers now run the existing remux scheduler and MSE owner in a dedicated worker. Its source-reader and FFmpeg workers remain separate. Transferable encoded buffers travel directly from the producer to the MSE owner; the window receives a MediaSourceHandle, element operations, and bounded diagnostic snapshots. The maintained producer uses pthread Wasm and requires cross-origin isolation. Browser-native routes remain usable without isolation.
 
 The public Player modes and complete-plan admission remain unchanged. Native remux diagnostics distinguish `mseOwner`, `fragmentTransport`, and `delivery.mode`. A worker construction/attachment or SourceBuffer capability failure before media append falls back to the window owner. Source transport failures retain their original meaning. Audio adaptation retains its existing window owner. Worker-owned seeks currently regenerate the bounded presentation; the optional window buffered-seek optimization is not enabled in the worker owner.
 

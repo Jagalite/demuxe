@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: GPL-3.0-or-later
-import {readFile,mkdir,lstat,writeFile,rename} from 'node:fs/promises';
+import {readFile,mkdir,lstat,writeFile,rename,unlink} from 'node:fs/promises';
 import path from 'node:path';import {fileURLToPath} from 'node:url';import {createHash} from 'node:crypto';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -18,12 +18,27 @@ async function main(){
   if(bytes.length!==expected.bytes||hash(bytes)!==expected.sha256)throw Error('Package asset hash mismatch: '+name);
   if(name.startsWith('web/')||name.startsWith('fixtures/')||name.startsWith('third_party/')||['LICENSE','sources.lock.json','toolchain.lock.json'].includes(name)||name==='docs/LICENSING.md')files.set(name,bytes);
  }
- for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','web/engine-remux-jspi/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js','third_party/shaka-player.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
+ for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js','third_party/shaka-player.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
  const target=path.resolve(destination);await safeDirectory(target);
  let previous;try{const info=await lstat(path.join(target,'demuxe-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'demuxe-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
  // Refuse unrelated file collisions and all symlink destinations. No directory is removed.
  for(const [name,bytes]of files){const file=path.join(target,name);await safeDirectory(path.dirname(file));try{const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe destination asset: '+name);const existing=await readFile(file),digest=hash(existing);if(digest!==hash(bytes)&&digest!==previous?.files?.[name]?.sha256)throw Error('Refusing to overwrite unrelated destination file: '+name);}catch(e){if(e.code!=='ENOENT')throw e;}}
+ // Retire only unchanged files owned by the previous runtime manifest.
+ // Validate paths and parent directories before reading or removing old assets.
+ const obsolete=[];
+ for(const [name,expected]of Object.entries(previous?.files??{})){
+  if(files.has(name))continue;
+  if(name.includes('\\')||path.isAbsolute(name)||name.split('/').some(p=>!p||p==='.'||p==='..'))throw Error('Unsafe previous runtime path');
+  if(!name.startsWith('web/')&&!name.startsWith('fixtures/')&&!name.startsWith('third_party/')&& !['LICENSE','sources.lock.json','toolchain.lock.json','docs/LICENSING.md'].includes(name))continue;
+  const file=path.join(target,name);
+  try{
+   let parent=target;for(const part of name.split('/').slice(0,-1)){parent=path.join(parent,part);const info=await lstat(parent);if(!info.isDirectory()||info.isSymbolicLink())throw Error('Unsafe obsolete asset directory: '+name);}
+   const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe obsolete asset: '+name);
+   const bytes=await readFile(file);if(bytes.length===expected?.bytes&&hash(bytes)===expected?.sha256)obsolete.push({file,expected});
+  }catch(e){if(e.code!=='ENOENT')throw e;}
+ }
  const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.demuxe-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
+ for(const {file,expected}of obsolete){const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Obsolete asset changed during copy');const bytes=await readFile(file);if(bytes.length===expected.bytes&&hash(bytes)===expected.sha256)await unlink(file);}
  const record={schema:1,version:pkg.version,packageManifestSHA256:hash(await readFile(path.join(root,'release-manifest.json'))),files:entries};
  await writeFile(path.join(target,'demuxe-runtime.json'),JSON.stringify(record,null,2)+'\n');
  console.log(`Copied ${files.size} verified ${pkg.name} ${pkg.version} assets to ${target}. Unrelated files were retained.`);

@@ -29,6 +29,5 @@ npm run build:software-full
 python3 experiments/retained-subtitles/compile-hook.py
 npm run build:hybrid
 npm run build:remux
-npm run build:remux-jspi
 npm run build
 python3 scripts/beta-build-record.py finish

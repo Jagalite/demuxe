@@ -2,6 +2,20 @@
 
 # JSPI-backed synchronous Wasm I/O
 
+## Current status: Dropped / intentionally removed
+
+JSPI/non-isolated remux was evaluated and intentionally removed from the production architecture. Its primary benefit was deployment compatibility without cross-origin isolation, while it introduced an additional Wasm runtime, invocation model, packaging path, qualification surface, and long-term maintenance burden. Maintenance complexity outweighs present production value; it did not materially advance Demuxe’s primary objective of maximizing native/near-native playback performance. The pthread runtime remains the maintained advanced Wasm runtime. Browser-native functionality remains usable without isolation. Revisit only if concrete deployment demand appears later.
+
+Asyncify is not a replacement runtime in this decision. No new research or benchmarks were performed. See [runtime requirements and disposition](../../../docs/NON-ISOLATED-REMUX.md).
+
+## Historical record — superseded production status
+
+The text below describes earlier work only. References to integration, maintained assets, tests, and next actions are historical and no longer apply.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# JSPI-backed synchronous Wasm I/O
+
 ## Production integration — 2026-09-21
 
 **production_integrated**. The same scoped JSPI production producer as R006 is retained and requalified with separate MSE ownership, cancellation and checked fallbacks. This is shared capability evidence, not another independent saving.

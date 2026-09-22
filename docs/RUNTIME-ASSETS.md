@@ -88,7 +88,7 @@ cross-browser codec coverage or performance by itself.
 
 Serve JS/mjs as text/javascript, Wasm as application/wasm and fonts with font/ttf.
 Worker routes require a secure context. Pthread engines require COOP: same-origin plus COEP: require-corp.
-Native Direct, Shaka, and the scoped [JSPI remux route](NON-ISOLATED-REMUX.md) can work without isolation. Media must satisfy CORS, range/identity
+Native Direct and Shaka can work without isolation. Remux and other pthread Wasm components require isolation; see [runtime requirements](NON-ISOLATED-REMUX.md). Media must satisfy CORS, range/identity
 and source allowlist requirements. CSP must permit same-origin module scripts and
 workers, Wasm compilation (wasm-unsafe-eval), same-origin worker-owner iframes,
 AudioWorklet, fonts and authorized media/connect origins. Native local/remux media
@@ -173,3 +173,5 @@ archive, runtime inventory, required Chrome/Firefox matrix, tagged harness hashe
 log hashes and source-companion hashes. This adds a gate; it does not replace clean
 source/tag, engine build, streaming, consumer or extra release requirements. No
 qualification script creates tags or publishes. See the current closeout evidence.
+
+When updating an existing copied runtime, `copy-assets` removes obsolete files only when their bytes still match the previous runtime manifest. Modified or unrelated files are preserved; unsafe obsolete paths are rejected. Empty directories are retained.
