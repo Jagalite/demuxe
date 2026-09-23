@@ -1,0 +1,24 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!doctype html><html lang="en"><meta charset="utf-8"><link rel="icon" href="data:,">
+<title>Demuxe Software baseline</title><style>body{margin:0;background:#161616}#surface{width:640px;height:360px}</style>
+<div id="surface"></div><script type="module">
+import {Player} from '/web/generated/index.js';
+let player,errors=[];
+window.start=async(variant,url)=>{
+  player=new Player(document.querySelector('#surface'),{mode:'software',width:640,height:360,
+    softwarePresenter:variant==='yuv'?'experimental-yuv':'rgb'});
+  player.addEventListener('error',event=>errors.push(String(event.detail)));
+  await player.openRemote({url});await player.play();
+  const until=performance.now()+20000;
+  while((player.diagnostics.backend.yuv?.frames??player.diagnostics.backend.rendered??0)===0){
+    if(errors.length||performance.now()>until)throw Error(JSON.stringify(errors)||'First frame timeout');
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
+  return window.snapshot();
+};
+window.snapshot=()=>{const d=player.diagnostics.backend;return {
+  position:player.properties.get('time-pos'),frames:d.yuv?.frames??d.rendered,
+  dropped:(player.properties.get('frame-drop-count')||0)+(player.properties.get('decoder-frame-drop-count')||0),
+  diagnostics:d,errors:[...errors]};};
+window.stop=async()=>{const final=window.snapshot();await player.destroy();return final;};
+</script></html>

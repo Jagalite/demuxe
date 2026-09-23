@@ -1,0 +1,43 @@
+{
+  "width": 640,
+  "height": 360,
+  "codec": "ProRes proxy",
+  "pixelFormat": "yuv422p10le",
+  "note": "First decoded luma frame was forward transformed and quantized by four; these are not bitstream coefficients.",
+  "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "encode": [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    "testsrc2=size=640x360:rate=30",
+    "-frames:v",
+    "180",
+    "-c:v",
+    "prores_ks",
+    "-profile:v",
+    "0",
+    "-pix_fmt",
+    "yuv422p10le",
+    "experiments/webgpu-compute-decoder/raw/prores-proxy.mov"
+  ],
+  "transcode": [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-y",
+    "-i",
+    "experiments/webgpu-compute-decoder/raw/prores-proxy.mov",
+    "-an",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "experiments/webgpu-compute-decoder/raw/yuv420-h264.mp4"
+  ]
+}

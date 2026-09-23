@@ -1,0 +1,45 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!doctype html><html lang="en"><meta charset="utf-8"><link rel="icon" href="data:,">
+<title>Demuxe GPU compute PoC</title>
+<style>body{margin:0;background:#161616;color:white;font:14px system-ui}canvas{width:640px;height:360px}</style>
+<canvas width="640" height="360"></canvas><pre id="status">Preparing</pre>
+<script type="module">
+let worker, pending=[], messages=[], currentGeneration=0;
+const status=document.querySelector('#status');
+function receive(event){const data=event.data;messages.push(data);
+  const index=pending.findIndex(p=>p.type===data.type);
+  if(index>=0){const [p]=pending.splice(index,1);p.resolve(data);}
+  if(data.type==='error')status.textContent=data.error;
+}
+function wait(type,timeout=30000){return new Promise((resolve,reject)=>{
+  const p={type,resolve};pending.push(p);setTimeout(()=>{const i=pending.indexOf(p);
+    if(i>=0){pending.splice(i,1);reject(Error(`Timed out waiting for ${type}`));}},timeout);
+});}
+window.start=async(mode,coefficientBytes)=>{
+  if(worker)throw Error('Worker already running');
+  const memory=new WebAssembly.Memory({initial:15,maximum:15,shared:true});
+  new Uint8Array(memory.buffer).set(new Uint8Array(coefficientBytes));
+  worker=new Worker('./worker.js',{type:'module'});
+  worker.onmessage=receive; worker.onerror=e=>{status.textContent=String(e.message);};
+  const canvas=document.querySelector('canvas').transferControlToOffscreen();
+  const ready=wait('ready');worker.postMessage({type:'init',mode,width:640,height:360,
+    memory:memory.buffer,canvas},[canvas]);
+  const result=await ready;status.textContent=JSON.stringify(result.environment);
+  return result;
+};
+window.frame=async(pts,delayMs=0)=>{
+  const queued=wait('queued'); worker.postMessage({type:'frame',generation:currentGeneration,pts});
+  await queued;
+  const presented=wait('presented');worker.postMessage({type:'select',generation:currentGeneration,pts,
+    deadlineEpochMs:performance.timeOrigin+performance.now()+delayMs});
+  return await presented;
+};
+window.queue=async pts=>{const p=wait('queued');worker.postMessage({type:'frame',generation:currentGeneration,pts});return p;};
+window.select=async(pts,delayMs=0)=>{const p=wait('presented');worker.postMessage({type:'select',generation:currentGeneration,pts,
+  deadlineEpochMs:performance.timeOrigin+performance.now()+delayMs});return p;};
+window.scheduleSelection=(pts,delayMs)=>worker.postMessage({type:'select',generation:currentGeneration,pts,
+  deadlineEpochMs:performance.timeOrigin+performance.now()+delayMs});
+window.reset=async()=>{currentGeneration++;const p=wait('reset-done');worker.postMessage({type:'reset',generation:currentGeneration});return p;};
+window.destroy=async()=>{const p=wait('destroyed');worker.postMessage({type:'destroy'});const result=await p;worker.terminate();worker=null;return result;};
+window.getMessages=()=>messages;
+</script></html>
