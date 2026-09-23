@@ -240,9 +240,10 @@ cases. Interrupted runs stay incomplete and cannot pass the evidence verifier.
 
 ## Expanded catalogue correctness
 
-`--expanded` prepares the 56 additional combinations from `planned.json` and
+`--expanded` prepares the 65 planned catalogue combinations from `planned.json` and
 `expand.py`. `--catalogue` runs each against Native video, Demuxe automatic,
-Movi default, and AVPlayer default: 224 recorded outcomes, including blockers.
+Movi default, and AVPlayer default: 260 recorded outcomes, including blockers.
+`--include-software` adds the separately forced Demuxe Software lane.
 The original four-fixture/seven-configuration matrix remains independently runnable.
 
 ```sh

@@ -1,0 +1,5660 @@
+{
+  "id": "demuxe.auto.h264-aac-control",
+  "player": "demuxe",
+  "lane": "auto",
+  "fixture": "h264-aac-control",
+  "requirements": [
+    "moving-video",
+    "marked-audio",
+    "pause-resume",
+    "rate",
+    "seek",
+    "eof",
+    "cleanup"
+  ],
+  "qualificationLimit": "Existing marked H.264/AAC fixture used as a same-snapshot route control for the dual-audio selection case.",
+  "status": "blocked",
+  "startedAt": "2026-09-23T12:45:50.585Z",
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "requestFailures": [],
+  "recordPath": "demuxe.auto.h264-aac-control/result.json",
+  "stage": "near-eof",
+  "initial": {
+    "position": 0.667567,
+    "duration": 36.021,
+    "route": "native-direct",
+    "diagnostics": {
+      "preview": {
+        "requests": 0,
+        "hits": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "sourceId": "1:native",
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "active": false,
+        "pending": false
+      },
+      "buffering": {
+        "requestedProfile": "balanced",
+        "preload": "auto",
+        "backend": "browser",
+        "control": "hint",
+        "notes": [
+          "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+          "Explicit open performs metadata discovery even with preload none."
+        ],
+        "settings": {
+          "elementPreload": "auto"
+        }
+      },
+      "mode": "native",
+      "plan": {
+        "id": "native-direct",
+        "mode": "native",
+        "video": "browser",
+        "audio": "original",
+        "qualification": "existing",
+        "owners": {
+          "video": "browser-media-element",
+          "audio": "browser-media-element",
+          "subtitle": "browser-text-track",
+          "demux": "browser",
+          "presentation": "browser-media-element"
+        },
+        "source": "browser-supported source and selected tracks",
+        "prerequisites": "HTMLMediaElement",
+        "subtitles": "browser text tracks",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": true,
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": true,
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "shaka-mse",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources"
+        },
+        {
+          "id": "shaka-mse-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "opus"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "opus"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": true
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "mpv scalar filter stage does not match the request"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct-mpv",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "timing": {
+              "preparationRequested": 358.79999999701977,
+              "metadata": 358.91499999910593,
+              "ready": 358.91999999433756,
+              "outputRequested": 361.7149999961257,
+              "firstFrame": 392.10999999940395,
+              "outputAccepted": 539.6649999991059
+            },
+            "decoderOutput": true,
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": true,
+            "videoPresented": true,
+            "playbackReady": true,
+            "audioProgress": true,
+            "audioEvidence": "decoded-byte-counter"
+          }
+        },
+        {
+          "planId": "native-remux-mpv",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv scalar filter stage does not match the request",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-direct: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ],
+          "settings": {
+            "elementPreload": "auto"
+          }
+        },
+        "capability": {
+          "metadata": true,
+          "timing": {
+            "preparationRequested": 358.79999999701977,
+            "metadata": 358.91499999910593,
+            "ready": 358.91999999433756,
+            "outputRequested": 361.7149999961257,
+            "firstFrame": 392.10999999940395,
+            "outputAccepted": 539.6649999991059
+          },
+          "decoderOutput": true,
+          "prepared": true,
+          "completedAtEOF": false,
+          "outputVerified": true,
+          "videoPresented": true,
+          "playbackReady": true,
+          "audioProgress": true,
+          "audioEvidence": "decoded-byte-counter"
+        },
+        "path": "native",
+        "plan": "direct",
+        "audioProcessing": {
+          "component": "media-element",
+          "gain": 1
+        },
+        "position": 0.688,
+        "rendered": 25,
+        "dropped": 0,
+        "readyState": 4
+      }
+    },
+    "audioTracks": [
+      {
+        "id": "1:audio:stream:1",
+        "type": "audio",
+        "label": "AAC · Stereo · File default",
+        "language": null,
+        "codec": "aac",
+        "selected": true,
+        "external": false,
+        "title": null,
+        "streamIndex": 1,
+        "default": true,
+        "forced": false,
+        "channels": 2
+      }
+    ],
+    "selectedAudioTrack": {
+      "id": "1:audio:stream:1",
+      "type": "audio",
+      "label": "AAC · Stereo · File default",
+      "language": null,
+      "codec": "aac",
+      "selected": true,
+      "external": false,
+      "title": null,
+      "streamIndex": 1,
+      "default": true,
+      "forced": false,
+      "channels": 2
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+      },
+      {
+        "mode": "native",
+        "outcome": "selected",
+        "reason": "native-direct: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0.10580830495985744,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0.10602450873205468,
+        "hz": 877.47802734375
+      }
+    ],
+    "observedMedia": [
+      {
+        "detachedWhenObserved": false,
+        "connected": true,
+        "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+        "time": 0.688,
+        "paused": false,
+        "muted": false,
+        "volume": 1
+      }
+    ],
+    "errors": [],
+    "events": [],
+    "visible": true,
+    "focused": true,
+    "video": {
+      "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+      "time": 0.688,
+      "ended": false,
+      "paused": false,
+      "total": 25,
+      "dropped": 0
+    }
+  },
+  "selectedAudioTrack": {
+    "id": "1:audio:stream:1",
+    "type": "audio",
+    "label": "AAC · Stereo · File default",
+    "language": null,
+    "codec": "aac",
+    "selected": true,
+    "external": false,
+    "title": null,
+    "streamIndex": 1,
+    "default": true,
+    "forced": false,
+    "channels": 2
+  },
+  "initialImage": {
+    "rgb": [
+      248,
+      36,
+      0
+    ],
+    "expected": "red",
+    "markerCorrect": true,
+    "magentaPixels": 0
+  },
+  "moving": true,
+  "initialPlaybackPassed": true,
+  "rateAdvance": 0.8497299999999999,
+  "seeks": [
+    {
+      "target": 6,
+      "state": {
+        "position": 6,
+        "duration": 36.021,
+        "route": "native-direct",
+        "diagnostics": {
+          "preview": {
+            "requests": 0,
+            "hits": 0,
+            "failures": 0,
+            "cancelled": 0,
+            "sourceId": "1:native",
+            "cacheBytes": 0,
+            "cacheEntries": 0,
+            "active": false,
+            "pending": false
+          },
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "browser",
+            "control": "hint",
+            "notes": [
+              "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+              "Explicit open performs metadata discovery even with preload none."
+            ],
+            "settings": {
+              "elementPreload": "auto"
+            }
+          },
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-media-element",
+              "audio": "browser-media-element",
+              "subtitle": "browser-text-track",
+              "demux": "browser",
+              "presentation": "browser-media-element"
+            },
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "shaka-mse",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources"
+            },
+            {
+              "id": "shaka-mse-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "timing": {
+                  "preparationRequested": 3636.5,
+                  "metadata": 358.91499999910593,
+                  "ready": 358.91999999433756,
+                  "outputRequested": 2447.14999999851,
+                  "firstFrame": 392.10999999940395,
+                  "outputAccepted": 2475.064999997616
+                },
+                "decoderOutput": true,
+                "prepared": true,
+                "completedAtEOF": false,
+                "outputVerified": true,
+                "videoPresented": true,
+                "playbackReady": true,
+                "audioProgress": true,
+                "audioEvidence": "decoded-byte-counter"
+              }
+            },
+            {
+              "planId": "native-remux-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-direct: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "buffering": {
+              "requestedProfile": "balanced",
+              "preload": "auto",
+              "backend": "browser",
+              "control": "hint",
+              "notes": [
+                "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+                "Explicit open performs metadata discovery even with preload none."
+              ],
+              "settings": {
+                "elementPreload": "auto"
+              }
+            },
+            "capability": {
+              "metadata": true,
+              "timing": {
+                "preparationRequested": 3636.5,
+                "metadata": 358.91499999910593,
+                "ready": 358.91999999433756,
+                "outputRequested": 2447.14999999851,
+                "firstFrame": 392.10999999940395,
+                "outputAccepted": 2475.064999997616
+              },
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter"
+            },
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "position": 6.190323,
+            "rendered": 130,
+            "dropped": 4,
+            "readyState": 4
+          }
+        },
+        "audioTracks": [
+          {
+            "id": "1:audio:stream:1",
+            "type": "audio",
+            "label": "AAC · Stereo · File default",
+            "language": null,
+            "codec": "aac",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 1,
+            "default": true,
+            "forced": false,
+            "channels": 2
+          }
+        ],
+        "selectedAudioTrack": {
+          "id": "1:audio:stream:1",
+          "type": "audio",
+          "label": "AAC · Stereo · File default",
+          "language": null,
+          "codec": "aac",
+          "selected": true,
+          "external": false,
+          "title": null,
+          "streamIndex": 1,
+          "default": true,
+          "forced": false,
+          "channels": 2
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-direct: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10612728625572793,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10603274771937611,
+            "hz": 877.47802734375
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+            "time": 6.190323,
+            "paused": false,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 6
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+          "time": 6.190323,
+          "ended": false,
+          "paused": false,
+          "total": 130,
+          "dropped": 4
+        }
+      },
+      "image": {
+        "rgb": [
+          26,
+          35,
+          255
+        ],
+        "expected": "blue",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    },
+    {
+      "target": 1,
+      "state": {
+        "position": 1,
+        "duration": 36.021,
+        "route": "native-direct",
+        "diagnostics": {
+          "preview": {
+            "requests": 0,
+            "hits": 0,
+            "failures": 0,
+            "cancelled": 0,
+            "sourceId": "1:native",
+            "cacheBytes": 0,
+            "cacheEntries": 0,
+            "active": false,
+            "pending": false
+          },
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "browser",
+            "control": "hint",
+            "notes": [
+              "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+              "Explicit open performs metadata discovery even with preload none."
+            ],
+            "settings": {
+              "elementPreload": "auto"
+            }
+          },
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-media-element",
+              "audio": "browser-media-element",
+              "subtitle": "browser-text-track",
+              "demux": "browser",
+              "presentation": "browser-media-element"
+            },
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "shaka-mse",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources"
+            },
+            {
+              "id": "shaka-mse-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "timing": {
+                  "preparationRequested": 3930.9899999946356,
+                  "metadata": 358.91499999910593,
+                  "ready": 358.91999999433756,
+                  "outputRequested": 2447.14999999851,
+                  "firstFrame": 392.10999999940395,
+                  "outputAccepted": 2475.064999997616
+                },
+                "decoderOutput": true,
+                "prepared": true,
+                "completedAtEOF": false,
+                "outputVerified": true,
+                "videoPresented": true,
+                "playbackReady": true,
+                "audioProgress": true,
+                "audioEvidence": "decoded-byte-counter"
+              }
+            },
+            {
+              "planId": "native-remux-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-direct: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "buffering": {
+              "requestedProfile": "balanced",
+              "preload": "auto",
+              "backend": "browser",
+              "control": "hint",
+              "notes": [
+                "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+                "Explicit open performs metadata discovery even with preload none."
+              ],
+              "settings": {
+                "elementPreload": "auto"
+              }
+            },
+            "capability": {
+              "metadata": true,
+              "timing": {
+                "preparationRequested": 3930.9899999946356,
+                "metadata": 358.91499999910593,
+                "ready": 358.91999999433756,
+                "outputRequested": 2447.14999999851,
+                "firstFrame": 392.10999999940395,
+                "outputAccepted": 2475.064999997616
+              },
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter"
+            },
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "position": 1.186485,
+            "rendered": 173,
+            "dropped": 6,
+            "readyState": 4
+          }
+        },
+        "audioTracks": [
+          {
+            "id": "1:audio:stream:1",
+            "type": "audio",
+            "label": "AAC · Stereo · File default",
+            "language": null,
+            "codec": "aac",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 1,
+            "default": true,
+            "forced": false,
+            "channels": 2
+          }
+        ],
+        "selectedAudioTrack": {
+          "id": "1:audio:stream:1",
+          "type": "audio",
+          "label": "AAC · Stereo · File default",
+          "language": null,
+          "codec": "aac",
+          "selected": true,
+          "external": false,
+          "title": null,
+          "streamIndex": 1,
+          "default": true,
+          "forced": false,
+          "channels": 2
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-direct: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10569737000423077,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10596195253708159,
+            "hz": 877.47802734375
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+            "time": 1.186485,
+            "paused": false,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 6
+          },
+          {
+            "type": "waiting",
+            "time": 1
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+          "time": 1.186485,
+          "ended": false,
+          "paused": false,
+          "total": 173,
+          "dropped": 6
+        }
+      },
+      "image": {
+        "rgb": [
+          248,
+          36,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    },
+    {
+      "target": 10,
+      "state": {
+        "position": 10,
+        "duration": 36.021,
+        "route": "native-direct",
+        "diagnostics": {
+          "preview": {
+            "requests": 0,
+            "hits": 0,
+            "failures": 0,
+            "cancelled": 0,
+            "sourceId": "1:native",
+            "cacheBytes": 0,
+            "cacheEntries": 0,
+            "active": false,
+            "pending": false
+          },
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "browser",
+            "control": "hint",
+            "notes": [
+              "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+              "Explicit open performs metadata discovery even with preload none."
+            ],
+            "settings": {
+              "elementPreload": "auto"
+            }
+          },
+          "mode": "native",
+          "plan": {
+            "id": "native-direct",
+            "mode": "native",
+            "video": "browser",
+            "audio": "original",
+            "qualification": "existing",
+            "owners": {
+              "video": "browser-media-element",
+              "audio": "browser-media-element",
+              "subtitle": "browser-text-track",
+              "demux": "browser",
+              "presentation": "browser-media-element"
+            },
+            "source": "browser-supported source and selected tracks",
+            "prerequisites": "HTMLMediaElement",
+            "subtitles": "browser text tracks",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+            "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "shaka-mse",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources"
+            },
+            {
+              "id": "shaka-mse-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                    "result": "probably"
+                  },
+                  {
+                    "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": "probably"
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "mp4a.40.2"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "flac"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "supported",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "h264",
+                    "codecString": "avc1.64000d"
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "aac",
+                    "codecString": "opus"
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true
+                  },
+                  {
+                    "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                    "result": true
+                  }
+                ],
+                "unqueriedAudio": false
+              }
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": true
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "mpv scalar filter stage does not match the request"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": true
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "timing": {
+                  "preparationRequested": 4212.42499999702,
+                  "metadata": 358.91499999910593,
+                  "ready": 358.91999999433756,
+                  "outputRequested": 2447.14999999851,
+                  "firstFrame": 392.10999999940395,
+                  "outputAccepted": 2475.064999997616
+                },
+                "decoderOutput": true,
+                "prepared": true,
+                "completedAtEOF": false,
+                "outputVerified": true,
+                "videoPresented": true,
+                "playbackReady": true,
+                "audioProgress": true,
+                "audioEvidence": "decoded-byte-counter"
+              }
+            },
+            {
+              "planId": "native-remux-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires qualified embedded file subtitles",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv scalar filter stage does not match the request",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": true,
+            "attempts": [
+              {
+                "mode": "native",
+                "outcome": "skipped",
+                "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+              },
+              {
+                "mode": "native",
+                "outcome": "selected",
+                "reason": "native-direct: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "backend": {
+            "buffering": {
+              "requestedProfile": "balanced",
+              "preload": "auto",
+              "backend": "browser",
+              "control": "hint",
+              "notes": [
+                "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+                "Explicit open performs metadata discovery even with preload none."
+              ],
+              "settings": {
+                "elementPreload": "auto"
+              }
+            },
+            "capability": {
+              "metadata": true,
+              "timing": {
+                "preparationRequested": 4212.42499999702,
+                "metadata": 358.91499999910593,
+                "ready": 358.91999999433756,
+                "outputRequested": 2447.14999999851,
+                "firstFrame": 392.10999999940395,
+                "outputAccepted": 2475.064999997616
+              },
+              "decoderOutput": true,
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidence": "decoded-byte-counter"
+            },
+            "path": "native",
+            "plan": "direct",
+            "audioProcessing": {
+              "component": "media-element",
+              "gain": 1
+            },
+            "position": 10.189997,
+            "rendered": 217,
+            "dropped": 7,
+            "readyState": 4
+          }
+        },
+        "audioTracks": [
+          {
+            "id": "1:audio:stream:1",
+            "type": "audio",
+            "label": "AAC · Stereo · File default",
+            "language": null,
+            "codec": "aac",
+            "selected": true,
+            "external": false,
+            "title": null,
+            "streamIndex": 1,
+            "default": true,
+            "forced": false,
+            "channels": 2
+          }
+        ],
+        "selectedAudioTrack": {
+          "id": "1:audio:stream:1",
+          "type": "audio",
+          "label": "AAC · Stereo · File default",
+          "language": null,
+          "codec": "aac",
+          "selected": true,
+          "external": false,
+          "title": null,
+          "streamIndex": 1,
+          "default": true,
+          "forced": false,
+          "channels": 2
+        },
+        "selectionTrace": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-direct: Playback requirements and actual startup accepted"
+          }
+        ],
+        "nativeVerificationFailures": [],
+        "mediaTracks": [],
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.10609499850238281,
+            "hz": 441.4306640625
+          },
+          {
+            "channel": 1,
+            "rms": 0.10602360192955226,
+            "hz": 877.47802734375
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+            "time": 10.189997,
+            "paused": false,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 6
+          },
+          {
+            "type": "waiting",
+            "time": 1
+          },
+          {
+            "type": "waiting",
+            "time": 10
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": {
+          "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+          "time": 10.189997,
+          "ended": false,
+          "paused": false,
+          "total": 217,
+          "dropped": 7
+        }
+      },
+      "image": {
+        "rgb": [
+          27,
+          126,
+          0
+        ],
+        "expected": "green",
+        "markerCorrect": true,
+        "magentaPixels": 0
+      }
+    }
+  ],
+  "eof": {
+    "position": 36.021,
+    "duration": 36.021,
+    "route": "native-direct",
+    "diagnostics": {
+      "preview": {
+        "requests": 0,
+        "hits": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "sourceId": "1:native",
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "active": false,
+        "pending": false
+      },
+      "buffering": {
+        "requestedProfile": "balanced",
+        "preload": "auto",
+        "backend": "browser",
+        "control": "hint",
+        "notes": [
+          "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+          "Explicit open performs metadata discovery even with preload none."
+        ],
+        "settings": {
+          "elementPreload": "auto"
+        }
+      },
+      "mode": "native",
+      "plan": {
+        "id": "native-direct",
+        "mode": "native",
+        "video": "browser",
+        "audio": "original",
+        "qualification": "existing",
+        "owners": {
+          "video": "browser-media-element",
+          "audio": "browser-media-element",
+          "subtitle": "browser-text-track",
+          "demux": "browser",
+          "presentation": "browser-media-element"
+        },
+        "source": "browser-supported source and selected tracks",
+        "prerequisites": "HTMLMediaElement",
+        "subtitles": "browser text tracks",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "planAdmission": [
+        {
+          "id": "native-direct-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": true,
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": true,
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "shaka-mse",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources"
+        },
+        {
+          "id": "shaka-mse-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                "result": "probably"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": "probably"
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "mp4a.40.2"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,mp4a.40.2\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "flac"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,flac\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "opus"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "h264",
+                "codecString": "avc1.64000d"
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "aac",
+                "codecString": "opus"
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"avc1.64000d,opus\"",
+                "result": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": true
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "mpv scalar filter stage does not match the request"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": true
+        }
+      ],
+      "runtimeCapabilities": [
+        {
+          "planId": "native-direct-mpv",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "verified",
+          "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+          "previouslyVerified": false,
+          "evidence": {
+            "metadata": true,
+            "timing": {
+              "preparationRequested": 4503.964999996126,
+              "metadata": 358.91499999910593,
+              "ready": 358.91999999433756,
+              "outputRequested": 2447.14999999851,
+              "firstFrame": 392.10999999940395,
+              "outputAccepted": 2475.064999997616
+            },
+            "decoderOutput": true,
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": true,
+            "videoPresented": true,
+            "playbackReady": true,
+            "audioProgress": true,
+            "audioEvidence": "decoded-byte-counter"
+          }
+        },
+        {
+          "planId": "native-remux-mpv",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv subtitle service requires qualified embedded file subtitles",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "shaka-mse-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-direct-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-remux-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Subtitle component does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-flac-ass-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "native-opus-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "mpv scalar filter stage does not match the request",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "hybrid-audio-filter-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software-gain",
+          "sourceIdentity": "source-1",
+          "eligible": false,
+          "state": "untested",
+          "reason": "Gain stage does not match the requested presentation",
+          "previouslyVerified": false
+        },
+        {
+          "planId": "software",
+          "sourceIdentity": "source-1",
+          "eligible": true,
+          "state": "untested",
+          "previouslyVerified": false
+        }
+      ],
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "selected",
+            "reason": "native-direct: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "switching": false,
+      "videoFilters": "",
+      "audioFilters": "",
+      "audioGain": 1,
+      "toneMapping": "off",
+      "resourceLimits": {
+        "maxDecodePixels": 8294400,
+        "maxAllocationBytes": 134217728
+      },
+      "backend": {
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ],
+          "settings": {
+            "elementPreload": "auto"
+          }
+        },
+        "capability": {
+          "metadata": true,
+          "timing": {
+            "preparationRequested": 4503.964999996126,
+            "metadata": 358.91499999910593,
+            "ready": 358.91999999433756,
+            "outputRequested": 2447.14999999851,
+            "firstFrame": 392.10999999940395,
+            "outputAccepted": 2475.064999997616
+          },
+          "decoderOutput": true,
+          "prepared": true,
+          "completedAtEOF": false,
+          "outputVerified": true,
+          "videoPresented": true,
+          "playbackReady": true,
+          "audioProgress": true,
+          "audioEvidence": "decoded-byte-counter"
+        },
+        "path": "native",
+        "plan": "direct",
+        "audioProcessing": {
+          "component": "media-element",
+          "gain": 1
+        },
+        "position": 36.021,
+        "rendered": 250,
+        "dropped": 9,
+        "readyState": 4
+      }
+    },
+    "audioTracks": [
+      {
+        "id": "1:audio:stream:1",
+        "type": "audio",
+        "label": "AAC · Stereo · File default",
+        "language": null,
+        "codec": "aac",
+        "selected": true,
+        "external": false,
+        "title": null,
+        "streamIndex": 1,
+        "default": true,
+        "forced": false,
+        "channels": 2
+      }
+    ],
+    "selectedAudioTrack": {
+      "id": "1:audio:stream:1",
+      "type": "audio",
+      "label": "AAC · Stereo · File default",
+      "language": null,
+      "codec": "aac",
+      "selected": true,
+      "external": false,
+      "title": null,
+      "streamIndex": 1,
+      "default": true,
+      "forced": false,
+      "channels": 2
+    },
+    "selectionTrace": [
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+      },
+      {
+        "mode": "native",
+        "outcome": "selected",
+        "reason": "native-direct: Playback requirements and actual startup accepted"
+      }
+    ],
+    "nativeVerificationFailures": [],
+    "mediaTracks": [],
+    "audio": [
+      {
+        "channel": 0,
+        "rms": 0,
+        "hz": 441.4306640625
+      },
+      {
+        "channel": 1,
+        "rms": 0,
+        "hz": 877.47802734375
+      }
+    ],
+    "observedMedia": [
+      {
+        "detachedWhenObserved": false,
+        "connected": true,
+        "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+        "time": 36.021,
+        "paused": true,
+        "muted": false,
+        "volume": 1
+      }
+    ],
+    "errors": [],
+    "events": [
+      {
+        "type": "waiting",
+        "time": 6
+      },
+      {
+        "type": "waiting",
+        "time": 1
+      },
+      {
+        "type": "waiting",
+        "time": 10
+      },
+      {
+        "type": "waiting",
+        "time": 35.371
+      },
+      {
+        "type": "ended",
+        "time": 36.021
+      }
+    ],
+    "visible": true,
+    "focused": true,
+    "video": {
+      "source": "http://127.0.0.1:53746/fixtures/aac.mkv",
+      "time": 36.021,
+      "ended": true,
+      "paused": true,
+      "total": 250,
+      "dropped": 9
+    }
+  },
+  "screenPassed": true,
+  "reason": "Existing marked H.264/AAC fixture used as a same-snapshot route control for the dual-audio selection case.",
+  "cleanup": {
+    "remainingSurfaces": 0,
+    "contexts": [
+      "closed"
+    ]
+  },
+  "workersAfter": 0,
+  "browserCleanup": {
+    "trackedProcessIDs": [
+      99412,
+      99423,
+      99421,
+      99420,
+      99416,
+      99417,
+      99418,
+      99425
+    ],
+    "remainingProcessIDs": [],
+    "playwrightCloseAcknowledged": true
+  },
+  "finishedAt": "2026-09-23T12:45:57.941Z"
+}

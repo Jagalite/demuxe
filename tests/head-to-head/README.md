@@ -8,10 +8,10 @@ selection, acceptance checks, results, performance gates and limitations.
 - `assets.lock.json`: exact competitor/runtime dependency identities.
 - `setup.py`: isolated current-Demuxe snapshot and synthetic fixture generator.
 - `matrix.json`: the original 28 explicitly declared combinations.
-- `planned.json`, `expand.py`, `bitmap.py`: the 56 additional catalogue combinations and original synthetic fixture generators.
+- `planned.json`, `expand.py`, `bitmap.py`: the 65 catalogue combinations and original synthetic fixture generators.
 - `subtitle-ocr.swift`: rendered text verification through macOS Vision.
 - `render-catalogue.py`: refresh README/detailed tables from verified complete outcomes and explicit supplements.
-- `adapters.mjs`: public player APIs and correctness-only audio observation.
+- `adapters.mjs`: public player APIs, marked audio checks, selected-track identity and switching for correctness.
 - `run.mjs`: serial runner, fresh outputs, per-case outcomes and gated performance.
 - `explain-hybrid.py`: verify retained runs and generate per-row Native rejection/component explanations.
 - `probe-hybrid-mse.mjs`: record separate video/audio/combined MSE hints without claiming playback qualification.

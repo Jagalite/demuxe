@@ -105,6 +105,12 @@ subsystem or requirement determines a route. The
 [head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
 combinations and their exact evidence.
 
+The forced-software column shows one-core CPU medians for 45 cases with three
+accepted measurement rounds. Other rows show a bounded pass or a failed check. See
+the linked reports for correctness limits and exact outcomes. Detailed routes,
+historical outcomes and tested alternatives remain in the [complete-file
+catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
+
 The **Demuxe (auto)** column records automatic plan selection. The separately
 recorded **Demuxe (forced software)** lane pins each media case to
 `mode: 'software'`. Its [60-case correctness run](results/head-to-head/demuxe-software-matrix-20260922-02/REPORT.md)
@@ -116,19 +122,9 @@ separate [H.264/AAC bitmap-subtitle screen](results/head-to-head/demuxe-software
 passed VobSub through its seeks; PGS displayed initially but lost its subtitle
 after seeking.
 
-The [forced software CPU report](results/head-to-head/demuxe-software-performance-20260922-02/CPU-REPORT.md)
-contains 45 accepted three-round medians. The live HLS correctness screen passed
-bounded window progression, while two of its three 20-second CPU windows stopped
-advancing and were excluded. Software CPU values come from a separate campaign,
-so they are descriptive and do not enter the matched-lane bold minimums below.
+The [forced software CPU report](results/head-to-head/demuxe-software-performance-20260922-02/CPU-REPORT.md) contains 45 accepted three-round medians. The live HLS correctness screen passed bounded window progression, while two of its three 20-second CPU windows stopped advancing and were excluded. Software CPU values come from a separate campaign, so they are descriptive and do not enter the matched-lane bold minimums below.
 
 The [exploratory pass-cell CPU report](results/head-to-head/passing-cell-cpu-exploratory-20260923-01/measurement/CPU-REPORT.md) adds readings to 100 of the 111 green pass cells that previously lacked CPU values, including all 47 Pass* cells. Three CPU-only rounds were attempted per cell without applying content-fidelity checks. Ninety-three cells have at least one accepted steady-window median (90 have three accepted rounds); seven more have only stalled-window readings, and 11 could not be measured because their source fixture was unavailable. † marks the median of 1–3 full, focused CPU windows advancing at approximately 1×; ‡ marks full stable CPU windows that stalled and must not be read as steady-playback cost. Historical playback labels remain unchanged.
-
-The forced-software column shows one-core CPU medians for 45 cases with three
-accepted measurement rounds. Other rows show a bounded pass or a failed check. See
-the linked reports for correctness limits and exact outcomes. Detailed routes,
-historical outcomes and tested alternatives remain in the [complete-file
-catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
 
 **These are bounded playback tests, not a format-support scorecard.** Movi
 0.4.0 and AVPlayer 1.3.1 are pinned versions. Their correctness cells below use
@@ -181,17 +177,31 @@ The fresh bounded comparison measured Shaka HLS fMP4 at 28.6% of one core versus
 median CPU than Hybrid on the matched synthetic fixture. These controlled-route
 measurements do not replace the default-route correctness labels below.
 
+[The routing-isolation supplement](results/head-to-head/routing-isolations-20260923-01/REPORT.md)
+adds nine deterministic synthetic rows for MPEG-2 video-only, stereo audio
+controls, selective audio/subtitles, dual-track switching, H.264 High 10,
+interlaced MPEG-2 and HEVC Main 10 4:2:2. Its fresh matched CPU campaign used
+three accepted 20-second windows per numeric cell, including the existing
+MPEG-2 + AC-3 and AC-3/E-AC-3/DTS 5.1 controls. These values have no † marker.
+Movi passed the HEVC 4:2:2 correctness screen, but all three CPU windows stalled,
+so that cell has no steady-playback CPU value. The linked report retains ranges,
+actual routes and failed-window records.
+
 | Media format | Native video | Demuxe (auto) | Demuxe (forced software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
 | --- | --- | --- | --- | --- | --- |
 | H.264 + AAC / MP4 | 🟠 21.9% CPU | **🟢 20.2% CPU** | 52.4% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 38.0% CPU |
 | H.264 + AAC / MKV | **🟢 (Pass)** · 35.6% CPU† | **🟢 22.1% CPU** | 52.0% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.3% CPU |
+| Dual-audio H.264 + AAC + AC-3 stereo / MKV | **🟢 (Pass) · 41.7% CPU** · default AAC | 🟢 Pass · 46.2% CPU · Native Direct on AAC; Hybrid on AC-3 switch | 🟢 (Pass) · 65.7% CPU | 🟠 Plays; EOF check failed | 🟢 (Pass) · 59.3% CPU |
 | H.264 + PCM24 / MKV | **🟢 21.2% CPU** | 🟠 21.7% CPU | 68.0% CPU | **🟢 (Pass)** · 40.3% CPU† | 🔴 startup/audio check failed |
 | H.264 + PCM24 / MKV + ASS | **🟢 45.6% CPU** | 🟠 46.6% CPU | 62.1% CPU | 🟣 Native-first + host ASS pass; default subtitle check failed | 🔴 startup/audio check failed |
 | H.264 + AAC 5.1 / MP4 | **🟢 (Pass)\*** · 50.5% CPU† | **🟢 (Pass)\*** · 49.5% CPU† | 🟢 (Pass)* · 65.6% CPU† | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** · 61.7% CPU† |
 | H.264 + MP3 stereo / MP4 | **🟢 22.0% CPU** | 🟠 22.2% CPU | 67.1% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
-| H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** · 61.2% CPU† | 🟢 (Pass)* · 68.9% CPU† | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** · 52.1% CPU† |
-| H.264 + E-AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** · 66.3% CPU† | 🟢 (Pass)* · 69.4% CPU† | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** · 65.8% CPU† |
-| H.264 + DTS core 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** · 36.9% CPU† | 🟢 (Pass)* · 72.4% CPU† | 🟠 Plays; rate check failed | **🟢 (Pass)\*** · 69.0% CPU† |
+| H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\* · 58.0% CPU** | 🟢 (Pass)* · 68.8% CPU | 🟠 Plays; EOF check failed | 🟢 (Pass)* · 61.8% CPU |
+| H.264 + E-AC-3 5.1 / MKV | 🔴 (Fail) | 🟢 (Pass)* · 49.1% CPU | 🟢 (Pass)* · 49.6% CPU | 🟠 Plays; EOF check failed | **🟢 (Pass)\* · 38.5% CPU** |
+| H.264 + DTS core 5.1 / MKV | 🔴 (Fail) | 🟢 (Pass)* · 62.3% CPU | 🟢 (Pass)* · 65.8% CPU | 🟠 Plays; rate check failed | **🟢 (Pass)\* · 60.5% CPU** |
+| H.264 + AC-3 stereo / MKV | 🔴 (Fail) | 🟢 (Pass) · 58.7% CPU | **🟢 (Pass) · 52.5% CPU** | 🟠 Plays; seek audio check failed | 🟢 (Pass) · 57.8% CPU |
+| H.264 + E-AC-3 stereo / MKV | 🔴 (Fail) | **🟢 (Pass) · 54.6% CPU** | 🟢 (Pass) · 61.8% CPU | 🟠 Plays; seek audio check failed | 🟢 (Pass) · 56.8% CPU |
+| H.264 + DTS core stereo / MKV | 🔴 (Fail) | **🟢 (Pass) · 55.3% CPU** | 🟢 (Pass) · 64.0% CPU | 🟠 Plays; playback-rate check failed | 🟢 (Pass) · 60.5% CPU |
 | H.264 + FLAC stereo / MKV | **🟢 23.0% CPU** | 🟠 23.6% CPU | 48.9% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 35.7% CPU |
 | H.264 + FLAC 5.1 / MKV | **🟢 (Pass)\*** · 45.0% CPU† | **🟢 (Pass)\*** · 52.1% CPU† | 🟢 (Pass)* · 66.1% CPU† | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** · 48.6% CPU† |
 | H.264 + Opus stereo / MKV | 🟠 24.9% CPU | **🟢 24.5% CPU** | 48.0% CPU | **🟢 (Pass)** · 45.1% CPU† | 🟠 39.8% CPU |
@@ -200,6 +210,7 @@ measurements do not replace the default-route correctness labels below.
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟠 23.6% CPU | **🟢 23.3% CPU** | 49.0% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 36.4% CPU |
 | HEVC Main 8-bit + AAC / MP4 (hev1) | **🟢 (Pass)** · 36.9% CPU† | **🟢 22.5% CPU** | 50.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 35.0% CPU |
 | HEVC Main 10-bit SDR + AAC / MP4 | **🟢 (Pass)** · 46.2% CPU† | **🟢 26.4% CPU** | 48.3% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 38.7% CPU |
+| HEVC Main 10 4:2:2 + AAC / MKV | **🟢 (Pass)\* · 49.9% CPU** | 🟢 (Pass)* · 52.5% CPU · Native Direct | 🟢 (Pass)* · 71.1% CPU | 🟢 (Pass)* · CPU unavailable (three stalled windows) | 🟢 (Pass)* · 67.2% CPU |
 | HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | **🟢 32.2% CPU** | 47.8% CPU | 🟠 Plays; EOF check failed | 🟠 38.8% CPU |
 | HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | **🟢 32.9% CPU** | 47.5% CPU | 🟠 Plays; EOF check failed | 🟠 39.1% CPU |
 | HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | **🟢 33.6% CPU** | 54.2% CPU | 🟠 Plays; rate check failed | 🟠 42.6% CPU |
@@ -210,16 +221,20 @@ measurements do not replace the default-route correctness labels below.
 | VP9 10-bit SDR + Opus / WebM | 🟠 25.4% CPU | **🟢 25.3% CPU** | 51.5% CPU | 🟣 Native-first pass; default EOF check failed | 🔴 open failed |
 | VP8 + Vorbis / WebM | **🟢 21.9% CPU** | 🟠 21.9% CPU | 48.7% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 34.7% CPU |
 | H.264 + AAC / MPEG-TS | 🔴 (Fail) | **🟢 25.5% CPU** | 45.0% CPU | 🟠 Plays; rate check failed | 🟠 38.8% CPU |
-| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | **🟢 (Pass)** · 55.5% CPU† | 48.0% CPU | **🟢 35.0% CPU** | 🟠 37.7% CPU |
+| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 65.2% CPU | 🟢 (Pass) · 62.7% CPU | 🟢 (Pass) · 58.4% CPU | **🟢 (Pass) · 57.8% CPU** |
+| Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🔴 (Fail) | 🟢 (Pass)* · 72.6% CPU · Software; no filter, visible combing | 🟢 (Pass)* · 71.9% CPU | 🟠 Plays; seek audio check failed | **🟢 (Pass)\* · 65.2% CPU** |
 | MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | **🟢 (Pass)** · 51.2% CPU† | 48.2% CPU | 🟠 Plays; seek check failed | 🟠 Plays; seek check failed |
 | MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | **🟢 (Pass)** · 61.0% CPU† | 35.3% CPU | 🔴 startup/audio check failed | 🟠 Plays; seek check failed |
 | ProRes + PCM / MOV | 🔴 (Fail) | **🟢 (Pass)** · 41.6% CPU† | 48.4% CPU | 🔴 startup/audio check failed | 🔴 open failed |
 | H.264 + AAC / fragmented MP4 (single file) | 🟠 24.0% CPU | **🟢 23.6% CPU** | 54.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 Full File input plays; EOF check failed (default open failed) |
 | H.264 video-only / MP4 | **🟢 20.8% CPU** | 🟠 22.6% CPU | 50.1% CPU | 🟠 37.4% CPU | 🟠 32.1% CPU |
+| H.264 High 10 + AAC / MKV | **🟢 (Pass)\* · 49.3% CPU** | 🟢 (Pass)* · 51.0% CPU · Native Direct | 🟢 (Pass)* · 71.4% CPU | 🟠 Plays; EOF check failed | 🟢 (Pass)* · 65.8% CPU |
+| MPEG-2 video-only / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 52.8% CPU | 🟢 (Pass) · 51.8% CPU | 🟢 (Pass) · 43.2% CPU | **🟢 (Pass) · 32.9% CPU** |
 | H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | **🟢 40.2% CPU (Native Direct + mpv subtitles)** | 59.1% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AAC + external WebVTT / MP4 | 🟠 23.4% CPU | **🟢 23.3% CPU** | 59.1% CPU | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
 | H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 Pass (Native Direct + mpv subtitles)** · 53.3% CPU† | 64.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 51.6% CPU (Native Direct + mpv subtitles)** | 54.6% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AC-3 stereo + ASS / MKV | 🔴 (Fail) | **🟢 (Pass) · 61.7% CPU** · Hybrid with WebCodecs video | 🟢 (Pass) · 62.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)** · 69.8% CPU† | 49.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | **🟢 (Pass)** · 65.0% CPU† | 57.0% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | H.264 + AAC + PGS / MKV (subtitle isolation) | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** · 58.6% CPU† | 🔴 (Fail) | Not tested | Not tested |

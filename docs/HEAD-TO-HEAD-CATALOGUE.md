@@ -2,6 +2,15 @@
 
 # Expanded player comparison results
 
+Latest routing-isolation supplement: [nine synthetic cases for MPEG-2 video
+cost, stereo codec controls, selective ASS, dual-audio switching, H.264 High 10,
+interlaced MPEG-2 and HEVC 4:2:2](../results/head-to-head/routing-isolations-20260923-01/REPORT.md).
+All nine rows pass in Demuxe auto, with the routes and player failure stages
+recorded there. Its [fresh matched CPU report](../results/head-to-head/routing-isolations-20260923-01/CPU-REPORT.md)
+has three accepted windows for 44 of 45 correctness-qualified cells. Movi's
+HEVC 4:2:2 correctness cell passed, but all three CPU windows stalled and have
+no steady-playback CPU median.
+
 Latest embedded-subtitle supplement: [current-tree Native A/V + mpv subtitle
 service qualification and new matched CPU run](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
 It supersedes only the Demuxe SRT, mov_text and ASS route cells below; the
