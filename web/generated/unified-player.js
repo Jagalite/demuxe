@@ -1394,8 +1394,11 @@ export class Player extends EventTarget {
                     const streaming = this.failedStreamingPlan(session);
                     const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
                     const plan = this.diagnostics.plan;
-                    if (plan)
+                    if (plan) {
                         this.runtimeCapabilities.update(plan.id, 'failed', this.evidence(session), String(error), 'compatibility');
+                        if (!evidenceInterrupted(error))
+                            this.tierAttempts.failure(this.source, this.tierConfiguration(this.settings), plan.id, String(error));
+                    }
                     try {
                         if (tryRemux)
                             this.nativeRemux = 'always';

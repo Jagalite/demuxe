@@ -951,7 +951,10 @@ export class Player extends EventTarget {
         if(this.automatic&&compatibilityFailure(error)&&this.source){
           const streaming=this.failedStreamingPlan(session);
           const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&(session.backend.diagnostics as {plan?:string})?.plan==='direct'&&policy!=='never';
-          const plan=this.diagnostics.plan;if(plan)this.runtimeCapabilities.update(plan.id,'failed',this.evidence(session),String(error),'compatibility');
+          const plan=this.diagnostics.plan;if(plan){
+            this.runtimeCapabilities.update(plan.id,'failed',this.evidence(session),String(error),'compatibility');
+            if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(error));
+          }
           try{if(tryRemux)this.nativeRemux='always';await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux?0:PLAYBACK_MODES.indexOf(this.mode)+1);}finally{this.nativeRemux=policy;}
         }
         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.settings.pause=true;await session.backend.pause().catch(()=>{});throw error;}
