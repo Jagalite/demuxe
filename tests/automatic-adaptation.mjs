@@ -28,12 +28,12 @@ try{
    await page.locator('#file').setInputFiles(name.startsWith('copy-mkv')?out+'/copy-supported.mkv':'build/optimization-fixtures/'+fixture);
    await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
    if(name==='ass-gain')await page.evaluate(async()=>{const bytes=await(await fetch('/fixtures/qualification.ass')).arrayBuffer();await player.addSubtitle(new File([bytes],'qualified.ass'));});
-   const native=!(family==='firefox'&&name.startsWith('copy-mkv'))&&['lossless','lossless-stereo','ass-gain','copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation'].includes(name);
+   const native=['lossless','lossless-stereo','ass-gain','copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation'].includes(name);
    assert.equal(await page.evaluate(()=>player.mode),native?'native':'hybrid');
    item.open=await page.evaluate(()=>player.diagnostics);
    if(name.startsWith('copy-')){
     if(name==='copy-first')assert.equal(item.open.plan.id,'native-direct');
-    else if(family==='firefox')assert.equal(item.open.plan.id,'hybrid'); // Existing generic AVC inspector gate.
+    else if(family==='firefox')assert.equal(item.open.plan.id,'native-direct'); // Qualified AVC copy probe now supplies the browser configuration.
     else assert.ok(['native-direct','native-remux'].includes(item.open.plan.id));
     assert.deepEqual(preparationRequests,[],'Copy-compatible sources must never load optional preparation assets');
    }
