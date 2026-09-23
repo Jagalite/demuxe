@@ -94,7 +94,8 @@ def ffmpeg_license(root, label, folder, full):
             if 'gpl' in deps.split() and name.upper() in selection['filter']:
                 raise ValueError(f'{label}: GPL-only FFmpeg filter enabled: {name}')
         request = (folder / 'configure-request').read_text()
-        if '--enable-gpl' in request or '--enable-nonfree' in request or '--disable-postproc' not in request:
+        if ('--enable-gpl' in request or '--enable-nonfree' in request or
+                '--disable-postproc' not in request or '--disable-asm' not in request):
             raise ValueError('Software FFmpeg configure request is not LGPL-safe')
     return {'license': 'LGPL-2.1-or-later', 'configSHA256': digest(config),
             'componentsSHA256': digest(folder / 'config_components.h'),
@@ -130,7 +131,8 @@ def verify(root, baseline=None):
         text = path.read_text()
         if not text.strip():
             raise ValueError('Empty linker map: ' + engine)
-        if re.search(r'libpostproc|(?:flac_dsp_gpl|idct_mmx|vf_removegrain|vf_lensfun)\.(?:o|obj|asm|c)\b|(?:/|\\)(?:ao_jack|ao_oss|stream_dvb|vo_x11|vo_xv|vo_vdpau|vo_caca|vo_direct3d)\.c\b', text, re.I):
+        # vf_removegrain.c is LGPL; only its x86 assembly implementation is GPL.
+        if re.search(r'libpostproc|(?:flac_dsp_gpl|idct_mmx|vf_lensfun)\.(?:o|obj|asm|c)\b|(?:x86/|x86\\)vf_removegrain\.(?:o|obj|asm)\b|vf_removegrain\.asm\b|(?:/|\\)(?:ao_jack|ao_oss|stream_dvb|vo_x11|vo_xv|vo_vdpau|vo_caca|vo_direct3d)\.c\b', text, re.I):
             raise ValueError('GPL-only input in linker map: ' + engine)
         for name in external:
             forms = {name, name if name.startswith('lib') else 'lib' + name}

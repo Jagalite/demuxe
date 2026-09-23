@@ -85,6 +85,12 @@ browser capability being removed. The GPLv3 `lensfun` filter was not configured
 in the baseline. No GPL external FFmpeg library was selected in the published
 configuration; the candidate gate checks the pinned external license lists
 again against generated config and link maps.
+The first candidate link map contains `libavfilter.a(vf_removegrain.o)` from
+LGPL `libavfilter/vf_removegrain.c`; the GPL-only item is the separate
+`libavfilter/x86/vf_removegrain.asm`. The closure gate was corrected to allow
+the C object while requiring `--disable-asm` and rejecting the x86 assembly
+object. The initial clean build was discarded after that gate-script change;
+a fresh tagged build is required for source correspondence.
 Demuxe's public `videoFilters` and `audioFilters` options accept user chains,
 so a user who selected one of the GPL-only filters loses that option even if
 all codec cases continue to pass. The maintained automatic HDR tone-map graph

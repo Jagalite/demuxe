@@ -49,7 +49,7 @@ pp_filter_deps="gpl postproc"
         for folder in ('build/obj-ffmpeg', 'build/obj-software-full-ffmpeg', 'build/native-remux/ffmpeg'):
             self.write(folder + '/config.h', config)
             self.write(folder + '/config_components.h', full)
-        self.write('build/obj-software-full-ffmpeg/configure-request', '--disable-postproc\n')
+        self.write('build/obj-software-full-ffmpeg/configure-request', '--disable-postproc --disable-asm\n')
         for name in ('baseline', 'software', 'hybrid', 'remux', 'subtitles'):
             self.write(f'build/link-maps/{name}.map', 'libmpv.a(ao.o)\n')
         self.write('build/subtitle-service/manifest.json', json.dumps({
@@ -73,6 +73,11 @@ pp_filter_deps="gpl postproc"
 
     def test_clean_generated_receipts_pass(self):
         self.assertEqual(gate.verify(self.root)['status'], 'verified')
+        self.write('build/link-maps/software.map', 'libavfilter.a(vf_removegrain.o)\n')
+        self.assertEqual(gate.verify(self.root)['status'], 'verified')
+        self.write('build/link-maps/software.map', 'libavfilter.a(x86/vf_removegrain.o)\n')
+        with self.assertRaisesRegex(ValueError, 'GPL-only input in linker map'):
+            gate.verify(self.root)
 
     def test_rejects_gpl_mpv_and_forbidden_compiled_source(self):
         path = 'build/obj-mpv/meson-info/intro-buildoptions.json'
