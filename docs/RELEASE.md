@@ -98,9 +98,10 @@ python3 scripts/compare-lgpl-catalogue.py \
   --output <complete-readme-comparison.json>
 ```
 
-The verifier below recomputes that comparison, requires all 71 rows to retain
-their bounded passes, and ties the candidate engine hashes to the runtime
-archive. Record separate representative Native, Hybrid and Software matched
+The verifier below recomputes that comparison, requires all 71 rows to be
+rerun, retains every baseline bounded pass, and rejects a changed first failure
+stage or reason for any pre-existing blocked/failed row. It ties the candidate
+engine hashes to the runtime archive. Record separate representative Native, Hybrid and Software matched
 CPU/memory observations and investigate any decoder, filter, threading,
 synchronization or rendering change before release.
 

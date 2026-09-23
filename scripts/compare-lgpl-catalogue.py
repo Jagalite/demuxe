@@ -64,6 +64,10 @@ def passed(case):
     return case['status'] == 'passed' or (case['status'] == 'blocked' and case.get('screenPassed') is True)
 
 
+def first_reason(case):
+    return (case.get('reason') or '').splitlines()[0]
+
+
 def classify(before, after):
     old_pass, new_pass = passed(before), passed(after)
     old_route = before.get('initial', {}).get('route')
@@ -124,6 +128,10 @@ def compare(before_path, after_path):
     for name in before_fixtures:
         old, new = before[name], after[name]
         category = classify(old, new)
+        prior_limit_changed = (not passed(old) and not passed(new) and
+                               (old['status'] != new['status'] or
+                                old.get('failureStage') != new.get('failureStage') or
+                                first_reason(old) != first_reason(new)))
         cases.append({'fixture': name, 'readmeRow': fixture_labels[name],
                       'classification': category,
                       'baseline': {'status': old['status'], 'route': old.get('initial', {}).get('route'),
@@ -133,14 +141,19 @@ def compare(before_path, after_path):
                                     'firstFailureStage': new.get('failureStage'),
                                     'qualificationLimit': new.get('qualificationLimit')},
                       'candidateNewlyBlocked': passed(old) and not passed(new),
+                      'preexistingLimitChanged': prior_limit_changed,
                       'candidateRegression': category == 'regression'})
     counts = {category: sum(case['classification'] == category for case in cases)
               for category in ['identical pass', 'pass with route change',
                                'pass with measurable behavior difference', 'regression', 'blocked']}
     counts['stillPass'] = counts['identical pass'] + counts['pass with route change'] + counts['pass with measurable behavior difference']
     counts['newlyBlocked'] = sum(case['candidateNewlyBlocked'] for case in cases)
+    counts['preexistingLimitChanged'] = sum(case['preexistingLimitChanged'] for case in cases)
+    counts['baselinePassedScreen'] = sum(passed(case) for case in before.values())
+    counts['intentionallyUnsupportedAfterLicenseChange'] = 0
     return {'schema': 1, 'status': 'qualified' if not counts['regression'] and not counts['newlyBlocked']
-            and counts['stillPass'] == len(rows) else 'review-required',
+            and not counts['preexistingLimitChanged'] and counts['stillPass'] >= counts['baselinePassedScreen']
+            else 'review-required',
             'readmeSHA256': digest(ROOT / 'README.md'), 'rows': len(rows), 'counts': counts,
             'baselineSummary': {'path': str(before_path.resolve()), 'sha256': digest(before_path),
                                 'assetsSHA256': before_summary['assetsSHA256']},

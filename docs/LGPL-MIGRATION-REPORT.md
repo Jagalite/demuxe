@@ -10,12 +10,12 @@ comparison are recorded below.
 
 ## A. Executive result
 
-**Migration blocked pending qualification.** The recoded CPU measurements in
-`results/head-to-head/passing-cell-cpu-exploratory-20260923-01/` have priority
-on the shared host. Candidate engine compilation and the playback matrix are
-held while that exclusive measurement is active. This is a scheduling hold,
-not a recorded playback regression. The recommendation in section F remains
-conditional.
+**Migration blocked pending candidate qualification.** The higher-priority
+recoded CPU measurements in
+`results/head-to-head/passing-cell-cpu-exploratory-20260923-01/` finished with
+111 planned cells and 333 attempted rounds. The GPL-current 71-row catalogue
+was rerun afterward; the LGPL engines and matched candidate matrix remain to
+be built and tested. The recommendation in section F remains conditional.
 
 The package assembler currently refuses the still-present GPL engine binaries
 with `Packaging requires a completed LGPL engine build record`; the Apache
@@ -95,10 +95,16 @@ targets, not assumed passes.
 
 ## C. README matrix impact
 
-The exact current README rows, route classifications, first failure stages and
-same-fixture baseline/candidate receipts will be added after the exclusive CPU
-measurement exits and the candidate engines build. **No catalogue row is yet
-classified as an LGPL pass.** The release must report identical passes, route
+The GPL-current baseline at
+`results/head-to-head/lgpl-gpl-baseline-20260923/summary.json` reran all 71
+README rows against the frozen 36-second fixture set. It recorded 48 passed,
+19 blocked and 4 failed rows. Fourteen of the blocked rows passed their bounded
+screen but retain stereo, HDR or other fidelity limits; five lack a qualifying
+fixture or reference oracle. The four failed rows are the HDR10 TrueHD/PGS,
+HDR10 DTS-HD/PGS and two Dolby Vision/Atmos/ASS combinations; each failed its
+initial marked-audio check. The same-fixture LGPL candidate classification and
+route counts remain pending. **No catalogue row is yet classified as an LGPL
+pass.** The release must report identical passes, route
 changes, measurable differences, regressions, blocked cases and deliberate
 unsupported cases without changing acceptance checks.
 
@@ -163,4 +169,7 @@ instructions. The runtime archive and companion must be matched by
 default only after the generated LGPL closure gate passes, the full current
 catalogue is rerun against the GPL baseline on the same fixtures, any
 regressions are documented, representative matched performance is checked,
-and the exact runtime/source archives pass release verification.
+and the exact runtime/source archives pass release verification. Existing
+fixture/reference limits and baseline failures must remain explicit; the
+candidate must retain every bounded baseline pass and may not silently change
+a prior failure stage or reason.

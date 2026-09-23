@@ -84,6 +84,22 @@ class CatalogueGate(unittest.TestCase):
         self.assertEqual((record['status'], record['rows'], record['counts']['stillPass']),
                          ('qualified', 71, 71))
 
+    def test_preserves_existing_fixture_limit_and_failure(self):
+        def limited(data):
+            data['cases'][0].update(status='blocked', reason='Fixture unavailable',
+                                    failureStage='preparation')
+            data['cases'][1].update(status='failed', reason='Marked audio missing',
+                                    failureStage='initial-output')
+        self.change('baseline', limited)
+        self.change('candidate', limited)
+        record = gate.compare(self.summary('baseline'), self.summary('candidate'))
+        self.assertEqual((record['status'], record['counts']['baselinePassedScreen'],
+                          record['counts']['stillPass']), ('qualified', 69, 69))
+        self.change('candidate', lambda data: data['cases'][1].update(reason='Different failure'))
+        record = gate.compare(self.summary('baseline'), self.summary('candidate'))
+        self.assertEqual((record['status'], record['counts']['preexistingLimitChanged']),
+                         ('review-required', 1))
+
     def test_rejects_missing_case_changed_harness_and_new_regression(self):
         self.change('candidate', lambda data: data['cases'].pop())
         with self.assertRaisesRegex(ValueError, 'Incomplete or duplicated'):
