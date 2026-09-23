@@ -77,6 +77,6 @@ export async function cheapMP4Probe(file,signal,video){
    p+=n;
   }
   if(!brand||!moov||!mdat)throw Error('Incomplete MP4');
-  return {probe:{tracks:tracks(moov,video),duration:0},bytesRead};
+  return {probe:{tracks:tracks(moov,video),duration:0,format:'mov,mp4,m4a,3gp,3g2,mj2'},bytesRead};
  }catch(error){if(signal.aborted)throw error;return {bytesRead,reason:String(error)};}finally{signal.removeEventListener('abort',abort);reader?.close();}
 }

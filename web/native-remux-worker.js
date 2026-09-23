@@ -20,7 +20,15 @@ self.onmessage=async({data})=>{
    if(!globalThis.crossOriginIsolated)throw Error('Remux requires cross-origin isolation');
    const {default:createRemux}=await import(data.audioAdaptation?'./engine-adaptation/remux.mjs':'./engine-remux/remux.mjs');
    engine=await createRemux({...preparedEngine(data.compiledWasm),printErr:message=>postMessage({type:'log',message})});engine.parseVP9=vp9RemuxConfig;engine.io=data.mailbox;engine.raps=[];engine.tracks=[];stats.transport='pthread';stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
-   if(data.type==='probe'){if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}check(engine._rm_probe(data.size));const hybridRejection=await hybridPreflight(engine.tracks);const tracks=engine.tracks.map(({browserConfig,...track})=>track);postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;}
+   if(data.type==='probe'){
+    if(data.audioAdaptation){check(engine._rm_adapt_audio(1));adaptationABI();}
+    check(engine._rm_probe(data.size));const hybridRejection=await hybridPreflight(engine.tracks);
+    const tracks=engine.tracks.map(({browserConfig,...track})=>{
+     if(browserConfig)try{track.codecString=videoCodecConfig(browserConfig).configuration.codec;}catch{/* Preserve incomplete configuration as unknown. */}
+     return track;
+    });
+    postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;
+   }
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');if(delivery){delivery.push(b);if(!delivery.active)chunks.push(b);else chunks=[];}else chunks.push(b);};
    if(data.audioAdaptation){if(!['flac','opus'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='opus'?2:1));adaptationABI();}
    check(engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));let duration=engine._rm_duration();

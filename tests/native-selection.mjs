@@ -20,7 +20,7 @@ test('required embedded subtitles remain a hard gate',()=>{
  assert.equal(reason([v,a,sub],{subtitles:false}),undefined);
  assert.equal(reason([v,a,sub],{sid:'no'}),undefined);
 });
-test('negative browser hints and unknown AAC configuration cannot veto direct discovery',()=>{
+test('semantic admission delegates browser capability checks to per-plan preflight',()=>{
  const browser={canPlayType:()=>{throw Error('Semantic admission must not query the browser');}};
  assert.equal(nativeRejection({tracks:[v,a],duration:1},settings,browser),undefined);
  assert.equal(nativeRejection({tracks:[v,{...a,aacObject:0}],duration:1},settings,{canPlayType:()=>''}),undefined);

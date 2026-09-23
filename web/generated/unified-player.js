@@ -3,6 +3,7 @@ import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
 import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeLoadTimeout } from './internal/runtime-capability.js';
+import { nativeBrowserCapabilities } from './internal/browser-media-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
 import { EnginePreparation, preparationComponents } from './internal/engine-preparation.js';
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
@@ -637,13 +638,17 @@ export class Player extends EventTarget {
         const inspected = this.sourceInspection?.source === source ? this.sourceInspection : undefined;
         const video = inspected?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
         const subs = inspected?.probe.tracks.filter(t => t.type === 'sub') ?? [];
+        const explicit = inspected?.probe.tracks.find(t => t.type === 'audio' && t.id === inspected.settings.aid);
+        const selected = settings.aid === 'no' ? undefined : (source === this.source ? this.publicSelections.get('audio') : undefined) ?? (explicit ? `audio:stream:${explicit.index}` : undefined);
+        const selectedAudio = selected?.startsWith('audio:stream:') ? inspected?.probe.tracks.find(t => t.type === 'audio' && `audio:stream:${t.index}` === selected) : undefined;
+        const inspectedSettings = inspected ? { ...inspected.settings, aid: settings.aid === 'no' ? 'no' : selectedAudio?.id ?? (settings.aid === 'auto' ? 'auto' : inspected.settings.aid) } : undefined;
         const decisions = planAdmission({ automatic, ...settings,
             mpvSubtitles: this.mpvSubtitles,
             mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && source.kind === 'local' && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && (subs.length === 1 || subs.length === 2 && subs.every(t => t.codec === 'subrip')) && subs.every(t => ['ass', 'ssa', 'subrip', 'mov_text', 'hdmv_pgs_subtitle', 'dvd_subtitle'].includes(t.codec)) && ((inspected.probe.format?.includes('matroska') && subs.every(t => t.codec !== 'mov_text')) || ((inspected.probe.format?.includes('mp4') || inspected.probe.format?.includes('mov')) && subs.every(t => t.codec === 'mov_text'))) && settings.subtitles && settings.sid !== 'no',
-            mpvSubtitleAVRejection: inspected ? nativeRejection(inspected.probe, { ...inspected.settings, subtitles: false }) : 'Source inspection required',
+            mpvSubtitleAVRejection: inspected ? nativeRejection(inspected.probe, { ...inspectedSettings, subtitles: false }) : 'Source inspection required',
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
             streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
-            remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspected.settings) : undefined,
+            remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspectedSettings) : undefined,
             hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) ? `Demuxe has no browser bridge configuration contract for ${video.codec}` : undefined, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
             automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
@@ -652,8 +657,35 @@ export class Player extends EventTarget {
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
             isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
             nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
-        const explicit = inspected?.probe.tracks.find(t => t.type === 'audio' && t.id === inspected.settings.aid);
-        const selected = (source === this.source ? this.publicSelections.get('audio') : undefined) ?? (explicit ? `audio:stream:${explicit.index}` : undefined);
+        if (inspected) {
+            const element = document.createElement('video');
+            const capabilities = nativeBrowserCapabilities(inspected.probe, inspectedSettings.aid, { canPlayType: mime => element.canPlayType(mime), isTypeSupported: typeof MediaSource === 'undefined' ? undefined : mime => MediaSource.isTypeSupported(mime) });
+            for (const plan of decisions) {
+                if (plan.mode === 'hybrid' && plan.eligible && inspected.probe.hybridRejection) {
+                    plan.eligible = false;
+                    plan.code = 'FEATURE_UNSUPPORTED';
+                    plan.reason = inspected.probe.hybridRejection;
+                }
+                if (!plan.id.startsWith('native-'))
+                    continue;
+                const capability = plan.browserCapability = capabilities[plan.id.startsWith('native-direct') ? 'direct' : plan.id.startsWith('native-flac') ? 'flac' : plan.id.startsWith('native-opus') ? 'opus' : 'remux'];
+                if (plan.eligible && capability.status === 'unsupported') {
+                    plan.eligible = false;
+                    plan.code = 'FEATURE_UNSUPPORTED';
+                    plan.reason = capability.reason;
+                }
+                if (plan.eligible && plan.id.startsWith('native-direct') && capability.unqueriedAudio) {
+                    plan.eligible = false;
+                    plan.code = 'QUALIFICATION_REQUIRED';
+                    plan.reason = 'Selected audio has no browser capability mapping; preparation or decoded audio is required';
+                }
+            }
+        }
+        else {
+            for (const plan of decisions)
+                if (plan.id.startsWith('native-'))
+                    plan.browserCapability = { status: 'unknown', api: plan.id.startsWith('native-direct') ? 'canPlayType' : 'isTypeSupported', tracks: [], queries: [], reason: 'Source track inspection is unavailable; codec support has not been established' };
+        }
         if (selected?.startsWith('audio:stream:')) {
             const audio = inspected?.probe.tracks.filter(t => t.type === 'audio') ?? [];
             const defaultTrack = audio.find(t => t.default) ?? audio[0];
@@ -692,7 +724,7 @@ export class Player extends EventTarget {
         const admitted = this.admissible(source, settings, attachments, nativeTracks, automaticAdmission ? this.admissionContext.nativeReason : undefined, automaticAdmission);
         if (!automaticAdmission)
             this.admissionContext = { automatic: false };
-        if (!admitted.some(p => p.mode === mode && p.eligible)) {
+        if (!admitted.some(p => p.id === planId && p.eligible)) {
             const candidates = admitted.filter(p => p.mode === mode);
             const rejection = candidates.find(p => p.code === 'ISOLATION_REQUIRED') ?? candidates.find(p => p.code !== 'PLAN_NOT_REQUESTED');
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
@@ -882,6 +914,8 @@ export class Player extends EventTarget {
             this.sessionError = null;
             this.observedPlaying = false;
             this.observedWaiting = false;
+            this.planDecisions = admitted;
+            this.runtimeCapabilities.admission(admitted);
             this.acceptEvidence(planId, candidate);
             this.preview.setSourceIdentity(`${this.sourceSerial}:${mode}`);
             this.previewSource = source.kind === 'local' ? (source.file instanceof Blob ? source.file : new Blob([source.file])) : undefined;
@@ -961,9 +995,11 @@ export class Player extends EventTarget {
         for (const attempt of priorAttempts)
             this.record(attempt);
         let nativeReason;
-        this.losslessInspection = undefined;
-        this.sourceInspection = undefined;
-        this.mpvSubtitleAssetsAvailable = false;
+        if (start === 0 || this.sourceInspection?.source !== source) {
+            this.losslessInspection = undefined;
+            this.sourceInspection = undefined;
+            this.mpvSubtitleAssetsAvailable = false;
+        }
         if (start === 0 && !(settings.vf || settings.af || this.toneMapping !== 'off')) {
             if ((source.kind === 'local' && source.input?.demuxer) || (source.kind === 'remote' && (source.options.demuxer || (source.options.format && source.options.format !== 'file')))) {
                 nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';

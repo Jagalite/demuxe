@@ -112,7 +112,7 @@ export type Diagnostics = {
   preview?:{sourceId:string;cacheBytes:number;cacheEntries:number;requests:number;hits:number;failures:number;cancelled:number;active:boolean;pending:boolean;lastFailure?:{provider:string;kind:string}};
   buffering?: BufferingResolution;
   runtimeCapabilities?: import('./internal/runtime-capability.js').CapabilityRecord[];
-  planAdmission?:Array<{id:string;mode:PlaybackMode;eligible:boolean;code?:string;reason?:string}>;
+  planAdmission?:Array<{id:string;mode:PlaybackMode;eligible:boolean;code?:string;reason?:string;browserCapability?:import('./internal/browser-media-capability.js').BrowserMediaCapability}>;
   plan?: {id:string; mode:PlaybackMode; video:string; audio:string; qualification:string};
   mode: PlaybackMode;
   switching: boolean;

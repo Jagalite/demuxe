@@ -44,8 +44,8 @@ export function nativeRejection(probe, settings, _video) {
         return 'Requested audio track was not found';
     if (!v && !a)
         return 'No selected playable streams';
-    // Codec configuration knowledge belongs to preparation, not direct browser admission.
-    // Unknown mappings and canPlayType() answers cannot reject unchanged source bytes.
+    // Browser codec/container admission is applied separately for each execution
+    // plan by nativeBrowserCapabilities, after these selected-track semantics.
 }
 /** These are Demuxe's packet-construction contracts, not browser support.
  * An absent contract excludes preparation only; direct playback stays testable. */
@@ -53,6 +53,13 @@ export function remuxRejection(probe, settings) {
     const video = probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
     const audioTracks = probe.tracks.filter(t => t.type === 'audio');
     const audio = settings.aid === 'no' ? undefined : settings.aid === 'auto' ? (audioTracks.find(t => t.default) ?? audioTracks[0]) : audioTracks.find(t => t.id === settings.aid);
+    // Current packet-copy preparation writes empty_moov before reading AC3
+    // packets. FFmpeg cannot construct its dac3 initialization there (ENOSPC).
+    // Native muting still packages the default audio, so that path has the same
+    // construction limit even when no audio output was requested.
+    const packagedAudio = settings.aid === 'no' ? (audioTracks.find(t => t.default) ?? audioTracks[0]) : audio;
+    if (packagedAudio?.codec === 'ac3')
+        return 'Demuxe packet-copy AC3 initialization is not qualified; use direct playback or decoded audio';
     if (probe.format?.split(',').includes('mpegts') && (!video || video.codec !== 'h264' || (audio && audio.codec !== 'aac')))
         return 'Demuxe TS timestamp-repair construction requires H264 with optional AAC audio';
     if (video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec))

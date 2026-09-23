@@ -10,21 +10,46 @@ routing authority. There is no browser codec-support table and no numeric score.
 2. Reject semantic/policy impossibilities: required subtitle/filter/output features,
    selected-track identity, lossy permission, transport, isolation and existing
    experimental qualification boundaries.
-3. Attempt admitted plans in registry order: unchanged Native, packet-copy Native,
+3. Cross-reference inspected selected audio/video configurations with the browser.
+   Native direct queries `canPlayType()` for the source container, each selected
+   codec, and their combination. Native remux queries `MediaSource.isTypeSupported()`
+   for its output packaging; audio adaptation queries the adapted output codec.
+   Negative answers exclude the corresponding plan before a playback backend opens.
+   Hybrid uses its complete `VideoDecoder.isConfigSupported()` preflight when the
+   inspected initialization configuration is available.
+4. Attempt admitted plans in registry order: unchanged Native, packet-copy Native,
    explicitly permitted/qualified adaptation, Hybrid, Software. Applicable gain/ASS
    combinations retain the same order. Candidates are never probed concurrently.
-4. Accept the candidate that establishes startup readiness for the full request.
+5. Accept the candidate that establishes startup readiness for the full request.
    A failed candidate is destroyed and its element removed before the next plan.
 
-`nativeRejection()` checks track semantics only. Unknown PCM24, other codec names,
-unknown AAC profiles and negative `canPlayType()` hints do not reject Native direct.
-The cheap MP4 parser likewise does not ask the browser to approve parsed metadata.
-Missing remux/Hybrid construction contracts exclude only those plans; they do not
-assert that the browser cannot play unchanged bytes.
+`nativeRejection()` checks track semantics; `nativeBrowserCapabilities()` applies
+browser answers separately to each Native plan. The mappings describe MIME syntax,
+not a browser or codec allowlist. Exact AVC/HEVC profiles come from inspected
+initialization data. A selected AC3 track is queried even if video configuration is
+incomplete. Disabled and unselected audio tracks do not veto the selected route.
+The cheap MP4 parser reports container/configuration metadata to the same checks.
+Local EBML headers distinguish WebM from FFmpeg's shared Matroska/WebM family.
+Unknown mappings, incomplete metadata, `maybe`, missing APIs, or query exceptions
+are recorded as unknown, never as positive support. Unmapped selected audio excludes
+direct Native playback; video-only capability evidence cannot admit that route.
+DTS without profile metadata queries all registered family variants: a negative for
+every variant excludes the route, while partial acceptance remains unknown.
+Raw FLAC and ADTS use bare MIME types rather than MP4 codec parameters. All checks
+use the current selected audio, including reselection after a track change.
+Inconclusive answers still require preparation and runtime checks. Missing remux/Hybrid construction contracts exclude
+only those plans. No support query proves playback of malformed source packets.
+The current packet-copy muxer cannot initialize AC3 before reading its packets;
+that construction limit excludes AC3 remux even on browsers that advertise AC3.
+Direct MP4/AC3 remains eligible wherever the browser reports support.
 
 ## Evidence and paused startup
 
-`diagnostics.planAdmission` describes semantic eligibility. The additive
+`diagnostics.planAdmission` describes semantic and browser eligibility. Its
+`browserCapability` records selected tracks, the query API, MIME strings, raw browser
+answers, and `supported | unsupported | unknown`. This records preflight separately
+from actual playback, and applies on initial selection and later reselection.
+The additive
 `diagnostics.runtimeCapabilities` records `planId`, an opaque player-local
 `sourceIdentity`, eligibility, `untested | probing | verified | failed`, reason,
 failure category and observable evidence. Ineligible is distinct from runtime
@@ -42,6 +67,16 @@ A compositor callback is recorded as `videoPresented` only when observed; decode
 readiness does not claim first-photon timing. Audio bytes are decode progress, not
 physical speaker output or bit-exact device fidelity. Browsers without audio counters
 expose less evidence; absent fields are not manufactured sample proof.
+
+`npm run test:browser-capabilities` evaluates Chrome, Firefox, and WebKit with
+MP4, Matroska, WebM, selected/disabled audio, AC3, DTS, raw FLAC/ADTS/WAV, and
+H.264 High 10, plus AC3-to-AAC track switching. It asserts
+that rejected Native plans never open and checks decoded PCM during first play
+and resume where the browser exposes it. WebKit Native MSE/WebM PCM capture is
+unavailable in this harness; those cases explicitly report audio output unverified
+instead of substituting clock progress for audio proof. Direct MP4 and Hybrid PCM
+remain tested there. `REPRO_FILE=/absolute/path/file.mkv` adds the AC3 reproduction.
+The same matrix is part of `npm run test:automatic-selection`.
 
 MSE uses real source-derived MIME/configuration. Its support API is eligibility
 information. Diagnostics separately retain SourceBuffer creation, initialization

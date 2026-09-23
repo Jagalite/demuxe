@@ -41,7 +41,8 @@ try{
   const opened=await snapshot(p);
   assert.equal(opened.mode,'hybrid','Selected AC3 must be rejected before the first Play request');
   assert.equal(opened.diagnostics.plan.id,'hybrid');
-  assert.ok(opened.diagnostics.selection.attempts.some(a=>a.reason.includes('native-direct-mpv')&&a.reason.includes('Native selected audio track produced no output')));
+  assert.ok(opened.diagnostics.selection.attempts.some(a=>a.outcome==='skipped'&&a.reason.includes('native-direct-mpv')&&a.reason.includes('ac-3')));
+  assert.ok(!opened.diagnostics.selection.attempts.some(a=>a.mode==='native'&&a.outcome==='failed'),'Unsupported Native audio must be rejected before trying playback');
   await p.evaluate(()=>player.play());
   await p.waitForFunction(()=>{const audio=player.audioDiagnostics();return audio?.mediaFrames>6000&&audio.rms>.001;});
   await p.evaluate(()=>player.pause());await p.waitForTimeout(400);

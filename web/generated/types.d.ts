@@ -234,6 +234,7 @@ export type Diagnostics = {
         eligible: boolean;
         code?: string;
         reason?: string;
+        browserCapability?: import('./internal/browser-media-capability.js').BrowserMediaCapability;
     }>;
     plan?: {
         id: string;
