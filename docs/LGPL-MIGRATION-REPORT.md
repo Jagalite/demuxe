@@ -20,10 +20,12 @@ fixture, oracle or marked-fidelity limits. The direct option-level loss is the
 them. This conclusion does not claim physical HDR or multichannel audio
 qualification beyond the recorded checks.
 
-The clean release candidate is tagged `v0.3.0-beta.4-rc.3` at `ab77016c`.
-`build/beta-build.json` and `build/lgpl-closure-before-after.json` record the
-generated closure and linker evidence. The archive-level release gate remains
-separate from engine and catalogue qualification.
+The first clean engine candidate was tagged `v0.3.0-beta.4-rc.3` at `ab77016c`.
+The final tagged archive and source companion are bound by their release
+`verification.json`. `build/beta-build.json` and
+`build/lgpl-closure-before-after.json` record the generated closure and linker
+evidence. The archive-level release gate remains separate from engine and
+catalogue qualification.
 
 ## Before state: why the existing complete player is GPL
 

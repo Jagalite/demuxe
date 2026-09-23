@@ -57,6 +57,13 @@ with tarfile.open(sys.argv[1]) as archive:
  assert sources
  for name,digest in sources.items():
   assert hashlib.sha256(archive.extractfile('ffmpeg/'+name).read()).hexdigest()==digest,name
+ inputs=json.load(archive.extractfile('locked-inputs.json'))
+ lock=json.load(archive.extractfile('demuxe/sources.lock.json'))
+ assert inputs['ffmpeg']==next(x for x in lock['sources'] if x['name']=='ffmpeg-adaptation')
+ assert inputs['ffmpeg']['revision']=='n9.0.1'
+ for name,digest in inputs['patches'].items():
+  assert name.startswith('patches/ffmpeg-adaptation/'),name
+  assert hashlib.sha256(archive.extractfile('demuxe/'+name).read()).hexdigest()==digest,name
  linked=json.load(archive.extractfile('build-manifest.json'))
  for suffix in ['native/remux/remux.c','native/adaptation/flac.h','scripts/build-audio-adaptation.py']:
   expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
