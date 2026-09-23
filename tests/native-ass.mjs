@@ -36,11 +36,18 @@ try{
    await page.evaluate(()=>player.subtitleVisible(true));await page.waitForTimeout(100);assert.ok((await pixels()).green>200);
    await page.evaluate(async()=>{await player.rate(1.5);await player.play();});await page.waitForTimeout(250);
    if(kind!=='direct'){
-    // Real playing buffered seek: hold the target for frame verification without
-    // replacing the presentation, then restore the user's playing intent.
-    await page.waitForFunction(()=>player.current.backend.remux.canSeekBuffered(4));
-    item.playingSeek=await page.evaluate(async()=>{const b=player.current.backend,r=b.remux,w=r.worker,m=r.media,s=r.sb;await player.seek(4);return {playing:!player.surface.paused,same:b===player.current.backend&&w===r.worker&&m===r.media&&s===r.sb,count:r.stats.bufferedSeeks};});
-    assert.equal(item.playingSeek.playing,true);assert.equal(item.playingSeek.same,true);assert.ok(item.playingSeek.count>0);
+    const owner=await page.evaluate(()=>player.current.backend.remux.snapshot().mseOwner??'window');
+    if(owner==='window'){
+     // Window-owned MSE retains the qualified buffered-seek optimization.
+     await page.waitForFunction(()=>player.current.backend.remux.canSeekBuffered(4));
+     item.playingSeek=await page.evaluate(async()=>{const b=player.current.backend,r=b.remux,w=r.worker,m=r.media,s=r.sb;await player.seek(4);return {owner:'window',playing:!player.surface.paused,same:b===player.current.backend&&w===r.worker&&m===r.media&&s===r.sb,count:r.stats.bufferedSeeks};});
+     assert.equal(item.playingSeek.playing,true);assert.equal(item.playingSeek.same,true);assert.ok(item.playingSeek.count>0);
+    }else{
+     // Worker-owned MSE regenerates a bounded presentation for playing seeks.
+     item.playingSeek=await page.evaluate(async()=>{const b=player.current.backend,r=b.remux,w=r.worker,g=r.generation,buffered=r.canSeekBuffered(4);await player.seek(4);return {owner:'worker',playing:!player.surface.paused,same:b===player.current.backend&&w===r.worker,generationAdvanced:r.generation>g,buffered,position:player.state.currentTime};});
+     assert.equal(item.playingSeek.playing,true);assert.equal(item.playingSeek.same,true);assert.equal(item.playingSeek.buffered,false);assert.ok(Math.abs(item.playingSeek.position-4)<.25);
+     if(kind==='remux')assert.equal(item.playingSeek.generationAdvanced,true);
+    }
    }
    await page.evaluate(()=>player.pause());
    item.gain=await page.evaluate(async()=>{const b=player.current.backend,a=b.ass,r=b.remux;await player.setAudioGain(.25);return {same:b===player.current.backend&&a===b.ass&&r===b.remux,diagnostics:player.diagnostics};});assert.equal(item.gain.same,true);
@@ -52,9 +59,9 @@ try{
    await page.evaluate(()=>document.exitFullscreen());
    item.errors=await page.evaluate(()=>errors);assert.deepEqual(item.errors,[]);
    await page.evaluate(()=>player.open(mediaFile));assert.equal(await page.locator('.demuxe-native-ass').count(),0);
-   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
+   await page.evaluate(()=>player.destroy());for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
    for(const key of ['active','animation','resize'])delete item[key].image;
-  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);item.bufferedState=await page.evaluate(()=>{const owner=player.current?.backend?.remux,r=owner?.local??owner,video=r?.video;return r?{raps:r.raps,ranges:r.ranges?.(),canSeek4:owner.canSeekBuffered?.(4),videoBuffered:video?Array.from({length:video.buffered.length},(_,i)=>[video.buffered.start(i),video.buffered.end(i)]):[],targetReady:r.targetReady,acceptedGeneration:r.acceptedGeneration,generation:r.generation,timelineBias:r.timelineBias,mediaReadyState:r.media?.readyState}:null;}).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
  const page=await browser.newPage(),item={kind:'destroy-during-wasm-load'};result.cases.push(item);
  let release,entered;const barrier=new Promise(r=>entered=r),unblock=new Promise(r=>release=r);

@@ -82,7 +82,7 @@ maps. To rebuild either after a source change, use fresh output directories:
 
 ```sh
 python3 scripts/build-audio-adaptation.py --output build/audio-adaptation-clean \
-  --sdk "$PWD/build/emsdk-4.0.14" --archive build/downloads/ffmpeg.tar.gz --opus
+  --sdk "$PWD/build/emsdk-4.0.14" --archive build/downloads/ffmpeg-adaptation.tar.gz --opus
 cat build/audio-adaptation-clean/latest.json
 python3 scripts/verify-audio-adaptation-build.py "PATH_FROM_LATEST_JSON"
 python3 scripts/build-native-ass.py --sdk "$PWD/build/emsdk-4.0.14" \

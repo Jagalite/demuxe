@@ -1,0 +1,274 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -41,6 +41,7 @@
+ #include "libavutil/time.h"
+ #include "avformat.h"
+ #include "demux.h"
++#include "demuxe.h"
+ #include "internal.h"
+ #include "avio_internal.h"
+ #include "id3v2.h"
+@@ -3113,3 +3114,72 @@
+     .read_close     = hls_close,
+     .read_seek      = hls_read_seek,
+ };
++
++/* Private representation/segment-plan seam. HLS remains the timeline owner. */
++static struct playlist *demuxe_hls_playlist(AVFormatContext *s, int stream)
++{
++    HLSContext *c = s->priv_data;
++    if (!s->iformat || strcmp(s->iformat->name, "hls") || stream < 0 ||
++        stream >= s->nb_streams || s->streams[stream]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
++        return NULL;
++    for (int i = 0; i < c->n_playlists; i++) {
++        struct playlist *p = c->playlists[i];
++        // First integration qualifies separated video fMP4. Muxed tracks need
++        // coordinated audio admission and are not silently treated as video-only.
++        if (p->n_main_streams == 1 && p->main_streams[0]->index == stream)
++            return p;
++    }
++    return NULL;
++}
++int av_demuxe_hls_representation(AVFormatContext *s, int stream, struct AVDemuxeRepresentation *out)
++{
++    struct playlist *p = demuxe_hls_playlist(s, stream);
++    HLSContext *c = s->priv_data;
++    if (!p || !p->finished || p->n_segments <= 0 || p->n_segments > 10000 ||
++        p->start_seq_no < 0 || p->start_seq_no > INT64_MAX-p->n_segments)
++        return AVERROR(ENOSYS);
++    for (int i = 0; i < p->n_segments; i++)
++        if (p->segments[i]->key_type != KEY_NONE || !p->segments[i]->init_section)
++            return AVERROR(ENOSYS);
++    for (int i = 0; i < c->n_variants; i++) {
++        struct variant *v = c->variants[i];
++        if (!v->n_playlists || v->playlists[0] != p) continue;
++        *out = (struct AVDemuxeRepresentation){.abi=AV_DEMUXE_PLAN_ABI,
++            .stream_index=stream,.bandwidth=v->bandwidth,.segments=p->n_segments,.first_sequence=p->start_seq_no};
++        int n = snprintf(out->group,sizeof(out->group),"hls:%zu:%s%zu:%s%zu:%s",
++                         strlen(v->video_group),v->video_group,strlen(v->audio_group),v->audio_group,strlen(v->subtitles_group),v->subtitles_group);
++        if (n < 0 || n >= sizeof(out->group)) return AVERROR(ENOSYS);
++        snprintf(out->id,sizeof(out->id),"variant:%d",i);
++        return 0;
++    }
++    return AVERROR(ENOSYS);
++}
++int av_demuxe_hls_segment(AVFormatContext *s, int stream, int64_t sequence,
++                          int64_t target_us, struct AVDemuxeSegment *out)
++{
++    struct AVDemuxeRepresentation descriptor;
++    int ret = av_demuxe_hls_representation(s, stream, &descriptor);
++    if (ret < 0) return ret;
++    HLSContext *c = s->priv_data;
++    struct playlist *p = demuxe_hls_playlist(s, stream);
++    int64_t start = c->first_timestamp == AV_NOPTS_VALUE ? 0 : c->first_timestamp;
++    for (int i = 0; i < p->n_segments; i++) {
++        struct segment *seg = p->segments[i];
++        if (seg->duration <= 0 || start > INT64_MAX - seg->duration) return AVERROR_INVALIDDATA;
++        int64_t seq = p->start_seq_no + i;
++        if ((sequence >= 0 && sequence == seq) ||
++            (sequence < 0 && target_us >= start && target_us < start + seg->duration)) {
++            struct segment *init = seg->init_section;
++            if (strlen(seg->url) >= sizeof(out->url) || strlen(init->url) >= sizeof(out->init_url))
++                return AVERROR(ENOSYS);
++            *out = (struct AVDemuxeSegment){.abi=AV_DEMUXE_PLAN_ABI,.stream_index=stream,
++                .sequence=seq,.start_us=start,.duration_us=seg->duration,
++                .offset=seg->url_offset,.size=seg->size,.init_offset=init->url_offset,.init_size=init->size};
++            av_strlcpy(out->url,seg->url,sizeof(out->url));
++            av_strlcpy(out->init_url,init->url,sizeof(out->init_url));
++            return 0;
++        }
++        start += seg->duration;
++    }
++    return AVERROR_EOF;
++}
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -31,6 +31,7 @@
+ #include "avio_internal.h"
+ #include "dash.h"
+ #include "demux.h"
++#include "demuxe.h"
+ #include "url.h"
+ 
+ #define INITIAL_BUFFER_SIZE 32768
+@@ -86,6 +87,8 @@
+     int stream_index;
+ 
+     char *id;
++    char demuxe_group[128];
++    int demuxe_protected;
+     char *lang;
+     int bandwidth;
+     char *dependencyid;
+@@ -957,6 +960,21 @@
+         }
+     }
+     rep->parent = s;
++    // Keep group provenance instead of guessing from codec/dimensions later.
++    val = xmlGetProp(adaptionset_node, "id");
++    if (val) {
++        if (strlen(val) + 8 < sizeof(rep->demuxe_group))
++            snprintf(rep->demuxe_group, sizeof(rep->demuxe_group), "dash:id:%s", val);
++        xmlFree(val); val = NULL;
++    } else {
++        unsigned ordinal = 0;
++        for (xmlNodePtr previous = adaptionset_node->prev; previous; previous = previous->prev)
++            if (previous->type == XML_ELEMENT_NODE) ordinal++;
++        snprintf(rep->demuxe_group, sizeof(rep->demuxe_group), "dash:ordinal:%u", ordinal);
++    }
++    rep->demuxe_protected = !!find_child_node_by_name(adaptionset_node, "ContentProtection") ||
++                           !!find_child_node_by_name(representation_node, "ContentProtection");
++
+     representation_segmenttemplate_node = find_child_node_by_name(representation_node, "SegmentTemplate");
+     representation_baseurl_node = find_child_node_by_name(representation_node, "BaseURL");
+     representation_segmentlist_node = find_child_node_by_name(representation_node, "SegmentList");
+@@ -2266,7 +2284,8 @@
+         }
+         if (rep->bandwidth > 0)
+             av_dict_set_int(&rep->assoc_stream[0]->metadata, "variant_bitrate", rep->bandwidth, 0);
+-        move_metadata(rep->assoc_stream[0], "id", &rep->id);
++        ret = av_dict_set(&rep->assoc_stream[0]->metadata, "id", rep->id, 0);
++        if (ret < 0) return ret;
+     }
+     for (i = 0; i < c->n_audios; i++) {
+         rep = c->audios[i];
+@@ -2280,7 +2299,8 @@
+         }
+         if (rep->bandwidth > 0)
+             av_dict_set_int(&rep->assoc_stream[0]->metadata, "variant_bitrate", rep->bandwidth, 0);
+-        move_metadata(rep->assoc_stream[0], "id", &rep->id);
++        ret = av_dict_set(&rep->assoc_stream[0]->metadata, "id", rep->id, 0);
++        if (ret < 0) return ret;
+         move_metadata(rep->assoc_stream[0], "language", &rep->lang);
+     }
+     for (i = 0; i < c->n_subtitles; i++) {
+@@ -2293,7 +2313,8 @@
+             av_program_add_stream_index(s, 0, rep->stream_index + j);
+             rep->assoc_stream[j] = s->streams[rep->stream_index + j];
+         }
+-        move_metadata(rep->assoc_stream[0], "id", &rep->id);
++        ret = av_dict_set(&rep->assoc_stream[0]->metadata, "id", rep->id, 0);
++        if (ret < 0) return ret;
+         move_metadata(rep->assoc_stream[0], "language", &rep->lang);
+     }
+ 
+@@ -2603,3 +2624,75 @@
+     .read_close     = dash_close,
+     .read_seek      = dash_read_seek,
+ };
++
++/* Snapshot plans from the authoritative MPD parser, without nested demux reads. */
++static struct representation *demuxe_dash_representation(AVFormatContext *s, int stream)
++{
++    DASHContext *c = s->priv_data;
++    if (!s->iformat || strcmp(s->iformat->name,"dash") || stream < 0 ||
++        stream >= s->nb_streams || s->streams[stream]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
++        return NULL;
++    for (int i = 0; i < c->n_videos; i++)
++        if (c->videos[i]->nb_assoc_stream == 1 && c->videos[i]->assoc_stream[0]->index == stream)
++            return c->videos[i];
++    return NULL;
++}
++int av_demuxe_dash_representation(AVFormatContext *s, int stream, struct AVDemuxeRepresentation *out)
++{
++    struct representation *p = demuxe_dash_representation(s,stream);
++    DASHContext *c = s->priv_data;
++    if (!p || c->is_live || c->period_start || p->presentation_timeoffset ||
++        !p->init_section || p->demuxe_protected || !p->demuxe_group[0] ||
++        p->nb_assoc_stream != 1 || p->fragment_timescale <= 0 || p->fragment_timescale > INT_MAX ||
++        p->first_seq_no < 0 || p->last_seq_no < p->first_seq_no || p->last_seq_no-p->first_seq_no >= 10000 ||
++        c->max_url_size > AV_DEMUXE_URL_SIZE ||
++        (c->period_duration && c->media_presentation_duration && c->period_duration != c->media_presentation_duration))
++        return AVERROR(ENOSYS);
++    for (int i = 0; i < p->n_timelines; i++)
++        if (p->timelines[i]->repeat < 0) return AVERROR(ENOSYS);
++    *out = (struct AVDemuxeRepresentation){.abi=AV_DEMUXE_PLAN_ABI,.stream_index=stream,
++        .bandwidth=p->bandwidth,.segments=p->last_seq_no-p->first_seq_no+1,.first_sequence=p->first_seq_no};
++    av_strlcpy(out->group,p->demuxe_group,sizeof(out->group));
++    // Metadata is a consumer copy; representation identity remains demux-owned.
++    const char *id=p->id;
++    if (!id || strlen(id) >= sizeof(out->id)) return AVERROR(ENOSYS);
++    av_strlcpy(out->id,id,sizeof(out->id));return 0;
++}
++int av_demuxe_dash_segment(AVFormatContext *s, int stream, int64_t sequence,
++                           int64_t target_us, struct AVDemuxeSegment *out)
++{
++    struct AVDemuxeRepresentation descriptor;
++    int ret = av_demuxe_dash_representation(s,stream,&descriptor);
++    if (ret < 0) return ret;
++    struct representation *p = demuxe_dash_representation(s,stream);
++    DASHContext *c = s->priv_data;
++    int64_t seq=p->first_seq_no,start=0,duration=0;
++    AVRational tb={1,p->fragment_timescale};
++    for (int i=0; seq<=p->last_seq_no; i++) {
++        int repeat=0;
++        if (p->n_timelines) {
++            if (i>=p->n_timelines) break;
++            if (p->timelines[i]->starttime > 0) start=p->timelines[i]->starttime;
++            duration=p->timelines[i]->duration;repeat=p->timelines[i]->repeat;
++        } else duration=p->fragment_duration;
++        if (duration<=0 || repeat>10000) return AVERROR_INVALIDDATA;
++        for (int j=0; j<=repeat && seq<=p->last_seq_no; j++,seq++) {
++            if (start>INT64_MAX-duration) return AVERROR_INVALIDDATA;
++            int64_t us=av_rescale_q(start,tb,AV_TIME_BASE_Q),end=av_rescale_q(start+duration,tb,AV_TIME_BASE_Q);
++            if (us<0 || end<=us) return AVERROR_INVALIDDATA;
++            if ((sequence>=0 && sequence==seq) || (sequence<0 && target_us>=us && target_us<end)) {
++                struct representation copy=*p;copy.cur_seq_no=seq;
++                struct fragment *f=get_current_fragment(&copy);
++                if (!f) return AVERROR_INVALIDDATA;
++                *out=(struct AVDemuxeSegment){.abi=AV_DEMUXE_PLAN_ABI,.stream_index=stream,
++                    .sequence=seq,.start_us=us,.duration_us=end-us,
++                    .offset=f->url_offset,.size=f->size,.init_offset=p->init_section->url_offset,.init_size=p->init_section->size};
++                ff_make_absolute_url(out->url,sizeof(out->url),c->base_url,f->url);
++                ff_make_absolute_url(out->init_url,sizeof(out->init_url),c->base_url,p->init_section->url);
++                free_fragment(&f);return 0;
++            }
++            start+=duration;
++        }
++    }
++    return AVERROR_EOF;
++}
+--- a/libavformat/Makefile
++++ b/libavformat/Makefile
+@@ -1,7 +1,7 @@
+ NAME = avformat
+ DESC = FFmpeg container format library
+ 
+-HEADERS = avformat.h                                                    \
++HEADERS = demuxe.h avformat.h                                                    \
+           avio.h                                                        \
+           version.h                                                     \
+           version_major.h                                               \
+--- /dev/null
++++ b/libavformat/demuxe.h
+@@ -0,0 +1,30 @@
++/* SPDX-License-Identifier: LGPL-2.1-or-later
++ * Private pinned Demuxe integration ABI, not a stable FFmpeg public API.
++ * Calls execute only on the owning parent demux thread. Returned plans contain
++ * no pointers into mutable parser state and may be handed to a container task.
++ */
++#ifndef AVFORMAT_DEMUXE_H
++#define AVFORMAT_DEMUXE_H
++#include "avformat.h"
++#define AV_DEMUXE_PLAN_ABI 1
++#define AV_DEMUXE_URL_SIZE 4096
++struct AVDemuxeRepresentation {
++    int abi, stream_index, bandwidth, live, segments;
++    int64_t first_sequence;
++    char group[256], id[128];
++};
++struct AVDemuxeSegment {
++    int abi, stream_index;
++    int64_t sequence, start_us, duration_us;
++    int64_t offset, size, init_offset, init_size;
++    char url[AV_DEMUXE_URL_SIZE], init_url[AV_DEMUXE_URL_SIZE];
++};
++/* sequence >= 0 requests an exact sequence; -1 finds the segment containing
++ * target_us. EOF is outside the finite window; ENOSYS means unsupported input.
++ * This seam never downloads a manifest or mutates the parent's read position.
++ */
++int av_demuxe_hls_representation(AVFormatContext *, int, struct AVDemuxeRepresentation *);
++int av_demuxe_hls_segment(AVFormatContext *, int, int64_t, int64_t, struct AVDemuxeSegment *);
++int av_demuxe_dash_representation(AVFormatContext *, int, struct AVDemuxeRepresentation *);
++int av_demuxe_dash_segment(AVFormatContext *, int, int64_t, int64_t, struct AVDemuxeSegment *);
++#endif

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Build the optional FLAC preparation profile from the SAME locked FFmpeg sources.
+"""Build the optional FLAC/Opus preparation profile from its published FFmpeg pin.
 Does not install or replace any served engine. Use a fresh output per qualification.
 """
 import argparse,hashlib,json,os,pathlib,subprocess,tarfile,time,shutil
@@ -8,10 +8,10 @@ root=pathlib.Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);p.add_argument('--sdk',type=pathlib.Path,required=True);p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--resume',action='store_true');p.add_argument('--opus',action='store_true');p.add_argument('--first-fragment-seconds',type=float,default=0.5);p.add_argument('--flac-level',type=int,default=5);p.add_argument('--libraries-only',action='store_true');a=p.parse_args()
 assert 0.05<=a.first_fragment_seconds<=0.5 and 0<=a.flac_level<=8,'Invalid experimental encoder/fragment setting'
 out=a.output.resolve();sdk=a.sdk.resolve();archive=a.archive.resolve();digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-lock=next(x for x in json.loads((root/'sources.lock.json').read_text())['sources'] if x['name']=='ffmpeg')
+lock=next(x for x in json.loads((root/'sources.lock.json').read_text())['sources'] if x['name']=='ffmpeg-adaptation')
 assert digest(archive)==lock['sha256'],'FFmpeg archive differs from lock'
 assert json.loads((sdk/'upstream/emscripten/emscripten-version.txt').read_text())=='4.0.14','SDK version mismatch'
-patches=sorted((root/'patches/ffmpeg').glob('*.patch'));inputs={'ffmpeg':lock,'patches':{str(x.relative_to(root)):digest(x) for x in patches},'sdk':'4.0.14'}
+patches=sorted((root/'patches/ffmpeg-adaptation').glob('*.patch'));inputs={'ffmpeg':lock,'patches':{str(x.relative_to(root)):digest(x) for x in patches},'sdk':'4.0.14'}
 if a.opus:inputs['opus']='FFmpeg native experimental Opus encoder; explicit lossy policy only'
 if a.resume:
  assert json.loads((out/'inputs.json').read_text())==inputs,'Resume inputs changed'
@@ -30,7 +30,7 @@ if source_record.exists() and json.loads(source_record.read_text())!=source_hash
 config=out/'emscripten.config';config.write_text(f"LLVM_ROOT = {str(sdk/'upstream/bin')!r}\nBINARYEN_ROOT = {str(sdk/'upstream')!r}\nNODE_JS = {subprocess.check_output(['which','node'],text=True).strip()!r}\nCACHE = {str(out/'cache')!r}\n")
 env={**os.environ,'EM_CONFIG':str(config),'PATH':str(sdk/'upstream/emscripten')+os.pathsep+os.environ['PATH'],'SOURCE_DATE_EPOCH':'1740000000'}
 if not (obj/'Makefile').exists():
- args=[str(source/'configure'),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm','--disable-everything','--disable-avdevice','--disable-avfilter','--disable-swscale','--disable-swresample','--disable-postproc','--enable-avformat','--enable-avcodec','--enable-avutil','--enable-pthreads','--enable-demuxers','--enable-muxer=mp4,webm','--enable-parsers','--enable-bsfs','--enable-decoder=pcm_s16le,pcm_s24le,pcm_s32le,flac,dca','--enable-encoder='+('flac,opus' if a.opus else 'flac'),'--extra-cflags=-O2 -pthread -msimd128 -ffile-prefix-map='+str(out)+'=/demuxe-adaptation','--extra-ldflags=-pthread']
+ args=[str(source/'configure'),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm','--disable-everything','--disable-avdevice','--disable-avfilter','--disable-swscale','--disable-swresample','--enable-avformat','--enable-avcodec','--enable-avutil','--enable-pthreads','--enable-demuxers','--enable-muxer=mp4,webm','--enable-parsers','--enable-bsfs','--enable-decoder=pcm_s16le,pcm_s24le,pcm_s32le,flac,dca','--enable-encoder='+('flac,opus' if a.opus else 'flac'),'--extra-cflags=-O2 -pthread -msimd128 -ffile-prefix-map='+str(out)+'=/demuxe-adaptation','--extra-ldflags=-pthread']
  subprocess.run(args,cwd=obj,env=env,check=True)
 subprocess.run(['make','-j4'],cwd=obj,env=env,check=True)
 if source_record.exists() and json.loads(source_record.read_text())!=source_hashes():raise SystemExit('Preferred FFmpeg sources changed while building')

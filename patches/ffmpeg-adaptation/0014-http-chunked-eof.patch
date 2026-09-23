@@ -1,0 +1,37 @@
+--- a/libavformat/http.c
++++ b/libavformat/http.c
+@@ -1730,7 +1730,7 @@
+ 
+             do {
+                 if ((err = http_get_line(s, line, sizeof(line))) < 0)
+-                    return err;
++                    return err == AVERROR_EOF ? AVERROR(EIO) : err;
+             } while (!*line);    /* skip CR LF from last chunk */
+ 
+             s->chunksize = strtoull(line, NULL, 16);
+@@ -1746,6 +1746,7 @@
+             }
+             else if (!s->chunksize) {
+                 av_log(h, AV_LOG_DEBUG, "Last chunk received, closing conn\n");
++                s->chunkend = 1;
+                 ffurl_closep(&s->hd);
+                 return 0;
+             }
+@@ -1773,6 +1774,8 @@
+         if (s->off == target_end && target_end < file_end)
+             return AVERROR(EAGAIN); /* reached end of content range */
+         len = ffurl_read(s->hd, buf, size);
++        if ((!len || len == AVERROR_EOF) && s->chunksize != UINT64_MAX && s->chunksize)
++            return AVERROR(EIO);
+         if ((!len || len == AVERROR_EOF) &&
+             (!s->willclose || s->chunksize == UINT64_MAX) && s->off < target_end) {
+             av_log(h, AV_LOG_ERROR,
+@@ -1837,7 +1840,7 @@
+     int conn_attempts = 1;
+ 
+     if (!s->hd)
+-        return s->off < s->filesize ? AVERROR(EIO) : AVERROR_EOF;
++        return s->chunkend || s->off >= s->filesize ? AVERROR_EOF : AVERROR(EIO);
+ 
+     if (s->end_chunked_post && !s->end_header) {
+         err = http_read_header(h);

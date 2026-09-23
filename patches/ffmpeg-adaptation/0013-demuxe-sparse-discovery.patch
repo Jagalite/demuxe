@@ -1,0 +1,296 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -138,6 +138,7 @@
+ 
+     /* Currently active Media Initialization Section */
+     struct segment *cur_init_section;
++    int demuxe_init_only;
+     uint8_t *init_sec_buf;
+     unsigned int init_sec_buf_size;
+     unsigned int init_sec_data_len;
+@@ -246,6 +247,7 @@
+     int http_seekable;
+     int seg_max_retry;
+     int strict_io;
++    int demuxe_sparse;
+     AVIOContext *playlist_pb;
+     HLSCryptoContext  crypto_ctx;
+ } HLSContext;
+@@ -1564,6 +1566,7 @@
+     static const int max_init_section_size = 1024*1024;
+     HLSContext *c = pls->parent->priv_data;
+     int64_t sec_size;
++    int unknown_size = 0;
+     int64_t urlsize;
+     int ret;
+ 
+@@ -1587,19 +1590,26 @@
+         sec_size = seg->init_section->size;
+     else if ((urlsize = avio_size(pls->input)) >= 0)
+         sec_size = urlsize;
+-    else
++    else {
+         sec_size = max_init_section_size;
++        unknown_size = 1;
++    }
+ 
+     av_log(pls->parent, AV_LOG_DEBUG,
+            "Downloading an initialization section of size %"PRId64"\n",
+            sec_size);
+ 
+-    sec_size = FFMIN(sec_size, max_init_section_size);
+-
+-    av_fast_malloc(&pls->init_sec_buf, &pls->init_sec_buf_size, sec_size);
++    if (sec_size > max_init_section_size) return AVERROR(ENOBUFS);
++    int wanted = sec_size + unknown_size;
++
++    av_fast_malloc(&pls->init_sec_buf, &pls->init_sec_buf_size, wanted);
++    if (!pls->init_sec_buf) return AVERROR(ENOMEM);
+ 
+     ret = read_from_url(pls, seg->init_section, pls->init_sec_buf,
+-                        pls->init_sec_buf_size);
++                        wanted);
++    av_log(pls->parent, AV_LOG_TRACE, "Demuxe init read: wanted=%d got=%d unknown=%d error=%d\n", wanted, ret, unknown_size, pls->input->error);
++    if (ret > max_init_section_size) ret = AVERROR(ENOBUFS);
++    if (!unknown_size && ret >= 0 && ret < sec_size) ret = AVERROR_INVALIDDATA;
+     // A short positive read can carry an underlying transport failure.
+     if (c->strict_io && pls->input->error < 0 &&
+         pls->input->error != AVERROR_EOF)
+@@ -1758,6 +1768,17 @@
+     int just_opened = 0;
+     int segment_retries = 0;
+     struct segment *seg;
++
++    if (v->demuxe_init_only) {
++        ret = update_init_section(v, current_segment(v));
++        if (ret < 0) return ret;
++        int amount = FFMIN(v->init_sec_data_len - v->init_sec_buf_read_offset, buf_size);
++        if (!amount) return AVERROR_EOF;
++        memcpy(buf, v->init_sec_buf + v->init_sec_buf_read_offset, amount);
++        v->init_sec_buf_read_offset += amount;
++        return amount;
++    }
++
+ 
+     if (c->http_persistent && v->input_read_done) {
+         ret = reload_playlist(v, c);
+@@ -1839,7 +1860,7 @@
+     if (v->init_sec_buf_read_offset < v->init_sec_data_len) {
+         /* Push init section out first before first actual segment */
+         int copy_size = FFMIN(v->init_sec_data_len - v->init_sec_buf_read_offset, buf_size);
+-        memcpy(buf, v->init_sec_buf, copy_size);
++        memcpy(buf, v->init_sec_buf + v->init_sec_buf_read_offset, copy_size);
+         v->init_sec_buf_read_offset += copy_size;
+         return copy_size;
+     }
+@@ -2383,6 +2404,19 @@
+ 
+     av_dict_set(&c->seg_format_opts, "prefer_hls_mpegts_pts", "1", 0);
+ 
++    // Header discovery is finite and bounded. All selected audio/subtitle
++    // handling remains upstream; unselected video initialization is inspected
++    // without opening its media segments. Codec headers remain real, not hints.
++    struct playlist *demuxe_initial = NULL;
++    if (c->demuxe_sparse) {
++        if (c->n_variants > 16 || c->n_playlists > 32)
++            return AVERROR(ENOBUFS);
++        int lowest = 0;
++        for (int n = 1; n < c->n_variants; n++)
++            if (c->variants[n]->bandwidth < c->variants[lowest]->bandwidth)
++                lowest = n;
++        demuxe_initial = c->variants[lowest]->playlists[0];
++    }
+     /* Open the demuxer for each playlist */
+     for (i = 0; i < c->n_playlists; i++) {
+         struct playlist *pls = c->playlists[i];
+@@ -2400,6 +2434,16 @@
+         pls->index  = i;
+         pls->needed = 1;
+         pls->parent = s;
++        if (c->demuxe_sparse && pls != demuxe_initial) {
++            for (int n = 0; n < c->n_variants; n++) {
++                if (c->variants[n]->playlists[0] != pls) continue;
++                if (!pls->finished || !current_segment(pls)->init_section ||
++                    current_segment(pls)->key_type != KEY_NONE)
++                    return AVERROR(ENOSYS);
++                pls->demuxe_init_only = 1;
++            }
++        }
++
+ 
+         /*
+          * If this is a live stream and this playlist looks like it is one segment
+@@ -2579,6 +2623,17 @@
+             pls->main_streams[0]->discard = AVDISCARD_ALL;
+         }
+ 
++        if (pls->demuxe_init_only) {
++            if (pls->n_main_streams != 1 ||
++                pls->main_streams[0]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
++                return AVERROR(ENOSYS);
++            pls->main_streams[0]->discard = AVDISCARD_ALL;
++            pls->needed = 0;
++            pls->demuxe_init_only = 0;
++            avformat_flush(pls->ctx);
++            pls->pb.pub.eof_reached = 0;
++            pls->pb.pub.error = 0;
++        }
+         add_metadata_from_renditions(s, pls, AVMEDIA_TYPE_AUDIO);
+         add_metadata_from_renditions(s, pls, AVMEDIA_TYPE_VIDEO);
+         add_metadata_from_renditions(s, pls, AVMEDIA_TYPE_SUBTITLE);
+@@ -3046,6 +3101,8 @@
+ #define FLAGS AV_OPT_FLAG_DECODING_PARAM
+ static const AVOption hls_options[] = {
+     // Browser transport already owns retry/cancel/error classification.
++    {"demuxe_sparse", "Private bounded fMP4 initialization discovery",
++        OFFSET(demuxe_sparse), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, FLAGS},
+     {"strict_io", "Propagate resource failures instead of skipping segments",
+         OFFSET(strict_io), AV_OPT_TYPE_BOOL,
+ #ifdef __EMSCRIPTEN__
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -120,6 +120,7 @@
+ 
+     /* Currently active Media Initialization Section */
+     struct fragment *init_section;
++    int demuxe_init_only;
+     uint8_t *init_sec_buf;
+     uint32_t init_sec_buf_size;
+     uint32_t init_sec_data_len;
+@@ -163,6 +164,7 @@
+     int max_url_size;
+     int max_reload;
+     int strict_io;
++    int demuxe_sparse;
+     int continuous_fmp4;
+     char *cenc_decryption_key;
+     char *cenc_decryption_keys;
+@@ -1814,6 +1816,7 @@
+     static const int max_init_section_size = 1024 * 1024;
+     DASHContext *c = pls->parent->priv_data;
+     int64_t sec_size;
++    int unknown_size = 0;
+     int64_t urlsize;
+     int ret;
+ 
+@@ -1831,19 +1834,26 @@
+         sec_size = pls->init_section->size;
+     else if ((urlsize = avio_size(pls->input)) >= 0)
+         sec_size = urlsize;
+-    else
++    else {
+         sec_size = max_init_section_size;
++        unknown_size = 1;
++    }
+ 
+     av_log(pls->parent, AV_LOG_DEBUG,
+            "Downloading an initialization section of size %"PRId64"\n",
+            sec_size);
+ 
+-    sec_size = FFMIN(sec_size, max_init_section_size);
+-
+-    av_fast_malloc(&pls->init_sec_buf, &pls->init_sec_buf_size, sec_size);
++    if (sec_size > max_init_section_size) return AVERROR(ENOBUFS);
++    int wanted = sec_size + unknown_size;
++
++    av_fast_malloc(&pls->init_sec_buf, &pls->init_sec_buf_size, wanted);
++    if (!pls->init_sec_buf) return AVERROR(ENOMEM);
+ 
+     ret = read_from_url(pls, pls->init_section, pls->init_sec_buf,
+-                        pls->init_sec_buf_size);
++                        wanted);
++    av_log(pls->parent, AV_LOG_TRACE, "Demuxe init read: wanted=%d got=%d unknown=%d error=%d\n", wanted, ret, unknown_size, pls->input->error);
++    if (ret > max_init_section_size) ret = AVERROR(ENOBUFS);
++    if (!unknown_size && ret >= 0 && ret < sec_size) ret = AVERROR_INVALIDDATA;
+     // A short positive read can carry an underlying transport failure.
+     if (c->strict_io && pls->input->error < 0 &&
+         pls->input->error != AVERROR_EOF)
+@@ -1874,6 +1884,16 @@
+     int ret = 0;
+     struct representation *v = opaque;
+     DASHContext *c = v->parent->priv_data;
++    if (v->demuxe_init_only) {
++        ret = update_init_section(v);
++        if (ret < 0) return ret;
++        int amount = FFMIN(v->init_sec_data_len - v->init_sec_buf_read_offset, buf_size);
++        if (!amount) return AVERROR_EOF;
++        memcpy(buf, v->init_sec_buf + v->init_sec_buf_read_offset, amount);
++        v->init_sec_buf_read_offset += amount;
++        return amount;
++    }
++
+ 
+ restart:
+     if (!v->input) {
+@@ -1914,7 +1934,7 @@
+     if (v->init_sec_buf_read_offset < v->init_sec_data_len) {
+         /* Push init section out first before first actual fragment */
+         int copy_size = FFMIN(v->init_sec_data_len - v->init_sec_buf_read_offset, buf_size);
+-        memcpy(buf, v->init_sec_buf, copy_size);
++        memcpy(buf, v->init_sec_buf + v->init_sec_buf_read_offset, copy_size);
+         v->init_sec_buf_read_offset += copy_size;
+         ret = copy_size;
+         goto end;
+@@ -2035,7 +2055,7 @@
+     av_dict_free(&in_fmt_opts);
+     if (ret < 0)
+         goto fail;
+-    if (pls->n_fragments) {
++    if (pls->n_fragments && !pls->demuxe_init_only) {
+ #if FF_API_R_FRAME_RATE
+         if (pls->framerate.den) {
+             for (i = 0; i < pls->ctx->nb_streams; i++)
+@@ -2075,6 +2095,7 @@
+             return AVERROR(ENOMEM);
+ 
+         st->id = i + pls->stream_index;
++        if (pls->demuxe_init_only) st->discard = AVDISCARD_ALL;
+ 
+         ret = avcodec_parameters_copy(st->codecpar, ist->codecpar);
+         if (ret < 0)
+@@ -2206,9 +2227,22 @@
+     if(c->n_videos)
+         c->is_init_section_common_video = is_common_init_section_exist(c->videos, c->n_videos);
+ 
++    int demuxe_initial = 0;
++    if (c->demuxe_sparse) {
++        if (c->n_videos > 16 || c->n_videos + c->n_audios + c->n_subtitles > 32)
++            return AVERROR(ENOBUFS);
++        for (int n = 1; n < c->n_videos; n++)
++            if (c->videos[n]->bandwidth < c->videos[demuxe_initial]->bandwidth)
++                demuxe_initial = n;
++    }
+     /* Open the demuxer for video and audio components if available */
+     for (i = 0; i < c->n_videos; i++) {
+         rep = c->videos[i];
++        if (c->demuxe_sparse && i != demuxe_initial) {
++            if (c->is_live || !rep->init_section || rep->demuxe_protected)
++                return AVERROR(ENOSYS);
++            rep->demuxe_init_only = 1;
++        }
+         if (i > 0 && c->is_init_section_common_video) {
+             ret = copy_init_section(rep, c->videos[0]);
+             if (ret < 0)
+@@ -2318,6 +2352,13 @@
+         move_metadata(rep->assoc_stream[0], "language", &rep->lang);
+     }
+ 
++    for (int n = 0; n < c->n_videos; n++) {
++        if (c->videos[n]->demuxe_init_only &&
++            (c->videos[n]->nb_assoc_stream != 1 ||
++             c->videos[n]->assoc_stream[0]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO))
++            return AVERROR(ENOSYS);
++        c->videos[n]->demuxe_init_only = 0;
++    }
+     /* Create stream groups if needed */
+     for (i = 0; i < c->n_videos; i++) {
+         struct representation *ref;
+@@ -2585,6 +2626,8 @@
+     {"continuous_fmp4", "Keep the VOD fMP4 demuxer across segment boundaries",
+         OFFSET(continuous_fmp4), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, FLAGS},
+     // Browser transport already owns retry/cancel/error classification.
++    {"demuxe_sparse", "Private bounded fMP4 initialization discovery",
++        OFFSET(demuxe_sparse), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, FLAGS},
+     {"strict_io", "Propagate resource failures instead of skipping segments",
+         OFFSET(strict_io), AV_OPT_TYPE_BOOL,
+ #ifdef __EMSCRIPTEN__

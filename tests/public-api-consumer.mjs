@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';import http from 'node:http';import path from 'node:path';import {mkdtemp,mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
 const family=process.env.BROWSER||'chrome',stamp=new Date().toISOString().replaceAll(':','-'),out=`results/public-api-consumer/${family}-${stamp}`;await mkdir(out,{recursive:true});console.log(out);
-const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-2/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/public-api-consumer-'));await writeFile(path.join(root,'package.json'),'{"type":"module","private":true}\n');
+const archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.4.tgz');const root=await mkdtemp(path.resolve('build/public-api-consumer-'));await writeFile(path.join(root,'package.json'),'{"type":"module","private":true}\n');
 execFileSync('npm',['install','--offline','--ignore-scripts','--no-audit','--no-fund',archive],{cwd:root,env:{...process.env,npm_config_cache:path.join(root,'npm-cache')},stdio:'pipe'});
 const cli=path.join(root,'node_modules/demuxe/bin/demuxe.mjs');for(const base of ['assets/demuxe','deep/runtime-v2'])execFileSync(process.execPath,[cli,path.basename('copy-assets'),path.join(root,base)],{stdio:'pipe'});
 await writeFile(path.join(root,'assets/demuxe/unrelated.txt'),'retain me');execFileSync(process.execPath,[cli,'copy-assets',path.join(root,'assets/demuxe')],{stdio:'pipe'});assert.equal(await readFile(path.join(root,'assets/demuxe/unrelated.txt'),'utf8'),'retain me');

@@ -1,0 +1,23 @@
+--- a/libavformat/mov.c
++++ b/libavformat/mov.c
+@@ -11819,6 +11819,9 @@
+             if (should_retry(sc->pb, ret64)) {
+                 mov_current_sample_dec(sc);
+             } else if (ret64 < 0) {
++                if (ret64 == AVERROR_EOF &&
++                    (s->error_recognition & AV_EF_EXPLODE))
++                    return AVERROR_INVALIDDATA;
+                 return (int)ret64;
+             }
+             return AVERROR_INVALIDDATA;
+@@ -11880,6 +11883,10 @@
+             if (should_retry(sc->pb, ret)) {
+                 mov_current_sample_dec(sc);
+             }
++            // A sample exists in the index: EOF while reading its payload is
++            // truncation, not the no-more-samples EOF above.
++            if (ret == AVERROR_EOF && (s->error_recognition & AV_EF_EXPLODE))
++                return AVERROR_INVALIDDATA;
+             return ret;
+         }
+ #if CONFIG_DV_DEMUXER

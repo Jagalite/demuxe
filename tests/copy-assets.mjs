@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import {createHash} from 'node:crypto';import assert from 'node:assert/strict';import {mkdtemp,readFile,writeFile,mkdir,symlink} from 'node:fs/promises';import path from 'node:path';import {execFileSync} from 'node:child_process';
-const archive=path.resolve(process.env.BETA_ARCHIVE||'build/public-api-candidate-4/demuxe-0.3.0-beta.3.tgz');const root=await mkdtemp(path.resolve('build/copy-qualification-'));execFileSync('tar',['-xzf',archive,'-C',root]);const pkg=path.join(root,'package'),cli=path.join(pkg,'bin/demuxe.mjs');
+const archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.4.tgz');const root=await mkdtemp(path.resolve('build/copy-qualification-'));execFileSync('tar',['-xzf',archive,'-C',root]);const pkg=path.join(root,'package'),cli=path.join(pkg,'bin/demuxe.mjs');
 const run=dest=>execFileSync(process.execPath,[cli,'copy-assets',dest],{encoding:'utf8',stdio:'pipe'});
 const failure=dest=>{try{run(dest);assert.fail('Expected copy rejection');}catch(error){return String(error.stderr||error);}};
 test('copy preserves unrelated files and is repeatable',async()=>{const dir=path.join(root,'success');await mkdir(dir);await writeFile(path.join(dir,'host.txt'),'owned by consumer');run(dir);run(dir);assert.equal(await readFile(path.join(dir,'host.txt'),'utf8'),'owned by consumer');const m=JSON.parse(await readFile(path.join(dir,'demuxe-runtime.json')));assert.ok(m.files['web/engine-hybrid/player.wasm']);assert.ok(m.files['third_party/notices.json']);assert.ok(m.files['web/vendor/shaka-player.js']);assert.ok(m.files['web/vendor/shaka-player.transmuxer-worker.js']);assert.ok(m.files['third_party/shaka-player.json']);});
@@ -68,9 +68,10 @@ with tarfile.open(sys.argv[1]) as archive:
 });
 
 
-test('package ships only the maintained standard Wasm engines',async()=>{
+test('package ships the maintained LGPL standard engines and subtitle service',async()=>{
  const manifest=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));
- assert.deepEqual(Object.keys(manifest.engines).sort(),['hybrid','remux','software']);
+ assert.deepEqual(Object.keys(manifest.engines).sort(),['hybrid','remux','software','subtitles']);
+ assert.ok(manifest.files['web/engine-subtitles/service.wasm']);
 });
 
 test('upgrade removes only unchanged obsolete managed assets',async()=>{

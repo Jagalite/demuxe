@@ -14,7 +14,7 @@ Apache-2.0. It does not describe every bundled file.
 | Original browser AO, browser decoder, private mpv subtitle/render integration and their internal ABI headers | LGPL-2.1-or-later; these translation units are part of the LGPL engine build |
 | Modified mpv v0.40.0 built with `-Dgpl=false` | LGPL-2.1-or-later and individual upstream file notices |
 | Modified FFmpeg n7.1.1 built with `CONFIG_GPL=0`, `CONFIG_NONFREE=0`, `CONFIG_POSTPROC=0` | LGPL-2.1-or-later and individual upstream file notices |
-| Optional audio-preparation Wasm (original Apache remux wrapper plus LGPL FFmpeg) | LGPL-2.1-or-later for the linked engine; original wrapper retains Apache-2.0 |
+| Optional audio-preparation Wasm (original Apache remux wrapper plus locked FFmpeg n9.0.1) | LGPL-2.1-or-later for the linked engine; original wrapper retains Apache-2.0 |
 | Optional Native ASS Wasm (original Apache wrapper, libass, FriBidi, FreeType and HarfBuzz) | LGPL-2.1-or-later for the linked engine through FriBidi; component notices retain their individual terms |
 | Original Demuxe reports, documentation and result data | CC-BY-4.0, except copied source and third-party material |
 | Historical source, patches, fonts, media and other dependencies | Existing notices and grants; see the boundary map and notice inventory |

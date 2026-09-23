@@ -100,7 +100,7 @@ if args.adaptation_build:
   archive.add(source_root,arcname='ffmpeg')
   archive.add(adaptation/'sources',arcname='demuxe')
   source_checkout=pathlib.Path(next(k for k in record['files'] if k.endswith('/native/remux/remux.c'))).parents[2]
-  for name in ['patches/ffmpeg','sources.lock.json','toolchain.lock.json']:
+  for name in ['patches/ffmpeg','patches/ffmpeg-adaptation','sources.lock.json','toolchain.lock.json']:
    archive.add(source_checkout/name,arcname='demuxe/'+name)
   archive.add(adaptation/'manifest.json',arcname='build-manifest.json')
   for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)

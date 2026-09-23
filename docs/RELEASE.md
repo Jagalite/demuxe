@@ -157,7 +157,9 @@ hashes alongside the standard source companion. See
 [Runtime assets](RUNTIME-ASSETS.md) for the pinned builds and asset-copy contract.
 The adaptation build must retain the published FLAC and explicit Opus profiles
 (`--opus`, 0.5-second first fragments, FLAC level 5); compare its manifest with
-the prior archive before release.
+the prior archive before release. It uses the separate published FFmpeg n9.0.1
+pin and `patches/ffmpeg-adaptation/`, while the complete Software/Hybrid engine
+uses FFmpeg n7.1.1.
 
 Run the optional matrix against the immutable tagged archive:
 

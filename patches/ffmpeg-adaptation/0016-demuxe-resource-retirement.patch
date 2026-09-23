@@ -1,0 +1,77 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -39,6 +39,7 @@
+ #include "libavutil/opt.h"
+ #include "libavutil/dict.h"
+ #include "libavutil/time.h"
++#include "libavutil/tree.h"
+ #include "avformat.h"
+ #include "demux.h"
+ #include "demuxe.h"
+@@ -252,6 +253,8 @@
+     int http_persistent;
+     int http_multiple;
+     int http_seekable;
++    void (*demuxe_retire)(void *,const char *);
++    void *demuxe_retire_opaque;
+     int seg_max_retry;
+     int strict_io;
+     int demuxe_sparse;
+@@ -833,6 +836,31 @@
+     return 0;
+ }
+ 
++/* Retire validator records only after the authoritative manifest owner drops
++ * every reference to a resource. Open AVIO handles retain their own validators.
++ * An allocation failure keeps old identities; it never weakens consistency. */
++static int demuxe_resource_compare(const void *a,const void *b){return strcmp(a,b);}
++static void demuxe_retire_segments(HLSContext *c,struct segment **old,int count)
++{
++    if(!c->demuxe_retire)return;
++    struct AVTreeNode *root=NULL,*node=NULL;
++    for(int p=0;p<c->n_playlists;p++)for(int i=0;i<c->playlists[p]->n_segments;i++){
++        struct segment *seg=c->playlists[p]->segments[i];
++        const char *urls[]={seg->url,seg->init_section?seg->init_section->url:NULL};
++        for(int k=0;k<2;k++)if(urls[k]){
++            if(!node && !(node=av_tree_node_alloc()))goto done;
++            av_tree_insert(&root,(void*)urls[k],demuxe_resource_compare,&node);
++        }
++    }
++    for(int i=0;i<count;i++){
++        const char *urls[]={old[i]->url,old[i]->init_section?old[i]->init_section->url:NULL};
++        for(int k=0;k<2;k++)if(urls[k]&&!av_tree_find(root,urls[k],demuxe_resource_compare,NULL))
++            c->demuxe_retire(c->demuxe_retire_opaque,urls[k]);
++    }
++done:
++    av_free(node);av_tree_destroy(root);
++}
++
+ static int parse_playlist(HLSContext *c, const char *url,
+                           struct playlist *pls, AVIOContext *in)
+ {
+@@ -1204,6 +1232,7 @@
+             av_log(c->ctx, AV_LOG_WARNING, "Media sequence changed unexpectedly: %"PRId64" -> %"PRId64"\n",
+                    prev_start_seq_no, pls->start_seq_no);
+         }
++        demuxe_retire_segments(c,prev_segments,prev_n_segments);
+         free_segment_dynarray(prev_segments, prev_n_segments);
+         av_freep(&prev_segments);
+     }
+@@ -3484,3 +3513,9 @@
+     out->known=1;out->start_us=p->demuxe_window_start;out->end_us=end;
+     return 0;
+ }
++
++int av_demuxe_hls_retirement(AVFormatContext *s,void (*callback)(void *,const char *),void *opaque)
++{
++    if(!s||!s->iformat||strcmp(s->iformat->name,"hls"))return AVERROR(EINVAL);
++    HLSContext *c=s->priv_data;c->demuxe_retire=callback;c->demuxe_retire_opaque=opaque;return 0;
++}
+--- a/libavformat/demuxe.h
++++ b/libavformat/demuxe.h
+@@ -37,4 +37,5 @@
+ int av_demuxe_hls_refresh(AVFormatContext *, int);
+ int av_demuxe_hls_component(AVFormatContext *, int, struct AVDemuxeRepresentation *);
+ int av_demuxe_hls_handoff(AVFormatContext *);
++int av_demuxe_hls_retirement(AVFormatContext *,void (*)(void *,const char *),void *);
+ #endif
