@@ -129,7 +129,7 @@ The [exploratory pass-cell CPU report](results/head-to-head/passing-cell-cpu-exp
 **These are bounded playback tests, not a format-support scorecard.** Movi
 0.4.0 and AVPlayer 1.3.1 are pinned versions. Their correctness cells below use
 [fresh default and configured-route tests](results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md).
-This supplemental campaign adds CPU values only to previously blank green pass cells; existing CPU values remain from their original campaigns. Except for the PCM24+ASS follow-up below, previously measured Demuxe auto and competitor values retain the earlier campaign; configured competitor reruns collected no CPU data. Forced software CPU values elsewhere are from the separate campaign linked above.
+The pass-cell supplemental campaign adds CPU values only to previously blank green pass cells; existing CPU values remain from their original campaigns. The PCM24+ASS follow-up and routing-isolation supplement below have their own matched campaigns. Configured competitor reruns collected no CPU data. Forced software CPU values elsewhere are from the separate campaign linked above.
 
 For Movi and AVPlayer, **🟣 configured pass** means an explicitly named alternative
 passed while the default failed a named check. **🟠 Plays; … failed** means initial
@@ -186,6 +186,17 @@ MPEG-2 + AC-3 and AC-3/E-AC-3/DTS 5.1 controls. These values have no † marker.
 Movi passed the HEVC 4:2:2 correctness screen, but all three CPU windows stalled,
 so that cell has no steady-playback CPU value. The linked report retains ranges,
 actual routes and failed-window records.
+
+The [performance-opportunity investigation](experiments/performance-opportunities/REPORT.md)
+adds separate matched MPEG-2 + AC-3 and HEVC Main10 + AC-3/E-AC-3/DTS
+comparisons, route traces, and small audio-copy and text-cue probes. Its
+MPEG-2 four-arm rerun did not reproduce the large apparent Movi advantage from
+older, mixed campaigns; Demuxe auto and forced Software selected the same
+Software route. The HEVC audio controls did not establish a material AVPlayer
+advantage or isolate mpv audio CPU. These runs use their own frozen fixtures
+and harnesses, so their medians do not replace or combine with the matrix
+cells below. Component CPU attribution and discrete-channel fidelity remain
+open for the proposed audio-service architecture.
 
 | Media format | Native video | Demuxe (auto) | Demuxe (forced software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
 | --- | --- | --- | --- | --- | --- |
