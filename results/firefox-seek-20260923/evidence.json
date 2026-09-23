@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "license": "CC-BY-4.0",
+  "baseCommit": "5ed5b883f66edacb593cfcfb1efa05949152ca13",
+  "scope": "Focused buffered Native seek fix; headless desktop Firefox and Chrome, local fixtures, existing RC7 LGPL engines. Not release qualification or a complete playback catalogue.",
+  "results": {
+    "unguarded-firefox.json": {
+      "originalPath": "results/optimization-final/fractional-firefox-1790164311425/result.json",
+      "sha256": "9b94562696e70add0e6b3948b035c777f7dba01742d99d45a4cdb8e0de3bd299"
+    },
+    "baseline-firefox.json": {
+      "originalPath": "results/optimization-final/fractional-firefox-1790165467576/result.json",
+      "sha256": "f6cfd0e9d64ea505ff83b1d85f18a3eb906993ee0cc1cf179e00779ef8bde162"
+    },
+    "candidate-firefox.json": {
+      "originalPath": "results/optimization-final/fractional-firefox-1790165343765/result.json",
+      "sha256": "51a3386f8c5d14499e6d5b394902e95b1c2f8542f58e6ca70dbd8bb70bb5bfd5"
+    },
+    "candidate-chrome.json": {
+      "originalPath": "results/optimization-final/fractional-chrome-1790165397180/result.json",
+      "sha256": "8086b6784929060bb20c248ccece35ec7c773c9a1950fa8037138390067d3781"
+    }
+  },
+  "candidateSources": {
+    "src/internal/native-player.ts": "fc37cdcb3e8a448166bcfd1d6e002bffa2f210245d921a57f215f92fc265f03b",
+    "web/native-remux-player.js": "ac7ded18e9d5463b04b05dd9d5c2ab7f4ea544fcb729fd26de78277b15a51f82",
+    "web/generated/internal/native-player.js": "d6db866192662201c40d8a29e854724c6eed2c5a0921f1f7b83c4de76e6a9545",
+    "web/generated/internal/native-ass.js": "d1c722b8ef2aea3c64d6a80bf7a6618c1e0209c6cf83d1832b4f2af597e99afc",
+    "tests/native-fractional-seek.mjs": "2fc793a38d4de16651e0982d6d65f0f6777d4ae797a3603bf2a558839d4ca835",
+    "tests/native-seek-frame-race.mjs": "6eb6326fe7c589c284851f3795d7b7aa1275c10a48c1ad4a2c7bf1f9d14a93ab",
+    "scripts/serve.mjs": "2da4c317b6280ccc68f7604f40c53139935e7ffccabaec1bbf1379f221942b81"
+  },
+  "baselineSources": {
+    "web/native-remux-player.js": "465fbc5b60de4211e3cd0f4ed4227aeb3a13efc7397922b9b0522143b992e315",
+    "web/generated/internal/native-player.js": "16d87fa13342b04a48c25b4d221b6db0773b19cc123f78856ac921eb83184458",
+    "web/generated/internal/native-ass.js": "d1c722b8ef2aea3c64d6a80bf7a6618c1e0209c6cf83d1832b4f2af597e99afc"
+  },
+  "baselineMatchesBaseCommit": {
+    "web/native-remux-player.js": true,
+    "web/generated/internal/native-player.js": true,
+    "web/generated/internal/native-ass.js": true
+  },
+  "fixtures": {
+    "build/optimization-fixtures/automatic-lossless.mkv": "c78d406f5820ee91d64dbf7c01b35c3b8cf1111d0566475f702a37ba216333f1",
+    "build/optimization-fixtures/low-fps-inter.mkv": "96cd860f0c35e5c6c7679a044427d80e2eced38dc03aae3a8f11611cd58540f9",
+    "build/optimization-fixtures/gain.mp4": "85605caf64cce7b2699d98a7960dc3e8dcf388ce44f0012e6d3b85c6a629c528",
+    "build/optimization-fixtures/long-pcm.mkv": "99fe48eff5459bcf6cc63cef2b3a937899c74b4933b7c9d98fce1c160863542c",
+    "fixtures/qualification.ass": "df83ce0669ee7746335f33e75f72193a1ef0771168b45615a1debfcce3cbb78c",
+    "fixtures/DejaVuSans.ttf": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954"
+  },
+  "candidateEngines": {
+    "web/engine-remux/remux.mjs": "4192bd76349e4770431b2d632407a7a1e62ed42ff028861fb1411fb8355a8d08",
+    "web/engine-remux/remux.wasm": "ed90ccf81f3ff21e836c61358b67ae79d1be6d70ae30a3c40a5c4b9f29d5c830",
+    "web/engine-adaptation/remux.mjs": "dd8a8df307cf92e5a6cfc77860e532fb5455e1539826e5311be8041d7ba67e9d",
+    "web/engine-adaptation/remux.wasm": "15ced96aa7621a5d2dbdb97b5fe19581dc4fc683f20f8d4eaa18c50bd04f6aad",
+    "web/engine-ass/subtitles.mjs": "7ab99ecaf58c32aaf31d3a081fb02d2d5ac5d8dfbdcc7d90a1cd06244aff2585",
+    "web/engine-ass/subtitles.wasm": "af6deff1a3887eca15a5ae0b45d4e763d8205289265ef8f9cacbceebb99b7441"
+  },
+  "baselineEngines": {
+    "web/engine-remux/remux.mjs": "4192bd76349e4770431b2d632407a7a1e62ed42ff028861fb1411fb8355a8d08",
+    "web/engine-remux/remux.wasm": "ed90ccf81f3ff21e836c61358b67ae79d1be6d70ae30a3c40a5c4b9f29d5c830",
+    "web/engine-adaptation/remux.mjs": "dd8a8df307cf92e5a6cfc77860e532fb5455e1539826e5311be8041d7ba67e9d",
+    "web/engine-adaptation/remux.wasm": "15ced96aa7621a5d2dbdb97b5fe19581dc4fc683f20f8d4eaa18c50bd04f6aad",
+    "web/engine-ass/subtitles.mjs": "7ab99ecaf58c32aaf31d3a081fb02d2d5ac5d8dfbdcc7d90a1cd06244aff2585",
+    "web/engine-ass/subtitles.wasm": "af6deff1a3887eca15a5ae0b45d4e763d8205289265ef8f9cacbceebb99b7441"
+  },
+  "baselineHarness": {
+    "sha256": "ca751fb7df3fc12b1bfdfbd2a63f66976cb5a1b3ef6fde76be2a21641fc99ffe",
+    "source": "// SPDX-License-Identifier: Apache-2.0\nimport {chromium,firefox} from 'playwright';\nimport {spawn} from 'node:child_process';\nimport {mkdir,writeFile} from 'node:fs/promises';\nimport assert from 'node:assert/strict';\nconst family=process.env.BROWSER||'chrome',out=`results/optimization-final/fractional-${family}-${Date.now()}`;await mkdir(out,{recursive:true});\nconst server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});\nconst origin=await new Promise((r,j)=>{const t=setTimeout(()=>j(Error('server timeout')),10000);server.stdout.on('data',b=>{const m=String(b).match(/http:\\/\\/127\\.0\\.0\\.1:\\d+/);if(m){clearTimeout(t);r(m[0]);}})});\nconst browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const result={browser:browser.version(),cases:[]};\ntry{for(let trial=0;trial<3;trial++){\n const page=await browser.newPage(),item={trial};result.cases.push(item);\n try{\n  await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async()=>{\n   await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalNativeASS:true,audioGain:.5,experimentalBufferedNativeSeeks:true});\n   window.trace=[];const fn=HTMLVideoElement.prototype.requestVideoFrameCallback;HTMLVideoElement.prototype.requestVideoFrameCallback=function(cb){return fn.call(this,(now,m)=>{const r=player.current?.backend?.remux;trace.push({mediaTime:m.mediaTime,currentTime:this.currentTime,seeking:this.seeking,expected:r?.expectedVideoFrame?.(window.target),target:window.target,generation:r?.generation,paused:this.paused});if(trace.length>100)trace.shift();cb(now,m)});};\n   const i=document.createElement('input');i.id='file';i.type='file';document.body.append(i);\n  });await page.locator('#file').setInputFiles('build/optimization-fixtures/automatic-lossless.mkv');\n  await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0]);await player.addSubtitle(new File([await(await fetch('/fixtures/qualification.ass')).arrayBuffer()],'qualification.ass'));await player.play()});\n  await page.waitForFunction(()=>player.state.currentTime>5.3);\n  item.seeks=await page.evaluate(async()=>{const results=[];for(const t of [6.300974,6.3326,6.3331,3.2501,4.9999,6.3001]){window.target=t;trace.length=0;const b=player.current.backend,r=b.remux,w=r.worker,m=r.media,s=r.sb;const buffered=r.canSeekBuffered(t),expected=r.expectedVideoFrame(t),frames=r.frames.filter(([pts])=>Math.abs(pts-t)<.1);const started=performance.now();let error;try{await player.seek(t);}catch(e){error=e.message;}results.push({elapsedMs:performance.now()-started,t,error,buffered,expected,frames,trace:trace.slice(),same:b===player.current.backend&&w===r.worker&&m===r.media&&s===r.sb,time:player.state.currentTime,playing:!player.surface.paused});if(error)break;await new Promise(r=>setTimeout(r,80));}return results;});\n  for(const s of item.seeks){assert.equal(s.error,undefined);assert.equal(s.same,s.buffered);assert.equal(s.playing,true);}item.passed=true;\n }catch(e){item.error=String(e.stack);process.exitCode=1;}\n finally{await page.evaluate(()=>player.destroy()).catch(()=>{});await page.waitForTimeout(100);item.workers=page.workers().length;assert.equal(item.workers,0);await page.close();console.log(trial,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\\n');}\n}}finally{await browser.close();server.kill();console.log(out)}\n",
+    "modification": "Original native-fractional-seek.mjs at baseCommit with performance.now() immediately around player.seek; acceptance assertions unchanged. Served baselineSources using DEMUXE_RUNTIME_ROOT."
+  },
+  "additionalChecks": [
+    {
+      "command": "BROWSER=firefox CASES=low-fps node tests/optimization-review-regressions.mjs",
+      "harnessSHA256": "08aba0719bcac21a73f73fa31ccc8a36cb36627f795eeb7767b8d1445152841b",
+      "browser": "146.0.1",
+      "originalResult": "results/optimization-integration/stage3/regressions-firefox-1790165494562/result.json",
+      "originalResultSHA256": "87632f82729f4f21148c4a0390bc041542d7add8c87a528fa930acf89506e5eb",
+      "derivedSummary": true,
+      "cases": [
+        {
+          "kind": "low-fps",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "command": "BROWSER=chrome CASES=low-fps node tests/optimization-review-regressions.mjs",
+      "harnessSHA256": "08aba0719bcac21a73f73fa31ccc8a36cb36627f795eeb7767b8d1445152841b",
+      "browser": "153.0.8010.53",
+      "originalResult": "results/optimization-integration/stage3/regressions-chrome-1790165527600/result.json",
+      "originalResultSHA256": "23b462bcc47f97a8970396cbbb4d5b090694357c287b4f15d8fdaf18e4678278",
+      "derivedSummary": true,
+      "cases": [
+        {
+          "kind": "low-fps",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "command": "BROWSER=firefox CASES=direct,remux,flac node tests/native-ass.mjs",
+      "harnessSHA256": "f79bd3a697665a606457f851b9b594632f3b3da559f8120b5697bb0e803ef300",
+      "browser": "146.0.1",
+      "originalResult": "results/optimization-completion/ass-firefox-1790165498253/result.json",
+      "originalResultSHA256": "ac6f3bd5d2e32540348208d4b96af74b6651b55641a7805cb51bb80dfc3fbdbf",
+      "derivedSummary": true,
+      "cases": [
+        {
+          "kind": "direct",
+          "passed": true
+        },
+        {
+          "kind": "remux",
+          "passed": true
+        },
+        {
+          "kind": "flac",
+          "passed": true
+        },
+        {
+          "kind": "destroy-during-wasm-load",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "command": "BROWSER=chrome CASES=direct,remux,flac node tests/native-ass.mjs",
+      "harnessSHA256": "f79bd3a697665a606457f851b9b594632f3b3da559f8120b5697bb0e803ef300",
+      "browser": "153.0.8010.53",
+      "originalResult": "results/optimization-completion/ass-chrome-1790165530438/result.json",
+      "originalResultSHA256": "c6dec31bf858d072e48696112440f17899f62820054d65400276d552d9c5d192",
+      "derivedSummary": true,
+      "cases": [
+        {
+          "kind": "direct",
+          "passed": true
+        },
+        {
+          "kind": "remux",
+          "passed": true
+        },
+        {
+          "kind": "flac",
+          "passed": true
+        },
+        {
+          "kind": "destroy-during-wasm-load",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "nodeChecks": {
+    "command": "node --test tests/native-seek-frame-race.mjs tests/remux-buffering.mjs tests/seek-boundary-contracts.mjs",
+    "passed": 33,
+    "failed": 0
+  },
+  "timing": {
+    "scope": "Six matched post-restart playing seeks per variant, targets 4.9999 and 6.3001 seconds, three trials; elapsed public seek completion, sequential runs, no CPU/memory or general benchmark claim.",
+    "baselineMedianMs": 251.5399999999995,
+    "candidateMedianMs": 42.25,
+    "baselineRetainedSessions": 0,
+    "candidateRetainedSessions": 6,
+    "candidateRetries": 1
+  }
+}

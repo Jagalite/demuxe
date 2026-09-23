@@ -30,6 +30,7 @@ export class NativePlayer extends EventTarget implements Backend {
   readonly ready = Promise.resolve();
   readonly properties = new Map<string, unknown>();
   private stopped = false;
+  private seekPresentationRetries = 0;
   private capability:CapabilityEvidence={};
   private mpvSubs?:import('./native-mpv-subtitles.js').NativeMpvSubtitles;
   private ass?: import('./native-ass.js').NativeASS;
@@ -155,7 +156,7 @@ export class NativePlayer extends EventTarget implements Backend {
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvSubtitles:this.mpvSubs?{route:this.remux?'native-remux + mpv-subtitles':'native-direct + mpv-subtitles',...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvSubtitles:this.mpvSubs?{route:this.remux?'native-remux + mpv-subtitles':'native-direct + mpv-subtitles',...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, seekPresentation:{bufferedRetries:this.seekPresentationRetries}, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
   private async load(url: string) {
     // open promises metadata even when speculative preload was disabled.
     if(this.buffering.preload==='none')this.video.preload='metadata';
@@ -353,7 +354,9 @@ export class NativePlayer extends EventTarget implements Backend {
     this.assertActive();
     if(this.remux){
       const paused=this.remux.playbackPaused??this.video.paused;
-      if(this.remux.canSeekBuffered?.(seconds)&&this.video.videoWidth&&Math.abs(this.sourceTime()-seconds)>.001){
+      // Even a sub-millisecond movement can cross a source-frame boundary.
+      const frameChanged=this.remux.expectedVideoFrame?.(seconds)!==this.remux.expectedVideoFrame?.(this.sourceTime());
+      if(this.remux.canSeekBuffered?.(seconds)&&this.video.videoWidth&&(frameChanged||Math.abs(this.sourceTime()-seconds)>.001)){
         // Hold the presentation clock while verifying the target frame. Otherwise
         // a playing clock can advance beyond the exact target before rVFC runs.
         // Producer/session identity is retained; restore the captured intent below.
@@ -368,15 +371,39 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   private seekPresented(target:number, action:()=>Promise<unknown>):Promise<void> {
     return new Promise((resolve,reject)=>{
-      let frame=0,accepted=false,completed=false,finished=false;
+      let frame=0,accepted=false,completed=false,finished=false,retried=false;
+      let retryTimer:ReturnType<typeof setTimeout>|undefined;
       const presentation=this.remux,generation=presentation?.generation,mediaTarget=target+(presentation?.timelineBias??0),expected=presentation?.expectedVideoFrame?.(target);
       const correlated=!!presentation?.muxedFrames||expected!==undefined;let presented=false;
-      const seeked=()=>{if(this.stopped||this.remux!==presentation||presentation?.generation!==generation){finish(new Error('Native seek presentation was retired'));return;}if(correlated&&presented&&!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001){accepted=true;if(completed)finish();}};
-      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);this.video.cancelVideoFrameCallback(frame);this.video.removeEventListener('seeked',seeked);this.cancelers.delete(cancel);error?reject(error):resolve();};
+      const retired=()=>this.stopped||this.remux!==presentation||presentation?.generation!==generation;
+      const atTarget=()=>!this.video.seeking&&Math.abs(this.video.currentTime-mediaTarget)<.001;
+      const seeked=()=>{
+        if(retired()){finish(new Error('Native seek presentation was retired'));return;}
+        if(correlated&&presented&&atTarget()){accepted=true;if(completed)finish();return;}
+        // Firefox can complete a paused seek without issuing a fresh frame
+        // callback (reproduced after a remux restart with Native ASS). Give the
+        // compositor time to deliver it, then re-present the same buffered
+        // target once. Keep the producer and source-frame verification intact;
+        // seeked/currentTime alone must never establish correct output.
+        if(!presented&&atTarget()&&!retried&&retryTimer===undefined){
+          retryTimer=setTimeout(()=>{
+            retryTimer=undefined;if(finished)return;
+            if(retired()){finish(new Error('Native seek presentation was retired'));return;}
+            if(presented||!atTarget()||!this.video.paused||!presentation?.canSeekBuffered?.(target))return;
+            retried=true;this.seekPresentationRetries++;
+            if(frame)this.video.cancelVideoFrameCallback(frame);
+            frame=this.video.requestVideoFrameCallback(next);
+            try{this.video.currentTime=mediaTarget;}catch(error){finish(error as Error);}
+          },100);
+        }
+      };
+      const failed=()=>finish(nativeMediaError(this.video.error));
+      const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);clearTimeout(retryTimer);if(frame)this.video.cancelVideoFrameCallback(frame);this.video.removeEventListener('seeked',seeked);this.video.removeEventListener('error',failed);this.cancelers.delete(cancel);error?reject(error):resolve();};
       const cancel=(error:Error)=>finish(error);
       const timer=setTimeout(()=>finish(new Error('Native seek did not present the target')),10000);
       const next=(_:number,metadata:VideoFrameCallbackMetadata)=>{
-        if(this.stopped||this.remux!==presentation||presentation?.generation!==generation){finish(new Error('Native seek presentation was retired'));return;}
+        if(finished)return;
+        if(retired()){finish(new Error('Native seek presentation was retired'));return;}
         // A browser may report the frame's PTS or clip that timestamp to the seek
         // point (Firefox). Accept only the corresponding source-frame interval.
         // Legacy remux artifacts without packet metadata retain their prior guard.
@@ -387,7 +414,7 @@ export class NativePlayer extends EventTarget implements Backend {
       };
       // Register before currentTime changes: the compositor callback may precede
       // the queued DOM seeking/seeked events, especially for buffered media.
-      this.cancelers.add(cancel);this.video.addEventListener('seeked',seeked);frame=this.video.requestVideoFrameCallback(next);
+      this.cancelers.add(cancel);this.video.addEventListener('seeked',seeked);this.video.addEventListener('error',failed);frame=this.video.requestVideoFrameCallback(next);
       Promise.resolve().then(action).then(()=>{completed=true;if(accepted)finish();},error=>finish(error));
     });
   }

@@ -19,6 +19,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
+    private seekPresentationRetries;
     private capability;
     private mpvSubs?;
     private ass?;
@@ -117,6 +118,9 @@ export declare class NativePlayer extends EventTarget implements Backend {
         };
         directFailure: string | undefined;
         remux: Record<string, unknown> | undefined;
+        seekPresentation: {
+            bufferedRetries: number;
+        };
         position: number;
         rendered: number;
         dropped: number;
