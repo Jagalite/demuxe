@@ -262,6 +262,13 @@ export class NativePlayer extends EventTarget {
                 const ready = v.readyState >= (!output && !this.remux && this.buffering.preload !== 'auto' ? 1 : 3) && !v.seeking && (!hasVideo || v.videoWidth > 0);
                 if (!ready)
                     return;
+                // Firefox may decode and advance video while dropping a selected audio
+                // track. Once current data is ready, mozHasAudio=false identifies that
+                // failed A/V route before it can be accepted as a paused candidate.
+                if (expected?.audio && v.readyState >= 3 && v.mozHasAudio === false) {
+                    finish(new PlayerError('DECODE_FAILED', 'Native selected audio track produced no output'));
+                    return;
+                }
                 this.capability.prepared = true;
                 timing.ready ??= performance.now();
                 if (!output) {
