@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Display one mpv-composited BGRA overlay. No subtitle layout or layer blending.
 export class SubtitleOverlay {
  constructor(){this.serial=-1;this.snapshot={surface:null};this.stats={updates:0,bytes:0,peakBytes:0,parts:0,renders:0};}

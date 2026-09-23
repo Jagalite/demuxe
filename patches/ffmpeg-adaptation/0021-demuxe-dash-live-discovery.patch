@@ -1,0 +1,19 @@
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -1563,8 +1563,15 @@
+             num = pls->first_seq_no;
+         } else if (pls->n_timelines) {
+             av_log(s, AV_LOG_TRACE, "in n_timelines mode\n");
+-            start_time_offset = get_segment_start_time_based_on_timeline(pls, 0xFFFFFFFF) - 60 * pls->fragment_timescale; // 60 seconds before end
++            // Sparse browser discovery precedes the integrated demux handoff.
++            // Its selected video/audio probe must use the same six-second live
++            // headroom as that owner, not an expiring oldest DVR segment.
++            // Keep upstream compatibility discovery unchanged.
++            int64_t headroom = c->demuxe_sparse ? 6 : 60;
++            start_time_offset = get_segment_start_time_based_on_timeline(pls, 0xFFFFFFFF) - headroom * pls->fragment_timescale;
+             num = calc_next_seg_no_from_timelines(pls, start_time_offset);
++            if (c->demuxe_sparse && num > pls->first_seq_no)
++                num--;
+             if (num == -1)
+                 num = pls->first_seq_no;
+         } else if (pls->fragment_duration){

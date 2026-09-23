@@ -13,7 +13,7 @@ def verify(runtime):
     record = json.loads((library/'source-build.json').read_text())
     if record['schema'] != 1 or manifest['apiVersion'] != 2:
         raise ValueError('Unsupported ASS build record or runtime interface')
-    required = [runtime/'subtitles.mjs', runtime/'subtitles.wasm']
+    required = [runtime/'subtitles.mjs', runtime/'subtitles.wasm', runtime/'subtitles.map']
     required += [library/'build/prefix/lib'/('lib'+name+'.a') for name in ['ass','freetype','fribidi','harfbuzz']]
     if any(str(path) not in manifest['files'] for path in required):
         raise ValueError('Incomplete linked runtime/library inventory')
@@ -33,6 +33,10 @@ def verify(runtime):
         raise ValueError('Incomplete library source inventory')
     if sorted(record['archives'].values(), key=lambda x:x['name']) != sorted(manifest['sources'], key=lambda x:x['name']):
         raise ValueError('Library source locks differ from runtime inputs')
+    if not (runtime/'subtitles.mjs').read_bytes().startswith(b'// SPDX-License-Identifier: LGPL-2.1-or-later\n'):
+        raise ValueError('Optional ASS engine has incorrect LGPL header')
+    if 'libpostproc' in (runtime/'subtitles.map').read_text().lower():
+        raise ValueError('Optional ASS engine linked libpostproc')
     return {'verified':True, 'sourceFiles':len(record['files']),
             'runtimeFiles':len(manifest['files']), 'releaseQualified':False}
 

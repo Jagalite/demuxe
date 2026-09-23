@@ -1,0 +1,275 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -78,6 +78,7 @@
+ 
+ struct segment {
+     int period_start;
++    uint64_t demuxe_period;
+     int64_t timeline_start;
+     int64_t byte_start, byte_end;
+     int64_t timestamp_offset;
+@@ -255,6 +256,7 @@
+     int http_seekable;
+     void (*demuxe_retire)(void *,const char *);
+     void *demuxe_retire_opaque;
++    int demuxe_handoff;
+     int seg_max_retry;
+     int strict_io;
+     int demuxe_sparse;
+@@ -831,6 +833,16 @@
+ /* Retire validator records only after the authoritative manifest owner drops
+  * every reference to a resource. Open AVIO handles retain their own validators.
+  * An allocation failure keeps old identities; it never weakens consistency. */
++static void demuxe_prune_init_sections(struct playlist *p){
++    int kept=0;
++    for(int i=0;i<p->n_init_sections;i++){
++        struct segment *init=p->init_sections[i];int used=0;
++        for(int j=0;j<p->n_segments;j++)if(p->segments[j]->init_section==init){used=1;break;}
++        if(used)p->init_sections[kept++]=init;
++        else{av_free(init->key);av_free(init->url);av_free(init);}
++    }
++    p->n_init_sections=kept;p->cur_init_section=NULL;
++}
+ static int demuxe_resource_compare(const void *a,const void *b){return strcmp(a,b);}
+ static void demuxe_retire_segments(HLSContext *c,struct segment **old,int count)
+ {
+@@ -859,6 +871,7 @@
+     int ret = 0, is_segment = 0, is_variant = 0;
+     int64_t duration = 0;
+     int period_start = 0, discontinuity = 0;
++    uint64_t demuxe_period = 0;int demuxe_period_tag_seen=0,demuxe_discontinuity_seen=0;
+     int64_t timeline_start = 0;
+     enum KeyType key_type = KEY_NONE;
+     uint8_t iv[16] = "";
+@@ -941,8 +954,19 @@
+             is_variant = 1;
+             memset(&variant_info, 0, sizeof(variant_info));
+             ff_parse_key_value(ptr, handle_variant_args, &variant_info);
++        } else if (av_strstart(line,"#EXT-X-DISCONTINUITY-SEQUENCE:",&ptr)) {
++            if(!*ptr||demuxe_period_tag_seen||demuxe_discontinuity_seen){ret=AVERROR_INVALIDDATA;goto fail;}
++            demuxe_period_tag_seen=1;
++            uint64_t value=0;
++            for(const char *digit=ptr;*digit;digit++){
++                if(*digit<'0'||*digit>'9'||value>(INT64_MAX-(*digit-'0'))/10){ret=AVERROR_INVALIDDATA;goto fail;}
++                value=value*10+(*digit-'0');
++            }
++            if(pls&&pls->n_segments){ret=AVERROR_INVALIDDATA;goto fail;}
++            demuxe_period=value;
+         } else if (!strcmp(line, "#EXT-X-DISCONTINUITY")) {
+-            discontinuity = 1;
++            if(demuxe_period==INT64_MAX){ret=AVERROR_INVALIDDATA;goto fail;}
++            demuxe_period++;demuxe_discontinuity_seen=1;discontinuity = 1;
+         } else if (av_strstart(line, "#EXT-X-KEY:", &ptr)) {
+             struct key_info info = {{0}};
+             ff_parse_key_value(ptr, handle_key_args, &info);
+@@ -1099,6 +1123,7 @@
+                 if (discontinuity) period_start = pls->n_segments;
+                 discontinuity = 0;
+                 seg->period_start = period_start;
++                seg->demuxe_period = demuxe_period;
+                 seg->timeline_start = timeline_start;
+                 timeline_start += duration;
+                 seg->byte_start = seg->byte_end = -1;
+@@ -1202,7 +1227,7 @@
+                 int64_t prior=diff+i;
+                 if(prior<0||prior>=prev_n_segments)continue;
+                 struct segment *before=prev_segments[prior],*after=pls->segments[i];
+-                if(before->duration!=after->duration||strcmp(before->url,after->url)) {
++                if(before->duration!=after->duration||before->demuxe_period!=after->demuxe_period||strcmp(before->url,after->url)) {
+                     pls->demuxe_window_start=AV_NOPTS_VALUE;continue;
+                 }
+                 after->byte_start=before->byte_start;after->byte_end=before->byte_end;after->demuxe_first_dts=before->demuxe_first_dts;
+@@ -1228,6 +1253,7 @@
+         free_segment_dynarray(prev_segments, prev_n_segments);
+         av_freep(&prev_segments);
+     }
++    if(pls&&c->demuxe_handoff)demuxe_prune_init_sections(pls);
+     if (pls)
+         pls->last_load_time = av_gettime_relative();
+ 
+@@ -3331,7 +3357,7 @@
+     enum AVMediaType type=s->streams[stream]->codecpar->codec_type;
+     if(type==AVMEDIA_TYPE_SUBTITLE && s->streams[stream]->codecpar->codec_id!=AV_CODEC_ID_WEBVTT)return AVERROR(ENOSYS);
+     for (int i = 0; i < p->n_segments; i++)
+-        if (p->segments[i]->key_type != KEY_NONE || (type!=AVMEDIA_TYPE_SUBTITLE && !p->segments[i]->init_section) || (!p->finished && p->segments[i]->period_start))
++        if (p->segments[i]->key_type != KEY_NONE || (type!=AVMEDIA_TYPE_SUBTITLE && !p->segments[i]->init_section))
+             return AVERROR(ENOSYS);
+     if(type!=AVMEDIA_TYPE_VIDEO){
+         *out=(struct AVDemuxeRepresentation){.abi=AV_DEMUXE_PLAN_ABI,.stream_index=stream,
+@@ -3384,6 +3410,23 @@
+             *out = (struct AVDemuxeSegment){.abi=AV_DEMUXE_PLAN_ABI,.stream_index=stream,
+                 .sequence=seq,.start_us=start,.duration_us=seg->duration,
+                 .offset=seg->url_offset,.size=seg->size,.init_offset=init?init->url_offset:0,.init_size=init?init->size:-1};
++            out->timeline_mapping=1;out->timeline_id=seg->demuxe_period;
++            out->timeline_start_us=start;
++            out->presentation_start_us=out->presentation_end_us=AV_NOPTS_VALUE;
++            // Bounds are known only when a retained marker identifies them.
++            // No guessed boundary is introduced when a live marker has expired.
++            int64_t boundary=start;
++            for(int j=i;j>0;j--){
++                if(p->segments[j-1]->demuxe_period!=seg->demuxe_period){out->presentation_start_us=boundary;break;}
++                if(p->segments[j-1]->duration<=0||boundary<INT64_MIN+p->segments[j-1]->duration)return AVERROR_INVALIDDATA;
++                boundary-=p->segments[j-1]->duration;
++            }
++            boundary=start;
++            for(int j=i;j<p->n_segments;j++){
++                if(p->segments[j]->demuxe_period!=seg->demuxe_period){out->presentation_end_us=boundary;break;}
++                if(p->segments[j]->duration<=0||boundary>INT64_MAX-p->segments[j]->duration)return AVERROR_INVALIDDATA;
++                boundary+=p->segments[j]->duration;
++            }
+             av_strlcpy(out->url,seg->url,sizeof(out->url));
+             if(init)av_strlcpy(out->init_url,init->url,sizeof(out->init_url));
+             return 0;
+@@ -3441,7 +3484,7 @@
+         int good=1;
+         for(int64_t seq=overlap;seq<end;seq++){
+             struct segment *a=p->segments[seq-p->start_seq_no],*b=r->segments[seq-r->start_seq_no];
+-            if(a->duration!=b->duration||a->period_start||b->period_start){good=0;break;}
++            if(a->duration!=b->duration||a->demuxe_period!=b->demuxe_period){good=0;break;}
+         }
+         if(!good)continue;
+         int64_t anchor=r->demuxe_window_start,delta=0;
+@@ -3468,7 +3511,9 @@
+         av_packet_unref(p->pkt);
+         if(p->ctx)avformat_flush(p->ctx);
+     }
+-    avformat_flush(s);return 0;
++    avformat_flush(s);c->demuxe_handoff=1;
++    for(int i=0;i<c->n_playlists;i++)demuxe_prune_init_sections(c->playlists[i]);
++    return 0;
+ }
+ 
+ /* SPDX-License-Identifier: LGPL-2.1-or-later */
+--- a/libavformat/demuxe.h
++++ b/libavformat/demuxe.h
+@@ -6,7 +6,7 @@
+ #ifndef AVFORMAT_DEMUXE_H
+ #define AVFORMAT_DEMUXE_H
+ #include "avformat.h"
+-#define AV_DEMUXE_PLAN_ABI 2
++#define AV_DEMUXE_PLAN_ABI 3
+ #define AV_DEMUXE_URL_SIZE 4096
+ struct AVDemuxeRepresentation {
+     int abi, stream_index, bandwidth, live, segments;
+@@ -17,6 +17,9 @@
+     int abi, stream_index;
+     int64_t sequence, start_us, duration_us;
+     int64_t timestamp_offset_us,presentation_start_us,presentation_end_us;
++    uint64_t timeline_id;
++    int timeline_mapping;
++    int64_t timeline_start_us;
+     int64_t offset, size, init_offset, init_size;
+     char url[AV_DEMUXE_URL_SIZE], init_url[AV_DEMUXE_URL_SIZE];
+ };
+@@ -47,4 +50,5 @@
+ int av_demuxe_dash_refresh(AVFormatContext *);
+ int av_demuxe_dash_component(AVFormatContext *,int,struct AVDemuxeRepresentation *);
+ int av_demuxe_dash_window(AVFormatContext *,int,struct AVDemuxeWindow *);
++int av_demuxe_dash_retirement(AVFormatContext *,void (*)(void*,const char*),void*);
+ #endif
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -32,6 +32,7 @@
+ #include "dash.h"
+ #include "demux.h"
+ #include "demuxe.h"
++#include "libavutil/tree.h"
+ #include "demuxe-dash-periods.h"
+ #include "url.h"
+ 
+@@ -177,6 +178,8 @@
+     int64_t demuxe_last_reload,demuxe_update_us,demuxe_availability_us,demuxe_dvr_us;
+     uint32_t demuxe_next_period;
+     uint64_t demuxe_revision;
++    void (*demuxe_retire)(void *,const char *);
++    void *demuxe_retire_opaque;
+     int continuous_fmp4;
+     char *cenc_decryption_key;
+     char *cenc_decryption_keys;
+@@ -1400,7 +1403,7 @@
+ 
+     av_bprint_init(&buf, 0, INT_MAX); // xmlReadMemory uses integer bufsize
+ 
+-    if ((ret = avio_read_to_bprint(in, &buf, SIZE_MAX)) < 0 ||
++    if ((ret = avio_read_to_bprint(in, &buf, c->demuxe_sparse ? 4*1024*1024 : SIZE_MAX)) < 0 ||
+         !avio_feof(in)) {
+         av_log(s, AV_LOG_ERROR, "Unable to read to manifest '%s'\n", url);
+         if (ret == 0)
+@@ -2795,6 +2798,69 @@
+ 
+ /* Transactional refresh runs on the owning demux thread after child demuxers
+  * have handed off. Failed parsing/binding cannot replace the accepted catalog. */
++/* Bounded URL identity sets are computed from native catalog plans, without
++ * fetching or probing unselected representations. A refresh failure retains
++ * the old catalog and its validators. Callback ownership stays source-scoped. */
++static int demuxe_dash_url_compare(const void *a,const void *b){return strcmp(a,b);}
++static int demuxe_dash_url_free(void *opaque,void *element){av_free(element);return 0;}
++static void demuxe_dash_urls_free(struct AVTreeNode *root){av_tree_enumerate(root,NULL,NULL,demuxe_dash_url_free);av_tree_destroy(root);}
++static int demuxe_dash_url_add(struct AVTreeNode **root,size_t *bytes,const char *url){
++    if(!url||!*url)return 0;
++    if(av_tree_find(*root,url,demuxe_dash_url_compare,NULL))return 0;
++    size_t size=strlen(url)+1+av_tree_node_size;
++    if(size>1024*1024-*bytes)return AVERROR(ENOBUFS);
++    char *copy=av_strdup(url);struct AVTreeNode *node=av_tree_node_alloc();
++    if(!copy||!node){av_free(copy);av_free(node);return AVERROR(ENOMEM);}
++    av_tree_insert(root,copy,demuxe_dash_url_compare,&node);
++    if(node){av_free(node);av_free(copy);return AVERROR_BUG;}
++    *bytes+=size;return 0;
++}
++static int demuxe_dash_catalog_urls(DASHContext *c,struct AVTreeNode **root){
++    size_t bytes=0;unsigned segments=0;
++    for(int period=0;period<c->demuxe_period_count;period++)for(int type=0;type<3;type++)for(int i=0;i<c->demuxe_periods[period].counts[type];i++){
++        struct representation *p=c->demuxe_periods[period].lists[type][i];
++        if(!p->url_template||p->n_timelines<=0)return AVERROR(ENOSYS);
++        char absolute[AV_DEMUXE_URL_SIZE],relative[AV_DEMUXE_URL_SIZE];
++        if(p->init_section){
++            if(strlen(c->base_url)+strlen(p->init_section->url)>=sizeof(absolute))return AVERROR(ENOBUFS);
++            ff_make_absolute_url(absolute,sizeof(absolute),c->base_url,p->init_section->url);
++            int r=demuxe_dash_url_add(root,&bytes,absolute);if(r<0)return r;
++        }
++        int64_t number=p->first_seq_no,ticks=0;
++        for(int j=0;j<p->n_timelines;j++){
++            struct timeline *t=p->timelines[j];if(j==0||t->starttime>0)ticks=t->starttime;
++            if(t->duration<=0||t->repeat<0||t->repeat>=8192)return AVERROR(ENOSYS);
++            for(int64_t k=0;k<=t->repeat;k++){
++                if(++segments>8192||ticks>INT64_MAX-t->duration||number==INT64_MAX)return AVERROR(ENOBUFS);
++                ff_dash_fill_tmpl_params(relative,sizeof(relative),p->url_template,0,number++,0,ticks);
++                if(strlen(c->base_url)+strlen(relative)>=sizeof(absolute))return AVERROR(ENOBUFS);
++                ff_make_absolute_url(absolute,sizeof(absolute),c->base_url,relative);
++                int r=demuxe_dash_url_add(root,&bytes,absolute);if(r<0)return r;
++                ticks+=t->duration;
++            }
++        }
++    }
++    return 0;
++}
++struct demuxe_dash_retirement {DASHContext *old;struct AVTreeNode *current;};
++static int demuxe_dash_retire_one(void *opaque,void *url){
++    struct demuxe_dash_retirement *r=opaque;
++    if(!av_tree_find(r->current,url,demuxe_dash_url_compare,NULL))r->old->demuxe_retire(r->old->demuxe_retire_opaque,url);
++    return 0;
++}
++static int demuxe_dash_retire_catalog(DASHContext *old,DASHContext *next){
++    if(!old->demuxe_retire)return 0;
++    struct AVTreeNode *before=NULL,*after=NULL;
++    int r=demuxe_dash_catalog_urls(old,&before);
++    if(r>=0)r=demuxe_dash_catalog_urls(next,&after);
++    if(r>=0){struct demuxe_dash_retirement ctx={old,after};av_tree_enumerate(before,&ctx,NULL,demuxe_dash_retire_one);}
++    demuxe_dash_urls_free(before);demuxe_dash_urls_free(after);return r;
++}
++int av_demuxe_dash_retirement(AVFormatContext *s,void (*callback)(void*,const char*),void *opaque){
++    if(av_demuxe_dash_period_count(s)<=0)return AVERROR(ENOSYS);
++    DASHContext *c=s->priv_data;c->demuxe_retire=callback;c->demuxe_retire_opaque=opaque;return 0;
++}
++
+ static void demuxe_dash_release_tables(DASHContext *c){
+     demuxe_dash_free_catalog(c);free_video_list(c);free_audio_list(c);free_subtitle_list(c);
+     av_freep(&c->base_url);xmlFree(c->adaptionset_lang);c->adaptionset_lang=NULL;
+@@ -2873,6 +2939,7 @@
+         if(!found){if(next.demuxe_next_period>=INT32_MAX){r=AVERROR(ENOBUFS);break;}period->serial=next.demuxe_next_period++;}
+     }
+     if(r>=0&&next.demuxe_revision==UINT64_MAX)r=AVERROR(ENOBUFS);
++    if(r>=0)r=demuxe_dash_retire_catalog(c,&next);
+     if(r<0){demuxe_dash_release_tables(&next);c->demuxe_reload_error=r;return r;}
+     // All current AVStream objects remain owned by AVFormatContext. Replacement
+     // tables contain newly allocated associations to those same logical tracks.

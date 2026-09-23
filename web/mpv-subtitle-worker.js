@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import create from './engine-subtitles/service.mjs';
 import {SubtitleOverlay} from './subtitle-overlay.js';
 let engine, io, closed=false, ioStats, fatal, lastTime=0,textPointer,selectedTrack=false;

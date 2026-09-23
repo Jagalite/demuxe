@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
 import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';

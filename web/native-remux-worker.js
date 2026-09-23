@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {preparedEngine} from './prepared-engine.js';
 import {videoCodecConfig,vp9RemuxConfig} from './video-codec-config.js';
 import {remuxPackaging} from './remux-packaging.js';

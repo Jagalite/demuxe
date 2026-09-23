@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {WorkerRemuxController,workerMSEAvailable} from './worker-remux-controller.js';
 // The same Native scheduler can own MSE in a window or a dedicated worker.
 // Demux/mux and bounded source reads always remain separate workers.
@@ -304,6 +304,10 @@ export class RemuxPlayer {
   // A held final video frame produces no new compositor callback to verify a
   // buffered seek. Regenerate its bounded real preroll instead.
   if(this.windowed&&t>=this.trackBounds.videoEnd)return false;
+  // Firefox can retain an apparent buffered range after a remux restart while
+  // failing to present its target frame. Regenerate that later seek so it has
+  // fresh coded preroll and a verifiable compositor callback.
+  if(this.generation>1&&/Firefox\//.test(navigator.userAgent))return false;
   if(!this.bufferedSeeks||!Number.isFinite(t)||t<0||this.stopped||this.starting||!this.targetReady||this.failedGeneration===this.generation||this.acceptedGeneration!==this.generation||this.acceptedSource!==this.source||!this.sb||this.sb.updating||!['open','ended'].includes(this.media?.readyState))return false;
   // Appended history is not playable coverage. Check both the media element's
   // intersection and the current SourceBuffer after browser eviction/removal.

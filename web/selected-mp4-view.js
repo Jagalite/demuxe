@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {cheapMP4Probe} from './cheap-mp4-probe.js';
 // Immutable local view only. Offsets, sample tables and payload stay unchanged;
 // removed tracks' media remains present. This is never a redacted export.

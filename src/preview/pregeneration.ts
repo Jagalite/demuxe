@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type {PreviewPregeneration} from '../types.js';
 export type PregenerationRequest={time:number;width:number;height:number};
 /** One lazy candidate at a time; never allocates a duration-sized work queue. */

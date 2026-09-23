@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {SubtitleOverlay} from './subtitle-overlay.js';
 const subtitles=new SubtitleOverlay();let frameGeneration=-1,minGeneration=-1;
 const skipCanvas=true;const quality=new URL(self.location.href).searchParams.get('quality')==='1';const mode=new URL(self.location.href).searchParams.get('mode');

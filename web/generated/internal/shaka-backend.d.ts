@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type { BufferingPolicy } from '../types.js';
 import type { Backend } from './backend.js';
 import type { RemoteSource, TextTrackSource, SubtitleAsset, TrackType } from '../types.js';

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
@@ -1224,7 +1224,9 @@ export class Player extends EventTarget {
                         errors.push(`${direct.id}: ${String(originalError)}`);
                     }
                 }
-                if (this.destroyed || this.activeOperation?.controller.signal.aborted || (!compatible && !retryLocalLoad))
+                // Explicit plans keep a precise timeline rejection. Automatic
+                // selection may still try Hybrid when this Native path cannot play it.
+                if (this.destroyed || this.activeOperation?.controller.signal.aborted || (!automatic && playerError(error).code === 'UNSUPPORTED_TIMELINE') || (!compatible && !retryLocalLoad))
                     throw error;
                 if (error instanceof BrowserCaptionUnsupported)
                     captionFailure = error.message;
@@ -1474,12 +1476,24 @@ export class Player extends EventTarget {
                 if (error instanceof SeekPresentationBoundary) {
                     // A demux restart can prove the requested subtitle-only interval has no
                     // AV presentation. Restore the accepted position rather than leave its
-                    // audio held behind an impossible seek target or try other codecs.
+                    // audio held behind an impossible seek target. A failed restoration
+                    // means this route is broken and automatic selection may continue.
                     if (this.current === accepted && !this.destroyed && !this.activeOperation?.controller.signal.aborted) {
-                        await accepted.backend.seek(previous);
-                        await this.settled(accepted, this.mode, previous);
-                        if (!wasPaused)
-                            await accepted.backend.play();
+                        try {
+                            await accepted.backend.seek(previous);
+                            await this.settled(accepted, this.mode, previous);
+                            if (!wasPaused)
+                                await accepted.backend.play();
+                        }
+                        catch (restoreError) {
+                            // A route that cannot restore its last presented position has
+                            // failed; let automatic selection try the next admitted plan.
+                            if (!this.automatic || !this.source)
+                                throw restoreError;
+                            const attempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `Seek presentation failure: ${playerError(error).message}; accepted position recovery failed: ${playerError(restoreError).message}` }];
+                            await this.select(this.source, this.settings, true, this.nativeTracks, PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, attempts);
+                            return;
+                        }
                     }
                     throw error;
                 }

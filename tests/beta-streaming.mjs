@@ -7,7 +7,7 @@ import {mkdtemp,readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import {createReadStream} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-const family=process.env.BROWSER||'chrome',archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.3.tgz');
+const family=process.env.BROWSER||'chrome',archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.4.tgz');
 await mkdir('build/streaming-consumers',{recursive:true});
 const root=await mkdtemp(path.resolve('build/streaming-consumers/run-'));
 execFileSync('tar',['-xzf',archive,'-C',root]);
@@ -72,9 +72,10 @@ try{
      assert.ok(state.completed>0);assert.equal(state.aborts,0);assert.deepEqual(await page.evaluate(()=>errors),[]);
      await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.properties.get('time-pos')>40.3);
     }else{
-     await page.waitForFunction(()=>errors.some(e=>e.includes('Media read retry deadline exceeded')),{},{timeout:18000});
-     r.deadlineMs=Date.now()-state.startedAt;assert.ok(r.deadlineMs>=14000&&r.deadlineMs<18000);
-     assert.ok(state.progress>1024,'successful progress continued before deadline');assert.ok(state.aborts>0);
+     await page.waitForFunction(mode=>errors.some(e=>e.includes(`${mode} mode did not present the requested position`)),mode,{timeout:33000});
+     r.deadlineMs=Date.now()-state.startedAt;assert.ok(r.deadlineMs>=24000&&r.deadlineMs<33000);
+     assert.ok(state.progress>1024,'successful progress continued before the seek deadline');
+     assert.equal(state.aborts,0,'the seek deadline must not abort an active packet read');
     }
     r.after=await page.evaluate(()=>({diagnostics:player.diagnostics.backend,errors}));
     assert.equal(r.after.diagnostics.interruptions,r.before.interruptions,'seek must not use the old interrupt hook');

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // FFmpeg reports Matroska and WebM as one demuxer family. Read the bounded EBML
 // header so capability queries use the actual local container's MIME type.
 export async function localContainerFormat(file,format){

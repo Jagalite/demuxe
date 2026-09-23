@@ -10,7 +10,7 @@ import {writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 
-const archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.3.tgz');
+const archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.4.tgz');
 const family=process.env.BROWSER||'chrome';
 const root=await realpath(await mkdtemp(path.join(os.tmpdir(),'demuxe-shaka-consumer-')));
 const stamp=new Date().toISOString().replaceAll(':','-');

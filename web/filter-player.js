@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {BrowserPlayer as RetainedPlayer} from './generated/filter-retained-player.js';
 import {BrowserPlayer as CopybackPlayer} from './generated/filter-copyback-player.js';
 

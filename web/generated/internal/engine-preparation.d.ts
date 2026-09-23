@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type { PreparationComponent, PreparationOptions, PreparationReport, PreparationProgress } from '../types.js';
 export declare function preparationComponents(value: PreparationOptions): PreparationComponent[];
 /** Per-player, bounded immutable assets. No media, workers or audio devices. */

@@ -1,0 +1,37 @@
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -160,6 +160,7 @@
+     int max_url_size;
+     int max_reload;
+     int strict_io;
++    int continuous_fmp4;
+     char *cenc_decryption_key;
+     char *cenc_decryption_keys;
+ 
+@@ -1915,6 +1916,17 @@
+     if (c->strict_io && ret < 0 && ret != AVERROR_EOF)
+         goto end;
+ 
++    // Qualified VOD fMP4 representations have one initialization and one
++    // continuous container timeline. Reopening MOV at every segment reapplies
++    // its edit-list priming and drops an AAC frame at each boundary.
++    if (c->continuous_fmp4 && !c->is_live && v->init_sec_data_len >= 8 &&
++        !memcmp(v->init_sec_buf + 4, "ftyp", 4) &&
++        v->cur_seq_no < v->last_seq_no) {
++        ff_format_io_close(v->parent, &v->input);
++        v->cur_seq_no++;
++        goto restart;
++    }
++
+     if (c->is_live || v->cur_seq_no < v->last_seq_no) {
+         if (!v->is_restart_needed)
+             v->cur_seq_no++;
+@@ -2549,6 +2561,8 @@
+ #define OFFSET(x) offsetof(DASHContext, x)
+ #define FLAGS AV_OPT_FLAG_DECODING_PARAM
+ static const AVOption dash_options[] = {
++    {"continuous_fmp4", "Keep the VOD fMP4 demuxer across segment boundaries",
++        OFFSET(continuous_fmp4), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, FLAGS},
+     // Browser transport already owns retry/cancel/error classification.
+     {"strict_io", "Propagate resource failures instead of skipping segments",
+         OFFSET(strict_io), AV_OPT_TYPE_BOOL,

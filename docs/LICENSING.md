@@ -2,187 +2,127 @@
 
 # Licensing and distribution
 
-## Original Demuxe material
+## Next-release boundary
 
-Demuxe uses three explicit grants for its original material. Copyright (C) 2026
-webmpv contributors is retained as the historical code copyright credit.
+The next Demuxe release is prepared with these separate grants. The root npm
+`license` field identifies **original Demuxe application and runtime code** as
+Apache-2.0. It does not describe every bundled file.
 
-| Boundary | License and scope |
+| Material | Terms |
 | --- | --- |
-| Reusable original code | **Apache-2.0**. `coreSources` in `licensing/boundaries.json` lists the engine-independent TypeScript core, routing, capability tracking, transport, container contracts and lightweight MP4 probe. Original research/test/build tooling in the manifest also uses this grant. |
-| Complete player and integration | **GPL-3.0-or-later**. `src/index.ts`, `src/unified-player.ts`, the component/UI, backend adapters, engine workers, FFmpeg-backed `web/source-probe.js`, and original native integrations use GPLv3 or later. Existing upstream LGPL and other file licenses are retained. |
-| Reports and results | **CC-BY-4.0**. Original documentation, research reports and published result data; not executable tooling, copied source, bundled archives or third-party imagery. |
+| Original Demuxe router, planner, capabilities, transport, API, UI, Native/Shaka adapters, engine loaders, tests and build tools | Apache-2.0 |
+| Original browser AO, browser decoder, private mpv subtitle/render integration and their internal ABI headers | LGPL-2.1-or-later; these translation units are part of the LGPL engine build |
+| Modified mpv v0.40.0 built with `-Dgpl=false` | LGPL-2.1-or-later and individual upstream file notices |
+| Modified FFmpeg n7.1.1 built with `CONFIG_GPL=0`, `CONFIG_NONFREE=0`, `CONFIG_POSTPROC=0` | LGPL-2.1-or-later and individual upstream file notices |
+| Optional audio-preparation Wasm (original Apache remux wrapper plus locked FFmpeg n9.0.1) | LGPL-2.1-or-later for the linked engine; original wrapper retains Apache-2.0 |
+| Optional Native ASS Wasm (original Apache wrapper, libass, FriBidi, FreeType and HarfBuzz) | LGPL-2.1-or-later for the linked engine through FriBidi; component notices retain their individual terms |
+| Original Demuxe reports, documentation and result data | CC-BY-4.0, except copied source and third-party material |
+| Historical source, patches, fonts, media and other dependencies | Existing notices and grants; see the boundary map and notice inventory |
 
-The full texts are in `LICENSES/`. The root `LICENSE` identifies these boundaries
-and retains the GPL text for the complete player. Maintained code carries SPDX
-headers. `licensing/boundaries.json` annotates other files, including result data
-whose bytes and recorded hashes must remain unchanged. Ordered rules and the
-explicit reusable list are checked in CI; unknown top-level paths fail the check.
+`licensing/boundaries.json` is the machine-checked file map. Original source has
+SPDX headers; upstream headers are retained. `LICENSES/` includes Apache, LGPL,
+historical GPL and CC BY texts. The root `LICENSE` grants Apache rights only to
+original Demuxe code. No SPDX edit grants Apache rights to upstream code.
 
-Reusable original code is Apache-2.0 only. The complete player incorporates those
-modules in a GPLv3-or-later combined work while retaining their Apache license
-and notices. This does not relicense upstream dependencies or make the complete
-player Apache-licensed. GPLv2-only compatibility is not a goal of the maintained
-distribution. Apache-2.0 can be combined under GPLv3 where all other component
-terms permit it. See the
-[Apache compatibility explanation](https://www.apache.org/licenses/GPL-compatibility).
+The existing `demuxe-core` source closure and package remain Apache-2.0. The
+complete `demuxe` archive contains separate LGPL media engines, so downstream
+redistributors must carry their source, notices and relinking materials. The
+package `demuxeLicenses` field and `license-map.json` describe this boundary.
 
-The root workspace and assembled `demuxe` package retain `license:
-"GPL-3.0-or-later"`. `packages/core/package.json` and the separately assembled
-`demuxe-core` package use `"Apache-2.0"`. Run
-`npm run build:core` to create its local candidate archive. It includes only
-the approved source/output closure, attribution and license materials; no player,
-workers, Wasm engines, fonts or runtime dependencies. The repository package
-templates are private. Neither building nor checking an archive publishes it.
+**Historical GPL releases remain GPL under their original grants.** Their
+published binaries, source archives and source snapshots are not relabeled by
+this migration. Preserved research evidence retains its recorded terms and bytes.
+The GPL texts remain for those materials and for upstream files that offer those
+terms; their presence in the source companion does not prove GPL code was linked
+into the new engines.
 
-For CC BY attribution, credit **Demuxe contributors**, name the report/result,
-link to its repository location and https://creativecommons.org/licenses/by/4.0/,
-retain supplied notices and indicate changes. Include the recorded revision/date
-when available. Code snippets remain under the corresponding software license.
-CC BY applies only to rights held in the original report/result; it does not
-create copyright in unprotected facts or replace third-party image, quotation,
-font, film, code or archive licenses. See `MEDIA-NOTICES.md`, especially the
-separate CC BY 3.0 attribution for Big Buck Bunny imagery. Creative Commons
-[recommends software licenses for software](https://creativecommons.org/faq/#can-i-apply-a-creative-commons-license-to-software).
+## Generated engine closure
 
-Historical `/files/` and result-code snapshots, legacy generated players without
-maintained TypeScript sources, patch context, upstream-derived SIMD code and mpv
-source retain their existing terms and bytes. The GPLv2 text remains available
-for historical and upstream material; it is not an alternative license grant for
-the maintained Apache core or GPLv3 player. Previously distributed copies retain
-their granted permissions. `NOASSERTION` entries in the map
-mean consult those preserved notices; they are not an Apache or CC grant.
-Research harnesses may invoke GPL programs without granting rights to those
-programs. Native probes compiled into an engine remain in the integration boundary.
+The build recipes require mpv `-Dgpl=false`, retain `libmpv=true`, `cplayer=false`,
+GL and Lua disabled, and retain the browser AO, browser VO, Emscripten and Demuxe
+patches. Software and Hybrid use FFmpeg's upstream-default decoder, demuxer and
+filter selection with GPL and nonfree components disabled. They do not build or
+link libpostproc. Remux remains an independent LGPL FFmpeg packet-copy build.
+The optional mpv subtitle-only service must be rebuilt from the same LGPL mpv and
+full FFmpeg configurations before packaging.
 
-Research item homes and the staged workflow are documented in
-[`research/PROCESS.md`](../research/PROCESS.md). Captured source files with explicit
-SPDX notices have exact-path boundary rules matching those retained grants. The
-checker rejects conflicting research headers and executable research classified
-as CC BY report data. Unannotated source-like artifacts without an established
-grant are marked `NOASSERTION`; that preserves their provenance requirements.
-Historical evidence bytes and recorded hashes are not changed to add notices.
+`python3 scripts/verify-lgpl-closure.py` reads generated Meson options, mpv
+compile commands, FFmpeg configuration headers and component lists, configure
+requests and linker maps. It rejects GPL-only mpv source, `CONFIG_GPL=1`,
+`CONFIG_NONFREE=1`, postproc, known GPL/nonfree external FFmpeg libraries and
+GPL-only FFmpeg filters. It also requires the maintained decoders, demuxers and
+filters used by Demuxe. The result is `build/lgpl-closure.json`, embedded in
+`engine-build.json` and hash-bound to the corresponding source companion.
+Packaging rechecks those generated materials and exact engine artifact hashes.
+A source flag alone does not establish the license of a statically linked binary.
 
-These grants cover Demuxe-controlled original material only. Relicensing another
-contributor's work requires their permission; neither SPDX nor a passing check
-establishes that permission. See `CONTRIBUTING.md` for future contributions.
+The specific GPL-only mpv modes disabled by `-Dgpl=false` are Linux X11/XV,
+VDPAU, JACK, OSS, CDDA, DVD navigation, DVB, CACA, legacy Direct3D and related
+GPL-only source. The pinned browser build already had these desktop backends
+absent. The browser AO and libmpv/browser VO remain. The actual FFmpeg component
+loss and current playback evidence are recorded in the migration report; broad
+codec registration is not a substitute for playback qualification. The public
+Software video/audio filter API accepts custom chains, so removed GPL-only
+FFmpeg filters are an actual option-level loss even if no catalogue case used
+them. The maintained tone mapping chain uses LGPL-available `zscale`, `format`
+and `tonemap`.
 
-The complete distributed player package is GPL-3.0-or-later. Commercial use is allowed under the
-license's conditions. Redistributing a covered combined work entails GPL source
-and license obligations; this package does not provide a proprietary embedding
-exception. A particular application's relationship to the library and distribution
-terms may need review.
+Modified mpv patches target LGPL files including `audio/out/ao.c`,
+`demux/demux.c`, `demux/demux_lavf.c`, `demux/demux_mkv.c` and
+`filters/f_decoder_wrapper.c`. The modified FFmpeg files, all patches and
+modification notices accompany the preferred source. `sources.lock.json`
+retains exact upstream revisions and archive SHA-256 values.
 
-## Current linked engines
+## Other linked dependencies
 
-These classifications follow the actual configured builds, not just the dependency
-names. `build/beta-build.json` records the configuration and hashes for each build.
+| Component | Retained terms and role |
+| --- | --- |
+| libass | ISC; subtitle rendering |
+| FriBidi, libplacebo | LGPL-2.1-or-later; text direction and rendering |
+| HarfBuzz | MIT-style notices; text shaping |
+| FreeType | FreeType License alternative and retained GPLv2 notice; font rendering uses the FreeType License grant |
+| zlib | Zlib license |
+| libxml2 | MIT-style notices |
+| dav1d | BSD-2-Clause; AV1 decoding |
+| zimg | WTFPL; image scaling/color operations |
+| Emscripten runtime libraries | Their separate notices and exceptions under `third_party/notices/emscripten/` |
+| Shaka Player 5.2.11 | Apache-2.0 with bundled MIT portions identified in its upstream notices |
+| DejaVu font | Its license in `fixtures/FONT-LICENSE.txt` |
 
-| Shipped artifact | Linked configuration | Applicable engine terms |
-| --- | --- | --- |
-| `web/engine-software-full/player.{mjs,wasm}` | mpv with `gpl=true`; FFmpeg with `CONFIG_GPL=1`, `CONFIG_VERSION3=0`, `CONFIG_NONFREE=0`; static libraries | Maintained original wrapper and combined engine: GPL-3.0-or-later; upstream mpv/FFmpeg grant GPL-2.0-or-later, using the later-version permission; retain component notices |
-| `web/engine-hybrid/player.{mjs,wasm}` | The same mpv and full FFmpeg archives, browser decoder bridge, and modified mpv subtitle renderer | Maintained original integration and combined engine: GPL-3.0-or-later; preserve upstream GPL-2.0-or-later/LGPL grants and component notices |
-| `web/engine-remux/remux.{mjs,wasm}` | Independent FFmpeg packet-only build; `CONFIG_GPL=0`, `CONFIG_VERSION3=0`, `CONFIG_NONFREE=0`; static libraries | FFmpeg library: LGPL-2.1-or-later; original wrapper and combined engine: GPL-3.0-or-later; retain the LGPL notices and source/relink materials |
+`third_party/notices.json` hashes retained notices. Vulkan headers are a build
+input; their notice is retained without claiming a Vulkan runtime is shipped.
+Inspect each dependency's source for file-specific terms. Source downloads for
+Shaka are hash-pinned separately from runtime assets and are included in tagged
+source companions.
 
-`CONFIG_VERSION3=0` describes the selected FFmpeg components; it does not prohibit
-exercising an upstream "or later" grant or make the combined Demuxe engine GPLv2.
-Changing the original-code grant does not enable additional FFmpeg components or
-change the build flags. New distributions still require matching rebuilt engines
-and source records; historical binary records are not relabeled or requalified.
+## Source, modifications and relinking
 
-The optional YUV engine is outside the standard three-engine candidate and must be
-qualified and recorded separately before distribution.
+Ship the runtime archive and its matching `demuxe-*-source.tar.gz` together from
+the same download location. The companion contains the exact Demuxe revision,
+Apache application source and LGPL integration source, locked upstream archives,
+patches, notices, SDK source, generated configuration, component selections,
+linker maps, compiler/tool versions, build commands and the engine build record.
+`source-manifest.json` hashes every member. `scripts/verify-beta-release.py`
+checks that the runtime and source companion match byte for byte.
 
-Additional linked components include libass (ISC), FriBidi and libplacebo
-(LGPL-2.1-or-later), HarfBuzz (MIT-style notices), FreeType (its GPLv2-or-later
-alternative permits GPLv3 distribution; retain both its FTL and GPLv2 texts),
-zlib (Zlib), libxml2 (MIT-style notices), dav1d
-(BSD-2-Clause), zimg (WTFPL), and Emscripten runtime libraries (the licenses and
-exceptions under `third_party/notices/emscripten`). Inspect each component's source
-headers for file-specific terms. Vulkan headers are build inputs; their notice is
-retained without claiming that a Vulkan runtime is shipped. The bundled DejaVu font
-has its separate copyright/license in `fixtures/FONT-LICENSE.txt`.
+The engines are statically linked into WASM. A recipient can modify mpv, FFmpeg
+or another LGPL component, rerun the pinned build scripts and relink all affected
+engines using the supplied original Demuxe source. The exact commands and
+relinking procedure are in [LGPL-RELINK.md](LGPL-RELINK.md). The source and
+scripts are the machine-readable application material needed for relinking;
+linker maps identify the actual object/archive closure. Retain the source
+companion alongside the runtime so recipients can exercise those rights. Do not
+impose terms that prevent modification, relinking or debugging such changes.
 
-Adaptive streaming additionally ships the unmodified non-UI Shaka Player 5.2.11
-distribution and optional transmux worker. Shaka and its Closure runtime use
-Apache-2.0; bundled tXml and language-map portions retain MIT terms. This dependency
-does not change the complete Demuxe player's GPL-3.0-or-later grant or the reusable
-core's Apache-2.0 boundary. Shaka is outside the reusable-core archive.
+A release is held until the full current playback catalogue, matched baseline
+comparison, selected CPU/memory checks and exact-archive consumer gates pass or
+record explicit losses. Archive assembly and source hashes do not by themselves
+qualify playback, physical HDR/audio fidelity, legal arrangements or patent rights.
+`scripts/compare-lgpl-catalogue.py` checks the exact 71 README rows against
+the same fixture bytes and acceptance harness, and release verification
+recomputes that comparison against the linked candidate engine hashes.
 
-`third_party/notices/shaka-player/` retains the complete upstream LICENSE,
-AUTHORS, third-party summaries, language-map license and CML CMCD LICENSE/NOTICE.
-Copyright/license comments remain in the copied JavaScript. The dependency and
-notice hashes are recorded in `third_party/shaka-player.json`; packaging validates
-them against the exact npm lock. No Shaka UI, demo assets or UI fonts are shipped.
-The source pin is [Shaka v5.2.11](https://github.com/shaka-project/shaka-player/tree/v5.2.11);
-its [upstream license](https://github.com/shaka-project/shaka-player/blob/v5.2.11/LICENSE)
-and retained notices identify the upstream terms. These additions make no new
-clean-build or release-qualification claim.
-
-Tagged source companions include the hash-pinned official Shaka source archive,
-with preferred JavaScript and upstream build scripts. Pages source downloads
-preserve that source with only upstream test media omitted to fit the hosting
-file limit; their source note identifies the complete upstream archive and hash.
-`python3 scripts/shaka_source.py` fetches/verifies it under ignored
-`build/downloads/`; this source download is separate from the small runtime
-assets and is not fetched by browser playback. Release verification checks its
-presence and hash in the corresponding-source manifest. This supplies source
-materials without claiming an independently reproduced Shaka compiler build.
-
-This software uses FreeType. Portions are copyright the FreeType Project
-(https://freetype.org). The upstream notices identify the respective authors.
-
-The patched upstream sources, including `experiments/retained-subtitles/vo_libmpv.c`,
-retain their upstream licensing and any individual license headers. mpv's
-`Copyright` inventory also covers its C files without individual headers. The
-original-code license does not replace those upstream terms. The dated release record and `patches/` identify our modifications.
-
-## Source and build materials accompanying a distribution
-
-`npm run check:licenses` checks source headers, package metadata, core import and
-export boundaries, preserved source/notice hashes and license texts.
-`npm run test:licenses` exercises failures for boundary violations and archive
-tampering. The lightweight CI workflow builds TypeScript and checks a real core
-archive without building native engines. Player packaging runs the same source
-gate, carries the Apache, GPLv3 and CC BY texts plus the retained GPLv2 text,
-the boundary map and a per-file
-`license-map.json`, and checks the assembled files before writing the archive.
-`verify-beta-release.py` checks the actual archive again. Source companions carry
-the policy and texts. These checks supplement the existing source correspondence
-and engine-configuration gates; they do not replace them or establish legal approval.
-
-Ship the runtime archive and its matching `demuxe-*-source.tar.gz` together from the
-same download location. The source companion must contain:
-
-- The exact demuxe source revision, native wrappers, browser bindings, patches,
-  build scripts, source/toolchain locks, package lock, notices and font asset.
-- Every SHA-256-verified upstream archive in `sources.lock.json`, including the
-  SDK installer source, plus the actual installed Emscripten sources and runtime
-  library sources used in the build (excluding compiler caches).
-- Actual FFmpeg configuration headers and configure arguments, mpv configuration,
-  compiler/tool versions and hashes, the build log, and the engine build record.
-- Instructions to rebuild all engines and to relink the remux wrapper with a
-  modified FFmpeg. The supplied wrapper source and link command are part of the
-  static LGPL relinking materials; do not remove them from the source companion.
-
-The release manifest binds both archives to the source revision and engine hashes.
-Archive assembly must fail if the linked configuration or inputs disagree with the
-build record. Notices alone and a link to generic upstream sources do not substitute
-for matching source/build materials. Keep the companion downloadable alongside the
-runtime for recipients; do not rely on an unfulfilled written-source offer.
-
-The public download page and integrator documentation must identify the GPL engines
-and LGPL remux library and link the matching source archive. Preserve license texts,
-copyright notices and change identification when redistributing. Do not impose terms
-that conflict with the supplied licenses, including restrictions on the LGPL rights
-to modify/relink and debug those modifications.
-
-The build audit establishes the inputs/configuration and presence of these materials.
-It does not establish legal approval of a particular host application, EULA, store,
-patent jurisdiction, or distribution arrangement. Have those arrangements reviewed
-where needed, especially before embedding the GPL engines in a proprietary product.
-
-References: [FFmpeg's license and distribution guidance](https://ffmpeg.org/legal.html),
-[mpv's copyright and licensing statement](https://github.com/mpv-player/mpv/blob/v0.40.0/Copyright),
-[GPL version 3](https://www.gnu.org/licenses/gpl-3.0.html),
-[LGPL version 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html).
+References: [FFmpeg's pinned license](../third_party/notices/ffmpeg/LICENSE.md),
+[mpv's pinned copyright inventory](../third_party/notices/mpv/Copyright),
+[LGPL version 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html),
+[GNU's static-linking FAQ](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic).

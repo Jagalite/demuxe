@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Experiment-only status; update once per second, outside the video surface.
 const panel=document.createElement('section');
 panel.style.cssText='padding:12px 16px;margin:12px 0;border:1px solid #555;border-radius:8px;max-width:928px;font-variant-numeric:tabular-nums';

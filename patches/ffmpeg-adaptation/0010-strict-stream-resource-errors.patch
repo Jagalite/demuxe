@@ -1,0 +1,148 @@
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -244,6 +244,7 @@
+     int http_multiple;
+     int http_seekable;
+     int seg_max_retry;
++    int strict_io;
+     AVIOContext *playlist_pb;
+     HLSCryptoContext  crypto_ctx;
+ } HLSContext;
+@@ -1598,6 +1599,10 @@
+ 
+     ret = read_from_url(pls, seg->init_section, pls->init_sec_buf,
+                         pls->init_sec_buf_size);
++    // A short positive read can carry an underlying transport failure.
++    if (c->strict_io && pls->input->error < 0 &&
++        pls->input->error != AVERROR_EOF)
++        ret = pls->input->error;
+     ff_format_io_close(pls->parent, &pls->input);
+ 
+     if (ret < 0)
+@@ -1783,6 +1788,8 @@
+             ret = open_input(c, v, seg, &v->input);
+         }
+         if (ret < 0) {
++            if (c->strict_io)
++                return ret;
+             if (ff_check_interrupt(c->interrupt_callback))
+                 return AVERROR_EXIT;
+             av_log(v->parent, AV_LOG_WARNING, "Failed to open segment %"PRId64" of playlist %d\n",
+@@ -1847,6 +1854,8 @@
+ 
+         return ret;
+     }
++    if (c->strict_io && ret < 0 && ret != AVERROR_EOF)
++        return ret;
+     if (ret == 0 && segment_reusable(v->input, seg, next_segment(v))) {
+         /* Clean boundary, and the next segment continues this resource. Keep
+          * the connection open and read it as a whole. Note that splitting
+@@ -2599,6 +2608,7 @@
+             changed = 1;
+             pls->cur_seq_no = select_cur_seq_no(c, pls);
+             pls->pb.pub.eof_reached = 0;
++            pls->pb.pub.error = 0;
+             if (c->cur_timestamp != AV_NOPTS_VALUE) {
+                 /* catch up */
+                 pls->seek_timestamp = c->cur_timestamp +
+@@ -2710,6 +2720,11 @@
+                 else
+                     ret = av_read_frame(pls->ctx, pls->pkt);
+                 if (ret < 0) {
++                    // AVIO marks eof_reached on errors too; it is not proof of
++                    // a successful segment boundary or clean demux EOF.
++                    if (c->strict_io && pls->pb.pub.error < 0 &&
++                        pls->pb.pub.error != AVERROR_EOF)
++                        return pls->pb.pub.error;
+                     if (!avio_feof(&pls->pb.pub) && ret != AVERROR_EOF)
+                         return ret;
+                     break;
+@@ -2944,6 +2959,7 @@
+         pls->input_next_requested = 0;
+         av_packet_unref(pls->pkt);
+         pb->eof_reached = 0;
++        pb->error = 0; // Accepted seek discards the previous AVIO operation.
+         /* Clear any buffered data */
+         pb->buf_end = pb->buf_ptr = pb->buffer;
+         /* Reset the pos, to let the mpegts/mov demuxer know we've seeked. */
+@@ -3028,6 +3044,15 @@
+ #define OFFSET(x) offsetof(HLSContext, x)
+ #define FLAGS AV_OPT_FLAG_DECODING_PARAM
+ static const AVOption hls_options[] = {
++    // Browser transport already owns retry/cancel/error classification.
++    {"strict_io", "Propagate resource failures instead of skipping segments",
++        OFFSET(strict_io), AV_OPT_TYPE_BOOL,
++#ifdef __EMSCRIPTEN__
++        {.i64 = 1},
++#else
++        {.i64 = 0},
++#endif
++        0, 1, FLAGS},
+     {"live_start_index", "segment index to start live streams at (negative values are from the end)",
+         OFFSET(live_start_index), AV_OPT_TYPE_INT, {.i64 = -3}, INT_MIN, INT_MAX, FLAGS},
+     {"prefer_x_start", "prefer to use #EXT-X-START if it's in playlist instead of live_start_index",
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -159,6 +159,7 @@
+     AVDictionary *avio_opts;
+     int max_url_size;
+     int max_reload;
++    int strict_io;
+     char *cenc_decryption_key;
+     char *cenc_decryption_keys;
+ 
+@@ -1824,6 +1825,10 @@
+ 
+     ret = read_from_url(pls, pls->init_section, pls->init_sec_buf,
+                         pls->init_sec_buf_size);
++    // A short positive read can carry an underlying transport failure.
++    if (c->strict_io && pls->input->error < 0 &&
++        pls->input->error != AVERROR_EOF)
++        ret = pls->input->error;
+     ff_format_io_close(pls->parent, &pls->input);
+ 
+     if (ret < 0)
+@@ -1867,6 +1872,8 @@
+ 
+         ret = open_input(c, v, v->cur_seg);
+         if (ret < 0) {
++            if (c->strict_io)
++                goto end;
+             if (ff_check_interrupt(c->interrupt_callback)) {
+                 ret = AVERROR_EXIT;
+                 goto end;
+@@ -1904,6 +1911,8 @@
+     }
+     ret = read_from_url(v, v->cur_seg, buf, buf_size);
+     if (ret > 0)
++        goto end;
++    if (c->strict_io && ret < 0 && ret != AVERROR_EOF)
+         goto end;
+ 
+     if (c->is_live || v->cur_seq_no < v->last_seq_no) {
+@@ -2387,6 +2396,9 @@
+     }
+     while (!ff_check_interrupt(c->interrupt_callback) && !ret) {
+         ret = av_read_frame(cur->ctx, pkt);
++        if (ret < 0 && c->strict_io && cur->pb.pub.error < 0 &&
++            cur->pb.pub.error != AVERROR_EOF)
++            return cur->pb.pub.error;
+         if (ret >= 0) {
+             /* If we got a packet, return it */
+             cur->cur_timestamp = av_rescale(pkt->pts, (int64_t)cur->ctx->streams[0]->time_base.num * 90000, cur->ctx->streams[0]->time_base.den);
+@@ -2537,6 +2549,15 @@
+ #define OFFSET(x) offsetof(DASHContext, x)
+ #define FLAGS AV_OPT_FLAG_DECODING_PARAM
+ static const AVOption dash_options[] = {
++    // Browser transport already owns retry/cancel/error classification.
++    {"strict_io", "Propagate resource failures instead of skipping segments",
++        OFFSET(strict_io), AV_OPT_TYPE_BOOL,
++#ifdef __EMSCRIPTEN__
++        {.i64 = 1},
++#else
++        {.i64 = 0},
++#endif
++        0, 1, FLAGS},
+     {"allowed_extensions", "List of file extensions that dash is allowed to access",
+         OFFSET(allowed_extensions), AV_OPT_TYPE_STRING,
+         {.str = "aac,m4a,m4s,m4v,mov,mp4,webm,ts"},

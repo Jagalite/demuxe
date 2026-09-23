@@ -30,8 +30,9 @@ class Correspondence(unittest.TestCase):
         self.record = {'schema':1,'archives':inputs,'files':{str(p.relative_to(self.library)):sha(p) for p in [self.lib,self.source]}}
         self.manifest = {'apiVersion':2,'sources':list(inputs.values()),'files':{str(self.lib):{'sha256':sha(self.lib)}}}
         for path in [self.runtime/'subtitles.mjs', self.runtime/'subtitles.wasm',
+                     self.runtime/'subtitles.map',
                      *[self.lib.parent/('lib'+n+'.a') for n in ['freetype','fribidi','harfbuzz']]]:
-            path.write_bytes(b'fixture')
+            path.write_bytes(b'// SPDX-License-Identifier: LGPL-2.1-or-later\n' if path.name == 'subtitles.mjs' else b'fixture')
             self.manifest['files'][str(path)]={'sha256':sha(path)}
             if path.suffix=='.a':
                 self.record['files'][str(path.relative_to(self.library))]=sha(path)

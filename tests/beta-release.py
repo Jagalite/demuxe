@@ -20,7 +20,9 @@ class ReleaseGates(unittest.TestCase):
   subprocess.run(['git','-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture'],cwd=self.root,check=True)
   subprocess.run(['git','tag','-f','candidate'],cwd=self.root,check=True,stdout=subprocess.DEVNULL)
  def run_gate(self,pattern):
-  p=subprocess.run(['python3','scripts/package-beta.py','--release-tag','candidate'],cwd=self.root,text=True,capture_output=True)
+  p=subprocess.run(['python3','scripts/package-beta.py','--release-tag','candidate',
+                    '--adaptation-build',str(self.root/'missing-adaptation'),
+                    '--ass-build',str(self.root/'missing-ass')],cwd=self.root,text=True,capture_output=True)
   self.assertNotEqual(p.returncode,0);self.assertIn(pattern,p.stderr)
  def test_dirty_tree(self):
   self.write('unreviewed.js','changed');self.run_gate('clean source checkout')
@@ -30,7 +32,7 @@ class ReleaseGates(unittest.TestCase):
   self.run_gate('Release tag must identify HEAD')
  def test_unlicensed_source(self):self.run_gate('original-code license')
  def licensed(self):
-  self.write('package.json',{'version':'0.0.0-test','license':'GPL-3.0-or-later'});self.write('LICENSE','license fixture');self.commit()
+  self.write('package.json',{'version':'0.0.0-test','license':'Apache-2.0'});self.write('LICENSE','license fixture');self.commit()
  def test_incremental_build(self):
   self.licensed();self.write('build/beta-build.json',{'clean':False});self.run_gate('completed clean engine build')
  def test_clean_build_allows_worker_sources_but_rejects_old_outputs(self):

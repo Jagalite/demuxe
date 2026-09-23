@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Qualified output adapter at the Wasm write callback. It does not remux, repair
 // timestamps, or invent sample boundaries. Unqualified complete batches retain
 // the existing gather path; after admission a corrupt/truncated tail is fatal.

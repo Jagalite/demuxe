@@ -13,9 +13,10 @@ export EM_PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 export SOURCE_DATE_EPOCH=1740000000
 export GIT_CEILING_DIRECTORIES="$ROOT/build/sources"
 OBJ="$ROOT/build/obj-software-full-ffmpeg"
-mkdir -p "$OBJ" web/engine-software-full results/software-full
+mkdir -p "$OBJ" web/engine-software-full results/software-full build/link-maps
 # Use upstream default component selection, with no hand-maintained codec list.
-# mpv is already GPL; enable FFmpeg's built-in GPL filters as well.
+# Keep upstream-default LGPL decoders, demuxers and filters. Exclude GPL-only
+# libpostproc even though this build does not use it.
 # External dav1d and zimg provide AV1 reconstruction and color conversion.
 CONFIGURE=("$ROOT/build/sources/ffmpeg/configure"
  --prefix="$ROOT/build/prefix-software-full" --target-os=none --arch=wasm32
@@ -24,7 +25,7 @@ CONFIGURE=("$ROOT/build/sources/ffmpeg/configure"
  --disable-autodetect --disable-network --disable-asm --disable-hwaccels
  --disable-encoders --disable-muxers --disable-devices --disable-avdevice
  --disable-protocols --enable-protocol=file
- --enable-libdav1d --enable-libzimg --enable-gpl --enable-pthreads --enable-libxml2 --enable-zlib --enable-libass
+ --enable-libdav1d --enable-libzimg --disable-postproc --enable-pthreads --enable-libxml2 --enable-zlib --enable-libass
  --extra-cflags="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/demuxe -I$ROOT/build/prefix/include"
  --extra-ldflags="-pthread -L$ROOT/build/prefix/lib")
 printf '%s\n' "${CONFIGURE[@]}" > "$OBJ/configure-request.next"
@@ -40,14 +41,14 @@ python3 scripts/normalize-build-paths.py build/obj-software-full-ffmpeg/config.h
 read -r -a LIBS <<< "$(pkg-config --cflags --libs --static mpv)"
 for i in "${!LIBS[@]}"; do
  case "${LIBS[$i]}" in
- -lavcodec|-lavformat|-lavfilter|-lavutil|-lswresample|-lswscale|-lpostproc)
+ -lavcodec|-lavformat|-lavfilter|-lavutil|-lswresample|-lswscale)
   name=${LIBS[$i]#-l}; LIBS[$i]="$OBJ/lib$name/lib$name.a";;
  esac
 done
 source scripts/decoder-simd.sh
 python3 scripts/compile-software-vo.py
 emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" -pthread -msimd128 -Inative native/player.c native/events.c native/stream_bridge.c build/software-vo/vo_libmpv.o "${DECODER_SIMD_SOURCES[@]}" \
- "${LIBS[@]}" "$OBJ/libpostproc/libpostproc.a" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions \
+ "${LIBS[@]}" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions -Wl,-Map,"$ROOT/build/link-maps/software.map" \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine \
  -sENVIRONMENT=worker -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \
  -sINITIAL_MEMORY=134217728 -sMAXIMUM_MEMORY=1073741824 -sALLOW_MEMORY_GROWTH=1 \
@@ -56,4 +57,5 @@ emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" -pthread -msimd128 -Inative native/pl
  -sEXPORTED_FUNCTIONS='["_web_create","_web_command_args","_web_event","_web_render","_web_presented","_web_destroy","_web_audio_ptr","_malloc","_free"]' \
  -sEXPORTED_RUNTIME_METHODS='["ccall","UTF8ToString","FS","PThread","HEAPU8","HEAPU32","HEAPF32"]' \
  -o web/engine-software-full/player.mjs
+python3 scripts/stamp-engine-license.py web/engine-software-full/player.mjs
 python3 experiments/software-full/inventory.py

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 #include "stream_bridge.h"
 #include <mpv/stream_cb.h>
 #include <emscripten.h>

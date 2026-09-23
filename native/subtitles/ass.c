@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 /* Optional external ASS renderer, using the repository's pinned libass stack.
  * One worker owns one library/renderer/track. No media demuxer or playback clock. */
 #include <ass/ass.h>

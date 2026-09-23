@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 export const styles = `
 .queue-navigation{display:flex;align-items:center;gap:2px;flex:none;margin-left:auto;font-size:10px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--demuxe-muted-foreground)}
 .queue-navigation .icon-button{width:30px;min-width:30px;flex-basis:30px;padding:7px}.queue-navigation svg{width:16px;height:16px}

@@ -38,7 +38,7 @@ def bundle(name,files):
  print(name,target.stat().st_size,flush=True)
 # Preferred project source, including current demo changes, excluding result logs/media histories.
 files={}
-for name in subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root).decode().split('\0'):
+for name in subprocess.check_output(['git','ls-files','--cached','-z'],cwd=root).decode().split('\0'):
  if not name or name.startswith(('results/','build/','.github/')):continue
  path=root/name
  if path.is_file() and not path.is_symlink():files['demuxe/'+name]=path
@@ -60,15 +60,17 @@ for path in sdk.rglob('*'):
 if args.emscripten_archive:
  shutil.copyfile(args.emscripten_archive,source/'emscripten-source.tar.gz')
 else:bundle('emscripten-source.tar.gz',files)
-materials=['build/obj-mpv/config.h','build/obj-mpv/compile_commands.json','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-ffmpeg/config.h','build/obj-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/software-vo/compile-command.json','build/software-vo/vo_libmpv.c','build/gap.emscripten','results/software-full/build.json']
+build=json.loads((root/'build/beta-build.json').read_text())
+materials=sorted(set(build['configurations']) | {'build/beta-build.json','build/beta-build-start.json'})
 bundle('build-materials.tar.gz',{name:root/name for name in materials})
 readme='''# Demo source and licenses
 
 This is a development demo, not the clean-build beta release candidate.
-The complete player and combined engines are GPL-3.0-or-later. Reusable original
-modules use Apache-2.0; original reports/results use CC BY 4.0.
+Original Demuxe application and runtime code use Apache-2.0. The modified mpv
+and FFmpeg engines use LGPL-2.1-or-later and their upstream file notices.
+Original reports/results retain CC BY 4.0 and historical releases retain GPL.
 Third-party components retain their terms; see ../LICENSING.md, ../docs/LICENSING.md
-and ../third_party/. The deployed GPLv3 player retains Apache modules' license and notices.
+and ../third_party/. The linked WASM engines retain their LGPL grants and notices.
 
 Download demuxe-source.tar.gz for the preferred project source, scripts and patches.
 Extract it, then place the individual upstream archives in demuxe/build/downloads/.
@@ -76,8 +78,8 @@ The Shaka preferred-source archive contains its JavaScript and build scripts;
 only upstream test media fixtures are omitted to satisfy the hosting file limit.
 the npm distribution hashes and retained notices are in third_party/shaka-player.json.
 emscripten-source.tar.gz supplies the SDK 4.0.14 runtime/library source and scripts.
-build-materials.tar.gz records the local configurations used for these engines,
-including Software's RGB rotation override. Absolute paths in these records describe
+build-materials.tar.gz records generated configurations, link maps and the
+LGPL closure report for these engines. Absolute paths in these records describe
 the build machine; use the project scripts to configure your checkout's paths.
 
 The documented engine build entry point is scripts/build-beta-engines.sh; see
@@ -90,7 +92,7 @@ source download hashes; ../deployment-manifest.json records the deployed assets.
 manifest={p.name:{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(source.glob('*.gz'))}
 (source/'source-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 links=''.join(f'<li><a href="{html.escape(name)}">{html.escape(name)}</a> — {data["bytes"]/1024/1024:.1f} MiB</li>' for name,data in manifest.items())
-(source/'index.html').write_text(f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>demuxe source &amp; licenses</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 24px;background:#101114;color:#ded9e9}}a{{color:#c3a9ff}}pre{{white-space:pre-wrap;font:14px/1.7 system-ui}}</style><a href="../">← Player</a><h1>Source &amp; licenses</h1><p><a href="../LICENSE">GPL license</a> · <a href="../docs/LICENSING.md">Component licensing</a> · <a href="../third_party/notices.json">Third-party notices</a> · <a href="source-manifest.json">Download hashes</a></p><pre>{html.escape(readme)}</pre><ul>{links}</ul>''')
+(source/'index.html').write_text(f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>demuxe source &amp; licenses</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 24px;background:#101114;color:#ded9e9}}a{{color:#c3a9ff}}pre{{white-space:pre-wrap;font:14px/1.7 system-ui}}</style><a href="../">← Player</a><h1>Source &amp; licenses</h1><p><a href="../LICENSE">Apache application license</a> · <a href="../LICENSES/LGPL-2.1-or-later.txt">LGPL engine license</a> · <a href="../docs/LICENSING.md">Component licensing</a> · <a href="../third_party/notices.json">Third-party notices</a> · <a href="source-manifest.json">Download hashes</a></p><pre>{html.escape(readme)}</pre><ul>{links}</ul>''')
 manifest={'status':'development-demo','baseCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'sourceBranch':'demo-source','sourceCommit':args.source_commit,'independentCleanBuildQualified':False,'files':{str(p.relative_to(out)):{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(out.rglob('*')) if p.is_file()}}
 (out/'deployment-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 for path in out.rglob('*'):

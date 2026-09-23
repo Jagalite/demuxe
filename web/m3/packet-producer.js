@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Stand-in for a packet owner on another thread; reads the actual shared Wasm heap.
 self.onmessage=({data:{heap,base,packets,port}})=>{
   const view=new Uint8Array(heap);

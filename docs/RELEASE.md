@@ -4,7 +4,8 @@
 
 A release candidate is one archive from a clean tagged revision, built and tested
 as recorded below. A deterministic tar command alone is not an engine build test.
-One clean build of all three engines is required for this developer beta. Universal
+One clean build of the baseline, Software, Hybrid, Remux and subtitle-service
+engines is required for this candidate. Universal
 bit-for-bit reproducibility and the historical Linux baseline are separate claims.
 
 ## Prerequisites
@@ -44,8 +45,9 @@ DEMUXE_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
 Create `build/` before redirecting the log. The clean flag rejects existing engine
 outputs, extracted sources, dependency prefixes, objects or compiler cache. The
 build verifies locked archives, applies the complete patch series, builds all
-static dependencies and all three engines, and records actual configuration and
-input/output hashes in `build/beta-build.json`. Compiler file-prefix maps and
+static dependencies and all five engines, and records actual configuration,
+linker maps and input/output hashes in `build/beta-build.json` and
+`build/lgpl-closure.json`. Compiler file-prefix maps and
 normalized generated configuration headers use `/demuxe/` as a virtual build root;
 the npm packager rejects leaked host paths in any runtime file, including Wasm.
 Full host paths remain only in build evidence and the source companion. Inputs may not change during the
@@ -54,16 +56,22 @@ review and make a new candidate revision.
 
 ## Assemble, test and identify the same bytes
 
-Run `npm run check:licenses` and inspect `docs/LICENSING.md` before tagging.
-The complete package must be GPL-3.0-or-later; reusable original modules
-use Apache-2.0 and reports retain CC BY 4.0. Include the license texts,
+Run `npm run check:licenses`, `python3 tests/lgpl-closure.py`, and inspect
+`docs/LICENSING.md` before tagging. The package metadata grants Apache-2.0
+to original Demuxe code; the rebuilt mpv and FFmpeg engines remain
+LGPL-2.1-or-later, and reports retain CC BY 4.0. Include the license texts,
 boundary manifest and per-file license map in the exact archive being verified.
 Use a new version/tag for changed candidate bytes. The release packaging option
-requires a clean tagged revision, clean-build evidence, the original license and
-matching input/configuration/engine hashes. It also produces the source companion.
+requires a clean tagged revision, clean-build LGPL closure evidence and matching
+input/configuration/engine hashes. It also produces the source companion with
+the exact relinking instructions. The [migration report](LGPL-MIGRATION-REPORT.md)
+must record the full current catalogue comparison and matched performance checks
+before recommending this configuration as the next release default.
 
 ```sh
-python3 scripts/package-beta.py --release-tag <tag> --output build/release
+python3 scripts/package-beta.py --release-tag <tag> --output build/release \
+  --adaptation-build <clean-adaptation-engine-directory> \
+  --ass-build <clean-ass-runtime-directory>
 BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-consumer.mjs
 BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
@@ -73,6 +81,29 @@ BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
 BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-streaming.mjs
 ```
+
+Rerun all 71 README Demuxe auto cases in `tests/head-to-head/run.mjs` against
+separate GPL baseline and LGPL candidate asset snapshots made with
+`tests/head-to-head/setup.py --fixtures-from <same-71-fixture-snapshot>`.
+Pass `--optional-archive` with the published GPL archive for the baseline and
+the new candidate archive for the LGPL lane, so both use their exact packaged
+Native ASS and FLAC/Opus assets.
+Use `--catalogue --cases demuxe` for each run. Preserve both summary files and
+classify their exact routes, acceptance results and first failure stages:
+
+```sh
+python3 scripts/compare-lgpl-catalogue.py \
+  --baseline <gpl-correctness>/summary.json \
+  --candidate <lgpl-correctness>/summary.json \
+  --output <complete-readme-comparison.json>
+```
+
+The verifier below recomputes that comparison, requires all 71 rows to be
+rerun, retains every baseline bounded pass, and rejects a changed first failure
+stage or reason for any pre-existing blocked/failed row. It ties the candidate
+engine hashes to the runtime archive. Record separate representative Native, Hybrid and Software matched
+CPU/memory observations and investigate any decoder, filter, threading,
+synchronization or rendering change before release.
 
 The browser tests require Playwright's Firefox and local Chrome, and repository
 fixtures created by the documented fixture generators. The focused streaming test
@@ -105,8 +136,11 @@ against the archived reader, then write the final verification record:
 python3 scripts/verify-beta-release.py \
   --archive build/release/demuxe-<version>.tgz \
   --source build/release/demuxe-<version>-source.tar.gz \
+  --lgpl-catalogue <complete-readme-comparison.json> \
   --consumer <chrome-consumer-result.json> <firefox-consumer-result.json> \
   --streaming <chrome-streaming-result.json> <firefox-streaming-result.json> \
+  --shaka <chrome-shaka-result.json> <firefox-shaka-result.json> \
+  --optional <optional-qualification-directory>/qualification.json \
   --extra <release-extra-result.json>
 ```
 
@@ -116,11 +150,18 @@ publish anything; distribute the verified files without running the packager aga
 
 ## Optional preparation and ASS runtimes
 
-When shipping the optional runtimes, pass their verified build directories to the
+The published `0.3.0-beta.3` archive included both optional runtimes. Preserve
+that coverage in `0.3.0-beta.4`: rebuild each from the new tagged Apache source
+and its pinned upstream libraries, then pass the verified build directories to the
 same tagged packager with `--adaptation-build <engine-directory>` and
 `--ass-build <runtime-directory>`. Keep both optional source companions and their
 hashes alongside the standard source companion. See
 [Runtime assets](RUNTIME-ASSETS.md) for the pinned builds and asset-copy contract.
+The adaptation build must retain the published FLAC and explicit Opus profiles
+(`--opus`, 0.5-second first fragments, FLAC level 5); compare its manifest with
+the prior archive before release. It uses the separate published FFmpeg n9.0.1
+pin and `patches/ffmpeg-adaptation/`, while the complete Software/Hybrid engine
+uses FFmpeg n7.1.1.
 
 Run the optional matrix against the immutable tagged archive:
 
@@ -148,7 +189,7 @@ component, and menu regressions. The UI/API test server serves runtime code stri
 from the installed archive; only test pages and media come from the tagged source.
 
 ```sh
-BETA_ARCHIVE="$PWD/build/release/demuxe-0.3.0-beta.3.tgz" node tests/release-extra.mjs
+BETA_ARCHIVE="$PWD/build/release/demuxe-0.3.0-beta.4.tgz" node tests/release-extra.mjs
 ```
 
 Pass `--extra <release-extra-result.json>` to `verify-beta-release.py`, in addition
@@ -170,11 +211,11 @@ GitHub release for the recorded tag; the npm package alone is not that source of
 1. Confirm `npm whoami`, account publishing access/2FA, and `demuxe` name
    availability or ownership (`npm view demuxe name version maintainers`).
 2. Check archive metadata and `SHA256SUMS` against `verification.json`.
-3. Run `npm publish ./build/release/demuxe-0.3.0-beta.3.tgz --tag beta --access public --dry-run`.
+3. Run `npm publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --dry-run`.
 4. Only after all verification gates pass, explicitly publish:
 
 ```sh
-npm publish ./build/release/demuxe-0.3.0-beta.3.tgz --tag beta --access public
+npm publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public
 ```
 
 Do not use `latest` for this beta. After publication, install `demuxe@beta` into

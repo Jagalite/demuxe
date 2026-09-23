@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 #include <emscripten.h>
 #include <mpv/client.h>
 #include <mpv/render.h>

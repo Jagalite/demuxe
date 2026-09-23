@@ -278,10 +278,13 @@ npm. `scripts/package-beta.py` assembles the publishable package; only the exact
 verified release tarball is published, with the `beta` dist-tag. See
 [the release procedure](docs/RELEASE.md).
 
-The complete `demuxe` package is **GPL-3.0-or-later**. Original reusable core,
-routing, standalone probes and research tooling use **Apache-2.0**;
-original reports and result data use **CC BY 4.0**. Third-party
-licenses stay separate. See [the boundary summary](LICENSING.md).
+Original Demuxe application, runtime, router, API and UI code in the next
+qualified build is **Apache-2.0**. The bundled modified mpv and FFmpeg WASM
+media engines are **LGPL-2.1-or-later**, with their upstream file notices and
+relinking materials. Other third-party terms remain separate. Original reports
+and result data remain **CC BY 4.0**. Previously published GPL Demuxe releases
+and binaries retain their original GPL grants. See [the boundary summary](LICENSING.md)
+and [LGPL relinking instructions](docs/LGPL-RELINK.md).
 
 `npm run build:core` assembles a separate engine-free `demuxe-core` candidate from
 the explicit reusable file list. See [core package usage](packages/core/README.md).

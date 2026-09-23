@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // mpv's dw/dh include pixel aspect ratio, but not display rotation.
 export function displayAspect(params, track) {
   const positive = value => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : undefined;

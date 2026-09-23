@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 /** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
 export async function rasterizePreview(blob, request, crop) {
     request.signal.throwIfAborted();
