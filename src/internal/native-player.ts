@@ -14,6 +14,7 @@ type RemuxController = {
   waitingForMedia?:boolean; onBufferingChange?:()=>void;
   audioAdaptation?:'flac'|'opus'; generation?:number;
   windowed?:boolean; ranges?():[number,number][]; duration?:number; playbackPaused?:boolean; playbackEnded?:boolean;
+  trackBounds?:{videoEnd:number;audioEnd:number};
   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
   open(source: RemuxSource, target?: number): Promise<unknown>;
   canSeekBuffered?(target:number): boolean; expectedVideoFrame?(target:number):number|undefined;
@@ -173,6 +174,11 @@ export class NativePlayer extends EventTarget implements Backend {
     if(output){this.capability.completedAtEOF=false;this.capability.outputVerified=false;this.capability.videoPresented=false;this.capability.playbackReady=false;this.capability.audioProgress=false;}
     const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number;mozDecodedFrames?:number;mozHasAudio?:boolean};
     const initialTime=v.currentTime,initialFrames=v.getVideoPlaybackQuality().totalVideoFrames;
+    // A verified session may continue through a shorter track's silent or
+    // frozen tail. Require fresh evidence from tracks still on the timeline.
+    const bounds=this.remux?.trackBounds,position=initialTime-(this.remux?.timelineBias??0);
+    const active={video:(expected?.video??v.videoWidth>0)&&!(output&&previouslyVerified&&bounds&&bounds.videoEnd>=0&&position>=bounds.videoEnd-.01),
+      audio:(expected?.audio??false)&&!(output&&previouslyVerified&&bounds&&bounds.audioEnd>=0&&position>=bounds.audioEnd-.01)};
     const timing=this.capability.timing??(this.capability.timing={});
     timing[output?'outputRequested':'preparationRequested']=performance.now();
     await new Promise<void>((resolve,reject)=>{
@@ -184,7 +190,7 @@ export class NativePlayer extends EventTarget implements Backend {
         if(finished||classifying)return;
         if(v.error){classifying=true;clearInterval(poll);void this.classifyDirectFailure(nativeMediaError(v.error)).then(error=>finish(error instanceof Error?error:new Error(String(error))),error=>finish(error));return;}
         this.capability.metadata=v.readyState>=1;if(this.capability.metadata)timing.metadata??=performance.now();
-        const hasVideo=expected?.video??v.videoWidth>0;
+        const hasVideo=active.video;
         const decoded=v.getVideoPlaybackQuality().totalVideoFrames>0||(v.mozDecodedFrames??0)>0;
         if(decoded)this.capability.decoderOutput=true;
         // A previously verified session can naturally finish a short remaining
@@ -196,19 +202,19 @@ export class NativePlayer extends EventTarget implements Backend {
         // Firefox may decode and advance video while dropping a selected audio
         // track. Once current data is ready, mozHasAudio=false identifies that
         // failed A/V route before it can be accepted as a paused candidate.
-        if(expected?.audio&&v.readyState>=3&&v.mozHasAudio===false){finish(new PlayerError('DECODE_FAILED','Native selected audio track produced no output'));return;}
+        if(active.audio&&v.readyState>=3&&v.mozHasAudio===false){finish(new PlayerError('DECODE_FAILED','Native selected audio track produced no output'));return;}
         this.capability.prepared=true;timing.ready??=performance.now();
         if(!output){finish();return;}
         const advancing=(!v.paused||v.ended)&&v.currentTime>initialTime+(v.ended?0:.02);
         if(presented||v.getVideoPlaybackQuality().totalVideoFrames>initialFrames){this.capability.videoPresented=true;timing.firstFrame??=performance.now();}
         const audioCount=v.webkitAudioDecodedByteCount;
-        const audioReady=!expected?.audio||(typeof audioCount==='number'?audioCount>0:typeof v.mozHasAudio==='boolean'?v.mozHasAudio&&advancing:advancing);
+        const audioReady=!active.audio||(typeof audioCount==='number'?audioCount>0:typeof v.mozHasAudio==='boolean'?v.mozHasAudio&&advancing:advancing);
         // Readiness/clock fallback is explicitly weaker than decoded-sample evidence.
-        if(expected?.audio&&audioReady){this.capability.audioProgress=advancing;this.capability.audioEvidence=typeof audioCount==='number'?'decoded-byte-counter':typeof v.mozHasAudio==='boolean'?'browser-audio-presence-and-clock':'browser-readiness-and-clock';}
+        if(active.audio&&audioReady){this.capability.audioProgress=advancing;this.capability.audioEvidence=typeof audioCount==='number'?'decoded-byte-counter':typeof v.mozHasAudio==='boolean'?'browser-audio-presence-and-clock':'browser-readiness-and-clock';}
         if(advancing&&(!hasVideo||this.capability.videoPresented)&&audioReady){this.capability.playbackReady=true;this.capability.outputVerified=true;timing.outputAccepted=performance.now();finish();}
       };
       const timer=setTimeout(()=>{
-        const missing=v.readyState>=3&&((expected?.video&&!v.videoWidth)||(output&&expected?.audio&&(v.webkitAudioDecodedByteCount===0||v.mozHasAudio===false)));
+        const missing=v.readyState>=3&&((active.video&&!v.videoWidth)||(output&&active.audio&&(v.webkitAudioDecodedByteCount===0||v.mozHasAudio===false)));
         finish(missing?new PlayerError('DECODE_FAILED','Native selected track produced no decoded output'):new StartupEvidenceTimeout(output?'output':'preparation'));
       },10000);
       const poll=setInterval(check,25);this.cancelers.add(cancel);
