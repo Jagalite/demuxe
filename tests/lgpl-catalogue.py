@@ -53,6 +53,9 @@ class CatalogueGate(unittest.TestCase):
                 file = assets / 'demuxe' / name
                 file.parent.mkdir(parents=True, exist_ok=True)
                 file.write_bytes((label + ':' + name).encode())
+            application = assets / 'demuxe/web/native-remux-player.js'
+            application.write_bytes(b'qualified application source')
+            files[str(application.relative_to(assets))] = {'sha256': gate.digest(application)}
             for folder in ('engine-ass', 'engine-adaptation'):
                 file = assets / 'demuxe/web' / folder / 'manifest.json'
                 data = {'sourceBuildVerification': {'verified': True}}
@@ -99,6 +102,20 @@ class CatalogueGate(unittest.TestCase):
         record = gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.assertEqual((record['status'], record['counts']['preexistingLimitChanged']),
                          ('review-required', 1))
+
+    def test_new_fidelity_block_is_a_regression(self):
+        self.change('candidate', lambda data: data['cases'][0].update(
+            status='blocked', screenPassed=True, reason='Marked audio missing',
+            failureStage='audio-output'))
+        record = gate.compare(self.summary('baseline'), self.summary('candidate'))
+        self.assertEqual((record['status'], record['counts']['regression'],
+                          record['counts']['newlyBlocked']), ('review-required', 1, 1))
+
+    def test_changed_application_asset_is_rejected(self):
+        file = self.root / 'candidate/assets/demuxe/web/native-remux-player.js'
+        file.write_bytes(b'different application source')
+        with self.assertRaisesRegex(ValueError, 'Changed catalogue asset bytes'):
+            gate.compare(self.summary('baseline'), self.summary('candidate'))
 
     def test_rejects_missing_case_changed_harness_and_new_regression(self):
         self.change('candidate', lambda data: data['cases'].pop())

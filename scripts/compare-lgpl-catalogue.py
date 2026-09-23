@@ -48,10 +48,9 @@ def snapshot(summary_path):
     if not manifest.get('optionalArchiveSHA256'):
         raise ValueError('Catalogue lane lacks exact packaged optional engine archive')
     for name, record in manifest['files'].items():
-        if name.startswith('fixtures/') or name.startswith('demuxe/web/engine-'):
-            file = assets / name
-            if not file.is_file() or digest(file) != record['sha256']:
-                raise ValueError('Changed catalogue fixture or engine bytes: ' + name)
+        file = (assets / name).resolve()
+        if not file.is_relative_to(assets.resolve()) or not file.is_file() or digest(file) != record['sha256']:
+            raise ValueError('Changed catalogue asset bytes: ' + name)
     fixtures = json.loads((assets / 'fixtures/catalogue.json').read_text())
     cases = summary.get('cases', [])
     selected = {f'demuxe.auto.{name}' for name in fixtures}
@@ -72,12 +71,16 @@ def classify(before, after):
     old_pass, new_pass = passed(before), passed(after)
     old_route = before.get('initial', {}).get('route')
     new_route = after.get('initial', {}).get('route')
+    if before['status'] == 'passed' and after['status'] != 'passed':
+        return 'regression'
+    if old_pass and not new_pass:
+        return 'regression'
+    if before['status'] != 'passed' and after['status'] == 'passed':
+        return 'pass with measurable behavior difference'
     if old_pass and new_pass:
         return 'pass with route change' if old_route != new_route else 'identical pass'
     if not old_pass and new_pass:
         return 'pass with measurable behavior difference'
-    if old_pass and after['status'] == 'failed':
-        return 'regression'
     return 'blocked'
 
 
@@ -128,9 +131,10 @@ def compare(before_path, after_path):
     for name in before_fixtures:
         old, new = before[name], after[name]
         category = classify(old, new)
-        prior_limit_changed = (not passed(old) and not passed(new) and
+        prior_limit_changed = (old['status'] != 'passed' and new['status'] != 'passed' and
                                (old['status'] != new['status'] or
                                 old.get('failureStage') != new.get('failureStage') or
+                                old.get('qualificationLimit') != new.get('qualificationLimit') or
                                 first_reason(old) != first_reason(new)))
         cases.append({'fixture': name, 'readmeRow': fixture_labels[name],
                       'classification': category,
@@ -140,7 +144,8 @@ def compare(before_path, after_path):
                       'candidate': {'status': new['status'], 'route': new.get('initial', {}).get('route'),
                                     'firstFailureStage': new.get('failureStage'),
                                     'qualificationLimit': new.get('qualificationLimit')},
-                      'candidateNewlyBlocked': passed(old) and not passed(new),
+                      'candidateNewlyBlocked': (old['status'] == 'passed' and new['status'] == 'blocked') or
+                                               (passed(old) and not passed(new)),
                       'preexistingLimitChanged': prior_limit_changed,
                       'candidateRegression': category == 'regression'})
     counts = {category: sum(case['classification'] == category for case in cases)

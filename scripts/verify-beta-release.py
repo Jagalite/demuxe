@@ -65,6 +65,17 @@ module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 rechecked=module.compare(pathlib.Path(catalogue['baselineSummary']['path']),pathlib.Path(catalogue['candidateSummary']['path']))
 if rechecked!=catalogue or catalogue['status']!='qualified' or catalogue['rows']!=71:raise SystemExit('Incomplete or changed LGPL README catalogue comparison')
 if catalogue['readmeSHA256']!=source['files'].get('demuxe/README.md'):raise SystemExit('LGPL catalogue compared a different tagged README')
+candidate_summary=json.loads(pathlib.Path(catalogue['candidateSummary']['path']).read_text())
+candidate_assets=json.loads((pathlib.Path(candidate_summary['assets'])/'manifest.json').read_text())
+if (candidate_summary.get('gitRevision')!=manifest['sourceCommit'] or
+        candidate_assets.get('git_revision')!=manifest['sourceCommit'] or
+        candidate_assets.get('dirty_diff')):raise SystemExit('LGPL catalogue used untagged or dirty application source')
+for name,digest in candidate_assets['source_sha256'].items():
+ expected=source['files'].get('demuxe/'+name,manifest['files'].get(name,{}).get('sha256'))
+ if digest!=expected:raise SystemExit('LGPL catalogue application source differs from release: '+name)
+for name,digest in candidate_summary['sourceHashes'].items():
+ if name=='matrix.json':continue # The harness serializes this JSON before hashing it.
+ if digest!=source['files'].get('demuxe/tests/head-to-head/'+name):raise SystemExit('LGPL catalogue harness differs from tagged source: '+name)
 if catalogue['candidateOptionalArchiveSHA256']!=runtime_hash:raise SystemExit('LGPL catalogue did not use the exact release archive for optional engines')
 for name,digest in catalogue['candidateEngineHashes'].items():
  if build['artifacts'].get(name,{}).get('sha256')!=digest:raise SystemExit('LGPL catalogue used a different engine: '+name)
