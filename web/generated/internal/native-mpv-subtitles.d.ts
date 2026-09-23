@@ -6,6 +6,7 @@ export declare class NativeMpvSubtitles {
     private time;
     private file;
     private failed;
+    private defaultStreamIndex?;
     readonly canvas: HTMLCanvasElement;
     private worker;
     private closed?;
@@ -20,6 +21,7 @@ export declare class NativeMpvSubtitles {
     private frame;
     private last;
     private lastRevision;
+    private verifiedTrack?;
     private loading;
     private observer?;
     private handlers;
@@ -30,6 +32,7 @@ export declare class NativeMpvSubtitles {
         'ff-index': number;
         type: string;
         selected?: boolean;
+        default?: boolean;
     }>;
     service: Record<string, unknown>;
     readonly stats: {
@@ -40,11 +43,13 @@ export declare class NativeMpvSubtitles {
         peakBytes: number;
         discarded: number;
     };
-    constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], file: File, failed: (e: Error) => void);
+    constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], file: File, failed: (e: Error) => void, defaultStreamIndex?: number | undefined);
     private request;
     private fail;
     select(id: string): Promise<void>;
     verify(): Promise<void>;
+    /** Internal cue oracle for tests; never exposes media text in diagnostics. */
+    currentText(): Promise<string>;
     suspend(value: boolean): void;
     seek(seconds: number): Promise<void>;
     visible(value: boolean): void;

@@ -195,7 +195,7 @@ its streams. Sources: [selection](../src/internal/selection.ts),
 | Container / operation | Native Direct | Native Remux | Hybrid | Software | Software decode evidence | Preferred → fallback | Status and restrictions |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | MP4/MOV, front/tail moov; single-file fragmented MP4 | B | FFmpeg→MP4/WebM C | FFmpeg demux | FFmpeg demux | Limited | D → R → H → S | **functional/bounded** indexed/fragmented fixtures. Actual codecs, selected tracks and edit/timestamp support decide route; not all MOV codecs are browser codecs. |
-| Matroska/MKV | B; real tested successes | FFmpeg→MP4/WebM C | FFmpeg/mpv demux | FFmpeg/mpv demux | Pass | D → R → H → S | **functional/bounded**; selected embedded subtitles exclude current Native plans. AVC missing DTS repair needs explicit bounded reorder information; generic missing DTS is not guessed. |
+| Matroska/MKV | B; real tested successes | FFmpeg→MP4/WebM C | FFmpeg/mpv demux | FFmpeg/mpv demux | Pass | D → R → H → S | **functional/bounded**; qualified embedded subtitle tracks can use the independent mpv subtitle service while browser A/V remains Native. AVC missing DTS repair needs explicit bounded reorder information; generic missing DTS is not guessed. |
 | WebM | B | C compatible VP8/VP9/AV1 + Opus/Vorbis | FFmpeg demux | FFmpeg demux | Pass | D → R → H → S | **functional/bounded**; container label alone does not qualify high-depth/color or arbitrary codec pairs. |
 | MPEG-TS files, AVC with optional AAC | B; rejected tested direct fixture | C with IDR/timestamp/ADTS handling | FFmpeg demux | FFmpeg demux | Pass | R → H → S on tested browser | **functional/bounded**; remux TS gate excludes other selected codecs. |
 | MPEG-TS with MPEG-2, and MPEG-PS | B, no demonstrated route | No current TS contract for MPEG-2 | Demux exists; MPEG video has no bridge | FFmpeg demux/decode | Pass | S | **functional/bounded** Software; TS demux support is broader than Native TS preparation. |
@@ -217,12 +217,46 @@ Sources: [production caption routing](COMPONENT-ROUTING.md),
 | Browser URL text tracks via `addTextTrack()` | Browser tracks | Browser tracks | No replay of browser track contract | No replay of browser track contract | N/A | Eligible native only | **functional/bounded** API; browser/CORS dependent. Cannot silently discard these when moving to mpv. |
 | Rich external WebVTT, SRT | No file adapter for rich VTT/SRT | No file adapter | mpv text/subtitle path | mpv text/subtitle path | Limited | H → S | **functional/bounded** external format/pixel checks; not every WebVTT styling feature. Strict external SRT→native-cue research is **experimental**, not current production admission. |
 | External ASS/SSA, fonts, karaoke/vector styling | libass | libass | mpv/libass | mpv/libass | Limited | Qualified Native ASS plans → H → S in auto mode; `experimentalNativeASS: false` opts out | **functional/bounded**; matching renderer assets/isolation required. Explicit Native mode still requires `experimentalNativeASS: true`. Container fullscreen only; overlay does not follow video-only PiP/casting. |
-| Embedded SRT/SubRip | No admitted extraction | No admitted extraction | mpv text/subtitle renderer | mpv renderer | Pass | H → S | **functional/bounded** production. Native extraction→VTT **experimental** bounded lab success, not integrated. |
-| Embedded MP4 mov_text/tx3g | No admitted extraction | No admitted extraction | mpv renderer | mpv renderer | Pass | H → S | **functional/bounded** production; lab Native extraction is **experimental** plain text/timing only, not general tx3g styles. |
-| Embedded ASS/SSA + Matroska fonts | No admitted extraction | No admitted extraction | mpv/libass | mpv/libass | Pass | H → S | **functional/bounded** production, including Main10 HEVC + FLAC/Opus + marked embedded ASS through Hybrid; lab extraction + independent libass **experimental**, single authored track/32 MiB whole-file scope. |
-| VobSub/DVD bitmap | No bitmap component | No bitmap component | mpv bitmap composition | mpv bitmap implementation; current H.264/AAC derivative passed bounded screen | Pass | H → S candidate | **functional/bounded** one Matroska track with verified marked bitmap and seek on an H.264/AAC derivative. The catalogue's H.264/AC-3 fixture still needs Hybrid for audio. General palettes/events remain unqualified. |
-| PGS/Blu-ray bitmap | No bitmap component | No bitmap component | Three refreshed fixtures pass initial output, seeks and EOF | HEVC/AC-3 fixture passed; H.264/AAC derivative lost bitmap after seek | Limited | H demonstrated | **functional/bounded** Hybrid subtitle lifecycle in the [gap follow-up](COMPARISON-GAP-CLOSEOUT.md). The forced-software H.264/AAC derivative displayed its marked bitmap initially but lost it after seeking; see the [screen report](../results/head-to-head/demuxe-software-bitmap-isolation-20260923-01/REPORT.md). The separate HEVC/AC-3 catalogue fixture passed. Broader RLE/fragment/object/palette coverage remains unqualified. |
+| Embedded SRT/SubRip | mpv subtitle service with browser A/V | Same service with packet-copy A/V | mpv text/subtitle renderer | mpv renderer | Pass | D+mpv → R+mpv → H → S | **functional/bounded** local Matroska, one or two SubRip tracks; exact text/timing, selection and seeks checked. No SRT-specific production parser. |
+| Embedded MP4 mov_text/tx3g | mpv subtitle service with browser A/V | Same service with packet-copy A/V | mpv renderer | mpv renderer | Pass | D+mpv → R+mpv → H → S | **functional/bounded** one MP4/MOV track; authored plain text/timing checked. General tx3g style fidelity remains unqualified. |
+| Embedded ASS/SSA + Matroska fonts | mpv/libass subtitle service | Same service with packet-copy A/V | mpv/libass | mpv/libass | Pass | D+mpv → R+mpv → H → S | **functional/bounded** one Matroska track and marked styled fixture on Chrome; general attachments/font corpus, karaoke and vector fidelity need separate exact tests. Existing Hybrid evidence remains scoped to its fixtures. |
+| VobSub/DVD bitmap | mpv bitmap subtitle service | Same service with packet-copy A/V | mpv bitmap composition | mpv bitmap implementation; current fixture passed bounded screen | Pass | D+mpv → R+mpv when A/V is Native; otherwise H → S | **functional/bounded** one Matroska track with verified marked bitmap and seek on an H.264/AAC derivative. The catalogue's H.264/AC-3 fixture still needs Hybrid for audio. General palettes/events remain unqualified. |
+| PGS/Blu-ray bitmap | mpv bitmap subtitle service | Same service with packet-copy A/V | Three refreshed fixtures pass initial output, seeks and EOF | HEVC/AC-3 fixture passed; H.264/AAC derivative lost bitmap after seek | Limited | D+mpv → R+mpv when A/V is Native; otherwise H → S | **functional/bounded** the forced-software H.264/AAC derivative displayed its marked bitmap initially but lost it after seeking; see the [screen report](../results/head-to-head/demuxe-software-bitmap-isolation-20260923-01/REPORT.md). The separate HEVC/AC-3 catalogue fixture passed. Broader RLE/fragment/object/palette coverage remains unqualified. |
 | TTF/OTF and embedded fonts | Optional ASS renderer | Optional ASS renderer | mpv/libass fonts | mpv/libass fonts | Not tested | Same subtitle route | **functional/bounded** supplied fonts/shaping. External file ≤8 MiB; ≤16 fonts/32 MiB aggregate; subtitle ≤8 MiB, ≤16/16 MiB aggregate. Over-budget/missing fonts do not imply fidelity. |
+
+The Native + mpv service is automatic only for inspected, finite local Files with
+qualified embedded tracks, native-compatible selected A/V, cross-origin isolation,
+and no external browser text-track or file-attachment conflict. Automatic
+admission first checks that both optional subtitle-engine assets are served;
+an asset-omitting package retains the Hybrid/Software route. mpv track IDs
+are matched to inspected stream indexes so `auto` honors the file's default
+subtitle track. Before accepting a selected track, the service requires an
+actual rendered overlay at the current time or at 0, 1, 2, 5, 10, 20 or 30
+seconds. A track with no overlay at those samples uses
+Hybrid/Software; the startup sample is a conservative admission check, not a
+full-file fidelity proof. It uses one
+subtitle service worker, its pinned mpv/FFmpeg decoder, a separate bounded local
+random-access reader and a container overlay. mpv has `vid=no` and `aid=no` and
+the render bridge rejects any nonzero mpv A/V chain count. The browser media
+element remains the A/V clock and decode/presentation owner. Direct keeps the
+original media URL; Remux uses existing packet-copy MSE only when required by
+A/V or explicitly requested. This subtitle Remux plan uses the maintained
+window-owned MSE scheduler, keeping its worker teardown bounded. No remote
+source is admitted to the subtitle
+service. Reads are at most 256 KiB each, with at most 8,192 uncached reads
+per session and a 4 MiB subtitle slice cache;
+the service Wasm heap is capped at 128 MiB and bitmap dimensions at 1920×1080.
+Its bounded failures fall through to Hybrid/Software when compatibility can be
+established; source identity and authorization failures remain terminal.
+Missing optional subtitle-engine files are detected before route admission;
+an asset that disappears after that check is a terminal deployment failure.
+The public plan IDs are `native-direct-mpv` and `native-remux-mpv`;
+the backend diagnostics identify `direct-mpv` or `remux-mpv` and expose
+`mpvSubtitles.avChains`. Browser-owned URL text tracks remain browser-owned
+because Demuxe does not possess their bytes. Standalone plain external WebVTT
+and optional external ASS retain their existing API paths. Subtitle-only
+overlays do not follow video-only PiP, remote playback or video-element-only
+fullscreen.
 
 ## Video characteristics / pixel formats
 

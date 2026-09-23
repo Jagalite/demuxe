@@ -36,6 +36,27 @@ def compile_flags(entry):
     return [args[0], '-I' + str(config), *maps, *args[1:args.index('-MD')]]
 
 libs = shlex.split(subprocess.check_output(['pkg-config', '--libs', '--cflags', '--static', 'mpv'], env=env, text=True))
+# The ordinary mpv archive is paired with a minimal FFmpeg build that omits
+# SubRip, mov_text, PGS and DVD bitmap decoders. Keep the subtitle service's
+# codec expansion isolated from the A/V engines by linking the existing pinned
+# full FFmpeg archives into this service only.
+subtitle_ffmpeg = base / 'build/obj-software-full-ffmpeg'
+components = (subtitle_ffmpeg / 'config_components.h').read_text()
+for decoder in ['SUBRIP', 'MOVTEXT', 'ASS', 'SSA', 'PGSSUB', 'DVDSUB', 'WEBVTT']:
+    if f'#define CONFIG_{decoder}_DECODER 1' not in components:
+        raise SystemExit(f'Subtitle service FFmpeg lacks {decoder} decoder')
+# Only avcodec needs the additional decoder objects. Retaining the other
+# pinned libraries avoids pulling unrelated full-build filters into this worker.
+for library in ['avcodec']:
+    archive = subtitle_ffmpeg / f'lib{library}' / f'lib{library}.a'
+    if not archive.is_file():
+        raise SystemExit(f'Missing subtitle service archive: {archive}')
+    libs = [str(archive) if item == f'-l{library}' else item for item in libs]
+dav1d_archive = base / 'build/obj-dav1d/src/libdav1d.a'
+if not dav1d_archive.is_file():
+    raise SystemExit(f'Missing subtitle service archive: {dav1d_archive}')
+codec_archive = str(subtitle_ffmpeg / 'libavcodec/libavcodec.a')
+libs.insert(libs.index(codec_archive)+1, str(dav1d_archive))
 normalized_commands = []
 extra = []
 if base != repo:
@@ -78,5 +99,5 @@ for name in ['service.mjs', 'service.wasm']:
     if re.search(rb'/(?:Users|Volumes|private/var)/', (out / name).read_bytes()):
         raise SystemExit('Build paths remain in subtitle engine: ' + name)
 inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py']
-record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
+record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'subtitleFFmpegConfigurationSHA256': hashlib.sha256(components.encode()).hexdigest(), 'subtitleFFmpegArchives': {'avcodec': hashlib.sha256((subtitle_ffmpeg / 'libavcodec/libavcodec.a').read_bytes()).hexdigest(), 'dav1d': hashlib.sha256(dav1d_archive.read_bytes()).hexdigest()}, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
 (objects / 'manifest.json').write_text(json.dumps(record, indent=2) + '\n')

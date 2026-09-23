@@ -6,6 +6,7 @@
 #include "sub/dec_sub.h"
 #include "sub/osd.h"
 #include "demux/demux.h"
+#include <string.h>
 static mpv_handle *subtitle_service;
 extern void web_subtitle_size(int,int);
 extern void web_subtitle_render(struct osd_state *,double);
@@ -18,7 +19,11 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_create(void) {
 }
 EMSCRIPTEN_KEEPALIVE int subtitle_service_open(void){const char *cmd[]={"loadfile","brange://source","replace",NULL};return mpv_command(subtitle_service,cmd);}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_loaded(void){int r=0;mpv_event *e;while((e=mpv_wait_event(subtitle_service,0))->event_id){if(e->event_id==MPV_EVENT_FILE_LOADED)r=1;if(e->event_id==MPV_EVENT_END_FILE&&((mpv_event_end_file*)e->data)->error<0)r=-1;}return r;}
-EMSCRIPTEN_KEEPALIVE int subtitle_service_select(int id){int64_t no=-2,n=id;mpv_set_property(subtitle_service,"sid",MPV_FORMAT_INT64,&no);return mpv_set_property(subtitle_service,"sid",MPV_FORMAT_INT64,&n);}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_select(int id){
+ int off=mpv_set_property_string(subtitle_service,"sid","no");
+ if(id<=0)return off;
+ int64_t selected=id;return mpv_set_property(subtitle_service,"sid",MPV_FORMAT_INT64,&selected);
+}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_render(double pts,int w,int h) {
  lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
  int r=-1;
@@ -32,6 +37,16 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_render(double pts,int w,int h) {
 EMSCRIPTEN_KEEPALIVE int subtitle_service_seek(double pts){char time[64];snprintf(time,sizeof(time),"%.6f",pts);const char *c[]={"seek",time,"absolute+exact",NULL};return mpv_command(subtitle_service,c);}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_av_chains(void){lock_core(subtitle_service);int n=!!subtitle_service->mpctx->vo_chain+!!subtitle_service->mpctx->ao_chain;unlock_core(subtitle_service);return n;}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_delay(double delay){return mpv_set_property(subtitle_service,"sub-delay",MPV_FORMAT_DOUBLE,&delay);}
+// Only used by internal fidelity tests. Caption text is never added to public
+// diagnostics or persisted; the visible overlay remains the production output.
+EMSCRIPTEN_KEEPALIVE int subtitle_service_text(char *out,int capacity){
+ if(!out||capacity<1||capacity>4096)return -1;
+ char *value=mpv_get_property_string(subtitle_service,"sub-text");
+ if(!value){out[0]=0;return 0;}
+ size_t length=strlen(value);
+ if(length>=(size_t)capacity){mpv_free(value);return -1;}
+ memcpy(out,value,length+1);mpv_free(value);return (int)length;
+}
 EMSCRIPTEN_KEEPALIVE void subtitle_service_close(void){if(subtitle_service){mpv_terminate_destroy(subtitle_service);subtitle_service=NULL;}}
 
 EMSCRIPTEN_KEEPALIVE int subtitle_service_track_count(void){lock_core(subtitle_service);int n=subtitle_service->mpctx->num_tracks;unlock_core(subtitle_service);return n;}

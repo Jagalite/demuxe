@@ -16,6 +16,7 @@ export class NativePlayer extends EventTarget {
     requestedPlan;
     buffering;
     loadTimeoutMs;
+    defaultSubtitleStreamIndex;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
@@ -90,7 +91,7 @@ export class NativePlayer extends EventTarget {
     subsVisible = true;
     cancelers = new Set();
     listeners = [];
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -103,6 +104,7 @@ export class NativePlayer extends EventTarget {
         this.requestedPlan = requestedPlan;
         this.buffering = buffering;
         this.loadTimeoutMs = loadTimeoutMs;
+        this.defaultSubtitleStreamIndex = defaultSubtitleStreamIndex;
         video.playsInline = true;
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -186,7 +188,7 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvSubtitles: this.mpvSubs ? { ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.mpvSubs ? 'remux-mpv' : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct', subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
         // open promises metadata even when speculative preload was disabled.
         if (this.buffering.preload === 'none')
@@ -357,7 +359,7 @@ export class NativePlayer extends EventTarget {
                 this.remux = undefined;
                 this.assertActive();
             }
-            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? this.audioAdaptation : undefined });
+            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.requestedPlan === 'native-remux-mpv' ? 'window' : 'auto' });
             this.remux.onBufferingChange = () => { if (!this.stopped)
                 this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
@@ -417,10 +419,10 @@ export class NativePlayer extends EventTarget {
         this.objectURL = URL.createObjectURL(local);
         try {
             await this.loadPlan({ file: local, audioTrack: this.initialAudioTrack }, () => this.load(this.objectURL));
-            if (this.requestedPlan === 'native-remux-mpv') {
+            if (this.requestedPlan === 'native-remux-mpv' || this.requestedPlan === 'native-direct-mpv') {
                 const { NativeMpvSubtitles } = await import('./native-mpv-subtitles.js');
                 this.assertActive();
-                this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, local, error => this.emit('error', error));
+                this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, local, error => this.emit('error', error), this.defaultSubtitleStreamIndex);
                 await this.mpvSubs.ready;
                 this.assertActive();
                 await this.mpvSubs.select('auto');

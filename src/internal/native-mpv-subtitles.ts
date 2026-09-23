@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type {FontAsset} from '../types.js';
+import {PlayerError} from './errors.js';
 /** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeMpvSubtitles {
   readonly canvas=document.createElement('canvas');
@@ -16,14 +17,15 @@ export class NativeMpvSubtitles {
   private frame=0;
   private last='';
   private lastRevision=-1;
+  private verifiedTrack?:number;
   private loading=new AbortController();
   private observer?:ResizeObserver;
   private handlers:Array<()=>void>=[];
   readonly ready:Promise<void>;
-  tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean}>=[];
+  tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean;default?:boolean}>=[];
   service:Record<string,unknown>={};
   readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0};
-  constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private file:File,private failed:(e:Error)=>void){
+  constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private file:File,private failed:(e:Error)=>void,private defaultStreamIndex?:number){
     if(!crossOriginIsolated)throw Error('Native mpv subtitles requires cross-origin isolation');
     this.canvas.className='demuxe-native-ass';this.canvas.style.cssText='position:absolute;pointer-events:none;display:none';
     if(!video.parentElement)throw Error('Missing Native presentation container');
@@ -35,7 +37,7 @@ export class NativeMpvSubtitles {
     parent.style.position='relative';parent.append(this.canvas);
     video.style.objectFit='contain';
     video.disablePictureInPicture=true;video.disableRemotePlayback=true;
-    this.worker.onmessage=({data})=>{if(data.type==='closed'){this.closed?.();return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(Error(data.error)):p.resolve(data);};
+    this.worker.onmessage=({data})=>{if(data.type==='closed'){this.closed?.();return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new PlayerError('UNSUPPORTED_FEATURE',data.error):Error(data.error)):p.resolve(data);};
     this.worker.onerror=e=>{e.preventDefault();this.fail(Error(e.message||'Subtitle worker failed'));};
     this.worker.onmessageerror=()=>this.fail(Error('Subtitle worker message failure'));
     this.observer=new ResizeObserver(()=>this.invalidate());this.observer.observe(video);
@@ -52,6 +54,7 @@ export class NativeMpvSubtitles {
       const bytes=await response.arrayBuffer();if(bytes.byteLength>8*1024*1024)throw Error('Subtitle font budget exceeded');
       if(this.stopped)throw Error('Subtitle renderer destroyed');
       const result=await this.request('init',{file:this.file,fonts:[{name:'DejaVuSans.ttf',bytes},...fonts]});this.tracks=result.tracks;
+      for(const track of this.tracks)track.default=track['ff-index']===this.defaultStreamIndex;
       } finally {clearTimeout(deadline);}
     })();
     this.ready.catch(()=>{});
@@ -73,17 +76,44 @@ export class NativeMpvSubtitles {
   private fail(error:Error){if(this.stopped)return;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();this.destroy();this.failed(error);}
   async select(id:string){
     await this.ready;
-    const track=id==='no'?undefined:id==='auto'?this.tracks[0]:this.tracks.find(t=>t.id===id);
+    const track=id==='no'?undefined:id==='auto'?(this.tracks.find(t=>t.default)??this.tracks[0]):this.tracks.find(t=>t.id===id);
     if(track?.selected)return;
-    if(!track&&id!=='no')throw Error('Unknown mpv subtitle track');
+    if(!track&&id!=='no')throw new PlayerError('UNSUPPORTED_FEATURE','Requested subtitle track was not enumerated by mpv');
+    const previous=this.tracks.find(t=>t.selected);
     this.changingTrack=true;this.revision++;
-    try{await this.request('select',{trackId:track?.mpvId??-2});this.tracks.forEach(t=>t.selected=t===track);}
+    try{
+      await this.request('select',{trackId:track?.mpvId??-2});this.tracks.forEach(t=>t.selected=t===track);this.verifiedTrack=undefined;
+      if(track)await this.verify();
+    }catch(error){
+      if(!this.stopped){await this.request('select',{trackId:previous?.mpvId??-2});this.tracks.forEach(t=>t.selected=t===previous);this.verifiedTrack=undefined;}
+      throw error;
+    }
     finally{this.changingTrack=false;this.invalidate();}
   }
   async verify(){
-    if(!this.tracks.some(t=>t.selected))return;
+    const selected=this.tracks.find(t=>t.selected);
+    if(!selected||this.verifiedTrack===selected.mpvId)return;
     const width=Math.min(1920,this.video.videoWidth||this.video.width),height=Math.min(1080,this.video.videoHeight||this.video.height);
-    const result=await this.request('render',{seconds:this.time(),width,height,force:true});result.bitmap?.close();this.service=result.service;
+    const now=this.time(),duration=this.video.duration;
+    const samples=[now,0,1,2,5,10,20,30].filter((time,index,list)=>time>=0&&(!Number.isFinite(duration)||time<duration)&&list.indexOf(time)===index);
+    let visible=false;
+    try{
+      for(const seconds of samples){
+        const result=await this.request('render',{seconds,width,height,force:true});result.bitmap?.close();this.service=result.service;
+        if(result.hasOverlay){visible=true;break;}
+      }
+    }finally{
+      // Verification samples must not leave mpv ahead of the browser A/V clock.
+      const result=await this.request('render',{seconds:this.time(),width,height,force:true});result.bitmap?.close();this.service=result.service;
+    }
+    if(!visible)throw new PlayerError('UNSUPPORTED_FEATURE','Selected subtitle track produced no output in the bounded startup window');
+    this.verifiedTrack=selected.mpvId;
+  }
+  /** Internal cue oracle for tests; never exposes media text in diagnostics. */
+  async currentText(){
+    await this.ready;
+    const width=Math.min(1920,this.video.videoWidth||this.video.width),height=Math.min(1080,this.video.videoHeight||this.video.height);
+    const result=await this.request('render',{seconds:this.time(),width,height,force:false});result.bitmap?.close();return String(result.text??'');
   }
   suspend(value:boolean){this.changingTrack=value;this.revision++;if(!value)this.invalidate();}
   async seek(seconds:number){this.changingTrack=true;this.revision++;this.canvas.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);try{await this.request('seek',{seconds});}finally{this.changingTrack=false;this.invalidate();}}

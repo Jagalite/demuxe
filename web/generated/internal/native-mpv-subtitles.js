@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { PlayerError } from './errors.js';
 /** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeMpvSubtitles {
     video;
     time;
     file;
     failed;
+    defaultStreamIndex;
     canvas = document.createElement('canvas');
     worker;
     closed;
@@ -19,6 +21,7 @@ export class NativeMpvSubtitles {
     frame = 0;
     last = '';
     lastRevision = -1;
+    verifiedTrack;
     loading = new AbortController();
     observer;
     handlers = [];
@@ -26,11 +29,12 @@ export class NativeMpvSubtitles {
     tracks = [];
     service = {};
     stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0 };
-    constructor(video, time, base, fonts, file, failed) {
+    constructor(video, time, base, fonts, file, failed, defaultStreamIndex) {
         this.video = video;
         this.time = time;
         this.file = file;
         this.failed = failed;
+        this.defaultStreamIndex = defaultStreamIndex;
         if (!crossOriginIsolated)
             throw Error('Native mpv subtitles requires cross-origin isolation');
         this.canvas.className = 'demuxe-native-ass';
@@ -53,7 +57,7 @@ export class NativeMpvSubtitles {
             } const p = this.pending.get(data.id); if (!p) {
                 data.bitmap?.close();
                 return;
-            } clearTimeout(p.timer); this.pending.delete(data.id); data.error ? p.reject(Error(data.error)) : p.resolve(data); };
+            } clearTimeout(p.timer); this.pending.delete(data.id); data.error ? p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new PlayerError('UNSUPPORTED_FEATURE', data.error) : Error(data.error)) : p.resolve(data); };
             this.worker.onerror = e => { e.preventDefault(); this.fail(Error(e.message || 'Subtitle worker failed')); };
             this.worker.onmessageerror = () => this.fail(Error('Subtitle worker message failure'));
             this.observer = new ResizeObserver(() => this.invalidate());
@@ -82,6 +86,8 @@ export class NativeMpvSubtitles {
                         throw Error('Subtitle renderer destroyed');
                     const result = await this.request('init', { file: this.file, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
                     this.tracks = result.tracks;
+                    for (const track of this.tracks)
+                        track.default = track['ff-index'] === this.defaultStreamIndex;
                 }
                 finally {
                     clearTimeout(deadline);
@@ -122,16 +128,28 @@ export class NativeMpvSubtitles {
     } this.pending.clear(); this.destroy(); this.failed(error); }
     async select(id) {
         await this.ready;
-        const track = id === 'no' ? undefined : id === 'auto' ? this.tracks[0] : this.tracks.find(t => t.id === id);
+        const track = id === 'no' ? undefined : id === 'auto' ? (this.tracks.find(t => t.default) ?? this.tracks[0]) : this.tracks.find(t => t.id === id);
         if (track?.selected)
             return;
         if (!track && id !== 'no')
-            throw Error('Unknown mpv subtitle track');
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested subtitle track was not enumerated by mpv');
+        const previous = this.tracks.find(t => t.selected);
         this.changingTrack = true;
         this.revision++;
         try {
             await this.request('select', { trackId: track?.mpvId ?? -2 });
             this.tracks.forEach(t => t.selected = t === track);
+            this.verifiedTrack = undefined;
+            if (track)
+                await this.verify();
+        }
+        catch (error) {
+            if (!this.stopped) {
+                await this.request('select', { trackId: previous?.mpvId ?? -2 });
+                this.tracks.forEach(t => t.selected = t === previous);
+                this.verifiedTrack = undefined;
+            }
+            throw error;
         }
         finally {
             this.changingTrack = false;
@@ -139,12 +157,41 @@ export class NativeMpvSubtitles {
         }
     }
     async verify() {
-        if (!this.tracks.some(t => t.selected))
+        const selected = this.tracks.find(t => t.selected);
+        if (!selected || this.verifiedTrack === selected.mpvId)
             return;
         const width = Math.min(1920, this.video.videoWidth || this.video.width), height = Math.min(1080, this.video.videoHeight || this.video.height);
-        const result = await this.request('render', { seconds: this.time(), width, height, force: true });
+        const now = this.time(), duration = this.video.duration;
+        const samples = [now, 0, 1, 2, 5, 10, 20, 30].filter((time, index, list) => time >= 0 && (!Number.isFinite(duration) || time < duration) && list.indexOf(time) === index);
+        let visible = false;
+        try {
+            for (const seconds of samples) {
+                const result = await this.request('render', { seconds, width, height, force: true });
+                result.bitmap?.close();
+                this.service = result.service;
+                if (result.hasOverlay) {
+                    visible = true;
+                    break;
+                }
+            }
+        }
+        finally {
+            // Verification samples must not leave mpv ahead of the browser A/V clock.
+            const result = await this.request('render', { seconds: this.time(), width, height, force: true });
+            result.bitmap?.close();
+            this.service = result.service;
+        }
+        if (!visible)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Selected subtitle track produced no output in the bounded startup window');
+        this.verifiedTrack = selected.mpvId;
+    }
+    /** Internal cue oracle for tests; never exposes media text in diagnostics. */
+    async currentText() {
+        await this.ready;
+        const width = Math.min(1920, this.video.videoWidth || this.video.width), height = Math.min(1080, this.video.videoHeight || this.video.height);
+        const result = await this.request('render', { seconds: this.time(), width, height, force: false });
         result.bitmap?.close();
-        this.service = result.service;
+        return String(result.text ?? '');
     }
     suspend(value) { this.changingTrack = value; this.revision++; if (!value)
         this.invalidate(); }

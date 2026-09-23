@@ -157,6 +157,11 @@ not full passes.
 
 Every numeric cell shows actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest median among lanes from the same matched campaign; the separately measured forced software values are not part of that ranking. Matched medians use three accepted rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` marks a bounded playback screen with the row’s stated fidelity, profile or duration limit and no CPU median. `(Fail)` means that lane’s playback correctness check failed; it does not establish an unsupported format. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate from the synthetic CPU campaign; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
+The embedded SRT and styled ASS Demuxe CPU cells come from a newer matched
+Native + mpv versus forced Hybrid campaign. Their other-player cells retain
+the separately cited historical screens; those CPU numbers are not a matched
+cross-player ranking for the new route.
+
 [Raw values, ranges and exclusions](results/head-to-head/cpu-specialist-usage-02/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
 The [PCM24+ASS follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) replaces that row’s
@@ -211,12 +216,14 @@ measurements do not replace the default-route correctness labels below.
 | ProRes + PCM / MOV | 🔴 (Fail) | **🟢 (Pass)** | 48.4% CPU | 🔴 startup/audio check failed | 🔴 open failed |
 | H.264 + AAC / fragmented MP4 (single file) | 🟠 24.0% CPU | **🟢 23.6% CPU** | 54.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 Full File input plays; EOF check failed (default open failed) |
 | H.264 video-only / MP4 | **🟢 20.8% CPU** | 🟠 22.6% CPU | 50.1% CPU | 🟠 37.4% CPU | 🟠 32.1% CPU |
-| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | **🟢 (Pass)** | 59.1% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | **🟢 40.2% CPU (Native Direct + mpv subtitles)** | 59.1% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AAC + external WebVTT / MP4 | 🟠 23.4% CPU | **🟢 23.3% CPU** | 59.1% CPU | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
-| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 (Pass)** | 64.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 54.6% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 Pass (Native Direct + mpv subtitles)** | 64.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 51.6% CPU (Native Direct + mpv subtitles)** | 54.6% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 49.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | **🟢 (Pass)** | 57.0% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| H.264 + AAC + PGS / MKV (subtitle isolation) | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** | 🔴 (Fail) | Not tested | Not tested |
+| H.264 + AAC + VobSub / MKV (subtitle isolation) | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** | 🟢 (Pass)* | Not tested | Not tested |
 | AAC audio-only / M4A | **🟢 15.3% CPU** | 🟠 15.9% CPU | 44.0% CPU | **🟢 (Pass)** | 🟠 20.7% CPU |
 | MP3 audio-only / MP3 | 🟠 15.2% CPU | **🟢 14.9% CPU** | 39.3% CPU | **🟢 (Pass)** | 🟠 Plays; seek check failed |
 | FLAC audio-only / FLAC | 🟠 14.5% CPU | **🟢 13.5% CPU** | 34.9% CPU | **🟢 (Pass)** | 🟠 18.5% CPU |
@@ -250,6 +257,17 @@ measurements do not replace the default-route correctness labels below.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).
+
+The SRT, mov_text and ASS Demuxe cells now use automatic browser A/V with the
+mpv subtitle-only service on the [exact local fixtures and current-tree
+qualification](results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
+The SRT and ASS CPU figures are medians of three fresh, paired Chrome trials
+against forced Hybrid; they are workload-specific and do not include competitor
+reruns. The two H.264/AAC bitmap rows isolate subtitles by copying PGS/VobSub
+from the older AC-3 cases onto browser-compatible A/V. The original AC-3
+rows retain Hybrid for their audio requirement. Other-player cells on the
+older rows retain their separately linked historical results; the new bitmap
+derivatives were not run through those players.
 
 The [comparison gap follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) refreshes the seven Dolby Vision/PGS cells above. All four Dolby Vision combinations now pass bounded automatic playback through Software fallback. The three PGS fixtures pass in Hybrid, including subtitle recovery after seeking. These results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
 
@@ -286,4 +304,4 @@ From the source checkout, run `npm ci`, build the engines using
 Open http://127.0.0.1:4179/. Maintained source and issues are at
 [Jagalite/demuxe](https://github.com/Jagalite/demuxe).
 
-Playback tier promotion, opt-in Native + mpv subtitles, and bounded background preparation are documented in [Playback tier policy](docs/PLAYBACK-TIER-POLICY.md). The new subtitle route remains opt-in pending broader Firefox seek qualification.
+Playback tier promotion, automatic Native + mpv subtitles for the qualified local subset, and bounded background preparation are documented in [Playback tier policy](docs/PLAYBACK-TIER-POLICY.md). The subtitle service remains limited to its tested browser and source profiles.

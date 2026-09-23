@@ -15,6 +15,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private requestedPlan?;
     private buffering;
     private loadTimeoutMs;
+    private defaultSubtitleStreamIndex?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
@@ -47,7 +48,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined);
     private emit;
     private assertActive;
     private wait;
@@ -95,6 +96,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
             bytes: number;
             peakBytes: number;
             discarded: number;
+            route: string;
         } | undefined;
         plan: string;
         subtitleOverlay: {

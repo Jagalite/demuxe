@@ -47,7 +47,19 @@ flowchart TD
   needed Software. CPU filters skip directly to Software.
 - For ordinary files, bounded JavaScript metadata or a packet-only FFmpeg probe
   discovers tracks before accepting Native. Enabled
-  embedded subtitles require mpv rendering. Audio eligibility considers the selected
+  embedded subtitles require mpv rendering. For the admitted local Matroska
+  SubRip/ASS/SSA/PGS/VobSub or MP4/MOV mov_text subset, an independent
+  subtitle-only mpv service can pair with Native Direct or Native Remux. It
+  never becomes the A/V decoder: `mpvSubtitles.avChains` must remain zero.
+  The optional service assets must answer a preflight availability check.
+  Automatic subtitle selection follows the inspected file-default stream,
+  and a selected stream must produce a real overlay at the current time or
+  at one of 0, 1, 2, 5, 10, 20 or 30 seconds. If it does not, the
+  candidate falls through to Hybrid/Software. An unobserved first cue therefore
+  conservatively keeps the full mpv route.
+  Direct is preferred when the original browser source works; Remux remains an
+  A/V packaging decision. Ineligible embedded tracks retain Hybrid/Software.
+  Audio eligibility considers the selected
   track rather than rejecting a file for every unused track. Missing codec mappings
   and negative `canPlayType()` hints do not reject unchanged Native playback.
   A transactional candidate must establish decoded current-data readiness.
@@ -89,8 +101,8 @@ Deep ordinary-file automatic inspection loads the remux FFmpeg Wasm module and u
 workers even when Native direct eventually wins. It performs no audio/video decoding
 or encoding and terminates those workers after inspection. This adds startup work;
 no new CPU-performance advantage is claimed. The local MP4 fast path below avoids
-this work when its bounded metadata checks pass. **Explicit Native mode retains
-the Wasm-free direct path.** Deep inspection requires cross-origin isolation,
+this work when its bounded metadata checks pass. **Explicit Native without
+admitted embedded subtitles retains the Wasm-free direct path.** Deep inspection requires cross-origin isolation,
 source permissions and the existing bounded HTTP Range contract (or a local File).
 A server that cannot satisfy range inspection may require explicit Native playback.
 

@@ -2,6 +2,15 @@
 
 # Component routing: preserving browser playback
 
+**Current production follow-up (2026-09-22):** The bounded [mpv subtitle
+service](../src/internal/native-mpv-subtitles.ts) now pairs with Native Direct
+or Native Remux for qualified local embedded SubRip, mov_text, ASS/SSA, PGS
+and VobSub tracks. It keeps browser A/V ownership and an mpv A/V chain count
+of zero. [Current-tree qualification and tier comparison](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md)
+supersede the embedded-subtitle routing assumptions in the staged historical
+study below. External URL tracks remain browser-owned; original AC-3 bitmap
+catalogue cases retain their audio blocker.
+
 This staged change admits **plain external WebVTT on Native A/V** through `addSubtitle(File)`. It does not qualify embedded extraction, rich subtitle overlays, independently decoded audio, or a new manifest owner. The earlier [17-case Hybrid audit](HEAD-TO-HEAD-HYBRID.md) remains the before-change record. Hybrid is not presumed slower.
 
 The follow-up [remaining-Hybrid component isolation study](HYBRID-COMPONENT-STUDY.md) tests narrower subtitle, audio and manifest ownership with separate correctness and whole-player CPU evidence. Its explicit lab routes do not change this production admission record.

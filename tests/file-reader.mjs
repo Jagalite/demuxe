@@ -30,3 +30,20 @@ test('an epoch change during asynchronous reader cleanup cannot publish old byte
  const r=new LocalFileReader({size:5,slice:()=>({stream:()=>({getReader:()=>reader})})});
  const pending=r.read(0n,5);await entered;r.beginEpoch();done();await assert.rejects(pending,{name:'AbortError'});assert.equal(r.stats.discardedBytes,5);r.close();
 });
+test('subtitle slice cache stays within budget and is cleared on close',async()=>{
+ let slices=0;const file={size:20,slice(a,b){slices++;return new Blob([Uint8Array.from({length:b-a},(_,i)=>a+i)]);}};
+ const r=new LocalFileReader(file,{cacheBytes:8});
+ assert.deepEqual([...await r.read(0n,4)],[0,1,2,3]);
+ assert.deepEqual([...await r.read(0n,4)],[0,1,2,3]);
+ assert.equal(slices,1);assert.equal(r.stats.cacheHits,1);
+ await r.read(4n,4);await r.read(8n,4);
+ assert.equal(r.stats.cacheBytes,8);assert.equal(r.stats.peakCacheBytes,8);
+ await r.read(0n,4);assert.equal(slices,4);
+ r.close();assert.equal(r.stats.cacheBytes,0);
+});
+test('local subtitle source request budget rejects excess uncached reads',async()=>{
+ const r=new LocalFileReader(new Blob([new Uint8Array(12)]),{maxRequests:1});
+ await r.read(0n,4);
+ await assert.rejects(()=>r.read(4n,4),/request budget exceeded/);
+ assert.equal(r.stats.requests,1);r.close();
+});

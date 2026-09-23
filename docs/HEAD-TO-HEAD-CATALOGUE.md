@@ -2,6 +2,13 @@
 
 # Expanded player comparison results
 
+Latest embedded-subtitle supplement: [current-tree Native A/V + mpv subtitle
+service qualification and new matched CPU run](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
+It supersedes only the Demuxe SRT, mov_text and ASS route cells below; the
+other-player records remain from their cited earlier campaigns. New H.264/AAC
+bitmap derivatives isolate subtitle rendering from the original AC-3 audio
+blocker and have no competitor results.
+
 Latest Demuxe gap follow-up: [automatic Dolby Vision fallback, PGS recovery and external ASS routing](COMPARISON-GAP-CLOSEOUT.md). This supersedes the affected Demuxe outcomes below; historical records and competitor results are retained.
 
 Latest streaming supplement: [Shaka migration, all six adaptive cases across four players](../results/head-to-head/shaka-catalogue-01/REPORT.md). Demuxe passed 6/6; Direct remains selected for default HLS VOD and Shaka for DASH/live HLS. These current streaming rows supersede the old custom-path rows below. See [controlled-route qualification and CPU evidence](STREAMING-QUALIFICATION.md).
@@ -172,7 +179,7 @@ These original generator limitations remain recorded for provenance. Real-bitstr
 | H.264 video-only / MP4 | movi | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/movi.default.h264-silent/result.json) |
 | H.264 video-only / MP4 | libmedia | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/libmedia.default.h264-silent/result.json) |
 | H.264 + AAC + embedded SRT / MKV | video | Native · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-srt/result.json) |
-| H.264 + AAC + embedded SRT / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-srt/result.json) |
+| H.264 + AAC + embedded SRT / MKV | demuxe | Native Direct + mpv subtitles · pass | Exact text/timing and lifecycle passed; median 40.2% one-core Chrome CPU in matched Hybrid comparison | [current report](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md) · [historical Hybrid record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-srt/result.json) |
 | H.264 + AAC + embedded SRT / MKV | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-srt/result.json) |
 | H.264 + AAC + embedded SRT / MKV | libmedia | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-srt/result.json) |
 | H.264 + AAC + external WebVTT / MP4 | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-vtt/result.json) |
@@ -180,11 +187,11 @@ These original generator limitations remain recorded for provenance. Real-bitstr
 | H.264 + AAC + external WebVTT / MP4 | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-vtt/result.json) |
 | H.264 + AAC + external WebVTT / MP4 | libmedia | Custom · fail | page.evaluate: Error: [packages/avplayer/src/AVPlayer.ts][line 1483] [fatal]: analyze stream failed, ret: -2 | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-vtt/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | video | Native · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-movtext/result.json) |
-| H.264 + AAC + embedded mov_text / MP4 | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-movtext/result.json) |
+| H.264 + AAC + embedded mov_text / MP4 | demuxe | Native Direct + mpv subtitles · pass | Authored plain text/timing and lifecycle passed; broader tx3g styles unqualified | [current report](../results/head-to-head/mpv-subtitle-tier-20260922-01/REPORT.md) · [historical Hybrid record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-movtext/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | movi | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-movtext/result.json) |
 | H.264 + AAC + embedded mov_text / MP4 | libmedia | Custom · fail | Error: Required subtitle text missing or incorrect | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-movtext/result.json) |
 | H.264 + AAC + styled ASS / MKV | video | Native · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-01/video.default.h264-ass/result.json) |
-| H.264 + AAC + styled ASS / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-ass/result.json) |
+| H.264 + AAC + styled ASS / MKV | demuxe | Native Direct + mpv subtitles · pass | Marked styled bitmap and lifecycle passed; median 51.6% one-core Chrome CPU in matched Hybrid comparison | [current report](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md) · [historical Hybrid record](../results/head-to-head/component-catalogue-01/demuxe.auto.h264-ass/result.json) |
 | H.264 + AAC + styled ASS / MKV | movi | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-ass/result.json) |
 | H.264 + AAC + styled ASS / MKV | libmedia | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-ass/result.json) |
 | HEVC + AC-3 + PGS / MKV | video | Native · fail | page.waitForFunction: Timeout 10000ms exceeded. | [record](../results/head-to-head/expanded-subtitles-01/video.default.hevc-pgs/result.json) |
@@ -195,6 +202,8 @@ These original generator limitations remain recorded for provenance. Real-bitstr
 | H.264 + AC-3 + VobSub / MKV | demuxe | Hybrid · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.h264-vobsub/result.json) |
 | H.264 + AC-3 + VobSub / MKV | movi | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-01/movi.default.h264-vobsub/result.json) |
 | H.264 + AC-3 + VobSub / MKV | libmedia | Custom · fail | Error: Required marked subtitle drawing missing | [record](../results/head-to-head/expanded-subtitles-02/libmedia.default.h264-vobsub/result.json) |
+| H.264 + AAC + PGS / MKV (subtitle isolation) | demuxe | Native Direct + mpv subtitles · pass | Copied authored PGS bitmap appears, clears and reappears after seek; no mpv A/V chains | [fixture hashes and qualification](../results/head-to-head/mpv-subtitle-tier-20260922-01/REPORT.md) |
+| H.264 + AAC + VobSub / MKV (subtitle isolation) | demuxe | Native Direct + mpv subtitles · pass | Copied authored palette bitmap appears and survives seeks; no mpv A/V chains | [fixture hashes and qualification](../results/head-to-head/mpv-subtitle-tier-20260922-01/REPORT.md) |
 | AAC audio-only / M4A | video | Native · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/video.default.audio-aac/result.json) |
 | AAC audio-only / M4A | demuxe | Native · pass | Declared checks passed | [record](../results/head-to-head/demuxe-with-engines-01/demuxe.auto.audio-aac/result.json) |
 | AAC audio-only / M4A | movi | Custom · pass | Declared checks passed | [record](../results/head-to-head/expanded-matrix-01/movi.default.audio-aac/result.json) |

@@ -80,7 +80,8 @@ export type PlayerOptions = {
   /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction.
    * Enabled by default with automatic selection. Set false to require mpv subtitles. */
   experimentalNativeASS?: boolean;
-  /** Local Matroska embedded ASS/SSA with browser A/V and bounded mpv subtitle service. */
+  /** Compatibility switch for the bounded local embedded mpv subtitle service.
+   * Enabled by default; false retains the previous Hybrid/Software selection. */
   experimentalMpvSubtitles?: boolean;
   /** Opt-in Native candidate preparation during playback. Budget covers known
    * Wasm and packet allocations, not opaque browser/GPU memory. */

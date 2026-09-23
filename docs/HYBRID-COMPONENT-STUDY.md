@@ -2,6 +2,14 @@
 
 # Remaining Hybrid cases: component isolation study
 
+**Later production result (2026-09-22):** Qualified local embedded subtitles
+can now use the existing mpv subtitle-only worker beside browser Native Direct
+or packet-copy Remux A/V. The [current-tree comparison](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md)
+is a separate route and benchmark. The experimental extraction and independent
+libass variants measured below remain historical alternatives, not current
+automatic subtitle ownership. AC-3 audio blockers in the original bitmap rows
+remain outside this subtitle-only change.
+
 This study tests explicit component substitutions against the remaining 16 Hybrid rows. It does **not** change automatic routing or the README's production routing results. A smaller ownership boundary is a candidate, not a performance claim: equivalent selected output and lifecycle checks must pass before a paired CPU comparison is admitted.
 
 ## Experimental boundary

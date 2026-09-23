@@ -90,7 +90,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private cancelers = new Set<(error: Error) => void>();
   private listeners: Array<() => void> = [];
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number) {
     super();
     video.playsInline = true;
     video.preload = this.buffering.preload;
@@ -154,7 +154,7 @@ export class NativePlayer extends EventTarget implements Backend {
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvSubtitles:this.mpvSubs?{...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvSubs?'remux-mpv':this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvSubtitles:this.mpvSubs?{route:this.remux?'native-remux + mpv-subtitles':'native-direct + mpv-subtitles',...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:{component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
   private async load(url: string) {
     // open promises metadata even when speculative preload was disabled.
     if(this.buffering.preload==='none')this.video.preload='metadata';
@@ -241,7 +241,7 @@ export class NativePlayer extends EventTarget implements Backend {
     const attempt=async(adapted:boolean)=>{
       this.assertActive();this.adapted=adapted;
       if(this.remux&&this.remux.audioAdaptation!==(adapted?this.audioAdaptation:undefined)){await this.remux.destroy();this.remux=undefined;this.assertActive();}
-      this.remux??=new RemuxPlayer(this.video,{buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,audioAdaptation:adapted?this.audioAdaptation:undefined}) as RemuxController;
+      this.remux??=new RemuxPlayer(this.video,{buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,audioAdaptation:adapted?this.audioAdaptation:undefined,mseOwner:this.requestedPlan==='native-remux-mpv'?'window':'auto'}) as RemuxController;
       this.remux.onBufferingChange=()=>{if(!this.stopped)this.refresh();};
       this.remux.audioAdaptation=adapted?this.audioAdaptation:undefined;
       this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',message);};
@@ -277,9 +277,9 @@ export class NativePlayer extends EventTarget implements Backend {
     this.objectURL=URL.createObjectURL(local);
     try {
       await this.loadPlan({file:local,audioTrack:this.initialAudioTrack},()=>this.load(this.objectURL!));
-      if(this.requestedPlan==='native-remux-mpv'){
+      if(this.requestedPlan==='native-remux-mpv'||this.requestedPlan==='native-direct-mpv'){
         const {NativeMpvSubtitles}=await import('./native-mpv-subtitles.js');this.assertActive();
-        this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,local,error=>this.emit('error',error));
+        this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,local,error=>this.emit('error',error),this.defaultSubtitleStreamIndex);
         await this.mpvSubs.ready;this.assertActive();await this.mpvSubs.select('auto');this.mpvSubs.visible(false);this.refresh();
       }
     }
