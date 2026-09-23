@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Isolated ProRes-like dequantization/8x8 inverse-DCT experiment. Not a decoder.
 let device, context, canvas, pipeline, renderPipeline, sampler, coefficients;
 let width, height, mode, shared, generation = 0, held = null, closed = false;
