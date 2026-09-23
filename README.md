@@ -198,6 +198,14 @@ and harnesses, so their medians do not replace or combine with the matrix
 cells below. Component CPU attribution and discrete-channel fidelity remain
 open for the proposed audio-service architecture.
 
+The separate [real-resolution performance screen](results/head-to-head/real-resolution-20260923-01/REPORT.md)
+uses five 1080p/4K synthetic fixtures and one fresh matched campaign. Demuxe
+Auto's Native Direct H.264 1080p60 median was 53.3% of one core versus 51.4%
+plain browser; 4K24 HEVC Main10 + AAC was 44.7% versus 49.6%, with overlapping
+round ranges. On the same 4K HEVC video packets with TrueHD + PGS, Auto kept
+browser WebCodecs video in Hybrid at 65.1% versus 127.9% forced Software.
+Those measurements do not replace or combine with the compatibility matrix.
+
 | Media format | Native video | Demuxe (auto) | Demuxe (forced software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
 | --- | --- | --- | --- | --- | --- |
 | H.264 + AAC / MP4 | 🟠 21.9% CPU | **🟢 20.2% CPU** | 52.4% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 38.0% CPU |
