@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';
 import assert from 'node:assert/strict';
-import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
 const server=await serve(),out=`results/automatic-selection/run-${new Date().toISOString().replaceAll(':','-')}`;
 await mkdir(out,{recursive:true});const result={cases:[]};console.log(out);
 const browser=await chromium.launch({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});result.browser=browser.version();const fallbackBrowser=process.env.BROWSER==='chrome'?undefined:await firefox.launch({headless:true});result.fallbackBrowser=fallbackBrowser?.version();
+let firefoxAudioFixture;
 const files={avc:'build/fixtures/software-full/h264-aac.mp4',ass:'build/fixtures/tracks.mkv',hevc:'build/fixtures/software-full/hevc-ac3.mkv',mpeg4:'build/fixtures/software-full/mpeg4-mp3.avi',ts:'build/pipeline-separation/fixtures/config-0.ts'};
 const open=async(p,name)=>{const b=await readFile(files[name]);return p.evaluate(b=>player.open(new File([Uint8Array.from(atob(b),c=>c.charCodeAt(0))],'source')),b.toString('base64'));};
 async function check(name,fn,options={}){
  if(process.env.ONLY&&!process.env.ONLY.split('|').includes(name))return;
- if(name==='browser-rejection'&&!fallbackBrowser){result.cases.push({name,skipped:'Chrome-only run'});return;}
- const p=await (name==='browser-rejection'?fallbackBrowser:browser).newPage();p.setDefaultTimeout(40000);const r={name};result.cases.push(r);
+ if(['browser-rejection','firefox-ac3-ass-open'].includes(name)&&!fallbackBrowser){result.cases.push({name,skipped:'Chrome-only run'});return;}
+ const p=await (['browser-rejection','firefox-ac3-ass-open'].includes(name)?fallbackBrowser:browser).newPage();p.setDefaultTimeout(40000);const r={name};result.cases.push(r);
  try{await p.goto(server.origin+'/experiment/page.html');await p.evaluate(async options=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),options);window.errors=[];player.addEventListener('error',e=>errors.push(String(e.detail)));},options);
   r.evidence=await fn(p);await p.screenshot({path:out+'/'+name+'.png'});await p.evaluate(()=>player.destroy());await p.waitForTimeout(150);assert.equal(p.workers().length,0);r.passed=true;console.log('PASS',name);
  }catch(e){r.error=String(e.stack);r.state=await p.evaluate(()=>({mode:player.mode,diagnostics:player.diagnostics,errors})).catch(()=>null);console.log('FAIL',name,String(e));process.exitCode=1;}
@@ -24,6 +28,27 @@ try{
  await check('native-remux',async p=>{await open(p,'ts');const r=await playback(p,'native');assert.equal(r.diagnostics.backend.plan,'remux');await p.evaluate(()=>player.seek(2));return r;});
  await check('embedded-ass',async p=>{await open(p,'ass');const r=await playback(p,'hybrid');assert.ok(r.diagnostics.selection.attempts.some(a=>a.reason.includes('subtitles')));return r;});
  await check('incompatible-native-audio',async p=>{await open(p,'hevc');return playback(p,'hybrid');});
+ await check('firefox-ac3-ass-open',async p=>{
+  // The isolated audio and subtitle catalogue cases did not cover a paused
+  // automatic open that accepted video while Firefox dropped AC3 audio.
+  firefoxAudioFixture=await mkdtemp(join(tmpdir(),'demuxe-firefox-ac3-'));
+  const subtitle=join(firefoxAudioFixture,'captions.ass'),media=join(firefoxAudioFixture,'ac3-ass.mkv');
+  await writeFile(subtitle,'[Script Info]\nScriptType: v4.00+\nPlayResX: 320\nPlayResY: 180\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H64000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:00.20,0:00:03.50,Default,,0,0,0,,Audio route\n');
+  execFileSync('ffmpeg',['-nostdin','-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=320x180:rate=24','-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-i',subtitle,'-t','4','-map','0:v:0','-map','1:a:0','-map','2:s:0','-c:v','libx264','-preset','ultrafast','-crf','35','-c:a','ac3','-b:a','192k','-c:s','copy',media],{timeout:30000});
+  await p.evaluate(()=>{const input=document.createElement('input');input.type='file';input.id='ac3-ass-file';document.body.append(input);});
+  await p.locator('#ac3-ass-file').setInputFiles(media);
+  await p.evaluate(()=>player.open(document.querySelector('#ac3-ass-file').files[0]));
+  const opened=await snapshot(p);
+  assert.equal(opened.mode,'hybrid','Selected AC3 must be rejected before the first Play request');
+  assert.equal(opened.diagnostics.plan.id,'hybrid');
+  assert.ok(opened.diagnostics.selection.attempts.some(a=>a.reason.includes('native-direct-mpv')&&a.reason.includes('Native selected audio track produced no output')));
+  await p.evaluate(()=>player.play());
+  await p.waitForFunction(()=>{const audio=player.audioDiagnostics();return audio?.mediaFrames>6000&&audio.rms>.001;});
+  await p.evaluate(()=>player.pause());await p.waitForTimeout(400);
+  const paused=await p.evaluate(()=>({mode:player.mode,pending:player.state.pendingOperation?.kind??null,audio:player.audioDiagnostics()}));
+  assert.equal(paused.mode,'hybrid');assert.equal(paused.pending,null);
+  return {opened,paused};
+ });
  await check('software-codec',async p=>{await open(p,'mpeg4');return playback(p,'software');});
  await check('browser-rejection',async p=>{await open(p,'hevc');return playback(p,'software');});
  await check('reselect-new-source',async p=>{await open(p,'mpeg4');assert.equal(await p.evaluate(()=>player.mode),'software');await open(p,'avc');return playback(p,'native');});
@@ -78,4 +103,4 @@ try{
   assert.deepEqual(result,{destroyed:true,rejected:true});return result;
  });
  await check('destroy-during-probe',async p=>{await p.route('**/source-probe.js',async route=>{await new Promise(r=>setTimeout(r,300));await route.continue().catch(()=>{});});const r=await p.evaluate(async url=>{const opening=player.openRemote({url}).then(()=>false,()=>true);await new Promise(r=>setTimeout(r,50));await player.destroy();return {rejected:await opening};},server.origin+'/media/mkv');assert.equal(r.rejected,true);return r;});
-}finally{await browser.close();await fallbackBrowser?.close();await server.close();result.passed=result.cases.every(c=>c.passed||c.skipped);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+}finally{await browser.close();await fallbackBrowser?.close();await server.close();if(firefoxAudioFixture)await rm(firefoxAudioFixture,{recursive:true,force:true});result.passed=result.cases.every(c=>c.passed||c.skipped);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
