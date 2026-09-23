@@ -2,7 +2,9 @@
 import Foundation
 import Vision
 let request = VNRecognizeTextRequest()
-request.recognitionLevel = .accurate
+// The synthetic marker uses large, high-contrast glyphs. Fast recognition
+// avoids a macOS neural-engine compiler hang while preserving the same text assertion.
+request.recognitionLevel = .fast
 request.usesLanguageCorrection = false
 request.recognitionLanguages = ["en-US"]
 let handler = VNImageRequestHandler(url: URL(fileURLWithPath: CommandLine.arguments[1]))
