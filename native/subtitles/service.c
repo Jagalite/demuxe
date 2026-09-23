@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-2.1-or-later
 // Pinned mpv client translation unit with timestamp-driven subtitle ownership.
 #include "player/client.c"
 #include <emscripten.h>

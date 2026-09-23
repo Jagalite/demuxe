@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Bind passing exact-archive tests and corresponding source to a release record."""
-import argparse, hashlib, json, os, pathlib, subprocess, tarfile, tempfile
+import argparse, hashlib, importlib.util, json, os, pathlib, subprocess, tarfile, tempfile
 from license_policy import Policy, archive_files, LEGAL
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);p.add_argument('--shaka',type=pathlib.Path,nargs=2);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--archive',type=pathlib.Path,required=True);p.add_argument('--source',type=pathlib.Path,required=True);p.add_argument('--consumer',type=pathlib.Path,nargs=2,required=True);p.add_argument('--streaming',type=pathlib.Path,nargs=2,required=True);p.add_argument('--extra',type=pathlib.Path,required=True);p.add_argument('--optional',type=pathlib.Path);p.add_argument('--shaka',type=pathlib.Path,nargs=2);p.add_argument('--lgpl-catalogue',type=pathlib.Path,required=True);args=p.parse_args()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def archive_sha(path):
  h=hashlib.sha256()
@@ -44,6 +44,8 @@ with tarfile.open(args.source)as tar:
   if source['files'].get('toolchain/emscripten/'+name)!=digest:raise SystemExit('Missing corresponding SDK source: '+name)
  for name,digest in build['inputs'].items():
   if source['files'].get('demuxe/'+name)!=digest:raise SystemExit('Missing corresponding engine source: '+name)
+ for name,digest in build['configurations'].items():
+  if source['files'].get('build-materials/'+name)!=digest:raise SystemExit('Missing generated build or linker evidence: '+name)
  if manifest.get('adaptiveStreaming'):
   shaka_record=tar.extractfile('demuxe/third_party/shaka-player.json').read()
   if sha(shaka_record)!=manifest['files']['third_party/shaka-player.json']['sha256']:raise SystemExit('Shaka source inventory differs from runtime')
@@ -55,6 +57,20 @@ from optional_release import required_consumer_cases
 consumer_cases=required_consumer_cases(manifest)
 streaming_cases={f'{mode}:{test}'for mode in ['hybrid','software']for test in ['seek-completes-packet','seek-deadline','destroy-progress']}
 evidence=[]
+catalogue=json.loads(args.lgpl_catalogue.read_text())
+compare_path=root/'scripts/compare-lgpl-catalogue.py'
+if sha(compare_path.read_bytes())!=source['files'].get('demuxe/scripts/compare-lgpl-catalogue.py'):raise SystemExit('Catalogue comparison tool differs from tagged source')
+spec=importlib.util.spec_from_file_location('lgpl_catalogue',compare_path)
+module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+rechecked=module.compare(pathlib.Path(catalogue['baselineSummary']['path']),pathlib.Path(catalogue['candidateSummary']['path']))
+if rechecked!=catalogue or catalogue['status']!='qualified' or catalogue['rows']!=71:raise SystemExit('Incomplete or changed LGPL README catalogue comparison')
+if catalogue['readmeSHA256']!=source['files'].get('demuxe/README.md'):raise SystemExit('LGPL catalogue compared a different tagged README')
+if catalogue['candidateOptionalArchiveSHA256']!=runtime_hash:raise SystemExit('LGPL catalogue did not use the exact release archive for optional engines')
+for name,digest in catalogue['candidateEngineHashes'].items():
+ if build['artifacts'].get(name,{}).get('sha256')!=digest:raise SystemExit('LGPL catalogue used a different engine: '+name)
+for name,digest in catalogue['candidateOptionalEngineHashes'].items():
+ if manifest['files'].get(name,{}).get('sha256')!=digest:raise SystemExit('LGPL catalogue used a different optional engine: '+name)
+evidence.append({'file':str(args.lgpl_catalogue.resolve()),'sha256':archive_sha(args.lgpl_catalogue),'suite':'lgpl-complete-readme-catalogue','rows':catalogue['rows'],'counts':catalogue['counts']})
 if manifest.get('adaptiveStreaming'):
  if not args.shaka:raise SystemExit('Shaka runtime release requires exact-archive Chrome and Firefox streaming consumer evidence (--shaka)')
  families=set()

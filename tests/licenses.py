@@ -11,7 +11,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
-from license_policy import Policy, APACHE, GPL, LEGAL, encoded, archive_files
+from license_policy import Policy, APACHE, GPL, LGPL, LEGAL, encoded, archive_files, sha
 
 
 class LicenseBoundaries(unittest.TestCase):
@@ -41,6 +41,7 @@ class LicenseBoundaries(unittest.TestCase):
             shutil.copy2(ROOT / name, target)
         (root / 'node_modules').symlink_to(ROOT / 'node_modules', target_is_directory=True)
         subprocess.run(['git', 'init', '-q', str(root)], check=True)
+        subprocess.run(['git', 'add', '-A'], cwd=root, check=True)
         return root
 
     def test_real_core_archive(self):
@@ -79,7 +80,7 @@ class LicenseBoundaries(unittest.TestCase):
             self.policy.check_package(files, 'core')
 
     def test_package_rejects_metadata_and_license_removal(self):
-        for name in ['LICENSES/Apache-2.0.txt', 'LICENSES/GPL-2.0-or-later.txt', 'LICENSES/GPL-3.0-or-later.txt', 'LICENSES/CC-BY-4.0.txt']:
+        for name in ['LICENSES/Apache-2.0.txt', 'LICENSES/GPL-2.0-or-later.txt', 'LICENSES/GPL-3.0-or-later.txt', 'LICENSES/LGPL-2.1-or-later.txt', 'LICENSES/CC-BY-4.0.txt']:
             files = dict(self.core)
             del files[name]
             with self.assertRaisesRegex(ValueError, 'Missing packaged license'):
@@ -153,45 +154,64 @@ class LicenseBoundaries(unittest.TestCase):
         for name, expected in [('results/example.json', 'CC-BY-4.0'),
                                ('experiments/example/report.md', 'CC-BY-4.0'),
                                ('experiments/example/measure.mjs', APACHE),
-                               ('native/remux/remux.c', GPL),
-                               ('web/source-probe.js', GPL),
+                               ('native/remux/remux.c', APACHE),
+                               ('native/vd_browser.c', LGPL),
+                               ('web/source-probe.js', APACHE),
                                ('results/example/worker.js', 'GPL-2.0-or-later'),
                                ('results/example/frame.png', 'NOASSERTION'),
                                ('experiments/example/files/native.c', 'NOASSERTION')]:
             self.assertEqual(self.policy.classify(name), expected)
 
-    def test_player_package_requires_all_notices_and_gpl_metadata(self):
-        files = {name: (ROOT / name).read_bytes() for name in LEGAL + ['README.md', 'fixtures/FONT-LICENSE.txt', 'fixtures/DejaVuSans.ttf']}
+    def test_player_package_requires_notices_and_verified_lgpl_metadata(self):
+        files = {name: (ROOT / name).read_bytes() for name in LEGAL + ['README.md', 'docs/LGPL-RELINK.md', 'fixtures/FONT-LICENSE.txt', 'fixtures/DejaVuSans.ttf']}
         for path in (ROOT / 'third_party').rglob('*'):
             if path.is_file():
                 files[str(path.relative_to(ROOT))] = path.read_bytes()
-        files['package.json'] = encoded({'license': GPL, 'demuxeLicenses': self.policy.config['packageLicenses']})
+        files['package.json'] = encoded({'license': APACHE, 'demuxeLicenses': self.policy.config['packageLicenses']})
+        name = 'web/engine-hybrid/player.wasm'
+        engine_names = [f'web/{folder}/{stem}.{ext}'
+                        for folder, stem in [('engine-hybrid', 'player'),
+                                             ('engine-software-full', 'player'),
+                                             ('engine-remux', 'remux'),
+                                             ('engine-subtitles', 'service')]
+                        for ext in ['mjs', 'wasm']]
+        for engine_name in engine_names:
+            files[engine_name] = b'synthetic LGPL engine fixture'
+        record = {'baseline': LGPL, 'hybrid': LGPL, 'software': LGPL, 'subtitles': LGPL,
+                  'remuxWrapper': APACHE, 'remuxFFmpegLibrary': LGPL,
+                  'baselineFFmpeg': 'LGPL version 2.1 or later',
+                  'fullFFmpeg': 'LGPL version 2.1 or later',
+                  'remuxFFmpeg': 'LGPL version 2.1 or later', 'mpvGPL': False}
+        build = {'licenses': record, 'licensingEvidence': {'status': 'verified', 'mpv': {'gpl': False}},
+                 'artifacts': {engine_name: {'sha256': sha(files[engine_name])}
+                               for engine_name in engine_names}}
+        files['engine-build.json'] = encoded(build)
         files['license-map.json'] = encoded(self.policy.package_map(files, 'player'))
         self.policy.check_package(files, 'player')
         stale = dict(files)
-        stale['package.json'] = encoded({'license': 'GPL-2.0-or-later', 'demuxeLicenses': self.policy.config['packageLicenses']})
+        stale['package.json'] = encoded({'license': GPL, 'demuxeLicenses': self.policy.config['packageLicenses']})
         with self.assertRaisesRegex(ValueError, 'Incorrect package license'):
             self.policy.check_package(stale, 'player')
-        record = {'hybrid': GPL, 'software': GPL, 'remuxWrapper': GPL,
-                  'remuxFFmpegLibrary': 'LGPL-2.1-or-later', 'fullFFmpeg': 'GPL version 2 or later'}
-        files['engine-build.json'] = encoded({'licenses': record})
-        files['license-map.json'] = encoded(self.policy.package_map(files, 'player'))
-        self.policy.check_package(files, 'player')
-        for key, value, error in [('hybrid', 'GPL-2.0-or-later', 'Combined engine license'),
-                                  ('remuxFFmpegLibrary', GPL, 'retain its LGPL grant')]:
+        for key, value, error in [('hybrid', GPL, 'Combined engine license'),
+                                  ('remuxFFmpegLibrary', GPL, 'Combined engine license'),
+                                  ('mpvGPL', True, 'LGPL mpv build evidence')]:
             stale = dict(files)
-            stale['engine-build.json'] = encoded({'licenses': {**record, key: value}})
+            stale['engine-build.json'] = encoded({**build, 'licenses': {**record, key: value}})
             stale['license-map.json'] = encoded(self.policy.package_map(stale, 'player'))
             with self.assertRaisesRegex(ValueError, error):
                 self.policy.check_package(stale, 'player')
+        stale = dict(files)
+        stale[name] = b'changed old engine'
+        stale['license-map.json'] = encoded(self.policy.package_map(stale, 'player'))
+        with self.assertRaisesRegex(ValueError, 'Engine artifact differs'):
+            self.policy.check_package(stale, 'player')
         del files['third_party/notices/mpv/LICENSE.GPL']
         files['license-map.json'] = encoded(self.policy.package_map(files, 'player'))
         with self.assertRaisesRegex(ValueError, 'packaged third-party notice'):
             self.policy.check_package(files, 'player')
 
-    def test_player_assembler_with_synthetic_engines(self):
-        # Exercise the real packager. Stub bytes prove packaging only, not playback
-        # or engine/source qualification, and stay inside this temporary checkout.
+    def test_player_assembler_rejects_synthetic_engines_without_build_record(self):
+        # Stub engine bytes cannot acquire an Apache archive label.
         root = self.fixture()
         for folder in ['web', 'src', 'docs', 'bin', 'fixtures', 'scripts', 'examples', 'third_party']:
             shutil.copytree(ROOT / folder, root / folder, dirs_exist_ok=True,
@@ -206,13 +226,8 @@ class LicenseBoundaries(unittest.TestCase):
         subprocess.run(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
                         'commit', '--allow-empty', '-qm', 'synthetic fixture'], cwd=root, check=True)
         result = subprocess.run(['python3', 'scripts/package-beta.py'], cwd=root, capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        archive = next((root / 'build/beta').glob('*.tgz'))
-        packaged = archive_files(archive)
-        Policy(root).check_package(packaged, 'player')
-        self.assertIn('web/engine-subtitles/service.mjs', packaged)
-        self.assertIn('web/engine-subtitles/service.wasm', packaged)
-        self.assertIn('native-direct-mpv', json.loads(packaged['release-manifest.json'])['automaticOrder'])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('completed LGPL engine build record', result.stderr)
 
 
 if __name__ == '__main__':

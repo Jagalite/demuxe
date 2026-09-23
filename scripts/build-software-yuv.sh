@@ -10,11 +10,12 @@ export PATH="$SDK/upstream/emscripten:$SDK:$PATH"
 export PKG_CONFIG_LIBDIR="$ROOT/build/prefix/lib/pkgconfig"
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 OUT="$ROOT/build/software-yuv"
+mkdir -p "$ROOT/build/link-maps"
 python3 scripts/prepare-software-yuv.py
 read -r -a LIBS <<< "$(pkg-config --cflags --libs --static mpv)"
 for i in "${!LIBS[@]}"; do
  case "${LIBS[$i]}" in
- -lavcodec|-lavformat|-lavfilter|-lavutil|-lswresample|-lswscale|-lpostproc)
+ -lavcodec|-lavformat|-lavfilter|-lavutil|-lswresample|-lswscale)
  name=${LIBS[$i]#-l};LIBS[$i]="$ROOT/build/obj-software-full-ffmpeg/lib$name/lib$name.a";;
  esac
 done
@@ -22,7 +23,7 @@ source scripts/decoder-simd.sh
 emcc -O2 -pthread -msimd128 -Inative -Ibuild/sources/mpv -Ibuild/obj-mpv \
  "$OUT/yuv.o" "$OUT/rgb.o" native/player.c native/events.c native/stream_bridge.c \
  native/subtitles/bitmap.c "${DECODER_SIMD_SOURCES[@]}" "${LIBS[@]}" \
- "$ROOT/build/obj-software-full-ffmpeg/libpostproc/libpostproc.a" "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions \
+ "$ROOT/build/prefix-playback/lib/libdav1d.a" "$ROOT/build/prefix-playback/lib/libzimg.a" -lstdc++ -fexceptions -Wl,-Map,"$ROOT/build/link-maps/software-yuv.map" \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngine -sENVIRONMENT=worker \
  -sPTHREAD_POOL_SIZE=8 -sPTHREAD_POOL_SIZE_STRICT=2 \
  -sINITIAL_MEMORY=134217728 -sMAXIMUM_MEMORY=1073741824 -sALLOW_MEMORY_GROWTH=1 \
@@ -36,3 +37,4 @@ node --input-type=module -e 'import {readFileSync} from "node:fs"; if(!WebAssemb
 mkdir -p web/engine-software-yuv
 cp "$OUT/player.wasm" web/engine-software-yuv/player.wasm
 cp "$OUT/player.mjs" web/engine-software-yuv/player.mjs
+python3 scripts/stamp-engine-license.py web/engine-software-yuv/player.mjs

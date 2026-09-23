@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {bufferingPolicy, resolveBuffering} from './buffering.js';
 import type {BufferingPolicy} from '../types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './plain-vtt.js';

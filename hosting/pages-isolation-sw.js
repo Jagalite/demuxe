@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // GitHub Pages cannot supply custom COOP/COEP headers. This worker adds them
 // to same-origin responses within this demo's scope; it never caches media.
 self.addEventListener('install', () => self.skipWaiting());

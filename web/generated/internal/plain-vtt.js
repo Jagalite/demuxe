@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
 /** This renderer failed independently of video/audio packaging. */
 export class BrowserCaptionUnsupported extends PlayerError {

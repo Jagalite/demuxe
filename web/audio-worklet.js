@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // A fixed SharedArrayBuffer, independent of growable Wasm memory.
 // Header: write, read, run, epoch, acknowledged epoch, media frames, underruns.
 class PCMOutput extends AudioWorkletProcessor {

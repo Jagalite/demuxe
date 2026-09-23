@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions} from '../types.js';
 export interface Backend extends EventTarget {
   previewFrame?(request:import('../preview/controller.js').PreviewContext):Promise<import('../preview/controller.js').PreviewResult|null>;

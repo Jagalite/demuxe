@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {definePlayerElement} from './generated/player/index.js';
 definePlayerElement();
 const $=id=>document.getElementById(id),viewer=$('viewer'),player=window.player=await viewer.ready;

@@ -4,7 +4,8 @@
 
 This profile removes the original small decoder/demuxer/filter allowlists. It
 uses the pinned FFmpeg 7.1.1 defaults to enable built-in playback components that
-compile for Wasm, including GPL filters (the existing mpv build is already GPL).
+compile for Wasm. The historical GPL build included GPL filters and postproc;
+the next-release recipe excludes those components and uses an LGPL mpv build.
 It reuses the already bundled zlib, libxml2 and libass. No external codec libraries
 are added. The mpv software renderer, audio output, subtitle renderer and browser
 I/O remain the existing implementation.

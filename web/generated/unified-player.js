@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';

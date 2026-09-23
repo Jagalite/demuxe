@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from '../internal/wasm-player.js';
 import { bufferingPolicy } from '../internal/buffering.js';
 /** Disposable, paused software engine. Never receives the playback backend. */

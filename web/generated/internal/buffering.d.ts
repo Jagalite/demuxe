@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type { BufferingOptions, BufferingPolicy, BufferingResolution } from '../types.js';
 export declare function bufferingPolicy(input?: BufferingOptions): BufferingPolicy;
 export declare function resolveBuffering(policy: BufferingPolicy, backend: BufferingResolution['backend']): BufferingResolution;

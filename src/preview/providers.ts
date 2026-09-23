@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type {PreviewContext,PreviewProvider,PreviewResult} from './controller.js';
 /** Host-authored storyboards can return encoded tiles or references without a decoder. */
 export class AuthoredPreviewProvider implements PreviewProvider {

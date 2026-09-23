@@ -25,7 +25,7 @@ artifacts = {str(p.relative_to(root)): {'bytes':p.stat().st_size,'gzipBytes':len
 report = {'schema':1,'scope':'Software playback with dav1d and zimg, FFmpeg 7.1.1. Registrations are not per-format runtime qualification.',
  'rotation':'RGB VO clears ROTATE90; mpv autorotates before software rendering.',
  'decoderSimd':os.environ.get('DEMUXE_DECODER_SIMD',os.environ.get('WEBMPV_DECODER_SIMD','1'))=='1',
- 'selection':'Upstream defaults with GPL filters and already bundled zlib/libxml2/libass; dav1d AV1 decoding and zimg color conversion. Encoding, muxing, devices, hardware acceleration and native network protocols disabled.',
+ 'selection':'Upstream-default LGPL decoders, demuxers and filters with GPL and nonfree components disabled; bundled zlib/libxml2/libass, dav1d AV1 decoding and zimg color conversion. Encoding, muxing, devices, hardware acceleration and native network protocols disabled.',
  'baseline':base,'enabled':full,'added':{k:sorted(set(full[k])-set(base[k])) for k in full},
  'counts':{k:{'baseline':len(base[k]),'expanded':len(full[k]),'added':len(set(full[k])-set(base[k]))} for k in full},
  'knownLimitations':['Only representative fixtures are runtime checked. No all-format or real-time guarantee.', 'Output remains within 1080p. Configurable input cap up to 4K, 1 GiB heap cap, 32-256 MiB individual allocation cap; ArrayBuffer inputs remain capped at 32 MiB. PCM layout depends on device negotiation. Browser I/O restrictions remain.'],

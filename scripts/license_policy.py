@@ -13,10 +13,11 @@ import tarfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APACHE = 'Apache-2.0'
 GPL = 'GPL-3.0-or-later'
+LGPL = 'LGPL-2.1-or-later'
 CC = 'CC-BY-4.0'
 CODE = {'.ts', '.js', '.mjs', '.py', '.sh', '.c', '.h', '.inc', '.html', '.css'}
 LEGAL = ['LICENSE', 'LICENSES/Apache-2.0.txt', 'LICENSES/GPL-2.0-or-later.txt',
-         'LICENSES/GPL-3.0-or-later.txt',
+         'LICENSES/GPL-3.0-or-later.txt', 'LICENSES/LGPL-2.1-or-later.txt',
          'LICENSES/CC-BY-4.0.txt', 'LICENSING.md', 'docs/LICENSING.md',
          'docs/MEDIA-NOTICES.md', 'CONTRIBUTING.md', 'licensing/boundaries.json']
 
@@ -62,7 +63,7 @@ class Policy:
     def paths(self):
         if (self.root / '.git').exists():
             return sorted(set(filter(None, subprocess.check_output(
-                ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+                ['git', 'ls-files', '--cached', '-z'],
                 cwd=self.root).decode().split('\0'))))
         # Preferred-source companions have no .git directory. Keep them buildable
         # without accidentally reading the index of a recipient's enclosing repo.
@@ -86,7 +87,7 @@ class Policy:
             try:
                 license_id = self.classify(name)
                 source = generated_source(name)
-                historical = (name.startswith('results/') or '/files/' in name
+                historical = (name.startswith(('results/', 'research/shared/runs/')) or '/files/' in name
                               or name in self.config['preservedFiles'])
                 if name.startswith(('results/', 'research/')) and path.suffix in CODE:
                     if license_id == CC:
@@ -97,7 +98,7 @@ class Policy:
                         actual = header(path.read_bytes())
                         if actual and actual != license_id:
                             errors.append('Research SPDX/map mismatch: ' + name)
-                if (path.suffix in CODE and license_id in [APACHE, GPL]
+                if (path.suffix in CODE and license_id in [APACHE, GPL, LGPL]
                         and not historical and not (source and not (self.root / source).is_file())):
                     if header(path.read_bytes()) != license_id:
                         errors.append('Incorrect/missing SPDX header: ' + name)
@@ -122,8 +123,8 @@ class Policy:
         project = json.loads((self.root / 'package.json').read_text())
         core = json.loads((self.root / 'packages/core/package.json').read_text())
         lock = json.loads((self.root / 'package-lock.json').read_text())
-        if project.get('license') != GPL or lock['packages'][''].get('license') != GPL:
-            errors.append('The complete player package must be GPL-3.0-or-later')
+        if project.get('license') != APACHE or lock['packages'][''].get('license') != APACHE:
+            errors.append('Demuxe original application package metadata must be Apache-2.0')
         if project.get('demuxeLicenses') != self.config['packageLicenses']:
             errors.append('Root component license metadata differs from the boundary map')
         if core.get('license') != APACHE or not core.get('private'):
@@ -160,12 +161,14 @@ class Policy:
             if name == 'license-map.json':
                 continue
             if name in ['index.js', 'index.d.ts', 'player.js', 'player.d.ts']:
-                license_id = GPL
+                license_id = APACHE
             elif name in ['package.json', 'LICENSE']:
-                license_id = APACHE if kind == 'core' else GPL
-            elif name.startswith('web/engine-'):
+                license_id = APACHE
+            elif name.startswith(('web/engine/', 'web/engine-')) and name.endswith('.json'):
+                license_id = CC
+            elif name.startswith(('web/engine/', 'web/engine-')):
                 # These are linked builds; component notices still apply.
-                license_id = GPL
+                license_id = LGPL
             elif name == 'engine-build.json':
                 license_id = CC
             else:
@@ -176,16 +179,20 @@ class Policy:
 
     def check_package(self, files, kind):
         metadata = json.loads(files['package.json'])
-        expected = APACHE if kind == 'core' else GPL
+        expected = APACHE
         if metadata.get('license') != expected:
             raise ValueError('Incorrect package license: ' + str(metadata.get('license')))
         required = set(LEGAL) | {'README.md', 'license-map.json'}
+        if kind == 'player':
+            required.add('docs/LGPL-RELINK.md')
         if missing := required - files.keys():
             raise ValueError('Missing packaged license material: ' + ', '.join(sorted(missing)))
         for name in LEGAL:
             original = 'packages/core/LICENSE' if kind == 'core' and name == 'LICENSE' else name
             if files[name] != (self.root / original).read_bytes():
                 raise ValueError('Packaged license material differs: ' + name)
+        if kind == 'player' and files['docs/LGPL-RELINK.md'] != (self.root / 'docs/LGPL-RELINK.md').read_bytes():
+            raise ValueError('Packaged LGPL relinking instructions differ')
         # The release manifest hashes this map; do not create a circular hash.
         mapped = {k: v for k, v in files.items() if k != 'release-manifest.json'}
         if json.loads(files['license-map.json']) != self.package_map(mapped, kind):
@@ -214,13 +221,32 @@ class Policy:
         else:
             if metadata.get('demuxeLicenses') != self.config['packageLicenses']:
                 raise ValueError('Missing/incorrect player component license metadata')
-            if 'engine-build.json' in files:
-                licenses = json.loads(files['engine-build.json']).get('licenses', {})
-                for name in ['hybrid', 'software', 'remuxWrapper']:
-                    if licenses.get(name) != GPL:
-                        raise ValueError('Combined engine license must be GPL-3.0-or-later: ' + name)
-                if licenses.get('remuxFFmpegLibrary') != 'LGPL-2.1-or-later':
-                    raise ValueError('The remux FFmpeg library must retain its LGPL grant')
+            if 'engine-build.json' not in files:
+                raise ValueError('Player archive requires verified engine build evidence')
+            build = json.loads(files['engine-build.json'])
+            licenses = build.get('licenses', {})
+            for name in ['baseline', 'hybrid', 'software', 'subtitles', 'remuxFFmpegLibrary']:
+                if licenses.get(name) != LGPL:
+                    raise ValueError('Combined engine license must be LGPL-2.1-or-later: ' + name)
+            if licenses.get('remuxWrapper') != APACHE or licenses.get('mpvGPL') is not False:
+                raise ValueError('Apache wrapper or LGPL mpv build evidence differs')
+            if any(licenses.get(name) != 'LGPL version 2.1 or later'
+                   for name in ['baselineFFmpeg', 'fullFFmpeg', 'remuxFFmpeg']):
+                raise ValueError('FFmpeg build evidence does not report LGPL')
+            evidence = build.get('licensingEvidence', {})
+            if evidence.get('status') != 'verified' or evidence.get('mpv', {}).get('gpl') is not False:
+                raise ValueError('Verified generated LGPL closure evidence is missing')
+            expected_artifacts = {f'web/{folder}/{stem}.{ext}'
+                                  for folder, stem in [('engine-hybrid', 'player'),
+                                                       ('engine-software-full', 'player'),
+                                                       ('engine-remux', 'remux'),
+                                                       ('engine-subtitles', 'service')]
+                                  for ext in ['mjs', 'wasm']}
+            if not expected_artifacts.issubset(build.get('artifacts', {})):
+                raise ValueError('Missing matching LGPL engine artifacts')
+            for name, record in build.get('artifacts', {}).items():
+                if name not in files or sha(files[name]) != record.get('sha256'):
+                    raise ValueError('Engine artifact differs from LGPL build record: ' + name)
             for path in (self.root / 'third_party').rglob('*'):
                 if path.is_file():
                     name = str(path.relative_to(self.root))

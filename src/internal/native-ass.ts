@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import type {FontAsset,SubtitleAsset} from '../types.js';
 import {BrowserCaptionUnsupported} from './plain-vtt.js';
 import {PlayerError} from './errors.js';

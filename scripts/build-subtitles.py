@@ -91,10 +91,12 @@ if base != repo:
 args = [*compile_flags(client), '-I' + str(repo / 'native'), '-I' + str(base / 'build/sources/mpv'), '-c', str(repo / 'native/subtitles/service.c'), '-o', str(objects / 'bridge.o')]
 subprocess.run(args, cwd=client['directory'], env=env, check=True)
 args = [args[0], '-O2', '-pthread', '-msimd128', *maps, '-I' + str(config), '-I' + str(repo / 'native'), '-I' + str(base / 'build/sources/mpv'), '-I' + str(base / 'build/obj-mpv'), str(objects / 'bridge.o'), str(repo / 'native/subtitles/bitmap.c'), str(repo / 'native/stream_bridge.c'), *extra, *libs, '-lstdc++', '-fexceptions', '-sMODULARIZE=1', '-sEXPORT_ES6=1', '-sENVIRONMENT=worker', '-sPTHREAD_POOL_SIZE=4', '-sINITIAL_MEMORY=67108864', '-sMAXIMUM_MEMORY=134217728', '-sALLOW_MEMORY_GROWTH=1', '-sSTACK_SIZE=2097152', '-sDEFAULT_PTHREAD_STACK_SIZE=2097152', '-sWASM_BIGINT=1', '-sWASMFS=1', '-sFORCE_FILESYSTEM=1', '-sEXIT_RUNTIME=0', '-sEXPORTED_FUNCTIONS=["_malloc","_free"]', '-sEXPORTED_RUNTIME_METHODS=["ccall","FS","HEAPU8","HEAP32","UTF8ToString","PThread"]', '-o', str(out / 'service.mjs')]
+(repo / 'build/link-maps').mkdir(exist_ok=True)
+args.insert(args.index('-lstdc++'), '-Wl,-Map,' + str(repo / 'build/link-maps/subtitles.map'))
 (objects / 'link-command.json').write_text(json.dumps(args, indent=2))
 subprocess.run(args, cwd=base, env=env, check=True)
 engine_js = out / 'service.mjs'
-engine_js.write_text('// SPDX-License-Identifier: GPL-3.0-or-later\n' + engine_js.read_text())
+engine_js.write_text('// SPDX-License-Identifier: LGPL-2.1-or-later\n' + engine_js.read_text())
 for name in ['service.mjs', 'service.wasm']:
     if re.search(rb'/(?:Users|Volumes|private/var)/', (out / name).read_bytes()):
         raise SystemExit('Build paths remain in subtitle engine: ' + name)

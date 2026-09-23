@@ -13,7 +13,7 @@ export GIT_CEILING_DIRECTORIES="$ROOT/build/sources"
 FLAGS=(-pthread -msimd128)
 OBJ="${WEBMPV_REMUX_FFMPEG_DIR:-$ROOT/build/native-remux/ffmpeg}"
 OUT="$ROOT/web/engine-remux"
-mkdir -p "$OBJ" "$OUT" "$ROOT/build/native-remux"
+mkdir -p "$OBJ" "$OUT" "$ROOT/build/native-remux" "$ROOT/build/link-maps"
 if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ] && { [ ! -f "$OBJ/Makefile" ] || ! rg -q -- "--enable-muxer='?mp4,webm'?" "$OBJ/ffbuild/config.mak"; }; then
  (cd "$OBJ"
  emconfigure "$ROOT/build/sources/ffmpeg/configure" \
@@ -32,7 +32,7 @@ if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ]; then python3 scripts/normalize-build-p
 LINK_OUT=$(mktemp -d "$ROOT/build/native-remux/link.XXXXXX")
 emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" "${FLAGS[@]}" -I"$OBJ" -Ibuild/sources/ffmpeg \
  native/remux/remux.c \
- "$OBJ/libavformat/libavformat.a" "$OBJ/libavcodec/libavcodec.a" "$OBJ/libavutil/libavutil.a" \
+ "$OBJ/libavformat/libavformat.a" "$OBJ/libavcodec/libavcodec.a" "$OBJ/libavutil/libavutil.a" -Wl,-Map,"$ROOT/build/link-maps/remux.map" \
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createRemux -sENVIRONMENT=worker \
  -sINITIAL_MEMORY=67108864 -sMAXIMUM_MEMORY=134217728 -sALLOW_MEMORY_GROWTH=1 \
  -sSTACK_SIZE=2097152 -sWASM_BIGINT=1 -sFILESYSTEM=0 \
@@ -45,3 +45,4 @@ cp "$LINK_OUT/remux.wasm" "$OUT/remux.wasm.next"
 cp "$LINK_OUT/remux.mjs" "$OUT/remux.mjs.next"
 mv "$OUT/remux.wasm.next" "$OUT/remux.wasm"
 mv "$OUT/remux.mjs.next" "$OUT/remux.mjs"
+python3 scripts/stamp-engine-license.py "$OUT/remux.mjs"

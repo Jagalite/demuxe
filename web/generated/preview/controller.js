@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import { PreviewPregenerator } from './pregeneration.js';
 const aborted = () => new DOMException('Preview superseded or cancelled', 'AbortError');
 const now = () => performance.now();

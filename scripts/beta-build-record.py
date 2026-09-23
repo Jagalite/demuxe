@@ -28,17 +28,18 @@ if args.phase=='start':
 else:
  start=json.loads(record.read_text())
  if start['inputs']!=inputs():raise SystemExit('Build inputs changed while building')
- configs=['build/cross.ini','build/obj-libxml2/config.h','build/software-vo/compile-command.json','build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-ffmpeg/config.h','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/beta.emscripten']
+ subprocess.run(['python3',str(root/'scripts/verify-lgpl-closure.py')],check=True)
+ configs=['build/cross.ini','build/obj-libxml2/config.h','build/software-vo/compile-command.json','build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-mpv/compile_commands.json','build/prefix/lib/pkgconfig/mpv.pc','build/obj-ffmpeg/config.h','build/obj-ffmpeg/config_components.h','build/obj-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/lgpl-closure.json','build/beta.emscripten',*[f'build/link-maps/{name}.map' for name in ['baseline','software','hybrid','remux','subtitles']]]
  def license_at(file,gpl):
   text=(root/file).read_text()
   for name,value in [('GPL',gpl),('VERSION3',0),('NONFREE',0)]:
    if not re.search(rf'^#define CONFIG_{name} {value}$',text,re.M):raise SystemExit(f'Unexpected license configuration: {file}: {name}')
   return re.search(r'^#define FFMPEG_LICENSE "(.*)"$',text,re.M)[1]
- full=license_at('build/obj-software-full-ffmpeg/config.h',1);remux=license_at('build/native-remux/ffmpeg/config.h',0)
+ baseline=license_at('build/obj-ffmpeg/config.h',0);full=license_at('build/obj-software-full-ffmpeg/config.h',0);remux=license_at('build/native-remux/ffmpeg/config.h',0)
  opts=json.loads((root/'build/obj-mpv/meson-info/intro-buildoptions.json').read_text())
- if not next(o['value']for o in opts if o['name']=='gpl'):raise SystemExit('Expected GPL mpv build')
+ if next(o['value']for o in opts if o['name']=='gpl'):raise SystemExit('Expected LGPL mpv build')
  artifacts={}
- for folder,stem in [('engine-hybrid','player'),('engine-software-full','player'),('engine-remux','remux')]:
+ for folder,stem in [('engine-hybrid','player'),('engine-software-full','player'),('engine-remux','remux'),('engine-subtitles','service')]:
   for ext in ['wasm','mjs']:
    p=root/'web'/folder/(stem+'.'+ext);artifacts[str(p.relative_to(root))]={'bytes':p.stat().st_size,'sha256':sha(p)}
  tools={}
@@ -53,6 +54,6 @@ else:
   actual=sha(root/'build/downloads'/(item['name']+'.tar.gz'))
   if actual!=item['sha256']:raise SystemExit('Source archive changed: '+item['name'])
   source_archives[item['name']]=actual
- data={**start,'finished':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),'sharedTools':tools,'sdk':str(sdk),'historicalLinuxToolchainLockAppliesToHost':False,'sources':source_archives,'configurations':{n:sha(root/n)for n in configs},'licenses':{'hybrid':'GPL-3.0-or-later','software':'GPL-3.0-or-later','remuxFFmpegLibrary':'LGPL-2.1-or-later','remuxWrapper':json.loads((root/'package.json').read_text()).get('license','UNLICENSED'),'fullFFmpeg':full,'remuxFFmpeg':remux,'mpvGPL':True},'artifacts':artifacts}
+ data={**start,'finished':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),'sharedTools':tools,'sdk':str(sdk),'historicalLinuxToolchainLockAppliesToHost':False,'sources':source_archives,'configurations':{n:sha(root/n)for n in configs},'licenses':{'baseline':'LGPL-2.1-or-later','hybrid':'LGPL-2.1-or-later','software':'LGPL-2.1-or-later','subtitles':'LGPL-2.1-or-later','remuxFFmpegLibrary':'LGPL-2.1-or-later','remuxWrapper':json.loads((root/'package.json').read_text()).get('license','UNLICENSED'),'baselineFFmpeg':baseline,'fullFFmpeg':full,'remuxFFmpeg':remux,'mpvGPL':False},'licensingEvidence':json.loads((root/'build/lgpl-closure.json').read_text()),'artifacts':artifacts}
  (root/'build/beta-build.json').write_text(json.dumps(data,indent=2)+'\n')
  print(root/'build/beta-build.json')

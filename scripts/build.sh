@@ -108,5 +108,5 @@ python3 scripts/normalize-build-paths.py build/obj-ffmpeg/config.h
 (cd build/obj-ffmpeg
   emmake make -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-6}}"
   emmake make install)
-meson_lib mpv -Dlibmpv=true -Dcplayer=false -Dgl=disabled -Dlua=disabled -Dbuild-date=false -Dzlib=enabled
+meson_lib mpv -Dgpl=false -Dlibmpv=true -Dcplayer=false -Dgl=disabled -Dlua=disabled -Dbuild-date=false -Dzlib=enabled
 bash scripts/link.sh

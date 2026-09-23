@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Only element operations cross this boundary. Encoded fragments stay between
 // the producer and the dedicated MSE owner, using transferable ArrayBuffers.
 export const workerMSEAvailable=()=>typeof document!=='undefined'&&globalThis.MediaSource?.canConstructInDedicatedWorker===true&&'srcObject' in HTMLMediaElement.prototype;

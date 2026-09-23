@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {WorkerRemuxController,workerMSEAvailable} from './worker-remux-controller.js';
 // The same Native scheduler can own MSE in a window or a dedicated worker.
 // Demux/mux and bounded source reads always remain separate workers.

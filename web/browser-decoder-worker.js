@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 // Dedicated service: native decoder pthread waits never block this event loop.
 let memory,pointer,header,view,decoder,configuration,queue=[],generation=0,busy=false;
 let draining=false,flushed=false,failure=null,submitted=0,consumed=0,lastProgress=0;

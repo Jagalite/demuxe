@@ -11,17 +11,27 @@ mpv_subtitles=args.mpv_subtitles or all((root/'web/engine-subtitles'/('service.'
 project=json.loads((root/'package.json').read_text())
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root))
-build=None;source_archive=None;optional_sources=[]
-if mpv_subtitles and args.release_tag:raise SystemExit('mpv subtitle service requires separate clean-source release qualification')
+source_archive=None;optional_sources=[]
+if args.release_tag:
+ if dirty:raise SystemExit('Release packaging requires a clean source checkout')
+ if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
+ if not args.adaptation_build or not args.ass_build:raise SystemExit('Tagged release requires fresh optional preparation and ASS builds to retain published playback capability')
+if project.get('license') != 'Apache-2.0' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the Apache original-code license before packaging')
+build_path=root/'build/beta-build.json'
+if not build_path.is_file():raise SystemExit('Packaging requires a completed LGPL engine build record')
+build=json.loads(build_path.read_text())
+if args.release_tag and not build['clean']:raise SystemExit('Release requires a completed clean engine build')
+for group in ['inputs','configurations','artifacts']:
+ for name,expected in build[group].items():
+  digest=expected['sha256'] if isinstance(expected,dict) else expected
+  if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise SystemExit('Build record mismatch: '+name)
+subprocess.run(['python3',str(root/'scripts/verify-lgpl-closure.py')],cwd=root,check=True)
+if build.get('licensingEvidence')!=json.loads((root/'build/lgpl-closure.json').read_text()):raise SystemExit('LGPL closure differs from completed engine build')
+if mpv_subtitles and 'web/engine-subtitles/service.wasm' not in build['artifacts']:raise SystemExit('Subtitle service has no matching LGPL build record')
 if args.release_tag:
  # Optional assets remain subject to clean source correspondence here and
  # mandatory exact-archive optional evidence in verify-beta-release.py.
- if dirty:raise SystemExit('Release packaging requires a clean source checkout')
- if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
- if project.get('license') != 'GPL-3.0-or-later' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the original-code license before release: complete player must be GPL-3.0-or-later')
  if args.yuv:raise SystemExit('The clean beta release record covers only the standard engines')
- build=json.loads((root/'build/beta-build.json').read_text())
- if not build['clean']:raise SystemExit('Release requires a completed clean engine build')
  sdk=pathlib.Path(build['sdk'])
  for name,digest in build['sdkSources'].items():
   if hashlib.sha256((sdk/'upstream/emscripten'/name).read_bytes()).hexdigest()!=digest:raise SystemExit('SDK source changed: '+name)
@@ -75,6 +85,7 @@ if args.adaptation_build:
  if record.get('cleanSourceBuild'):
   preparation_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-audio-adaptation-build.py'),str(adaptation)],text=True))
  if record.get('linkSettings',{}).get('firstFragmentSeconds',0.5)!=0.5:raise SystemExit('Nondefault first-fragment sizing failed timestamp qualification; packaging is blocked')
+ if args.release_tag and (not record['inputs'].get('opus') or record.get('linkSettings',{}).get('flacLevel')!=5):raise SystemExit('Tagged release must retain the published FLAC and explicit Opus preparation profiles')
  for filename in ['remux.mjs','remux.wasm']:
   expected=record['files'][str(adaptation/filename)]['sha256'];data=(adaptation/filename).read_bytes()
   if hashlib.sha256(data).hexdigest()!=expected:raise SystemExit('Adaptation artifact hash mismatch: '+filename)
@@ -96,6 +107,7 @@ if args.adaptation_build:
   archive.add(adaptation.parent/'inputs.json',arcname='locked-inputs.json')
   archive.add(adaptation.parent/'ffmpeg/config.h',arcname='build/config.h')
   archive.add(adaptation.parent/'ffmpeg/ffbuild/config.mak',arcname='build/config.mak')
+  archive.add(adaptation/'remux.map',arcname='build/remux.map')
   if preparation_verification:
    archive.add(adaptation.parent/'preferred-source-hashes.json',arcname='preferred-source-hashes.json')
    archive.add(adaptation.parent/'ffmpeg/config_components.h',arcname='build/config_components.h')
@@ -125,6 +137,7 @@ if args.ass_build:
    archive.add(library/'build/sources'/name,arcname='libraries/'+name)
   archive.add(ass/'sources',arcname='demuxe')
   archive.add(ass/'manifest.json',arcname='build-manifest.json')
+  archive.add(ass/'subtitles.map',arcname='build/subtitles.map')
   for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)
   if clean_ass:
    archive.add(library/'source-build.json',arcname='source-build.json')
@@ -135,7 +148,7 @@ if args.ass_build:
  files['web/engine-ass/manifest.json']=(json.dumps({'sourceBuildVerification':source_verification,'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'External Native ASS; clean library correspondence verified; exact-archive release verification remains mandatory'},indent=2)+'\n').encode()
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
-for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/RELEASE.md']:add(name)
+for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
 for name in LEGAL:add(name)
 if build:
  # Absolute host paths belong in the source companion, not the installed runtime.
@@ -148,14 +161,14 @@ for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATIO
 # The review report keeps local evidence locations in the repository only.
 report='docs/OPTIMIZATION-INTEGRATION.md'
 files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
-files['player.js']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/player/index.js';\n"
-files['player.d.ts']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/player/index.js';\n"
-files['index.js']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/index.js';\n"
-files['index.d.ts']=b"// SPDX-License-Identifier: GPL-3.0-or-later\nexport * from './web/generated/index.js';\n"
+files['player.js']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/player/index.js';\n"
+files['player.d.ts']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/player/index.js';\n"
+files['index.js']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/index.js';\n"
+files['index.d.ts']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/index.js';\n"
 files['README.md']=(root/'README.md').read_bytes()
 for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
-package={'name':project['name'],'version':project['version'],'license':'GPL-3.0-or-later','demuxeLicenses':license_policy.config['packageLicenses'],'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package={'name':project['name'],'version':project['version'],'license':'Apache-2.0','demuxeLicenses':license_policy.config['packageLicenses'],'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
 package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
 package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()

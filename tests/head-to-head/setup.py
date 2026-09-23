@@ -98,11 +98,30 @@ def prepare(args):
         shutil.copyfile(REPO / name, target)
     run(['node', 'node_modules/typescript/bin/tsc', '--project', 'tsconfig.json', '--outDir', str(player / 'web/generated')])
     engines = {}
-    for name in ['engine-remux', 'engine-hybrid', 'engine-software-full', 'engine-adaptation', 'engine-ass']:
+    for name in ['engine-remux', 'engine-hybrid', 'engine-software-full', 'engine-subtitles', 'engine-adaptation', 'engine-ass']:
         source = REPO / 'web' / name
         engines[name] = source.is_dir()
         if source.is_dir():
             shutil.copytree(source, player / 'web' / name)
+    optional_archive_sha = None
+    if args.optional_archive:
+        optional_archive = Path(args.optional_archive).resolve()
+        optional_archive_sha = sha(optional_archive)
+        with tarfile.open(optional_archive) as bundle:
+            package = json.load(bundle.extractfile('package/release-manifest.json'))
+            for folder, stem in [('engine-adaptation', 'remux'), ('engine-ass', 'subtitles')]:
+                for filename in [stem + '.mjs', stem + '.wasm', 'manifest.json']:
+                    name = f'web/{folder}/{filename}'
+                    entry = package['files'].get(name)
+                    if not entry:
+                        raise ValueError('Optional archive is missing ' + name)
+                    data = bundle.extractfile('package/' + name).read()
+                    if hashlib.sha256(data).hexdigest() != entry['sha256']:
+                        raise ValueError('Optional archive asset hash mismatch: ' + name)
+                    target = player / name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(data)
+                engines[folder] = True
     for name in ['LICENSE', 'LICENSES', 'third_party', 'docs/LICENSING.md', 'docs/MEDIA-NOTICES.md', 'fixtures/FONT-LICENSE.txt']:
         source, target = REPO / name, player / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -179,7 +198,8 @@ def prepare(args):
     manifest = {'schema': 1, 'fixture_parent': fixture_parent, 'fixture': {'duration': args.duration, 'dimensions': [320,180], 'fps': 30},
                 'git_revision': run(['git', 'rev-parse', 'HEAD']).strip(),
                 'source_sha256': before, 'dirty_diff': run(['git', 'diff', '--', 'src', 'web']),
-                'engines': engines, 'ffmpeg': run(['ffmpeg', '-version']).splitlines()[0],
+                'engines': engines, 'optionalArchiveSHA256': optional_archive_sha,
+                'ffmpeg': run(['ffmpeg', '-version']).splitlines()[0],
                 'setup_script_sha256': sha(Path(__file__)), 'expanded_generator_sha256': sha(preparation / 'expand.py') if args.expanded and not fixture_parent else None, 'assets_lock_sha256': sha(HERE / 'assets.lock.json'),
                 'limits': ['Digital marked-output checks only, not physical output, exhaustive codec support or release qualification.',
                            'Missing local optional engines are recorded; older lab binaries are never substituted.'],
@@ -194,6 +214,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True, help='New directory, normally under build/head-to-head/')
     parser.add_argument('--lab', help='Optional preserved lab cache. Every reused dependency is hash-checked.')
     parser.add_argument('--fixtures-from', help='Reuse a completed snapshot’s exact hash-verified fixtures with newly built runtime assets')
+    parser.add_argument('--optional-archive', help='Use exact packaged optional ASS/adaptation assets and manifests')
     parser.add_argument('--expanded', action='store_true', help='Generate all planned catalogue fixtures or record preparation blockers')
     parser.add_argument('--duration', type=int, default=36)
     try:

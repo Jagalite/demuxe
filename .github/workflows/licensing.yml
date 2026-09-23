@@ -18,9 +18,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci --ignore-scripts
+      - run: npm run build
       - run: npm run check:licenses
       - run: npm run build:core
       - run: npm run test:licenses
+      - run: python3 tests/lgpl-closure.py
+      - run: python3 tests/lgpl-catalogue.py
       - run: python3 tests/beta-release.py
       - run: node --test tests/native-selection.mjs tests/runtime-capability-contracts.mjs tests/file-reader.mjs tests/range-reader-deadline.mjs tests/remux-packaging-contracts.mjs tests/video-codec-config.mjs tests/progressive-mp4.mjs tests/remux-buffering.mjs tests/worker-remux-controller.mjs
       - run: node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/plan-admission.mjs tests/native-readiness-contracts.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs

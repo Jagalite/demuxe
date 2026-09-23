@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 import {RemuxPlayer} from './native-remux-player.js';
 // Reuse the maintained scheduler, eviction rules and generation owner. FFmpeg
 // and source I/O remain in separate child workers; neither blocks this loop.

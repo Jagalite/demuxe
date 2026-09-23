@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-2.1-or-later
 // Experimental bounded subtitle bitmap export. Video pixels never enter this buffer.
 #include <emscripten.h>
 #include <stdint.h>
