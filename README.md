@@ -97,7 +97,7 @@ browser. The runtime never uploads them.
 See [the public API](docs/PUBLIC-API.md), [component contract](docs/PLAYER-COMPONENT.md),
 [migration notes](docs/API-MIGRATION.md), [previews](docs/PREVIEWS.md), and [beta limits](docs/BETA.md).
 
-## Representative head-to-head media evidence (default configurations)
+## Representative head-to-head media evidence (default routes plus forced Software)
 
 This table records complete-file experiments, not an exhaustive compatibility
 matrix. Use **[component capabilities](docs/CAPABILITIES.md)** to identify which
@@ -105,13 +105,35 @@ subsystem or requirement determines a route. The
 [head-to-head catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) retains the demonstrated
 combinations and their exact evidence.
 
-The table uses the recorded CPU campaign and its matching playback checks, plus catalogue and real-bitstream playback screening for fidelity-limited rows excluded from that campaign. Detailed routes, historical outcomes and tested alternatives remain in the [complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
+The **Demuxe (auto)** column records automatic plan selection. The separately
+recorded **Demuxe (forced software)** lane pins each media case to
+`mode: 'software'`. Its [60-case correctness run](results/head-to-head/demuxe-software-matrix-20260922-02/REPORT.md)
+recorded 46 passes, no failures and 14 screen or fixture blocks. The [14-case
+specialist screen](results/head-to-head/demuxe-software-specialists-20260922-01/REPORT.md)
+passed all cases; five prepared fixtures cover blocked base attempts, and nine
+add specialist rows. Together they cover the 69 originally catalogued cases. A
+separate [H.264/AAC bitmap-subtitle screen](results/head-to-head/demuxe-software-bitmap-isolation-20260923-01/REPORT.md)
+passed VobSub through its seeks; PGS displayed initially but lost its subtitle
+after seeking.
+
+The [forced software CPU report](results/head-to-head/demuxe-software-performance-20260922-02/CPU-REPORT.md)
+contains 45 accepted three-round medians. The live HLS correctness screen passed
+bounded window progression, while two of its three 20-second CPU windows stopped
+advancing and were excluded. Software CPU values come from a separate campaign,
+so they are descriptive and do not enter the matched-lane bold minimums below.
+
+The forced-software column shows one-core CPU medians for 45 cases with three
+accepted measurement rounds. Other rows show a bounded pass or a failed check. See
+the linked reports for correctness limits and exact outcomes. Detailed routes,
+historical outcomes and tested alternatives remain in the [complete-file
+catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md).
 
 **These are bounded playback tests, not a format-support scorecard.** Movi
 0.4.0 and AVPlayer 1.3.1 are pinned versions. Their correctness cells below use
 [fresh default and configured-route tests](results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md).
-Except for the PCM24+ASS follow-up below, CPU figures retain the earlier campaign;
-these competitor reruns collected no new CPU data.
+Except for the PCM24+ASS follow-up below, Demuxe auto and competitor CPU figures
+retain the earlier campaign; these competitor reruns collected no new CPU data.
+Forced software CPU values are from the separate campaign linked above.
 
 For Movi and AVPlayer, **🟣 configured pass** means an explicitly named alternative
 passed while the default failed a named check. **🟠 Plays; … failed** means initial
@@ -133,7 +155,7 @@ partial fragmented-MP4 playback through full File input and WebVTT parsing
 sensitivity from complete lifecycle passes. Named partial configurations are
 not full passes.
 
-Every numeric cell shows that player’s actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest measured median for that media case. Medians use three accepted matching rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` means bounded playback screening passed, but discrete surround or HDR/color fidelity remains unverified; no CPU measurement is claimed. `(Fail)` means default playback correctness failed, not that the format is unsupported. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate from the synthetic CPU campaign; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
+Every numeric cell shows actual median CPU usage as a percentage of one CPU core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest median among lanes from the same matched campaign; the separately measured forced software values are not part of that ranking. Matched medians use three accepted rounds; this is not a claim about unmeasured players or statistical superiority. Orange numbers indicate higher measured CPU than the row’s reference; round ranges remain in the report. **Green (Pass)** means successful playback without a valid CPU measurement, not a tie or native decoding. `(Pass)*` marks a bounded playback screen with the row’s stated fidelity, profile or duration limit and no CPU median. `(Fail)` means that lane’s playback correctness check failed; it does not establish an unsupported format. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate from the synthetic CPU campaign; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
 [Raw values, ranges and exclusions](results/head-to-head/cpu-specialist-usage-02/REPORT.md) · [Measurement protocol](docs/CPU-BASELINE.md).
 
@@ -154,77 +176,77 @@ The fresh bounded comparison measured Shaka HLS fMP4 at 28.6% of one core versus
 median CPU than Hybrid on the matched synthetic fixture. These controlled-route
 measurements do not replace the default-route correctness labels below.
 
-| Media format | Native video | Demuxe (auto) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
-| --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🟠 21.9% CPU | **🟢 20.2% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 38.0% CPU |
-| H.264 + AAC / MKV | **🟢 (Pass)** | **🟢 22.1% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 37.3% CPU |
-| H.264 + PCM24 / MKV | **🟢 21.2% CPU** | 🟠 21.7% CPU | **🟢 (Pass)** | 🔴 startup/audio check failed |
-| H.264 + PCM24 / MKV + ASS | **🟢 45.6% CPU** | 🟠 46.6% CPU | 🟣 Native-first + host ASS pass; default subtitle check failed | 🔴 startup/audio check failed |
-| H.264 + AAC 5.1 / MP4 | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
-| H.264 + MP3 stereo / MP4 | **🟢 22.0% CPU** | 🟠 22.2% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
-| H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| H.264 + E-AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| H.264 + DTS core 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; rate check failed | **🟢 (Pass)\*** |
-| H.264 + FLAC stereo / MKV | **🟢 23.0% CPU** | 🟠 23.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 35.7% CPU |
-| H.264 + FLAC 5.1 / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
-| H.264 + Opus stereo / MKV | 🟠 24.9% CPU | **🟢 24.5% CPU** | **🟢 (Pass)** | 🟠 39.8% CPU |
-| H.264 + PCM16 stereo / MKV | 🟠 22.7% CPU | **🟢 22.1% CPU** | 🟣 Native-first pass; default EOF check failed | 🔴 startup/audio check failed |
-| H.264 + PCM24 5.1 / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🔴 startup/audio check failed |
-| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟠 23.6% CPU | **🟢 23.3% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 36.4% CPU |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | **🟢 (Pass)** | **🟢 22.5% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 35.0% CPU |
-| HEVC Main 10-bit SDR + AAC / MP4 | **🟢 (Pass)** | **🟢 26.4% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 38.7% CPU |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | **🟢 32.2% CPU** | 🟠 Plays; EOF check failed | 🟠 38.8% CPU |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | **🟢 32.9% CPU** | 🟠 Plays; EOF check failed | 🟠 39.1% CPU |
-| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | **🟢 33.6% CPU** | 🟠 Plays; rate check failed | 🟠 42.6% CPU |
-| AV1 8-bit + AAC / MP4 | **🟢 22.6% CPU** | 🟠 23.4% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 40.4% CPU |
-| AV1 10-bit SDR + Opus / MKV | 🟠 25.4% CPU | **🟢 25.0% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 40.6% CPU |
-| AV1 + Opus / WebM | 🟠 23.6% CPU | **🟢 23.6% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 39.3% CPU |
-| VP9 8-bit + Opus / WebM | 🟠 23.6% CPU | **🟢 21.5% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
-| VP9 10-bit SDR + Opus / WebM | 🟠 25.4% CPU | **🟢 25.3% CPU** | 🟣 Native-first pass; default EOF check failed | 🔴 open failed |
-| VP8 + Vorbis / WebM | **🟢 21.9% CPU** | 🟠 21.9% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 34.7% CPU |
-| H.264 + AAC / MPEG-TS | 🔴 (Fail) | **🟢 25.5% CPU** | 🟠 Plays; rate check failed | 🟠 38.8% CPU |
-| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | **🟢 (Pass)** | **🟢 35.0% CPU** | 🟠 37.7% CPU |
-| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; seek check failed | 🟠 Plays; seek check failed |
-| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | **🟢 (Pass)** | 🔴 startup/audio check failed | 🟠 Plays; seek check failed |
-| ProRes + PCM / MOV | 🔴 (Fail) | **🟢 (Pass)** | 🔴 startup/audio check failed | 🔴 open failed |
-| H.264 + AAC / fragmented MP4 (single file) | 🟠 24.0% CPU | **🟢 23.6% CPU** | 🟣 Native-first pass; default EOF check failed | 🟠 Full File input plays; EOF check failed (default open failed) |
-| H.264 video-only / MP4 | **🟢 20.8% CPU** | 🟠 22.6% CPU | 🟠 37.4% CPU | 🟠 32.1% CPU |
-| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| H.264 + AAC + external WebVTT / MP4 | 🟠 23.4% CPU | **🟢 23.3% CPU** | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
-| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
-| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | **🟢 (Pass)** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
-| AAC audio-only / M4A | **🟢 15.3% CPU** | 🟠 15.9% CPU | **🟢 (Pass)** | 🟠 20.7% CPU |
-| MP3 audio-only / MP3 | 🟠 15.2% CPU | **🟢 14.9% CPU** | **🟢 (Pass)** | 🟠 Plays; seek check failed |
-| FLAC audio-only / FLAC | 🟠 14.5% CPU | **🟢 13.5% CPU** | **🟢 (Pass)** | 🟠 18.5% CPU |
-| Opus audio-only / Ogg | **🟢 15.9% CPU** | 🟠 15.9% CPU | **🟢 (Pass)** | 🟠 Plays; seek check failed |
-| Vorbis audio-only / Ogg | **🟢 14.8% CPU** | 🟠 15.6% CPU | 🟣 Native-first pass; default seek check failed | 🟠 Plays; seek check failed |
-| PCM16 audio-only / WAV | 🟠 15.9% CPU | **🟢 15.3% CPU** | **🟢 (Pass)** | 🔴 startup/audio check failed |
-| PCM24 audio-only / WAV | 🟠 16.0% CPU | **🟢 15.9% CPU** | **🟢 (Pass)** | 🔴 open failed |
-| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| HEVC Main 10 + AAC / MP4 (HLG) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
-| AV1 10-bit + Opus / WebM (HDR10) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
-| HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; rate check failed | 🔴 startup/audio check failed |
-| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; rate check failed | **🟢 (Pass)\*** |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | 🟠 Plays; EOF check failed |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
-| H.264 + AAC / HLS VOD (TS segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
-| H.264 + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
-| HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
-| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | **🟢 (Pass)** | **🟢 (Pass)** | **🟢 (Pass)** |
-| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | **🟢 (Pass)** | **🟢 (Pass)** | 🟠 Plays; seek check failed |
-| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | **🟢 (Pass)** | **🟢 (Pass)** | 🟠 Plays; live check failed |
-| HEVC Main 10 + AAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** | **🟢 (Pass)\*** |
-| HEVC Main 10 + FLAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
-| HEVC Main 10 + Opus / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
-| HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🔴 startup/audio check failed |
-| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
-| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| Media format | Native video | Demuxe (auto) | Demuxe (forced software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
+| --- | --- | --- | --- | --- | --- |
+| H.264 + AAC / MP4 | 🟠 21.9% CPU | **🟢 20.2% CPU** | 52.4% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 38.0% CPU |
+| H.264 + AAC / MKV | **🟢 (Pass)** | **🟢 22.1% CPU** | 52.0% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.3% CPU |
+| H.264 + PCM24 / MKV | **🟢 21.2% CPU** | 🟠 21.7% CPU | 68.0% CPU | **🟢 (Pass)** | 🔴 startup/audio check failed |
+| H.264 + PCM24 / MKV + ASS | **🟢 45.6% CPU** | 🟠 46.6% CPU | 62.1% CPU | 🟣 Native-first + host ASS pass; default subtitle check failed | 🔴 startup/audio check failed |
+| H.264 + AAC 5.1 / MP4 | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
+| H.264 + MP3 stereo / MP4 | **🟢 22.0% CPU** | 🟠 22.2% CPU | 67.1% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
+| H.264 + AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| H.264 + E-AC-3 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| H.264 + DTS core 5.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; rate check failed | **🟢 (Pass)\*** |
+| H.264 + FLAC stereo / MKV | **🟢 23.0% CPU** | 🟠 23.6% CPU | 48.9% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 35.7% CPU |
+| H.264 + FLAC 5.1 / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
+| H.264 + Opus stereo / MKV | 🟠 24.9% CPU | **🟢 24.5% CPU** | 48.0% CPU | **🟢 (Pass)** | 🟠 39.8% CPU |
+| H.264 + PCM16 stereo / MKV | 🟠 22.7% CPU | **🟢 22.1% CPU** | 48.5% CPU | 🟣 Native-first pass; default EOF check failed | 🔴 startup/audio check failed |
+| H.264 + PCM24 5.1 / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | **🟢 (Pass)\*** | 🔴 startup/audio check failed |
+| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟠 23.6% CPU | **🟢 23.3% CPU** | 49.0% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 36.4% CPU |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | **🟢 (Pass)** | **🟢 22.5% CPU** | 50.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 35.0% CPU |
+| HEVC Main 10-bit SDR + AAC / MP4 | **🟢 (Pass)** | **🟢 26.4% CPU** | 48.3% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 38.7% CPU |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | **🟢 32.2% CPU** | 47.8% CPU | 🟠 Plays; EOF check failed | 🟠 38.8% CPU |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🔴 (Fail) | **🟢 32.9% CPU** | 47.5% CPU | 🟠 Plays; EOF check failed | 🟠 39.1% CPU |
+| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | **🟢 33.6% CPU** | 54.2% CPU | 🟠 Plays; rate check failed | 🟠 42.6% CPU |
+| AV1 8-bit + AAC / MP4 | **🟢 22.6% CPU** | 🟠 23.4% CPU | 45.5% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 40.4% CPU |
+| AV1 10-bit SDR + Opus / MKV | 🟠 25.4% CPU | **🟢 25.0% CPU** | 47.1% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 40.6% CPU |
+| AV1 + Opus / WebM | 🟠 23.6% CPU | **🟢 23.6% CPU** | 46.1% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 39.3% CPU |
+| VP9 8-bit + Opus / WebM | 🟠 23.6% CPU | **🟢 21.5% CPU** | 48.8% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 37.5% CPU |
+| VP9 10-bit SDR + Opus / WebM | 🟠 25.4% CPU | **🟢 25.3% CPU** | 51.5% CPU | 🟣 Native-first pass; default EOF check failed | 🔴 open failed |
+| VP8 + Vorbis / WebM | **🟢 21.9% CPU** | 🟠 21.9% CPU | 48.7% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 34.7% CPU |
+| H.264 + AAC / MPEG-TS | 🔴 (Fail) | **🟢 25.5% CPU** | 45.0% CPU | 🟠 Plays; rate check failed | 🟠 38.8% CPU |
+| MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | **🟢 (Pass)** | 48.0% CPU | **🟢 35.0% CPU** | 🟠 37.7% CPU |
+| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | **🟢 (Pass)** | 48.2% CPU | 🟠 Plays; seek check failed | 🟠 Plays; seek check failed |
+| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | **🟢 (Pass)** | 35.3% CPU | 🔴 startup/audio check failed | 🟠 Plays; seek check failed |
+| ProRes + PCM / MOV | 🔴 (Fail) | **🟢 (Pass)** | 48.4% CPU | 🔴 startup/audio check failed | 🔴 open failed |
+| H.264 + AAC / fragmented MP4 (single file) | 🟠 24.0% CPU | **🟢 23.6% CPU** | 54.6% CPU | 🟣 Native-first pass; default EOF check failed | 🟠 Full File input plays; EOF check failed (default open failed) |
+| H.264 video-only / MP4 | **🟢 20.8% CPU** | 🟠 22.6% CPU | 50.1% CPU | 🟠 37.4% CPU | 🟠 32.1% CPU |
+| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | **🟢 (Pass)** | 59.1% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + external WebVTT / MP4 | 🟠 23.4% CPU | **🟢 23.3% CPU** | 59.1% CPU | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | **🟢 (Pass)** | 64.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 54.6% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)** | 49.2% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | **🟢 (Pass)** | 57.0% CPU | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| AAC audio-only / M4A | **🟢 15.3% CPU** | 🟠 15.9% CPU | 44.0% CPU | **🟢 (Pass)** | 🟠 20.7% CPU |
+| MP3 audio-only / MP3 | 🟠 15.2% CPU | **🟢 14.9% CPU** | 39.3% CPU | **🟢 (Pass)** | 🟠 Plays; seek check failed |
+| FLAC audio-only / FLAC | 🟠 14.5% CPU | **🟢 13.5% CPU** | 34.9% CPU | **🟢 (Pass)** | 🟠 18.5% CPU |
+| Opus audio-only / Ogg | **🟢 15.9% CPU** | 🟠 15.9% CPU | 48.3% CPU | **🟢 (Pass)** | 🟠 Plays; seek check failed |
+| Vorbis audio-only / Ogg | **🟢 14.8% CPU** | 🟠 15.6% CPU | 39.3% CPU | 🟣 Native-first pass; default seek check failed | 🟠 Plays; seek check failed |
+| PCM16 audio-only / WAV | 🟠 15.9% CPU | **🟢 15.3% CPU** | 42.2% CPU | **🟢 (Pass)** | 🔴 startup/audio check failed |
+| PCM24 audio-only / WAV | 🟠 16.0% CPU | **🟢 15.9% CPU** | 32.5% CPU | **🟢 (Pass)** | 🔴 open failed |
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| HEVC Main 10 + AAC / MP4 (HLG) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
+| AV1 10-bit + Opus / WebM (HDR10) | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
+| HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; rate check failed | 🔴 startup/audio check failed |
+| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; rate check failed | **🟢 (Pass)\*** |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | 🟠 Plays; EOF check failed |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; EOF check failed | **🟢 (Pass)\*** |
+| H.264 + AAC / HLS VOD (TS segments) | **🟢 (Pass)** | **🟢 (Pass)** | 63.2% CPU | **🟢 (Pass)** | **🟢 (Pass)** |
+| H.264 + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 49.9% CPU | **🟢 (Pass)** | **🟢 (Pass)** |
+| HEVC + AAC / HLS VOD (fMP4 segments) | **🟢 (Pass)** | **🟢 (Pass)** | 52.8% CPU | **🟢 (Pass)** | **🟢 (Pass)** |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | **🟢 (Pass)** | 51.3% CPU | **🟢 (Pass)** | **🟢 (Pass)** |
+| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | **🟢 (Pass)** | 66.9% CPU | **🟢 (Pass)** | 🟠 Plays; seek check failed |
+| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | **🟢 (Pass)** | 🟢 (Pass)* | **🟢 (Pass)** | 🟠 Plays; live check failed |
+| HEVC Main 10 + AAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | **🟢 (Pass)\*** | **🟢 (Pass)\*** |
+| HEVC Main 10 + FLAC / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default EOF check failed | **🟢 (Pass)\*** |
+| HEVC Main 10 + Opus / MKV | **🟢 (Pass)\*** | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟣 Native-first pass\*; default seek check failed | **🟢 (Pass)\*** |
+| HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🔴 startup/audio check failed |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | **🟢 (Pass)\*** | 🟢 (Pass)* | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

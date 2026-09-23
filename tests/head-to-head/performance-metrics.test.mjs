@@ -8,13 +8,17 @@ test('CPU gains keep sign, do not divide by zero, and do not pool baselines',()=
 });
 test('route counters preserve semantics and unavailable drops',()=>{
  assert.equal(frameObservation({diagnostics:{backend:{presentation:{drawn:45}}}},{player:'demuxe'}).dropped,null);
+ assert.deepEqual(frameObservation({diagnostics:{mode:'software',backend:{path:'wasm',decoder:'software',softwarePresenter:'rgb',rendered:42}}},{player:'demuxe'}),{kind:'demuxe-software-canvas',presented:42,dropped:null});
  assert.equal(frameObservation({stats:{videoFrameRenderCount:30,videoFrameDropCount:2}},{player:'libmedia'}).presented,30);
  assert.equal(frameObservation({renderQuality:{totalVideoFrames:32,droppedVideoFrames:2}},{player:'movi'}).presented,30);
  assert.throws(()=>frameObservation({diagnostics:{backend:{rendered:42}}},{player:'demuxe'}),/UNQUALIFIED/);
+ assert.throws(()=>frameObservation({diagnostics:{mode:'hybrid',backend:{path:'wasm',decoder:'software',rendered:42}}},{player:'demuxe'}),/UNQUALIFIED/);
  assert.equal(validateFrameWindow([{at:0,state:{}},{at:20000,state:{}}],{video:false}).counter,'audio-only');
 });
 test('cadence rejects frozen output, counter resets, poor cadence and excessive drops',()=>{
  assert.equal(validateFrameWindow(samples,{}).presentedFrames,600);
+ const softwareSamples=samples.map(s=>({at:s.at,state:{diagnostics:{mode:'software',backend:{path:'wasm',decoder:'software',rendered:s.state.video.total}}}}));
+ assert.equal(validateFrameWindow(softwareSamples,{player:'demuxe'}).counter,'demuxe-software-canvas');
  for(const change of [s=>s[5].state.video.total=s[4].state.video.total,s=>s[5].state.video.total=0,s=>s.forEach(x=>x.state.video.total/=2),s=>s.at(-1).state.video.dropped=8]){
   const s=structuredClone(samples);change(s);assert.throws(()=>validateFrameWindow(s,{}));
  }
