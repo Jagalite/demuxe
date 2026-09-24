@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {webgpuDecoderSupported,webgpuRequiredFeatures,createWebGPUCodecAdapter} from './codecs/registry.js';
-import {assertWebGPUCodecAdapter} from './codecs/adapter.js';
+import {assertWebGPUCodecAdapter,configureWebGPUCodecAdapter} from './codecs/adapter.js';
 
 // Device-local service for future codec adapters. All GPU objects and decoded
 // surfaces remain in the playback worker; no GPUTexture crosses a worker port.
@@ -20,12 +20,12 @@ export class WebGPUCodecRuntime {
     this.bufferRoles=new Map();this.freeBuffers=new Map();this.freeBufferHandles=new Set();this.pooledBufferBytes=0;
     this.surfaceTextures=new Map();this.freeSurfaces=new Map();this.freeSurfaceHandles=new Set();this.surfaceBytes=0;
     this.submissions=0;this.sequence=0;this.deviceLost=false;
-    this.destroyed=false;this.codec=null;this.failure=null;this.acquiring=null;
+    this.destroyed=false;this.codec=null;this.decodeIntent=null;this.failure=null;this.acquiring=null;
     this.onDeviceLost=onDeviceLost;this.onFrameAvailable=onFrameAvailable;
   }
   static supports(codec){return webgpuDecoderSupported(codec);}
   get available(){return !!this.gpu&&!this.deviceLost;}
-  get diagnostics(){return {available:this.available,selected:!!this.adapter,codec:this.codec,
+  get diagnostics(){return {available:this.available,selected:!!this.adapter,codec:this.codec,decodeIntent:this.decodeIntent,
     queuedPackets:this.queuedPackets+(this.adapter?.queuedPackets??0),retainedFrames:this.surfaces.size,
     liveSurfaces:this.surfaceTextures.size,surfaceBytes:this.surfaceBytes,liveBufferBytes:this.liveBufferBytes,
     pooledBufferBytes:this.pooledBufferBytes,pipelineCount:this.pipelines.size,
@@ -49,7 +49,7 @@ export class WebGPUCodecRuntime {
         if(this.device!==device)return;
         this.deviceLost=true;this.failure=String(info?.message??'WebGPU device lost');
         this.generation++;this.releaseSurfaces();this.queuedPackets=0;
-        const adapter=this.adapter;this.adapter=null;this.codec=null;
+        const adapter=this.adapter;this.adapter=null;this.codec=null;this.decodeIntent=null;
         if(adapter)void Promise.resolve().then(()=>adapter.destroy()).catch(()=>{});
         for(const buffer of this.buffers)buffer.destroy();this.buffers.clear();this.bufferSizes.clear();this.liveBufferBytes=0;
         this.bufferRoles.clear();this.freeBuffers.clear();this.freeBufferHandles.clear();this.pooledBufferBytes=0;
@@ -70,9 +70,10 @@ export class WebGPUCodecRuntime {
     const adapter=assertWebGPUCodecAdapter(await createWebGPUCodecAdapter(codec,{runtime:this,device,generation:this.generation,
       maxQueuedPackets:this.maxQueuedPackets,maxRetainedFrames:this.maxSurfaces,
       notifyFrameAvailable:()=>{if(!this.deviceLost)this.onFrameAvailable?.();}}),codec);
-    try{await adapter.configure(config);}catch(error){try{await adapter.destroy();}catch{/* Preserve the configuration failure. */}throw error;}
+    let configured;
+    try{configured=await configureWebGPUCodecAdapter(adapter,config);}catch(error){try{await adapter.destroy();}catch{/* Preserve the configuration failure. */}throw error;}
     if(generation!==this.generation||this.destroyed||this.deviceLost){await adapter.destroy();throw Error('WebGPU decoder configuration invalidated');}
-    this.adapter=adapter;this.codec=codec;this.failure=null;return true;
+    this.adapter=adapter;this.codec=codec;this.decodeIntent=configured.decodeIntent;this.failure=null;return true;
   }
   async submit(packet){
     if(!this.adapter||this.deviceLost)throw Error(this.failure??'WebGPU decoder unavailable');
@@ -111,6 +112,7 @@ export class WebGPUCodecRuntime {
     if(this.adapter){const adapter=this.adapter;this.adapter=null;this.codec=null;
       try{await adapter.reset();}catch(error){failure=error;}
       try{await adapter.destroy();}catch(error){failure??=error;}}
+    this.decodeIntent=null;
     for(const buffer of this.buffers)buffer.destroy();this.buffers.clear();this.bufferSizes.clear();this.liveBufferBytes=0;
     this.bufferRoles.clear();this.freeBuffers.clear();this.freeBufferHandles.clear();this.pooledBufferBytes=0;
     for(const texture of this.surfaceTextures.keys())texture.destroy();

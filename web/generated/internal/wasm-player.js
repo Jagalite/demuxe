@@ -3,7 +3,7 @@ import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffer
 import { PlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
-import { selectExternalDecoderBackend } from './external-decoder-selection.js';
+import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -38,7 +38,7 @@ export class WasmPlayer extends EventTarget {
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
-    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack } = {}) {
+    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
         this.buffering = buffering;
         if (!crossOriginIsolated)
@@ -158,9 +158,9 @@ export class WasmPlayer extends EventTarget {
                 this.audioNode.connect(this.audioContext.destination);
                 if (this.destroyed)
                     throw new Error('Player destroyed during initialization');
-                const offscreen = canvas.transferControlToOffscreen();
                 const decodePolicy = resolveDecodePolicy({ codec: videoTrack?.codec, codedWidth: videoTrack?.width, codedHeight: videoTrack?.height, displayWidth: canvas.width, displayHeight: canvas.height, decodeQuality, maxDecodePixels: resourceLimits.maxDecodePixels ?? 8294400 });
                 let decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
+                let selectedDecodeIntent;
                 if (mode === 'hybrid' && videoTrack?.codec) {
                     // The production registry is empty. Once a codec is qualified, probe
                     // WebCodecs first and use the device-local backend only on rejection.
@@ -168,10 +168,13 @@ export class WasmPlayer extends EventTarget {
                         // Only the complete preflight configuration may reject WebCodecs.
                         // Missing evidence keeps the existing Hybrid/WebCodecs trial.
                         const supported = disableBrowserCodecs ? false : videoTrack.webCodecsSupported;
-                        decoder = selectExternalDecoderBackend(videoTrack.codec, supported) ?? 'webcodecs';
+                        const selected = selectExternalDecoderConfiguration(videoTrack.codec, supported, webgpuDecodeIntent);
+                        decoder = selected.backend ?? 'webcodecs';
+                        selectedDecodeIntent = selected.decodeIntent;
                     }
                 }
-                this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                const offscreen = canvas.transferControlToOffscreen();
+                this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
             })().catch(error => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + String(error), null, null, 'operation', true)); });

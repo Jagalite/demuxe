@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
+import type { ExternalDecodeIntent } from './external-decoder-selection.js';
 import type { DecodeQuality } from './decode-policy.js';
 export type PlayerEvent = {
     event: string;
@@ -42,6 +43,7 @@ export type PlayerDiagnostics = {
         available: boolean;
         selected: boolean;
         codec: string | null;
+        decodeIntent?: ExternalDecodeIntent | null;
         queuedPackets: number;
         retainedFrames: number;
         liveSurfaces: number;
@@ -99,7 +101,7 @@ export declare class WasmPlayer extends EventTarget {
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack }?: {
+    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack, webgpuDecodeIntent }?: {
         prepared?: {
             module?: WebAssembly.Module;
             font?: ArrayBuffer;
@@ -123,6 +125,7 @@ export declare class WasmPlayer extends EventTarget {
             width?: number;
             height?: number;
         };
+        webgpuDecodeIntent?: Partial<ExternalDecodeIntent>;
     });
     private sendTiming;
     private fail;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {WebGPUCodecRuntime} from './runtime.js';
+import {normalizeExternalDecodeIntent} from '../generated/internal/external-decoder-selection.js';
 
 // Same-worker bridge: the mpv decoder pthread talks through the legacy
 // ticketed mailbox, while GPUTexture handles remain in this playback worker.
@@ -8,8 +9,9 @@ const PACKET_OFFSET=80,FRAME_OFFSET=PACKET_OFFSET+8*1024*1024;
 const CODEC_OFFSET=FRAME_OFFSET+1920*1080*3/2;
 const AGAIN=-6,EOF=-541478725,IO=-29;
 export class WebGPUMailboxService {
-  constructor(engine,{onFrame,onWakeup,onError,gpu}={}){
+  constructor(engine,{onFrame,onWakeup,onError,gpu,decodeIntent}={}){
     this.engine=engine;this.onFrame=onFrame;this.onWakeup=onWakeup;this.onError=onError;
+    this.decodeIntent=normalizeExternalDecodeIntent(decodeIntent);
     this.runtime=new WebGPUCodecRuntime({gpu,onFrameAvailable:()=>this.onWakeup?.(),
       onDeviceLost:error=>{this.failure=error;this.onError?.(error);this.onWakeup?.();}});
     this.pointer=engine._web_decoder_ptr();this.busy=false;this.closed=false;
@@ -33,7 +35,8 @@ export class WebGPUMailboxService {
         const codec=new TextDecoder().decode(new Uint8Array(memory,this.pointer+CODEC_OFFSET,64)).split('\0',1)[0];
         if(!codec)throw Error('Missing external decoder codec');
         const configuration={codec,description:new Uint8Array(memory,this.pointer+PACKET_OFFSET,size).slice(),
-          width:header[5],height:header[6],depth:header[8],profile:header[14],level:header[15]};
+          width:header[5],height:header[6],depth:header[8],profile:header[14],level:header[15],
+          decodeIntent:this.decodeIntent};
         this.failure=null;this.draining=this.flushed=false;
         if(!await this.runtime.configure(codec,configuration))throw Error(`No qualified WebGPU decoder for ${codec}`);
         this.configuration={codec,configuration};

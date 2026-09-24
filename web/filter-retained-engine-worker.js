@@ -242,7 +242,7 @@ self.onmessage = async ({data}) => {
           import('./generated/internal/webgpu-codecs.js'),import('./webgpu/codecs/registry.js')]);
         try{
           if(!webgpuDecoderSupported(data.videoTrack?.codec))throw Error('No qualified WebGPU codec adapter');
-          webgpuService=new WebGPUMailboxService(engine,{onFrame:message=>receiveFrame(message),
+          webgpuService=new WebGPUMailboxService(engine,{decodeIntent:data.webgpuDecodeIntent,onFrame:message=>receiveFrame(message),
             onWakeup:()=>{if(!closing)engine._web_decoder_wakeup();},
             onError:(error,source)=>post({type:'error',message:'Hybrid WebGPU decoder: '+error,assetFailure:!!source?.assetFailure})});
           await webgpuService.runtime.acquireDevice(webgpuRequiredFeatures(data.videoTrack.codec));

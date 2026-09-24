@@ -5,9 +5,10 @@ import {readFile} from 'node:fs/promises';
 import {WebCodecsVideoDecoder,assertExternalVideoDecoder} from '../web/external-video-decoder.js';
 import {WebGPUCodecRuntime} from '../web/webgpu/runtime.js';
 import {WebGPUMailboxService} from '../web/webgpu/mailbox-service.js';
-import {assertWebGPUCodecAdapter} from '../web/webgpu/codecs/adapter.js';
+import {assertWebGPUCodecAdapter,configureWebGPUCodecAdapter} from '../web/webgpu/codecs/adapter.js';
 import {webgpuDecoderSupported,webgpuSupportedCodecs} from '../web/webgpu/codecs/registry.js';
-import {chooseExternalDecoderBackend,selectExternalDecoderBackend} from '../web/generated/internal/external-decoder-selection.js';
+import {chooseExternalDecoderBackend,selectExternalDecoderBackend,selectExternalDecoderConfiguration,
+  normalizeExternalDecodeIntent,EXACT_DECODE_INTENT} from '../web/generated/internal/external-decoder-selection.js';
 import {hybridPreflight} from '../web/hybrid-preflight.js';
 import {PLAYBACK_MODES} from '../web/generated/types.js';
 import {PLAYBACK_PLANS} from '../web/generated/internal/playback-plans.js';
@@ -25,6 +26,9 @@ test('empty qualification registry preserves every production route',async()=>{
   assert.equal(chooseExternalDecoderBackend(undefined,true),'webcodecs');
   assert.equal(chooseExternalDecoderBackend(false,true),'webgpu');
   assert.equal(chooseExternalDecoderBackend(false,false),null);
+  assert.deepEqual(selectExternalDecoderConfiguration('h264',undefined,{qualityMode:'reduced'}),{backend:'webcodecs'});
+  assert.deepEqual(selectExternalDecoderConfiguration('prores',false,{qualityMode:'reduced'}),{backend:null});
+  assert.doesNotMatch(await readFile('src/types.ts','utf8'),/webgpuDecodeIntent|qualityMode/);
   const future=[{type:'video',codec:'prores'}];
   assert.equal(await hybridPreflight(future,undefined,200,codec=>codec==='prores'),undefined);
   assert.equal(future[0].webCodecsSupported,false);
@@ -40,6 +44,45 @@ test('empty qualification registry preserves every production route',async()=>{
   assert.equal(compatibilityFailure(Error('Hybrid WebGPU decoder: Error: WebGPU device lost')),true);
   assert.equal(compatibilityFailure(Error('Source transport: Hybrid WebGPU decoder: HTTP 403')),false);
   assert.equal(compatibilityFailure(new PlayerError('ASSET_LOAD_FAILED','Hybrid WebGPU decoder: codec adapter module missing')),false);
+});
+
+test('decode intent defaults to exact and reaches a dummy adapter without changing routing',async()=>{
+  assert.deepEqual(normalizeExternalDecodeIntent(),EXACT_DECODE_INTENT);
+  for(const invalid of [null,'reduced',{targetWidth:320},{qualityMode:'fast'},{allowApproximation:'yes'}])
+    assert.throws(()=>normalizeExternalDecodeIntent(invalid),/Invalid external decode intent/);
+  const received=[];
+  const exactOnly={async configure(config){received.push(config.decodeIntent);}};
+  const exact=await configureWebGPUCodecAdapter(exactOnly,{codec:'synthetic'});
+  assert.deepEqual(exact.decodeIntent,EXACT_DECODE_INTENT);
+  await assert.rejects(configureWebGPUCodecAdapter(exactOnly,{codec:'synthetic',decodeIntent:{qualityMode:'reduced'}}),/does not support requested decode intent/);
+  await assert.rejects(configureWebGPUCodecAdapter(exactOnly,{codec:'synthetic',decodeIntent:{targetWidth:320,targetHeight:180}}),/does not support requested decode intent/);
+  await assert.rejects(configureWebGPUCodecAdapter(exactOnly,{codec:'synthetic',decodeIntent:{allowApproximation:true}}),/does not support requested decode intent/);
+  assert.equal(received.length,1);
+  const adapter={supportsDecodeIntent:intent=>intent.qualityMode==='exact'&&!intent.allowApproximation,
+    async configure(config){received.push(config.decodeIntent);}};
+  const target={targetWidth:320,targetHeight:180,qualityMode:'exact',allowApproximation:false};
+  await configureWebGPUCodecAdapter(adapter,{codec:'synthetic',decodeIntent:target});
+  assert.deepEqual(received[1],target);
+  await assert.rejects(configureWebGPUCodecAdapter(adapter,{codec:'synthetic',decodeIntent:{...target,qualityMode:'reduced'}}),/does not support requested decode intent/);
+  assert.equal(received.length,2);
+  assert.equal(selectExternalDecoderBackend('prores',false),null);
+});
+
+test('GPU mailbox forwards target intent with codec configuration and preserves it on reset',async()=>{
+  const memory=new SharedArrayBuffer(80+8*1024*1024+1920*1080*3/2+64);
+  const header=new Int32Array(memory,0,16),codecAt=80+8*1024*1024+1920*1080*3/2;
+  new Uint8Array(memory,codecAt,9).set(new TextEncoder().encode('synthetic'));
+  const engine={HEAPU8:new Uint8Array(memory),_web_decoder_ptr:()=>0};
+  const intent={targetWidth:320,targetHeight:180,qualityMode:'exact',allowApproximation:false};
+  const service=new WebGPUMailboxService(engine,{gpu:null,decodeIntent:intent});
+  const seen=[];service.runtime.configure=async(codec,config)=>{seen.push({codec,config});return true;};
+  try{
+    header[0]=5;header[2]=1;header[4]=0;header[5]=1920;header[6]=1080;
+    await service.pump();assert.equal(header[3],0);
+    header[0]=9;header[2]=6;await service.pump();assert.equal(header[3],0);
+    assert.equal(seen.length,2);
+    for(const call of seen){assert.equal(call.codec,'synthetic');assert.deepEqual(call.config.decodeIntent,intent);}
+  }finally{await service.close();}
 });
 
 test('WebCodecs backend keeps bounded submission, drain and epoch invalidation',async()=>{
@@ -76,6 +119,7 @@ test('GPU runtime is constructible with no codecs and releases bounded resources
   assert.equal(assertExternalVideoDecoder(runtime),runtime);
   assert.equal(await runtime.configure('prores',{}),false);
   assert.equal(runtime.diagnostics.selected,false);
+  assert.equal(runtime.diagnostics.decodeIntent,null);
   await runtime.acquireDevice();runtime.buffer({size:64,usage:8});runtime.pipeline('test',()=>({}));
   assert.throws(()=>runtime.pipeline('second',()=>({})),/pipeline cache bound/);
   assert.throws(()=>runtime.acquireSurface({size:[3,3],format:'r8unorm',usage:4}),/surface byte bound/);
