@@ -949,6 +949,7 @@ export type PlanFacts = {
     nativeSourceRejection?: string;
     remuxSourceRejection?: string;
     hybridSourceRejection?: string;
+    webGPUCodecQualified?: boolean;
     shakaSourceRejection?: string;
     streamingFallbackRejection?: string;
     automaticLossless?: boolean;

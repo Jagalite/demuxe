@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {preparedEngine} from './prepared-engine.js';
+import {webgpuDiagnostics} from './webgpu/diagnostics.js';
 import {resolveDecodePolicy,mpvDecoderOptions,nextAdaptiveState,supportsEmergencyFrameDrop,adaptiveDecodeSignal} from './generated/internal/decode-policy.js';
 let audioChannels=2;
 let previewSnapshot;
@@ -214,7 +215,7 @@ function tick() {
     }
     ticks++;
     considerAdaptive(performance.now());
-    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{decodePolicy,adaptiveFrameDrop,adaptiveReason,adaptiveSwitching,softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
+    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{decodePolicy,adaptiveFrameDrop,adaptiveReason,adaptiveSwitching,softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderBackend:decoderStats?.active?'webcodecs':'ffmpeg',webgpu:webgpuDiagnostics(),decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
   } catch (error) {pumpFailed=true;clearInterval(timer);post({type:'error',message:String(error.stack || error)}); }
 }
 self.onmessage = async ({data}) => {
@@ -226,7 +227,7 @@ self.onmessage = async ({data}) => {
       canvas = data.canvas;
       presenterPolicy=data.softwarePresenter??'auto';
       if(presenterPolicy!=='rgb'){
-        ({YUVPresenter}=await import('./yuv-presenter.js'));
+        ({WebGLYUVPresenter:YUVPresenter}=await import('./webgl-yuv-presenter.js'));
         try{installPresenter(canvas);}catch(error){
           if(!String(error).includes('WebGL2 unavailable'))throw error;
           context=canvas.getContext('2d',{alpha:false});activePresenter='rgb';yuvRejectionReason='webgl2-unavailable';

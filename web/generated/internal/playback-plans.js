@@ -114,7 +114,7 @@ export function planAdmission(f) {
             reject('ISOLATION_REQUIRED', 'mpv deployment requires cross-origin isolation');
         else if (plan.mode === 'hybrid' && f.hybridSourceRejection)
             reject('QUALIFICATION_REQUIRED', f.hybridSourceRejection);
-        else if (plan.mode === 'hybrid' && !f.webCodecs)
+        else if (plan.mode === 'hybrid' && !f.webCodecs && !f.webGPUCodecQualified)
             reject('DEPLOYMENT_UNAVAILABLE', 'WebCodecs video decoding is unavailable');
         else if (plan.mode === 'hybrid' && plan.id.includes('audio-filter') !== !!f.af)
             reject('PLAN_NOT_REQUESTED', 'mpv scalar filter stage does not match the request');

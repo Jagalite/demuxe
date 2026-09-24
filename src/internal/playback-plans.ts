@@ -67,7 +67,7 @@ export type PlanFacts={
   adaptation?:'flac'|'opus';allowLossy:boolean;nativeASS:boolean;externalFormats:string[];
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
   manifest:boolean;requiresRemux:boolean;isolated:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
-  nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;
+  nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;webGPUCodecQualified?:boolean;
   shakaSourceRejection?:string;streamingFallbackRejection?:string;
   automaticLossless?:boolean;adaptationSourceQualified?:boolean;adaptationSourceRejection?:string;
 };
@@ -101,7 +101,7 @@ export function planAdmission(f:PlanFacts){
     else if(plan.mode!=='native'&&f.manifest&&f.streamingFallbackRejection)reject('FEATURE_UNSUPPORTED',f.streamingFallbackRejection);
     else if(plan.mode!=='native'&&!f.isolated)reject('ISOLATION_REQUIRED','mpv deployment requires cross-origin isolation');
     else if(plan.mode==='hybrid'&&f.hybridSourceRejection)reject('QUALIFICATION_REQUIRED',f.hybridSourceRejection);
-    else if(plan.mode==='hybrid'&&!f.webCodecs)reject('DEPLOYMENT_UNAVAILABLE','WebCodecs video decoding is unavailable');
+    else if(plan.mode==='hybrid'&&!f.webCodecs&&!f.webGPUCodecQualified)reject('DEPLOYMENT_UNAVAILABLE','WebCodecs video decoding is unavailable');
     else if(plan.mode==='hybrid'&&plan.id.includes('audio-filter')!==!!f.af)reject('PLAN_NOT_REQUESTED','mpv scalar filter stage does not match the request');
     else if(plan.mode!=='native'&&f.browserTextTracks)reject('FEATURE_UNSUPPORTED','External browser text tracks cannot be silently discarded');
     else if(plan.mode==='native'){

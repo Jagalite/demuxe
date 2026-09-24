@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {videoCodecConfig,vp9PacketConfig} from './video-codec-config.js';
+import {WebCodecsVideoDecoder} from './external-video-decoder.js';
 let pendingConfiguration;
 let packetPrefix,needsKey=true;
 let allowSharedPackets=true;
@@ -15,7 +16,7 @@ const AGAIN=-6,EOF=-541478725,IO=-29;
 const stats={packetBytes:0,ownedPacketBytes:0,sharedPacketInputs:0,sharedPacketFallbacks:0,submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 function closeFrame(frame){if(closed.has(frame))return;closed.add(frame);frame.close();stats.closedFrames++;}
-function clear(){generation++;if(decoder&&decoder.state!=='closed')decoder.close();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;}
+function clear(){generation++;decoder?.destroy();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;}
 async function checkConfiguration(valid){
  // Keep only descriptive fields: initialization bytes can be large and are not
  // useful in a UI error. Retain the exact codec string passed to WebCodecs.
@@ -44,15 +45,14 @@ async function checkConfiguration(valid){
 function configure(){
  if(copiesInFlight)throw Error('Previous copy still pending; use software');
  const current=generation;
- decoder=new VideoDecoder({error:error=>{if(current===generation){failure=String(error);stats.errors++;postMessage({wakeup:true});}},output:frame=>{
+ decoder=new WebCodecsVideoDecoder({Decoder:VideoDecoder,error:error=>{if(current===generation){failure=String(error);stats.errors++;postMessage({wakeup:true});}},output:frame=>{
   stats.receivedFrames++;
   if(current!==generation){closeFrame(frame);return;}
   // Decode completion may release a reorder burst after decodeQueueSize falls.
   // Stop submitting at eight queued frames; retain bounded burst headroom.
   if(queue.length>=32){closeFrame(frame);failure='Frame queue limit';stats.errors++;return;}
   queue.push(frame);postMessage({wakeup:true});stats.peakFrames=Math.max(stats.peakFrames,queue.length);outputWaitSince=null;
- }});
- decoder.addEventListener('dequeue',()=>{if(current===generation)postMessage({wakeup:true});});
+ },dequeue:()=>{if(current===generation)postMessage({wakeup:true});}});
  needsKey=true;decoder.configure(configuration);outputWaitSince=null;
 }
 self.onmessage=({data})=>{
@@ -128,7 +128,7 @@ async function pump(){
    }
    if(!decoder)throw Error('Decoder is closed');
    if(operation===2){
-    if(decoder.decodeQueueSize+queue.length>=8)result=AGAIN;
+    if(decoder.queuedPackets+queue.length>=8)result=AGAIN;
     else{
      const size=header[4];if(size<1||size>8*1024*1024)throw Error('Packet size limit');
      let bytes=new Uint8Array(memory,pointer+packetOffset,size);stats.packetBytes+=size;
@@ -147,12 +147,12 @@ async function pump(){
       allowSharedPackets=false;stats.sharedPacketFallbacks++;
       bytes=bytes.slice();stats.ownedPacketBytes+=bytes.length;chunk=new EncodedVideoChunk({...init,data:bytes});
      }
-     decoder.decode(chunk);
-     needsKey=false;submitted++;stats.submitted++;stats.peakOutstanding=Math.max(stats.peakOutstanding,decoder.decodeQueueSize);
+     if(!decoder.submit(chunk)){result=AGAIN;return;}
+     needsKey=false;submitted++;stats.submitted++;stats.peakOutstanding=Math.max(stats.peakOutstanding,decoder.queuedPackets);
     }
    }else if(operation===3){
     draining=true;const epoch=generation;
-    decoder.flush().then(()=>{if(epoch===generation){flushed=true;postMessage({wakeup:true});}},error=>{if(epoch===generation){failure=String(error);postMessage({wakeup:true});}});
+    decoder.drain().then(()=>{if(epoch===generation){flushed=true;postMessage({wakeup:true});}},error=>{if(epoch===generation){failure=String(error);postMessage({wakeup:true});}});
    }else if(operation===4){
     if(faultAfter&&stats.frames>=faultAfter)throw Error('Injected decoder failure');
     if(queue.length){
@@ -186,14 +186,14 @@ async function pump(){
       consumed++;stats.frames++;outputWaitSince=null;result=1;
      }finally{closeFrame(frame);}
     }else if(draining)result=flushed?EOF:0;
-    else result=decoder.decodeQueueSize+queue.length>=8?0:AGAIN;
+    else result=decoder.queuedPackets+queue.length>=8?0:AGAIN;
     // Measure an actual blocked receive, not wall time since the last frame:
     // paused/idle periods and packet reordering do not spend the output budget.
-    const waiting=!queue.length&&!flushed&&(draining||decoder.decodeQueueSize>=8)&&submitted>consumed;
+    const waiting=!queue.length&&!flushed&&(draining||decoder.queuedPackets>=8)&&submitted>consumed;
     if(!waiting)outputWaitSince=null;
     else if(outputWaitSince===null)outputWaitSince=performance.now();
     else if(performance.now()-outputWaitSince>3000){
-     stats.watchdog={waitingMs:Math.round(performance.now()-outputWaitSince),decodeQueueSize:decoder.decodeQueueSize,queuedFrames:queue.length,submitted,consumed,draining,flushed,codec:configuration?.codec};
+     stats.watchdog={waitingMs:Math.round(performance.now()-outputWaitSince),decodeQueueSize:decoder.queuedPackets,queuedFrames:queue.length,submitted,consumed,draining,flushed,codec:configuration?.codec};
      throw Error(`Decoder output watchdog: ${JSON.stringify(stats.watchdog)}`);
     }
    }else throw Error('Unknown decoder operation');
@@ -201,7 +201,7 @@ async function pump(){
  }catch(error){failure=String(error);stats.errors++;result=IO;postMessage({error:failure});}
  finally{
   if(valid()){header[3]=result;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}
-  if(operation!==4||stats.frames%30===0)postMessage({stats:{...stats,outstanding:decoder?.decodeQueueSize??0,queued:queue.length,active:!!decoder}});
+  if(operation!==4||stats.frames%30===0)postMessage({stats:{...stats,outstanding:decoder?.queuedPackets??0,queued:queue.length,active:!!decoder,decoderBackend:decoder?'webcodecs':'ffmpeg'}});
   busy=false;
  }
 }

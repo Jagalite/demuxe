@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-// mpv browser decoder with copy-back or retained-frame output.
-// Browser transport does not own playback time.
+// mpv external video decoder with copy-back or retained-surface output.
+// The selected-frame oracle in mpv continues to own playback time. The legacy
+// vd_browser/web_decoder_* symbols remain for already built engine consumers.
 #include <emscripten.h>
 #include <emscripten/threading.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <pthread.h>
@@ -31,6 +33,7 @@ EMSCRIPTEN_KEEPALIVE void web_decoder_wakeup(void) {
 }
 _Static_assert(offsetof(struct browser_decoder_mailbox, timestamp)==64,"decoder ABI");
 _Static_assert(offsetof(struct browser_decoder_mailbox, packet)==80,"decoder ABI");
+_Static_assert(offsetof(struct browser_decoder_mailbox, codec_name)==80+WEB_DEC_PACKET_MAX+WEB_DEC_FRAME_MAX,"decoder extension ABI");
 EMSCRIPTEN_KEEPALIVE uintptr_t web_decoder_ptr(void) { return (uintptr_t)&web_decoder; }
 EMSCRIPTEN_KEEPALIVE void web_decoder_enable(int value) { atomic_store(&enabled,value); }
 int web_decoder_enabled(void) { return atomic_load(&enabled); }
@@ -72,9 +75,9 @@ static void fallback(struct mp_filter *f) {
     struct browser_priv *p=f->priv;
     if(!p->browser)return;
     if(p->retained_only){
-        // This renderer consumes browser-owned VideoFrames. Software AVFrames
-        // cannot satisfy that contract; the public API owns explicit mode changes.
-        MP_ERR(f,"Retained browser decode failed. Reopen in software mode.\n");
+        // Retained CPU/GPU surfaces cannot be rebuilt as software AVFrames.
+        // The public route policy owns explicit reopen in Software mode.
+        MP_ERR(f,"Retained external decode failed. Reopen in software mode.\n");
         request(5);p->browser=false;p->software_failed=true;
         mp_filter_internal_mark_failed(f);return;
     }
@@ -199,12 +202,15 @@ static const struct mp_filter_info info={.name="vd_browser",.priv_size=sizeof(st
 static struct mp_decoder *create(struct mp_filter *parent,struct mp_codec_params *codec,const char *name){
     if(!web_decoder_enabled()||!codec->codec)return NULL;
     int kind=!strcmp(codec->codec,"h264")?1:!strcmp(codec->codec,"hevc")?2:!strcmp(codec->codec,"vp8")?3:!strcmp(codec->codec,"vp9")?4:!strcmp(codec->codec,"av1")?5:0;
-    if(!kind)return NULL;
+    // Backend 3 is reserved for a qualified GPU adapter; the JS registry is
+    // empty today, so production never enables it. The codec name extension
+    // lets future adapters handle codecs outside WebCodecs' fixed kind list.
+    if(!kind&&atomic_load(&enabled)!=3)return NULL;
     // Legacy copy-back clients retain their original H.264-only ABI.
-    if(atomic_load(&enabled)!=2&&kind!=1)return NULL;
+    if(atomic_load(&enabled)==1&&kind!=1)return NULL;
     struct mp_filter *f=mp_filter_create(parent,&info);if(!f)return NULL;
     struct browser_priv *p=f->priv;p->public.f=f;p->delivered=p->recovery_target=AV_NOPTS_VALUE;
-    p->retained_only=atomic_load(&enabled)==2;
+    p->retained_only=atomic_load(&enabled)>=2;
     const AVCodec *decoder=avcodec_find_decoder(mp_codec_to_av_codec_id(codec->codec));
     p->software=avcodec_alloc_context3(decoder);p->packet=av_packet_alloc();p->frame=av_frame_alloc();
     if(!p->software||!p->packet||!p->frame||mp_set_avctx_codec_headers(p->software,codec)<0)goto fail;
@@ -215,6 +221,7 @@ static struct mp_decoder *create(struct mp_filter *parent,struct mp_codec_params
     if(size<0||size>65536)goto fail;
     if(!p->retained_only&&(size<7||p->software->extradata[0]!=1))goto fail;
     web_decoder.reserved[0]=kind;web_decoder.reserved[1]=p->software->profile;web_decoder.reserved[2]=p->software->level;
+    snprintf(web_decoder.codec_name,sizeof(web_decoder.codec_name),"%s",codec->codec);
     const AVPixFmtDescriptor *format=av_pix_fmt_desc_get(p->software->pix_fmt);
     web_decoder.format=format?format->comp[0].depth:p->software->bits_per_raw_sample;
     web_decoder.size=size;web_decoder.width=p->software->width;web_decoder.height=p->software->height;
@@ -222,8 +229,9 @@ static struct mp_decoder *create(struct mp_filter *parent,struct mp_codec_params
     if(request(1)<0)goto fail;
     p->browser=true;mp_filter_add_pin(f,MP_PIN_IN,"in");mp_filter_add_pin(f,MP_PIN_OUT,"out");
     pthread_mutex_lock(&owner_lock);owner=f;pthread_mutex_unlock(&owner_lock);
-    MP_INFO(f,"Using browser %s decoder.\n",p->retained_only?"retained-frame":"copy-back");return &p->public;
+    MP_INFO(f,"Using external %s decoder.\n",p->retained_only?"retained-frame":"copy-back");return &p->public;
 fail:
     talloc_free(f);return NULL;
 }
-const struct mp_decoder_fns vd_browser={.create=create};
+const struct mp_decoder_fns vd_demuxe_external={.create=create};
+const struct mp_decoder_fns vd_browser={.create=create}; // Legacy mpv patch ABI.

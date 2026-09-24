@@ -8,6 +8,7 @@ import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } 
 import { EnginePreparation, preparationComponents } from './internal/engine-preparation.js';
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
 import { runtimeBase } from './internal/assets.js';
+import { webgpuDecoderSupported, hasQualifiedWebGPUCodecs } from './internal/webgpu-codecs.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
@@ -630,10 +631,10 @@ export class Player extends EventTarget {
             const hasVideo = tracks?.some(t => t.type === 'video');
             if (hasVideo === false && tracks?.length && (!tracks.some(t => t.type === 'audio' && t.selected) || session.backend.startupEvidence?.().audioDecoderConfigured))
                 return;
-            if (mode === 'hybrid' && tracks?.some(t => t.type === 'video' && t.selected && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(t.codec ?? '')))
-                throw new Error('Hybrid mode has no browser bridge for this video codec. Choose software mode for this source.');
+            if (mode === 'hybrid' && tracks?.some(t => t.type === 'video' && t.selected && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(t.codec ?? '') && !webgpuDecoderSupported(t.codec ?? '')))
+                throw new Error('Hybrid mode has no external decoder for this video codec. Choose software mode for this source.');
             const position = mode === 'hybrid' ? d?.presentation?.position : d?.presentedPosition;
-            if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs') && !d.seeking && position !== undefined && Math.abs(position - target) < .15 && await session.backend.confirmSeek?.(target) !== false)
+            if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs' || d.decoder === 'webgpu') && !d.seeking && position !== undefined && Math.abs(position - target) < .15 && await session.backend.confirmSeek?.(target) !== false)
                 return;
             await new Promise(resolve => setTimeout(resolve, 25));
         }
@@ -655,7 +656,7 @@ export class Player extends EventTarget {
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
             streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspectedSettings) : undefined,
-            hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) ? `Demuxe has no browser bridge configuration contract for ${video.codec}` : undefined, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
+            hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) && !webgpuDecoderSupported(video.codec) ? `Demuxe has no external decoder contract for ${video.codec}` : undefined, webGPUCodecQualified: webgpuDecoderSupported(video?.codec ?? ''), toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
             automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
@@ -994,8 +995,37 @@ export class Player extends EventTarget {
             this.attempts.shift();
         this.emit('selectionchange', { ...attempt });
     }
+    async inspectForQualifiedWebGPU(source, settings) {
+        if (!hasQualifiedWebGPUCodecs())
+            return;
+        if (this.sourceInspection?.source === source) {
+            const video = this.sourceInspection.probe.tracks.find(track => track.type === 'video' && !track.attachedPicture);
+            if (!video || !webgpuDecoderSupported(video.codec) || video.webCodecsSupported !== undefined)
+                return;
+        }
+        const controller = this.inspection = new AbortController();
+        try {
+            const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
+            const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
+            const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
+            const probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
+            this.assertOperation();
+            this.sourceInspection = { source, probe, settings: { aid: settings.aid, sid: settings.sid, subtitles: settings.subtitles } };
+        }
+        catch (error) {
+            if (this.destroyed || this.activeOperation?.controller.signal.aborted || controller.signal.aborted || terminalSourceFailure(error))
+                throw error;
+            // Unknown inspection still permits the existing WebCodecs trial.
+        }
+        finally {
+            if (this.inspection === controller)
+                this.inspection = undefined;
+        }
+    }
     async select(source, settings, preserve, tracks, start = 0, target, priorAttempts = [], inspectOnly = false) {
         if (!this.automatic && this.mode !== 'native') {
+            if (this.mode === 'hybrid')
+                await this.inspectForQualifiedWebGPU(source, settings);
             if (this.mode === 'software' && (this.decodeQuality !== 'exact' || this.adaptiveFrameDrop) && this.sourceInspection?.source !== source) {
                 // Explicit Software skips the normal tier probe. Quality admission still
                 // needs codec identity before mpv constructs its decoder.
@@ -1147,6 +1177,8 @@ export class Player extends EventTarget {
         let captionFailure;
         let interruptedDirect;
         const attempt = async (plan, budget) => {
+            if (plan.mode === 'hybrid')
+                await this.inspectForQualifiedWebGPU(source, settings);
             // Only discovery owns the replacement and full-budget restoration below.
             // Other callers of replace retain the ordinary direct readiness deadline.
             const loadBudget = budget ?? (this.localRemuxRetry(source, plan.id, settings) && this.sourceInspection?.probe.format?.split(',').includes('matroska') ? 1500 : undefined);

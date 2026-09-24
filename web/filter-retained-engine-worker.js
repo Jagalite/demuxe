@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import {preparedEngine} from './prepared-engine.js';
 let audioChannels=2;
-import {drawRetainedVideo} from './retained-video.js';
+import {WebCodecsPresenter} from './video-presenter.js';
+import {webgpuDiagnostics} from './webgpu/diagnostics.js';
 let videoTrack;
 let minFramePts=-Infinity;
 import {SubtitleOverlay} from './subtitle-overlay.js';
 const subtitles=new SubtitleOverlay();let frameGeneration=-1,minGeneration=-1;
 const skipCanvas=true;const quality=new URL(self.location.href).searchParams.get('quality')==='1';const mode=new URL(self.location.href).searchParams.get('mode');
 let canvasSubmissions=0;
+let videoPresenter;
 let selectedSerial=0,heldFrame,closingFrames=false;
 const frames=new Map(),pendingFrames=new Map(),presentationTimers=new Set();
 const presentation={position:null,received:0,closed:0,drawn:0,redraws:0,peakRetained:0,peakPending:0,missing:0,lateMs:[],pts:[],pixelChecks:[]};
@@ -35,13 +37,13 @@ function presentReady(key){
   const frame=frames.get(key);if(!frame)throw Error('Scheduled retained frame missing');
   frames.delete(key);pendingFrames.delete(key);
   if(heldFrame)closeOwned(heldFrame);heldFrame=frame;
-  drawRetainedVideo(context,frame,canvas,videoTrack);
-  subtitles.draw(context,request.overlay);
+  videoPresenter.draw(frame,videoTrack,request.overlay);
+  if(context)subtitles.draw(context,request.overlay);
   presentation.position=key/1e6;
   presentation.drawn++;canvasSubmissions++;
   if(presentation.lateMs.length<10000)presentation.lateMs.push(performance.now()-request.deadline);
   if(presentation.pts.length<10000)presentation.pts.push(key);
-  if(quality&&presentation.pixelChecks.length<2&&presentation.drawn%60===0){
+  if(context&&quality&&presentation.pixelChecks.length<2&&presentation.drawn%60===0){
    const pixels=context.getImageData(0,0,64,64).data;
    presentation.pixelChecks.push({pts:key,min:Math.min(...pixels.filter((_,i)=>i%4!==3)),max:Math.max(...pixels.filter((_,i)=>i%4!==3))});
   }
@@ -56,7 +58,7 @@ function presentSelected(){
  const key=Math.round(engine._web_selected_pts()*1e6);minFramePts=Math.max(minFramePts,key);
  for(const [pts,frame] of frames)if(pts<minFramePts&&!pendingFrames.has(pts)){closeOwned(frame);frames.delete(pts);}
  const overlay=subtitles.read(engine);
- if(engine._web_selected_redraw()&&heldFrame&&Math.round(heldFrame.timestamp)===key){drawRetainedVideo(context,heldFrame,canvas,videoTrack);subtitles.draw(context,overlay);presentation.redraws++;engine._web_presented();return;}
+ if(engine._web_selected_redraw()&&heldFrame&&Math.round(heldFrame.timestamp??heldFrame.pts)===key){videoPresenter.draw(heldFrame,videoTrack,overlay);if(context)subtitles.draw(context,overlay);presentation.redraws++;engine._web_presented();return;}
  if(key<0)return;
  if(pendingFrames.has(key))return;
  pendingFrames.set(key,{overlay,deadline:performance.now()+engine._web_selected_delay(),scheduled:false});
@@ -65,7 +67,7 @@ function presentSelected(){
  presentReady(key);
  for(const [pts,request] of pendingFrames)if(performance.now()-request.deadline>500){presentation.missing++;throw Error(`Retained frame ${pts} did not arrive`);}
 }
-let decoderWorker,decoderStats;
+let decoderWorker,decoderStats,webgpuService,decoderBackend='ffmpeg';
 
 
 let engine, canvas, context, timer, audio, pcm, nativeAudio, epoch = -1, forwarded = 0;
@@ -194,7 +196,7 @@ function tick() {
       rendered++;sourceRendered++;presentedPosition=position;
     }
     ticks++;
-    if (performance.now()>=nextDiagnostics || (ptr && sourceRendered <= 5)) {nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{pumpTicks:ticks,subtitles:{...subtitles.stats},presentation:{...presentation,lateMs:presentation.lateMs.slice(-120),pts:presentation.pts.slice(-120),retained:frames.size+(heldFrame?1:0),pending:pendingFrames.size},mode,skipCanvas,canvasSubmissions,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});}
+    if (performance.now()>=nextDiagnostics || (ptr && sourceRendered <= 5)) {nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{pumpTicks:ticks,subtitles:{...subtitles.stats},presentation:{...presentation,lateMs:presentation.lateMs.slice(-120),pts:presentation.pts.slice(-120),retained:frames.size+(heldFrame?1:0),pending:pendingFrames.size},mode,skipCanvas,canvasSubmissions,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderBackend==='webgpu'?'webgpu':decoderStats?.active?'webcodecs':'software',decoderBackend:decoderBackend==='webgpu'?'webgpu':decoderStats?.active?'webcodecs':'ffmpeg',webgpu:webgpuDiagnostics(webgpuService?.runtime),decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});}
   } catch (error) { pumpFailed=true;clearInterval(timer); post({type:'error',message:String(error.stack || error)}); }
 }
 self.onmessage = async ({data}) => {
@@ -203,10 +205,14 @@ self.onmessage = async ({data}) => {
       if (data.disableBrowserCodecs) for (const name of ['VideoDecoder','AudioDecoder','VideoFrame']) Object.defineProperty(globalThis,name,{value:undefined, configurable:true});
       measureOutput=!!data.measureOutput;
       canvas = data.canvas;
-      context = canvas.getContext('2d', {alpha:false});
+      decoderBackend=data.decoder==='webgpu'?'webgpu':data.decoder==='webcodecs'?'webcodecs':'ffmpeg';
+      if(decoderBackend!=='webgpu'){
+        context = canvas.getContext('2d', {alpha:false});
+        videoPresenter=new WebCodecsPresenter(canvas,context);
+      }
       audio = new Int32Array(data.audio, 0, 16);
       pcm = new Float32Array(data.audio, 64);
-      const createEngine=(await import(data.decoder==='webcodecs'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
+      const createEngine=(await import(data.decoder==='webcodecs'||data.decoder==='webgpu'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
       engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
       if (closing) return;
       engine.FS.mkdir('/fonts');
@@ -229,6 +235,20 @@ self.onmessage = async ({data}) => {
           decoderWorker.postMessage({memory:engine.HEAPU8.buffer,pointer:engine._web_decoder_ptr(),disabled:data.disableBrowserCodecs,faultAfter:data.decoderFaultAfter});
         });
         engine._web_decoder_enable(2); // Retained frames cannot use software replay.
+      }else if(data.decoder==='webgpu'){
+        // Missing runtime modules are asset failures and remain terminal.
+        const [{WebGPUMailboxService},{WebGPUPresenter},{webgpuDecoderSupported},{webgpuRequiredFeatures}]=await Promise.all([
+          import('./webgpu/mailbox-service.js'),import('./webgpu/presenter.js'),
+          import('./generated/internal/webgpu-codecs.js'),import('./webgpu/codecs/registry.js')]);
+        try{
+          if(!webgpuDecoderSupported(data.videoTrack?.codec))throw Error('No qualified WebGPU codec adapter');
+          webgpuService=new WebGPUMailboxService(engine,{onFrame:message=>receiveFrame(message),
+            onWakeup:()=>{if(!closing)engine._web_decoder_wakeup();},
+            onError:(error,source)=>post({type:'error',message:'Hybrid WebGPU decoder: '+error,assetFailure:!!source?.assetFailure})});
+          await webgpuService.runtime.acquireDevice(webgpuRequiredFeatures(data.videoTrack.codec));
+          videoPresenter=new WebGPUPresenter(canvas,webgpuService.runtime);
+          engine._web_decoder_enable(3);
+        }catch(error){await webgpuService?.close();const failure=Error('Hybrid WebGPU decoder: '+String(error));failure.decoderFailure=!error.assetFailure;failure.assetFailure=!!error.assetFailure;throw failure;}
       }
       audioChannels=data.audioChannels??2;
       if(engine._web_audio_configure(audioChannels)<0)throw Error("Invalid output channel count");
@@ -268,7 +288,9 @@ self.onmessage = async ({data}) => {
       if (audio) Atomics.store(audio,2,0);
       await closeIO();
       decoderWorker?.postMessage({type:'cancel'});
+      await webgpuService?.close();webgpuService=null;
       engine?._web_destroy();
+      videoPresenter?.destroy();videoPresenter=null;
       // Native joins precede the queued pthread pool-return messages.
       const deadline=performance.now()+2000;
       while(engine?.PThread.runningWorkers.length&&performance.now()<deadline)
@@ -281,7 +303,7 @@ self.onmessage = async ({data}) => {
       post({type:'destroyed',decoderStats,presentation:{...presentation,lateMs:[],pts:[],retained:frames.size+(heldFrame?1:0),pending:pendingFrames.size}});
       self.close();
     }
-  } catch (error) {post({type:'error',id:data.id,message:String(error.stack || error)});}
+  } catch (error) {post({type:'error',id:data.id,message:String(error.stack || error),decoderFailure:!!error.decoderFailure,assetFailure:!!error.assetFailure});}
 };
 function submit(id,args) {
   if (!engine || closing) throw new Error('Player is unavailable');

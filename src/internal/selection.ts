@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {PlaybackMode, RemoteSource} from '../types.js';
-export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; title?: string; lang?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;initialPadding?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
+export type ProbeTrack = {id: string; index: number; type: string; codec: string; codecString?: string; webCodecsSupported?:boolean; title?: string; lang?: string; default?: boolean; forced?: boolean; channels?: number; aacObject?: number; attachedPicture?: boolean; sampleRate?:number;initialPadding?:number;bits?:number;startTime?:number;endTime?:number;width?:number;height?:number};
 export type Probe = {tracks: ProbeTrack[]; duration: number; format?:string; hybridRejection?:string; identity?: {size: string; etag?: string}};
 /** Narrow file-only automatic FLAC admission. Unknown or unequal ends are rejected.
  * The runtime still verifies packets, samples, actual MSE output and work bounds. */

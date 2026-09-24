@@ -6,6 +6,7 @@ export type ProbeTrack = {
     type: string;
     codec: string;
     codecString?: string;
+    webCodecsSupported?: boolean;
     title?: string;
     lang?: string;
     default?: boolean;

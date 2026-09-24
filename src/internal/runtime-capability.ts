@@ -50,6 +50,9 @@ export function compatibilityFailure(error:unknown):boolean {
   // That source configuration report is not an asset initialization failure.
   // Match only this existing worker boundary; explicit typed terminal errors win.
   if(!(error instanceof PlayerError)&&error instanceof Error&&/^Hybrid browser decoder: Error: Unsupported browser configuration \([^\n]+\)\.\nCodec string:/.test(error.message)&&error.message.includes('WebCodecs reported supported=false')&&!/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))return true;
+  // The device-local service owns only reconstruction. A diagnosed failure in
+  // that service permits the existing route policy to reopen in Software.
+  if(!(error instanceof PlayerError)&&error instanceof Error&&/^Hybrid WebGPU decoder: /.test(error.message)&&!/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))return true;
   const code=playerError(error).code;
   if(['ABORTED','AUTOPLAY_BLOCKED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED','INVALID_ARGUMENT','ISOLATION_REQUIRED'].includes(code))return false;
   if(/Source transport:|integrity|identity|network|HTTP |received \d{3}/i.test(String(error)))return false;

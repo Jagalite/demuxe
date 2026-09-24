@@ -2,6 +2,8 @@
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
 import { PlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
+import { webgpuDecoderSupported } from './webgpu-codecs.js';
+import { selectExternalDecoderBackend } from './external-decoder-selection.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -39,7 +41,6 @@ export class WasmPlayer extends EventTarget {
     constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack } = {}) {
         super();
         this.buffering = buffering;
-        const decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
         if (!crossOriginIsolated)
             throw new Error('This player requires a secure, cross-origin isolated page.');
         this.audioContext = new AudioContext({ latencyHint: 'interactive' });
@@ -89,8 +90,8 @@ export class WasmPlayer extends EventTarget {
                 }
                 else if (data.type === 'error') {
                     clearTimeout(timeout);
-                    const error = new Error(data.message);
-                    reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
+                    const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
+                    reject(error instanceof PlayerError ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
                     this.fail(error, data.id);
                 }
                 else if (data.type === 'destroyed') {
@@ -159,6 +160,17 @@ export class WasmPlayer extends EventTarget {
                     throw new Error('Player destroyed during initialization');
                 const offscreen = canvas.transferControlToOffscreen();
                 const decodePolicy = resolveDecodePolicy({ codec: videoTrack?.codec, codedWidth: videoTrack?.width, codedHeight: videoTrack?.height, displayWidth: canvas.width, displayHeight: canvas.height, decodeQuality, maxDecodePixels: resourceLimits.maxDecodePixels ?? 8294400 });
+                let decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
+                if (mode === 'hybrid' && videoTrack?.codec) {
+                    // The production registry is empty. Once a codec is qualified, probe
+                    // WebCodecs first and use the device-local backend only on rejection.
+                    if (webgpuDecoderSupported(videoTrack.codec)) {
+                        // Only the complete preflight configuration may reject WebCodecs.
+                        // Missing evidence keeps the existing Hybrid/WebCodecs trial.
+                        const supported = disableBrowserCodecs ? false : videoTrack.webCodecsSupported;
+                        decoder = selectExternalDecoderBackend(videoTrack.codec, supported) ?? 'webcodecs';
+                    }
+                }
                 this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
@@ -186,8 +198,10 @@ export class WasmPlayer extends EventTarget {
         if (report)
             for (const cancel of this.eventWaiters)
                 cancel(error);
+        // Preserve typed terminal failures through the session listener. Turning an
+        // asset error into a string would make it look like decoder compatibility.
         if (report)
-            this.dispatchEvent(new CustomEvent('error', { detail: error.message }));
+            this.dispatchEvent(new CustomEvent('error', { detail: error instanceof PlayerError ? error : error.message }));
     }
     request(message, transfer = []) {
         if (this.destroyed)

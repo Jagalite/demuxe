@@ -4,10 +4,12 @@ import type {BufferingPolicy, BufferingResolution} from '../types.js';
 import {PlayerError} from './errors.js';
 import type {AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions} from '../types.js';
 import {resolveDecodePolicy} from './decode-policy.js';
+import {webgpuDecoderSupported} from './webgpu-codecs.js';
+import {selectExternalDecoderBackend} from './external-decoder-selection.js';
 import type {DecodeQuality} from './decode-policy.js';
 export type PlayerEvent = {event:string; id?:number; name?:string; data?:unknown; error?:string; [key:string]:unknown};
 export type RemoteSource = MediaInputOptions & {streaming?:StreamingOptions;url:string;format?:'file'|'hls'|'dash';headers?:Record<string,string>;credentials?:RequestCredentials;allowedOrigins?:string[];immutable?:boolean;refreshAuthorization?:(resource?:{url:string})=>Promise<{url?:string;headers?:Record<string,string>}>};
-export type PlayerDiagnostics = {buffering?:BufferingResolution;path:'wasm';presentation?:{position?:number;pts?:number[];retained?:number;pending?:number;received?:number;closed?:number};decoder?:'software'|'webcodecs';decoderStats?:Record<string,number|boolean>; rendered:number; heapBytes:number; queuedFrames:number; epoch:number;io?:Record<string,number|string>;seeking?:boolean;position?:number;presentedPosition?:number;ioPending?:boolean;interruptions?:number;renderMs?:number;copyMs?:number};
+export type PlayerDiagnostics = {buffering?:BufferingResolution;path:'wasm';presentation?:{position?:number;pts?:number[];retained?:number;pending?:number;received?:number;closed?:number};decoder?:'software'|'webcodecs'|'webgpu';decoderBackend?:'ffmpeg'|'webcodecs'|'webgpu';webgpu?:{available:boolean;selected:boolean;codec:string|null;queuedPackets:number;retainedFrames:number;liveSurfaces:number;surfaceBytes:number;pooledBufferBytes:number;pipelineCount:number;submissions:number;deviceLost:boolean};decoderStats?:Record<string,number|boolean>; rendered:number; heapBytes:number; queuedFrames:number; epoch:number;io?:Record<string,number|string>;seeking?:boolean;position?:number;presentedPosition?:number;ioPending?:boolean;interruptions?:number;renderMs?:number;copyMs?:number};
 
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
@@ -44,9 +46,8 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
-  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number}}={}) {
+  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number}}={}) {
     super();this.buffering=buffering;
-    const decoder=mode==='hybrid'?'webcodecs':'software';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');
     this.audioContext = new AudioContext({latencyHint:'interactive'});
     this.requestedOutput=audioOutput;this.deviceChannels=this.audioContext.destination.maxChannelCount;
@@ -71,7 +72,7 @@ export class WasmPlayer extends EventTarget {
       this.worker.onerror = event => { clearTimeout(timeout);reject(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+event.message,null,null,'operation',true));this.fail(new Error(event.message)); };
       this.worker.onmessage = ({data}) => {
         if(data.type==='ready') {clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
-        else if(data.type==='error') {clearTimeout(timeout);const error=new Error(data.message);reject(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
+        else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);reject(error instanceof PlayerError?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
         else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}this.onDestroyed?.();}
         else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
         else if(data.type==='output')this.dispatchEvent(new CustomEvent('output',{detail:data.data}));
@@ -107,6 +108,17 @@ export class WasmPlayer extends EventTarget {
         if(this.destroyed) throw new Error('Player destroyed during initialization');
         const offscreen=canvas.transferControlToOffscreen();
         const decodePolicy=resolveDecodePolicy({codec:videoTrack?.codec,codedWidth:videoTrack?.width,codedHeight:videoTrack?.height,displayWidth:canvas.width,displayHeight:canvas.height,decodeQuality,maxDecodePixels:resourceLimits.maxDecodePixels??8294400});
+        let decoder:'software'|'webcodecs'|'webgpu'=mode==='hybrid'?'webcodecs':'software';
+        if(mode==='hybrid'&&videoTrack?.codec){
+          // The production registry is empty. Once a codec is qualified, probe
+          // WebCodecs first and use the device-local backend only on rejection.
+          if(webgpuDecoderSupported(videoTrack.codec)){
+            // Only the complete preflight configuration may reject WebCodecs.
+            // Missing evidence keeps the existing Hybrid/WebCodecs trial.
+            const supported=disableBrowserCodecs?false:videoTrack.webCodecsSupported;
+            decoder=selectExternalDecoderBackend(videoTrack.codec,supported)??'webcodecs';
+          }
+        }
         this.worker.postMessage({type:'init',compiledWasm:prepared?.module,canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0,decodeQuality,decodePolicy,adaptiveFrameDrop,videoTrack,displayWidth:canvas.width,displayHeight:canvas.height},[offscreen,font]);
         this.timing=setInterval(()=>this.sendTiming(),20);
         this.sendTiming();
@@ -125,7 +137,9 @@ export class WasmPlayer extends EventTarget {
   private fail(error:Error,id?:number,report=true) {
     for(const [key,p] of this.pending) if(!id||key===id) {clearTimeout(p.timer);p.reject(error);this.pending.delete(key);}
     if(report)for(const cancel of this.eventWaiters)cancel(error);
-    if(report) this.dispatchEvent(new CustomEvent('error',{detail:error.message}));
+    // Preserve typed terminal failures through the session listener. Turning an
+    // asset error into a string would make it look like decoder compatibility.
+    if(report) this.dispatchEvent(new CustomEvent('error',{detail:error instanceof PlayerError?error:error.message}));
   }
   private request(message:Record<string,unknown>,transfer:Transferable[]=[]):Promise<any> {
     if(this.destroyed) return Promise.reject(new Error('Player is destroyed'));

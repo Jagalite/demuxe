@@ -36,7 +36,21 @@ export type PlayerDiagnostics = {
         received?: number;
         closed?: number;
     };
-    decoder?: 'software' | 'webcodecs';
+    decoder?: 'software' | 'webcodecs' | 'webgpu';
+    decoderBackend?: 'ffmpeg' | 'webcodecs' | 'webgpu';
+    webgpu?: {
+        available: boolean;
+        selected: boolean;
+        codec: string | null;
+        queuedPackets: number;
+        retainedFrames: number;
+        liveSurfaces: number;
+        surfaceBytes: number;
+        pooledBufferBytes: number;
+        pipelineCount: number;
+        submissions: number;
+        deviceLost: boolean;
+    };
     decoderStats?: Record<string, number | boolean>;
     rendered: number;
     heapBytes: number;
@@ -104,6 +118,8 @@ export declare class WasmPlayer extends EventTarget {
         adaptiveFrameDrop?: boolean;
         videoTrack?: {
             codec: string;
+            codecString?: string;
+            webCodecsSupported?: boolean;
             width?: number;
             height?: number;
         };
