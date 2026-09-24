@@ -108,12 +108,17 @@ onmessage=({data:d})=>{
      engine._subtitle_service_block(0);
      try{
       if(engine._subtitle_service_seek(0)>=0){
-       moved=true;await delay(30);let ready=0;
-       for(let i=0;i<400&&!ready;i++){
-        check();ready=engine._subtitle_service_update(1e9);scheduler.nativeUpdateCalls++;
-        if(ready<0){ready=0;break;}if(!ready)await delay(5);
+       moved=true;await delay(30);
+       if(engine._subtitle_service_ass_scan_begin()){
+        try{
+         for(let i=0;i<400;i++){
+          check();engine._subtitle_service_update(1e9);scheduler.nativeUpdateCalls++;
+          const status=engine._subtitle_service_ass_scan_status();
+          if(status){if(status>0)engine._subtitle_service_ass_scan_complete();break;}
+          await delay(5);
+         }
+        }finally{engine._subtitle_service_ass_scan_end();}
        }
-       if(ready)engine._subtitle_service_ass_scan_complete();
       }
      }finally{
       try{if(moved){restoreFailed=engine._subtitle_service_seek(restore)<0;await delay(30);}}

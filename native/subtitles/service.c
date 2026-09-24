@@ -76,7 +76,7 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_update(double pts){
  }
  unlock_core(subtitle_service);return r;
 }
-// The worker drives a bounded asynchronous EOF scan through update_subtitles.
+// The worker drives a packet- and byte-limited asynchronous EOF scan.
 EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_needed(void){
  if(!subtitle_service)return 0;
  lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
@@ -84,6 +84,28 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_needed(void){
  int needed=track&&track->d_sub&&track->demuxer&&track->demuxer->seekable&&
             sub_static_timing_ass_preload_needed(track->d_sub);
  unlock_core(subtitle_service);return needed;
+}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_begin(void){
+ if(!subtitle_service)return 0;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
+ struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
+ int active=track&&track->d_sub&&sub_static_timing_ass_preload_needed(track->d_sub);
+ if(active)sub_static_timing_scan_begin(track->d_sub);
+ unlock_core(subtitle_service);return active;
+}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_status(void){
+ if(!subtitle_service)return -1;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
+ struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
+ int status=track&&track->d_sub?sub_static_timing_scan_status(track->d_sub):-1;
+ unlock_core(subtitle_service);return status;
+}
+EMSCRIPTEN_KEEPALIVE void subtitle_service_ass_scan_end(void){
+ if(!subtitle_service)return;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
+ struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
+ if(track&&track->d_sub)sub_static_timing_scan_end(track->d_sub);
+ unlock_core(subtitle_service);
 }
 EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_complete(void){
  if(!subtitle_service)return 0;

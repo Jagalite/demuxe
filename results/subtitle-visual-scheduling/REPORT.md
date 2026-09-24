@@ -14,7 +14,9 @@
 | PGS or DVD/VobSub decoded bitmap | Deadline from `sd_lavc` queue `pts`/`endpts`, including clears |
 | DVD menu highlight, unknown bitmap start PTS, active bitmap with unknown end and no known next boundary, unsupported decoder, incomplete ASS scan | Conservative frame fallback |
 
-ASS still requires a complete mpv event timeline before deadline qualification. The worker performs a bounded asynchronous EOF scan on seekable ASS tracks, then restores position. A failed or incomplete scan falls back to frame cadence. A 9.9 MiB fixture with a late event at 30 s passed direct and remux, so the former 8 MiB source-size gate was removed. The scan itself remains: the available tests do not prove that a 10 Hz pump alone discovers every future ASS boundary before its deadline.
+ASS still requires a complete mpv event timeline before deadline qualification. The worker scans seekable ASS tracks in batches of at most 128 packets per native call, with total ceilings of 8,192 packets and 4 MiB of subtitle packet data, then restores position. A failed, incomplete, or over-budget scan falls back to frame cadence. A 9.9 MiB fixture with a late event at 30 s passed direct and remux, so the former 8 MiB source-size gate was removed. The scan itself remains: the available tests do not prove that a 10 Hz pump alone discovers every future ASS boundary before its deadline.
+
+A 30,000-event ASS fixture exercised the scan ceiling on both direct and remux routes: both remained in frame fallback with visible subtitle pixels and zero mpv A/V chains. The sparse 9.9 MiB fixture retained deadline mode and its late cue on both routes after the scan budget was added.
 
 Exact seeks beyond a still-active PGS/VobSub packet use mpv's own subtitle-step seekpoint to replay from the last known bitmap start to the requested PTS. This restored paused PGS seeks at 2–6 s and VobSub at 33 s. No bitmap packet is parsed in JavaScript. All tested service runs had zero mpv audio/video chains.
 
