@@ -20,6 +20,7 @@ export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-pthread"
 mkdir -p "$PREFIX" build/logs web/engine
 python3 scripts/fetch-sources.py
+python3 scripts/prepare-source-build.py
 python3 scripts/apply-patches.py
 python3 - <<'PY'
 from pathlib import Path

@@ -1,12 +1,13 @@
+Retained; context rebased to selected upstream source.
+
 --- a/libavcodec/utils.c
 +++ b/libavcodec/utils.c
-@@ -720,6 +720,16 @@
+@@ -739,6 +739,15 @@
                  int blocks = frame_bytes / ba;
                  int64_t tmp = 0;
                  switch (id) {
 +                case AV_CODEC_ID_ADPCM_SWF:
-+                    // Each byte-aligned SWF block has a two-bit code size,
-+                    // then a 16-bit predictor and six-bit step index/channel.
++                    /* Byte-aligned SWF block: code size, predictor and step index. */
 +                    if (ch > 2 || bps < 2 || bps > 5 || ba * 8LL < 2 + 22 * ch)
 +                        return 0;
 +                    tmp = 1 + (ba * 8LL - 2 - 22 * ch) / (bps * ch);
@@ -14,6 +15,6 @@
 +                        return 0;
 +                    tmp *= blocks;
 +                    break;
-                 case AV_CODEC_ID_ADPCM_IMA_WAV:
-                     if (bps < 2 || bps > 5)
+                 case AV_CODEC_ID_ADPCM_IMA_XBOX:
+                     if (bps != 4)
                          return 0;

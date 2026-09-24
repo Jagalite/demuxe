@@ -38,6 +38,6 @@ static void biweight8(uint8_t *d,uint8_t *s,ptrdiff_t stride,int h,int den,int w
 {biweight(d,s,stride,h,den,wd,ws,offset,8);}
 void webmpv_h264_biweight_init(H264DSPContext *context)
 {
-    context->biweight_h264_pixels_tab[0]=biweight16;
-    context->biweight_h264_pixels_tab[1]=biweight8;
+    context->biweight_pixels_tab[0]=biweight16;
+    context->biweight_pixels_tab[1]=biweight8;
 }

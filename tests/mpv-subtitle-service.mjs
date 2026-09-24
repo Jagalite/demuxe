@@ -9,7 +9,7 @@ try{
  await page.goto(server.origin+'/experiment/page.html');
  await page.evaluate(async()=>{
   const {Player}=await import('/web/generated/index.js');
-  window.player=new Player(document.querySelector('#surface'),{experimentalMpvSubtitles:true,experimentalBufferedNativeSeeks:true});
+  window.player=new Player(document.querySelector('#surface'),{experimentalMpvSubtitles:true,experimentalBufferedNativeSeeks:true,nativeRemux:'always'});
   const input=document.createElement('input');input.type='file';input.id='file';document.body.append(input);
  });
  await page.locator('#file').setInputFiles(process.env.SOURCE??'build/mpv-subtitle-service/fixtures/rejected-bframes.mkv');
@@ -25,7 +25,7 @@ try{
  }
  await page.evaluate(()=>player.destroy());await page.waitForTimeout(500);console.log('remaining workers',page.workers().map(w=>w.url()));assert.equal(page.workers().length,0);
  console.log('PASS bounded mpv subtitles: routing, playback, seeks, no A/V chains, cleanup');
- await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{experimentalMpvSubtitles:true});});
+ await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{experimentalMpvSubtitles:true,nativeRemux:'always'});});
  const workerReady=page.waitForEvent('worker',{predicate:w=>w.url().includes('mpv-subtitle-worker.js')});
  await page.evaluate(()=>{window.opening=player.open(document.querySelector('#file').files[0]).catch(e=>e.code);});await workerReady;
  await page.evaluate(()=>player.destroy());await page.waitForTimeout(500);assert.equal(page.workers().length,0);

@@ -26,6 +26,7 @@ int main(void){
   }
  }
  for(int depth=9;depth<=16;depth++){
+  memset(&reference,0,sizeof(reference));memset(&candidate,0,sizeof(candidate));
   __real_ff_h264chroma_init(&reference,depth);ff_h264chroma_init(&candidate,depth);
   if(memcmp(&reference,&candidate,sizeof(reference))){fprintf(stderr,"Changed higher-bit-depth dispatch\n");return 1;}
  }

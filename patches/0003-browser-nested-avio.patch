@@ -22,16 +22,6 @@
  
      char *avdevice_format = NULL;
      if (s->info && strcmp(s->info->name, "avdevice") == 0) {
-@@ -1018,6 +1026,9 @@
-             MP_VERBOSE(demuxer, "Option extension_picky=0 was set due to known FFmpeg bugs\n");
-     }
- 
-+#ifdef __EMSCRIPTEN__
-+    if (web_resource_url()) priv->format_hack.no_stream = false;
-+#endif
-     if ((priv->avif_flags & AVFMT_NOFILE) || priv->format_hack.no_stream) {
-         mp_setup_av_network_options(&dopts, priv->avif->name,
-                                     demuxer->global, demuxer->log);
 @@ -1061,6 +1072,24 @@
      };
  

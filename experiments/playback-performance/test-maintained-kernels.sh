@@ -12,7 +12,7 @@ python3 - "$OUT" <<'PY'
 from pathlib import Path
 import sys
 out=Path(sys.argv[1])
-for name,initializer,other in [('biweight','biweight',None),('deblock','deblock','h264_h_loop_filter_luma'),('deblock-horizontal','deblock','h264_v_loop_filter_luma')]:
+for name,initializer,other in [('biweight','biweight',None),('deblock','deblock','h_loop_filter_luma'),('deblock-horizontal','deblock','v_loop_filter_luma')]:
  source='#include "libavcodec/h264dsp.h"\nvoid __real_ff_h264dsp_init(H264DSPContext *,int,int);\n'
  source+=f'void webmpv_h264_{initializer}_init(H264DSPContext *);\n'
  source+='void __wrap_ff_h264dsp_init(H264DSPContext *context,int depth,int chroma){\n__real_ff_h264dsp_init(context,depth,chroma);\nif(depth==8){\n'

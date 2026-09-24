@@ -15,8 +15,8 @@ export GIT_CEILING_DIRECTORIES="$ROOT/build/sources"
 OBJ="$ROOT/build/obj-software-full-ffmpeg"
 mkdir -p "$OBJ" web/engine-software-full results/software-full build/link-maps
 # Use upstream default component selection, with no hand-maintained codec list.
-# Keep upstream-default LGPL decoders, demuxers and filters. Exclude GPL-only
-# libpostproc even though this build does not use it.
+# Keep upstream-default LGPL decoders, demuxers and filters. FFmpeg 9 no
+# longer ships libpostproc; the closure check still rejects any linked copy.
 # External dav1d and zimg provide AV1 reconstruction and color conversion.
 CONFIGURE=("$ROOT/build/sources/ffmpeg/configure"
  --prefix="$ROOT/build/prefix-software-full" --target-os=none --arch=wasm32
@@ -25,7 +25,7 @@ CONFIGURE=("$ROOT/build/sources/ffmpeg/configure"
  --disable-autodetect --disable-network --disable-asm --disable-hwaccels
  --disable-encoders --disable-muxers --disable-devices --disable-avdevice
  --disable-protocols --enable-protocol=file
- --enable-libdav1d --enable-libzimg --disable-postproc --enable-pthreads --enable-libxml2 --enable-zlib --enable-libass
+ --enable-libdav1d --enable-libzimg --enable-pthreads --enable-libxml2 --enable-zlib --enable-libass
  --extra-cflags="-O2 -pthread -msimd128 -ffile-prefix-map=$ROOT=/demuxe -I$ROOT/build/prefix/include"
  --extra-ldflags="-pthread -L$ROOT/build/prefix/lib")
 printf '%s\n' "${CONFIGURE[@]}" > "$OBJ/configure-request.next"

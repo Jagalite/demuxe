@@ -21,7 +21,7 @@ if [ -z "${WEBMPV_REMUX_FFMPEG_DIR:-}" ] && { [ ! -f "$OBJ/Makefile" ] || ! rg -
  --cc=emcc --cxx=em++ --ar=emar --ranlib=emranlib --nm=emnm \
  --enable-static --disable-shared --disable-programs --disable-doc --disable-debug \
  --disable-autodetect --disable-network --disable-asm --disable-everything \
- --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample --disable-postproc \
+ --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample \
  --enable-avformat --enable-avcodec --enable-avutil --enable-pthreads \
  --enable-demuxers \
  --enable-muxer=mp4,webm --enable-parsers \

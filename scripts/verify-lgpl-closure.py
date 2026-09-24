@@ -72,9 +72,12 @@ def forbidden_external_libraries(configure):
 def ffmpeg_license(root, label, folder, full):
     config = folder / 'config.h'
     text = config.read_text()
-    for flag in ('GPL', 'GPLV3', 'NONFREE', 'VERSION3', 'POSTPROC'):
+    for flag in ('GPL', 'GPLV3', 'NONFREE', 'VERSION3'):
         if define(text, 'CONFIG_' + flag) != '0':
             raise ValueError(f'{label}: CONFIG_{flag} must be 0')
+    postproc = re.search(r'^#define CONFIG_POSTPROC (.+)$', text, re.M)
+    if postproc and postproc[1] != '0':
+        raise ValueError(f'{label}: CONFIG_POSTPROC must be 0')
     if define(text, 'FFMPEG_LICENSE') != '"LGPL version 2.1 or later"':
         raise ValueError(f'{label}: FFmpeg does not report LGPL-2.1-or-later')
     selection = components(folder / 'config_components.h')
@@ -95,7 +98,7 @@ def ffmpeg_license(root, label, folder, full):
                 raise ValueError(f'{label}: GPL-only FFmpeg filter enabled: {name}')
         request = (folder / 'configure-request').read_text()
         if ('--enable-gpl' in request or '--enable-nonfree' in request or
-                '--disable-postproc' not in request or '--disable-asm' not in request):
+                '--disable-asm' not in request):
             raise ValueError('Software FFmpeg configure request is not LGPL-safe')
     return {'license': 'LGPL-2.1-or-later', 'configSHA256': digest(config),
             'componentsSHA256': digest(folder / 'config_components.h'),

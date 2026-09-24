@@ -104,6 +104,6 @@ static void filter_horizontal(uint8_t *pix,ptrdiff_t stride,int alpha,int beta,i
 }
 void webmpv_h264_deblock_init(H264DSPContext *context)
 {
-    context->h264_v_loop_filter_luma=filter_vertical;
-    context->h264_h_loop_filter_luma=filter_horizontal;
+    context->v_loop_filter_luma=filter_vertical;
+    context->h_loop_filter_luma=filter_horizontal;
 }

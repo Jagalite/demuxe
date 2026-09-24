@@ -1,6 +1,4 @@
-Native fixed-VOD discontinuity timeline mapping.
-Packet byte positions identify periods despite AVIO read-ahead.
-Seek starts at the period boundary to establish its timestamp origin.
+Retained; context rebased to selected upstream source.
 
 --- a/libavformat/hls.c
 +++ b/libavformat/hls.c
@@ -15,7 +13,7 @@ Seek starts at the period boundary to establish its timestamp origin.
      int64_t duration;
      int64_t url_offset;
      int64_t size;
-@@ -785,6 +789,8 @@
+@@ -826,6 +830,8 @@
  {
      int ret = 0, is_segment = 0, is_variant = 0;
      int64_t duration = 0;
@@ -24,16 +22,16 @@ Seek starts at the period boundary to establish its timestamp origin.
      enum KeyType key_type = KEY_NONE;
      uint8_t iv[16] = "";
      int has_iv = 0;
-@@ -861,6 +867,8 @@
+@@ -907,6 +913,8 @@
+             is_variant = 1;
              memset(&variant_info, 0, sizeof(variant_info));
-             ff_parse_key_value(ptr, (ff_parse_key_val_cb) handle_variant_args,
-                                &variant_info);
+             ff_parse_key_value(ptr, handle_variant_args, &variant_info);
 +        } else if (!strcmp(line, "#EXT-X-DISCONTINUITY")) {
 +            discontinuity = 1;
          } else if (av_strstart(line, "#EXT-X-KEY:", &ptr)) {
              struct key_info info = {{0}};
-             ff_parse_key_value(ptr, (ff_parse_key_val_cb) handle_key_args,
-@@ -997,6 +1005,13 @@
+             ff_parse_key_value(ptr, handle_key_args, &info);
+@@ -1060,6 +1068,13 @@
                      ret = AVERROR(ENOMEM);
                      goto fail;
                  }
@@ -47,7 +45,7 @@ Seek starts at the period boundary to establish its timestamp origin.
                  if (has_iv) {
                      memcpy(seg->iv, iv, sizeof(iv));
                  } else {
-@@ -1677,7 +1692,9 @@
+@@ -1845,7 +1860,9 @@
      }
  
      seg = current_segment(v);
@@ -57,8 +55,8 @@ Seek starts at the period boundary to establish its timestamp origin.
      if (ret > 0) {
          if (just_opened && v->is_id3_timestamped != 0) {
              /* Intercept ID3 tags here, elementary audio streams are required
-@@ -2389,6 +2406,30 @@
-                             get_timebase(pls), AV_TIME_BASE_Q);
+@@ -2755,6 +2772,30 @@
+                     }
                  }
  
 +                /* Packet positions, not the current read-ahead segment, own
@@ -88,7 +86,7 @@ Seek starts at the period boundary to establish its timestamp origin.
                  seg = current_segment(pls);
                  if (seg && seg->key_type == KEY_SAMPLE_AES && !strstr(pls->ctx->iformat->name, "mov")) {
                      enum AVCodecID codec_id = pls->ctx->streams[pls->pkt->stream_index]->codecpar->codec_id;
-@@ -2583,6 +2624,14 @@
+@@ -2987,6 +3028,14 @@
               * specified stream where we should look for the keyframes */
              pls->seek_stream_index = -1;
              pls->seek_flags |= AVSEEK_FLAG_ANY;
@@ -101,5 +99,5 @@ Seek starts at the period boundary to establish its timestamp origin.
 +            for (int k = 0; k < pls->n_segments; k++)
 +                pls->segments[k]->byte_start = pls->segments[k]->byte_end = -1;
          }
-     }
  
+         pls->last_seq_no = pls->cur_seq_no;

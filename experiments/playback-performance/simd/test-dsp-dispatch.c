@@ -12,8 +12,8 @@ int main(void)
         ff_h264dsp_init(&candidate,depths[depth],chroma);
         if(depths[depth]==8){
 #define REPLACED(member) do {if(reference.member==candidate.member)return 1;candidate.member=reference.member;} while(0)
-            REPLACED(biweight_h264_pixels_tab[0]);REPLACED(biweight_h264_pixels_tab[1]);
-            REPLACED(h264_v_loop_filter_luma);REPLACED(h264_h_loop_filter_luma);
+            REPLACED(biweight_pixels_tab[0]);REPLACED(biweight_pixels_tab[1]);
+            REPLACED(v_loop_filter_luma);REPLACED(h_loop_filter_luma);
 #undef REPLACED
         }
         if(memcmp(&reference,&candidate,sizeof(reference)))return 1;

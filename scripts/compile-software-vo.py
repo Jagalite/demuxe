@@ -16,8 +16,8 @@ root = Path.cwd()
 outdir = root / 'build/software-vo'
 outdir.mkdir(parents=True, exist_ok=True)
 source = (root / 'build/sources/mpv/video/out/vo_libmpv.c').read_text()
-assert source.count('.caps = VO_CAP_ROTATE90,') == 1, 'Review changed upstream VO capability declaration'
-source = source.replace('.caps = VO_CAP_ROTATE90,', '.caps = 0, // RGB output requires mpv autorotation before rendering.')
+assert source.count('.caps = VO_CAP_ROTATE90 | VO_CAP_VFLIP,') == 1, 'Review changed upstream VO capability declaration'
+source = source.replace('.caps = VO_CAP_ROTATE90 | VO_CAP_VFLIP,', '.caps = 0, // RGB output requires mpv transformation before rendering.')
 (outdir / 'vo_libmpv.c').write_text(source)
 entry = next(e for e in json.loads((root / 'build/obj-mpv/compile_commands.json').read_text()) if e['file'].endswith('/vo_libmpv.c'))
 args = shlex.split(entry['command'])

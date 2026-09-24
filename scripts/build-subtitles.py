@@ -45,9 +45,9 @@ components = (subtitle_ffmpeg / 'config_components.h').read_text()
 for decoder in ['SUBRIP', 'MOVTEXT', 'ASS', 'SSA', 'PGSSUB', 'DVDSUB', 'WEBVTT']:
     if f'#define CONFIG_{decoder}_DECODER 1' not in components:
         raise SystemExit(f'Subtitle service FFmpeg lacks {decoder} decoder')
-# Only avcodec needs the additional decoder objects. Retaining the other
-# pinned libraries avoids pulling unrelated full-build filters into this worker.
-for library in ['avcodec']:
+# FFmpeg 9's expanded decoder archive uses avutil helpers that the minimal
+# baseline archive omits. Pair the full decoder with its matching avutil.
+for library in ['avcodec', 'avutil']:
     archive = subtitle_ffmpeg / f'lib{library}' / f'lib{library}.a'
     if not archive.is_file():
         raise SystemExit(f'Missing subtitle service archive: {archive}')
@@ -101,5 +101,5 @@ for name in ['service.mjs', 'service.wasm']:
     if re.search(rb'/(?:Users|Volumes|private/var)/', (out / name).read_bytes()):
         raise SystemExit('Build paths remain in subtitle engine: ' + name)
 inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py']
-record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'subtitleFFmpegConfigurationSHA256': hashlib.sha256(components.encode()).hexdigest(), 'subtitleFFmpegArchives': {'avcodec': hashlib.sha256((subtitle_ffmpeg / 'libavcodec/libavcodec.a').read_bytes()).hexdigest(), 'dav1d': hashlib.sha256(dav1d_archive.read_bytes()).hexdigest()}, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
+record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'subtitleFFmpegConfigurationSHA256': hashlib.sha256(components.encode()).hexdigest(), 'subtitleFFmpegArchives': {'avcodec': hashlib.sha256((subtitle_ffmpeg / 'libavcodec/libavcodec.a').read_bytes()).hexdigest(), 'avutil': hashlib.sha256((subtitle_ffmpeg / 'libavutil/libavutil.a').read_bytes()).hexdigest(), 'dav1d': hashlib.sha256(dav1d_archive.read_bytes()).hexdigest()}, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
 (objects / 'manifest.json').write_text(json.dumps(record, indent=2) + '\n')
