@@ -16,11 +16,27 @@ import subprocess
 
 repo = pathlib.Path(__file__).resolve().parents[1]
 base = pathlib.Path(os.environ.get('DEMUXE_MPV_BUILD_ROOT', str(repo))).resolve()
+env = os.environ.copy()
+if 'EM_CONFIG' not in env:
+    # The SDK's generated config can retain machine-local tool overrides.
+    # Use the pinned SDK in this build root for both Ninja and service linking.
+    sdk = (base / 'build/emsdk-4.0.14').resolve()
+    config_file = repo / 'build/subtitle-service/emscripten-config'
+    config_file.parent.mkdir(parents=True, exist_ok=True)
+    config_file.write_text(f"EMSDK = {str(sdk)!r}\n"
+                           "NODE_JS = EMSDK + '/node/22.16.0_64bit/bin/node'\n"
+                           "PYTHON = EMSDK + '/python/3.13.3_64bit/bin/python3'\n"
+                           "LLVM_ROOT = EMSDK + '/upstream/bin'\n"
+                           "BINARYEN_ROOT = EMSDK + '/upstream'\n"
+                           "EMSCRIPTEN_ROOT = EMSDK + '/upstream/emscripten'\n")
+    env['EM_CONFIG'] = str(config_file)
+env['PKG_CONFIG_LIBDIR'] = str(base / 'build/prefix/lib/pkgconfig')
+env['PKG_CONFIG_PATH'] = env['PKG_CONFIG_LIBDIR']
 if base == repo:
     # Direct subtitle-service builds must not link an archive predating the
     # locked raw-timing adaptation. The normal build already runs this replay.
     subprocess.run(['python3', str(repo / 'scripts/apply-patches.py')], check=True)
-    subprocess.run(['ninja', '-C', str(base / 'build/obj-mpv'), 'libmpv.a'], check=True)
+    subprocess.run(['ninja', '-C', str(base / 'build/obj-mpv'), 'libmpv.a'], check=True, env=env)
     shutil.copy2(base / 'build/obj-mpv/libmpv.a', base / 'build/prefix/lib/libmpv.a')
 elif 'bool sub_next_raw_boundary(' not in (base / 'build/sources/mpv/sub/dec_sub.c').read_text():
     raise SystemExit('External mpv build root lacks the maintained subtitle timing adaptation')
@@ -28,10 +44,6 @@ out = repo / 'web/engine-subtitles'
 objects = repo / 'build/subtitle-service'
 for folder in [out, objects]:
     folder.mkdir(parents=True, exist_ok=True)
-env = os.environ.copy()
-env['EM_CONFIG'] = os.environ.get('EM_CONFIG', str(base / 'build/gap.emscripten') if (base / 'build/gap.emscripten').exists() else str(base / 'build/emsdk-4.0.14/.emscripten'))
-env['PKG_CONFIG_LIBDIR'] = str(base / 'build/prefix/lib/pkgconfig')
-env['PKG_CONFIG_PATH'] = env['PKG_CONFIG_LIBDIR']
 commands = json.loads((base / 'build/obj-mpv/compile_commands.json').read_text())
 client = next(entry for entry in commands if entry['file'].endswith('player/client.c'))
 maps = [f'-ffile-prefix-map={repo}=/demuxe', f'-ffile-prefix-map={base}=/demuxe-build']
@@ -109,6 +121,6 @@ engine_js.write_text('// SPDX-License-Identifier: LGPL-2.1-or-later\n' + engine_
 for name in ['service.mjs', 'service.wasm']:
     if re.search(rb'/(?:Users|Volumes|private/var)/', (out / name).read_bytes()):
         raise SystemExit('Build paths remain in subtitle engine: ' + name)
-inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py', 'sources.lock.json', 'patches/0014-subtitle-raw-timing.patch', 'patches/0015-subtitle-static-profile.patch', 'patches/0016-subtitle-visual-schedule.patch', 'patches/0017-subtitle-ass-scan-budget.patch']
+inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py', 'sources.lock.json', 'patches/0014-subtitle-raw-timing.patch', 'patches/0015-subtitle-static-profile.patch', 'patches/0016-subtitle-visual-schedule.patch', 'patches/0017-subtitle-ass-scan-budget.patch', 'patches/0018-subtitle-timing-invalidation.patch']
 record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'subtitleFFmpegConfigurationSHA256': hashlib.sha256(components.encode()).hexdigest(), 'subtitleFFmpegArchives': {'avcodec': hashlib.sha256((subtitle_ffmpeg / 'libavcodec/libavcodec.a').read_bytes()).hexdigest(), 'avutil': hashlib.sha256((subtitle_ffmpeg / 'libavutil/libavutil.a').read_bytes()).hexdigest(), 'dav1d': hashlib.sha256(dav1d_archive.read_bytes()).hexdigest()}, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
 (objects / 'manifest.json').write_text(json.dumps(record, indent=2) + '\n')

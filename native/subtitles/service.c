@@ -171,7 +171,7 @@ EMSCRIPTEN_KEEPALIVE double subtitle_service_bitmap_recovery_point(double pts){
 }
 EMSCRIPTEN_KEEPALIVE int subtitle_service_seek(double pts){subtitle_timing_invalidate();char time[64];snprintf(time,sizeof(time),"%.6f",pts);const char *c[]={"seek",time,"absolute+exact",NULL};return mpv_command(subtitle_service,c);}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_av_chains(void){lock_core(subtitle_service);int n=!!subtitle_service->mpctx->vo_chain+!!subtitle_service->mpctx->ao_chain;unlock_core(subtitle_service);return n;}
-EMSCRIPTEN_KEEPALIVE int subtitle_service_delay(double delay){return mpv_set_property(subtitle_service,"sub-delay",MPV_FORMAT_DOUBLE,&delay);}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_delay(double delay){subtitle_timing_invalidate();return mpv_set_property(subtitle_service,"sub-delay",MPV_FORMAT_DOUBLE,&delay);}
 // Only used by internal fidelity tests. Caption text is never added to public
 // diagnostics or persisted; the visible overlay remains the production output.
 EMSCRIPTEN_KEEPALIVE int subtitle_service_text(char *out,int capacity){

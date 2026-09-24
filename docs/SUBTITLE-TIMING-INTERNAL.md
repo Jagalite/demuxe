@@ -3,8 +3,10 @@
 # Internal subtitle visual scheduling
 
 The pinned mpv adaptations are `patches/0014-subtitle-raw-timing.patch`,
-`patches/0015-subtitle-static-profile.patch`, and
-`patches/0016-subtitle-visual-schedule.patch`. Production uses
+`patches/0015-subtitle-static-profile.patch`,
+`patches/0016-subtitle-visual-schedule.patch`,
+`patches/0017-subtitle-ass-scan-budget.patch`, and
+`patches/0018-subtitle-timing-invalidation.patch`. Production uses
 `sub_visual_schedule(dec_sub *, media_pts, &next)` through
 `subtitle_service_visual_schedule(pts, &next, &epoch)`. The result is
 `0` unsupported, `1` deadline, or `2` animated; `next` is the earliest known
@@ -30,8 +32,12 @@ bitmap packet. The service asks mpv's own subtitle-step index for the last
 known bitmap start, then replays from that point to the requested PTS. No
 bitmap packet content is parsed in JavaScript.
 
-Every decoded packet, reset, source/track change, and seek invalidates a native
-epoch. The callback runs under `dec_sub`'s lock and never reenters mpv; the
+Every decoded packet, decoder option update, soft reset, source/track change,
+and seek invalidates a native epoch. The service invalidates before setting
+`sub-delay`, so a concurrent query cannot retain an old deadline.
+The timing callback also covers video FPS updates that change subtitle PTS
+conversion. The notification is metadata only; it does not request a render.
+The callback runs under `dec_sub`'s lock and never reenters mpv; the
 service coalesces notifications to the worker. The worker runs a roughly 10 Hz
 `update_subtitles()` pump while a supported track plays, queries visual mode,
 and arms one epoch-guarded timer for a deadline. The host renders on deadlines

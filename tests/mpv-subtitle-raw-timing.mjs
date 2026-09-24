@@ -34,6 +34,14 @@ const server=await serve();
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
  const page=await browser.newPage();
+ const workerSource=await readFile('web/mpv-subtitle-worker.js','utf8');
+ const timingBranch="}else if(d.type==='timing'){";
+ assert.ok(workerSource.includes(timingBranch),'test delay insertion point');
+ await page.route('**/web/mpv-subtitle-worker.js',async route=>{
+  const response=await route.fetch();
+  await route.fulfill({response,body:workerSource.replace(timingBranch,
+   "}else if(d.type==='testDelay'){if(engine._subtitle_service_delay(d.seconds)<0)throw Error('Subtitle delay failed');"+timingBranch)});
+ });
  await page.goto(server.origin+'/experiment/page.html');
  await page.evaluate(()=>{
   const input=document.createElement('input');input.id='subtitle-timing-file';input.type='file';document.body.append(input);
@@ -64,7 +72,21 @@ try{
   const result=await timingRpc('timing',{seconds:pts});return {...result,notifications:timingEvents.slice()};
  },pts);}
  async function render(pts){await page.evaluate(pts=>timingRpc('render',{seconds:pts,width:640,height:360}),pts);}
- async function close(){await page.evaluate(()=>subtitleTimingWorker.postMessage({type:'close'}));await page.waitForTimeout(150);}
+ async function close(){
+  const worker=page.workers().find(item=>item.url().endsWith('/web/mpv-subtitle-worker.js'));
+  assert.ok(worker,'subtitle worker exists before close');
+  const stopped=new Promise(resolve=>worker.once('close',resolve));
+  await page.evaluate(()=>new Promise((resolve,reject)=>{
+   const worker=subtitleTimingWorker;
+   const timeout=setTimeout(()=>reject(Error('subtitle worker close timed out')),5000);
+   worker.addEventListener('message',function onClosed({data}){
+    if(data.type!=='closed')return;
+    clearTimeout(timeout);worker.removeEventListener('message',onClosed);resolve();
+   });
+   worker.postMessage({type:'close'});
+  }));
+  await stopped;
+ }
  async function fresh(){await page.evaluate(()=>{
   window.timingEvents=[];window.pendingTiming=new Map();window.timingId=0;
   window.subtitleTimingWorker=new Worker('/web/mpv-subtitle-worker.js',{type:'module'});
@@ -87,6 +109,11 @@ try{
  await page.evaluate(()=>timingRpc('select',{trackId:-2}));t=await query(6);assert.ok(t.epoch>afterSeek&&!t.supported,'track reset invalidates timing');
  await page.evaluate(id=>timingRpc('select',{trackId:id}),selectedId);
  await render(4.2);t=await query(4.2);assert.ok(Math.abs(t.next-5)<.03,'track reselect rebuilds raw timing');
+ const beforeDelay=t.epoch;
+ await page.evaluate(()=>timingRpc('testDelay',{seconds:1}));
+ t=await query(5.2);assert.ok(t.epoch>beforeDelay,'sub-delay invalidates native epoch');
+ await render(5.2);t=await query(5.2);
+ assert.ok(Math.abs(t.next-6)<.03,'changed sub-delay shifts the next raw boundary');
  await close();await fresh();await open('late');await render(5);
  const initial=await query(5);assert.equal(initial.avChains,0);
  const notifications=initial.notifications.length;
