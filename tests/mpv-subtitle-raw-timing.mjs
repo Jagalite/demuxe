@@ -97,5 +97,5 @@ try{
  assert.equal(await page.evaluate(()=>timingRenders),renders,'timing notification must not request a render');
  console.log('PASS late decode notification',initial,later);
  await close();
- console.log('PASS maintained timing bridge; production frame scheduler remains unchanged');
+ console.log('PASS maintained timing bridge');
 }finally{await browser.close();await server.close();}

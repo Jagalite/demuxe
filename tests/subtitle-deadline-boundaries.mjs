@@ -19,7 +19,7 @@ if(overlapFixture==='build/subtitle-static-overlap.mkv'){
 }
 const report={browser:browser.version(),lane,fixture:overlapFixture??'results/subtitle-stack-upgrade/same-text-style.mkv',runs:[]};
 const hostSource=await readFile('web/generated/internal/native-mpv-subtitles.js','utf8');
-const baselineSource=hostSource.replace('this.staticQualified = !!profile.qualified;','this.staticQualified = false;');
+const baselineSource=hostSource.replace(/this\.applyMode\((?:profile\.mode|result\.mode|mode)\);/g,"this.applyMode('fallback');");
 assert.notEqual(hostSource,baselineSource);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
@@ -76,4 +76,4 @@ try{
  }
  report.passed=true;
 }catch(error){report.passed=false;report.error=String(error.stack??error);process.exitCode=1;}
-finally{await browser.close();await server.close();await mkdir('results/subtitle-deadline-production',{recursive:true});await writeFile(`results/subtitle-deadline-production/${overlapFixture?'boundaries-overlap':lane==='remux'?'boundaries-remux':'boundaries'}.json`,JSON.stringify(report,null,2)+'\n');}
+finally{await browser.close();await server.close();await mkdir('results/subtitle-deadline-production',{recursive:true});await writeFile(`results/subtitle-deadline-production/${overlapFixture?lane==='remux'?'boundaries-overlap-remux':'boundaries-overlap':lane==='remux'?'boundaries-remux':'boundaries'}.json`,JSON.stringify(report,null,2)+'\n');}

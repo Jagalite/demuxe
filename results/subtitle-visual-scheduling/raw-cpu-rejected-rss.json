@@ -1,0 +1,112 @@
+{
+  "createdAt": "2026-09-24T15:50:07.647Z",
+  "fixtures": {
+    "srt": {
+      "path": "build/head-to-head/assets-component-isolation-01/fixtures/h264-srt/index.mkv",
+      "sha256": "7ef668ade53656365e494dae9b726eafa84f742c94ad6b27c4099000433ce45c"
+    },
+    "mixed-ass": {
+      "path": "build/subtitle-mixed-animated.mkv",
+      "sha256": "b2d68afa5b5cf094fb5949841a69c724d6cbf3b3073b7b588c70ca8158197cd8"
+    },
+    "pgs": {
+      "path": "build/mpv-subtitle-service/generalization/h264-aac-pgs.mkv",
+      "sha256": "1b380e924c7396b771df9598f40126ac9f51e341a7cb88dec6a4a5bb9803cb72"
+    },
+    "vobsub": {
+      "path": "build/mpv-subtitle-service/generalization/h264-aac-vobsub.mkv",
+      "sha256": "92fe2d49a99740215e646ccaac6551bd8086aa7f65af3351642c665e42862aaf"
+    }
+  },
+  "runtime": {
+    "web/generated/internal/native-mpv-subtitles.js": "31b98b39698d6018fe855afe93b6b6b1aac7db81bf823f080c8e3065cf59feeb",
+    "web/mpv-subtitle-worker.js": "07a432e123083f46d2c196eb34bc6d5efa0bb40a870bad0d482336775560467b",
+    "web/engine-subtitles/service.mjs": "4ab53c51b647d3318fe832262d61d9efc1771d72a167d2831a2829cf9e3e0fde",
+    "web/engine-subtitles/service.wasm": "12d2a2495bb8013bc40995b6aa00f5bf11e7d4f043ef957cdd34c45df45e9c3e"
+  },
+  "protocol": {
+    "steadySeconds": 8,
+    "samples": 9,
+    "processMembership": "checked at each sample",
+    "modeIntervalMs": 50,
+    "route": "native-direct-mpv"
+  },
+  "trials": [
+    {
+      "name": "srt",
+      "pair": 1,
+      "mode": "old",
+      "passed": true,
+      "measure": {
+        "duration": 8.747578791,
+        "mediaAdvance": 8.765502,
+        "rendererCpu": 7.233384404047946,
+        "totalChromeCpu": 30.52504085755996,
+        "fullRendersPerSecond": 60.016607171363745,
+        "stateUpdatesPerSecond": 0,
+        "modeCounts": {
+          "deadline": 0,
+          "animated": 0,
+          "frame": 176
+        },
+        "modeSamples": 176,
+        "startTime": 3.248306,
+        "endTime": 12.013808
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 1,
+      "mode": "new",
+      "passed": true,
+      "measure": {
+        "duration": 8.713670667000002,
+        "mediaAdvance": 8.764918999999999,
+        "rendererCpu": 2.7816061595939123,
+        "totalChromeCpu": 22.098574453731977,
+        "fullRendersPerSecond": 0,
+        "stateUpdatesPerSecond": 9.984311242044326,
+        "modeCounts": {
+          "deadline": 176,
+          "animated": 0,
+          "frame": 0
+        },
+        "modeSamples": 176,
+        "startTime": 3.239784,
+        "endTime": 12.004703
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 2,
+      "mode": "new",
+      "passed": true,
+      "measure": {
+        "duration": 8.825328041999997,
+        "mediaAdvance": 8.765696,
+        "rendererCpu": 3.9421877390197984,
+        "totalChromeCpu": 29.261121940287424,
+        "fullRendersPerSecond": 0,
+        "stateUpdatesPerSecond": 9.971300735927933,
+        "modeCounts": {
+          "deadline": 178,
+          "animated": 0,
+          "frame": 0
+        },
+        "modeSamples": 178,
+        "startTime": 3.254997,
+        "endTime": 12.020693
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 2,
+      "mode": "old",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: RSS gap sample 0\n+ actual - expected\n\n+ '5863,5868,5869,5870,5874,5875,5878,5989'\n- '5863,5868,5869,5870,5874,5875,5878,5989,5991'\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/subtitle-visual-cpu.mjs:56:12"
+    }
+  ],
+  "browser": "Chrome 153.0.8010.53",
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: RSS gap sample 0\n+ actual - expected\n\n+ '5863,5868,5869,5870,5874,5875,5878,5989'\n- '5863,5868,5869,5870,5874,5875,5878,5989,5991'\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/subtitle-visual-cpu.mjs:56:12"
+}

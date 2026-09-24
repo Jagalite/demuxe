@@ -16,7 +16,7 @@ export declare class NativeMpvSubtitles {
     private revision;
     private timingEpoch;
     private deadlineEpoch;
-    private staticQualified;
+    private schedulerMode;
     private pumpTimer?;
     private pumpBusy;
     private stopped;
@@ -53,6 +53,7 @@ export declare class NativeMpvSubtitles {
     constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], file: File, failed: (e: Error) => void, defaultStreamIndex?: number | undefined);
     private request;
     private fail;
+    private applyMode;
     private syncPump;
     private pump;
     select(id: string): Promise<void>;

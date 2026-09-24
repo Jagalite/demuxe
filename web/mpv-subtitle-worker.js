@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import create from './engine-subtitles/service.mjs';
 import {SubtitleOverlay} from './subtitle-overlay.js';
-let engine, io, closed=false, ioStats, fatal, lastTime=0,textPointer,timingPointer,selectedTrack=false,sourceBytes=Infinity;
+let engine, io, closed=false, ioStats, fatal, lastTime=0,textPointer,timingPointer,selectedTrack=false;
 const overlay=new SubtitleOverlay();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const check=()=>{if(closed)throw Error('Subtitle service closed');if(fatal)throw fatal;};
@@ -13,11 +13,15 @@ const timing=seconds=>{
  const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
  return {supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true)};
 };
-const armDeadline=(seconds,rate,running,qualified)=>{
+const visual=seconds=>{
+ const status=engine._subtitle_service_visual_schedule(seconds,timingPointer,timingPointer+8);
+ const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
+ return {mode:status===1?'deadline':status===2?'animated':'fallback',unstable:status===-2,next:status>0&&view.getFloat64(0,true)>seconds?view.getFloat64(0,true):null,epoch:view.getUint32(8,true)};
+};
+const armDeadline=(seconds,rate,running)=>{
  cancelDeadline();
- if(!running||!qualified||!(rate>0))return {epoch:deadlineEpoch,next:null};
- const snapshot=timing(seconds+.0005);
- if(!snapshot.supported||snapshot.unstable||snapshot.next===null||snapshot.next<=seconds+.0005)return {epoch:deadlineEpoch,next:null};
+ const snapshot=visual(seconds+.0005);
+ if(!running||snapshot.mode!=='deadline'||!(rate>0)||snapshot.next===null)return {...snapshot,timingEpoch:snapshot.epoch,epoch:deadlineEpoch};
  const epoch=deadlineEpoch,target=snapshot.next;
  const ms=Math.max(1,Math.ceil((target-seconds)*1000/rate)+2);
  deadlineTimer=setTimeout(()=>{
@@ -25,7 +29,23 @@ const armDeadline=(seconds,rate,running,qualified)=>{
   deadlineTimer=0;scheduler.deadlineWakes++;
   postMessage({type:'subtitleDeadline',epoch,target});
  },ms);
- return {epoch,next:target};
+ return {...snapshot,timingEpoch:snapshot.epoch,epoch,next:target};
+};
+const seekDisplay=async seconds=>{
+ const recovery=engine._subtitle_service_bitmap_recovery_point(seconds);
+ const start=recovery>=0&&recovery<seconds-.001?recovery:seconds;
+ if(engine._subtitle_service_seek(start)<0)throw Error('Subtitle seek failed');
+ await delay(30);
+ if(start===seconds)return;
+ engine._subtitle_service_block(0);
+ try{
+  let ready=0;
+  for(let i=0;i<400&&!ready;i++){
+   check();ready=engine._subtitle_service_update(seconds);scheduler.nativeUpdateCalls++;
+   if(ready<0){ready=0;await delay(5);continue;}if(!ready)await delay(5);
+  }
+  if(!ready)throw Error('Subtitle packet deadline exceeded');
+ }finally{engine._subtitle_service_block(1);}
 };
 let chain=Promise.resolve();
 onmessage=({data:d})=>{
@@ -60,7 +80,7 @@ onmessage=({data:d})=>{
      io.onerror=e=>{clearTimeout(timeout);fatal=Error(e.message);reject(fatal);};
      io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,subtitleCacheBytes:4*1024*1024,subtitleMaxRequests:8192});
     });
-    check();sourceBytes=Number(info.size);engine._web_io_configure(1,BigInt(info.size));
+    check();engine._web_io_configure(1,BigInt(info.size));
     if(engine._subtitle_service_open()<0)throw Error('Subtitle source open failed');
     let loaded=0;
     for(let i=0;i<2000&&!loaded;i++){check();loaded=engine._subtitle_service_loaded();if(loaded<0)throw Error('Subtitle source load failed');if(!loaded)await delay(10);}
@@ -76,14 +96,14 @@ onmessage=({data:d})=>{
     if(engine._subtitle_service_select(d.trackId)<0)throw Error('Subtitle selection failed');selectedTrack=d.trackId>0;overlay.clear();lastTime=0;await delay(0);
    }else if(d.type==='seek'){
     cancelDeadline();lastTimingEpoch=-1;
-    if(engine._subtitle_service_seek(d.seconds)<0)throw Error('Subtitle seek failed');overlay.clear();lastTime=d.seconds;await delay(30);
+    await seekDisplay(d.seconds);overlay.clear();lastTime=d.seconds;
    }else if(d.type==='timing'){
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle timing position');
     const status=engine._subtitle_service_next_raw_boundary(d.seconds,timingPointer,timingPointer+8);
     const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
-    result={supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true),avChains:engine._subtitle_service_av_chains()};
+    result={supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true),visual:visual(d.seconds),avChains:engine._subtitle_service_av_chains()};
    }else if(d.type==='profile'){
-    if(selectedTrack&&sourceBytes<=8*1024*1024&&engine._subtitle_service_ass_scan_needed()){
+    if(selectedTrack&&engine._subtitle_service_ass_scan_needed()){
      const restore=lastTime;let moved=false,restoreFailed=false;
      engine._subtitle_service_block(0);
      try{
@@ -101,17 +121,16 @@ onmessage=({data:d})=>{
      }
      if(restoreFailed)throw Error('Subtitle scan restore failed');
     }
-    result={qualified:!!selectedTrack&&!!engine._subtitle_service_static_profile(),avChains:engine._subtitle_service_av_chains()};
+    result={mode:selectedTrack?visual(lastTime).mode:'fallback',avChains:engine._subtitle_service_av_chains()};
    }else if(d.type==='cancelDeadline'){
     cancelDeadline();result={epoch:deadlineEpoch};
    }else if(d.type==='pump'){
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle clock position');
-    if(!selectedTrack){cancelDeadline();result={qualified:false};}
+    if(!selectedTrack){cancelDeadline();result={mode:'fallback'};}
     else{
      if(!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1){
       cancelDeadline();lastTimingEpoch=-1;
-      if(engine._subtitle_service_seek(d.seconds)<0)throw Error('Subtitle seek failed');
-      overlay.clear();await delay(30);
+      await seekDisplay(d.seconds);overlay.clear();
      }
      lastTime=d.seconds;engine._subtitle_service_block(0);let ready=0;
      for(let i=0;i<400&&!ready;i++){
@@ -121,18 +140,16 @@ onmessage=({data:d})=>{
      engine._subtitle_service_block(1);if(!ready)throw Error('Subtitle packet deadline exceeded');
      scheduler.stateUpdates++;
      if(engine._subtitle_service_av_chains()!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');
-     const qualified=!!engine._subtitle_service_static_profile();
-     const snapshot=qualified?timing(d.seconds):null;
-     const timingChanged=!!snapshot&&lastTimingEpoch>=0&&snapshot.epoch!==lastTimingEpoch;
-     if(snapshot)lastTimingEpoch=snapshot.epoch;
-     const schedule=armDeadline(d.seconds,d.rate,d.running,qualified);
-     result={qualified,timingChanged,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}};
+     const schedule=armDeadline(d.seconds,d.rate,d.running);
+     const timingChanged=lastTimingEpoch>=0&&schedule.timingEpoch!==lastTimingEpoch;
+     lastTimingEpoch=schedule.timingEpoch;
+     result={mode:schedule.mode,timingChanged,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}};
     }
    }else if(d.type==='render'){
     if(!Number.isFinite(d.seconds)||d.width<1||d.height<1||d.width>1920||d.height>1080)throw Error('Invalid subtitle render bounds');
     if(!selectedTrack){if(engine._subtitle_service_av_chains()!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');postMessage({id:d.id,size:0,text:'',service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats}});return;}
     if(!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1){
-     if(engine._subtitle_service_seek(d.seconds)<0)throw Error('Subtitle seek failed');overlay.clear();await delay(30);
+     await seekDisplay(d.seconds);overlay.clear();
     }
     lastTime=d.seconds;engine._subtitle_service_block(0);let ready=0;
     for(let i=0;i<400&&!ready;i++){
@@ -149,9 +166,8 @@ onmessage=({data:d})=>{
     let text='';
     try{if(textLength>0)text=new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(engine.HEAPU8.subarray(textPointer,textPointer+textLength)));}
     catch{throw Error('Subtitle decode failed');}
-    const qualified=!!d.static&&!!engine._subtitle_service_static_profile();
-    const schedule=armDeadline(d.seconds,d.rate,d.running,qualified);
-    postMessage({id:d.id,bitmap,unchanged:!bitmap,hasOverlay:!!snapshot.surface,size:bitmap?engine.HEAP32[(engine._web_subtitle_ptr()>>>2)+2]:0,text,qualified,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}},bitmap?[bitmap]:[]);return;
+    const schedule=armDeadline(d.seconds,d.rate,d.running);
+    postMessage({id:d.id,bitmap,unchanged:!bitmap,hasOverlay:!!snapshot.surface,size:bitmap?engine.HEAP32[(engine._web_subtitle_ptr()>>>2)+2]:0,text,mode:schedule.mode,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}},bitmap?[bitmap]:[]);return;
    }
    postMessage({id:d.id,...result});
   }catch(error){postMessage({id:d.id,error:String(error)});}

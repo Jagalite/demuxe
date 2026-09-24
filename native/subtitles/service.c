@@ -76,13 +76,6 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_update(double pts){
  }
  unlock_core(subtitle_service);return r;
 }
-EMSCRIPTEN_KEEPALIVE int subtitle_service_static_profile(void){
- if(!subtitle_service)return 0;
- lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
- struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
- int qualified=track&&track->d_sub&&sub_static_timing_qualified(track->d_sub);
- unlock_core(subtitle_service);return qualified;
-}
 // The worker drives a bounded asynchronous EOF scan through update_subtitles.
 EMSCRIPTEN_KEEPALIVE int subtitle_service_ass_scan_needed(void){
  if(!subtitle_service)return 0;
@@ -122,6 +115,36 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_next_raw_boundary(double pts,double *n
   }
  }
  *epoch=snapshot_epoch;
+ unlock_core(subtitle_service);return result;
+}
+// 0 unsupported, 1 boundary driven, 2 animated, -2 unstable decoder epoch.
+EMSCRIPTEN_KEEPALIVE int subtitle_service_visual_schedule(double pts,double *next,unsigned *epoch){
+ if(!subtitle_service||!next||!epoch||!isfinite(pts))return 0;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
+ struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
+ struct dec_sub *sub=track?track->d_sub:NULL;
+ int result=0;*next=MP_NOPTS_VALUE;unsigned snapshot=atomic_load(&timing_epoch);
+ if(sub){
+  sub_set_timing_changed_cb(sub,subtitle_timing_changed,NULL);
+  for(int attempt=0;attempt<2;attempt++){
+   unsigned before=atomic_load(&timing_epoch);
+   result=sub_visual_schedule(sub,pts,next);
+   unsigned after=atomic_load(&timing_epoch);snapshot=after;
+   if(before==after)break;
+   result=-2;*next=MP_NOPTS_VALUE;
+  }
+ }
+ *epoch=snapshot;unlock_core(subtitle_service);return result;
+}
+// Ask mpv's bitmap decoder for its last known subtitle start before a seek.
+// This lets the subtitle-only worker replay the active bitmap after an exact
+// browser seek that would otherwise land beyond its packet.
+EMSCRIPTEN_KEEPALIVE double subtitle_service_bitmap_recovery_point(double pts){
+ if(!subtitle_service||!isfinite(pts))return -1;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;
+ struct track *track=m->playback_initialized?m->current_track[0][STREAM_SUB]:NULL;
+ struct dec_sub *sub=track?track->d_sub:NULL;double result=-1;
+ if(sub){double point=sub_bitmap_recovery_point(sub,pts);if(point!=MP_NOPTS_VALUE)result=point;}
  unlock_core(subtitle_service);return result;
 }
 EMSCRIPTEN_KEEPALIVE int subtitle_service_seek(double pts){subtitle_timing_invalidate();char time[64];snprintf(time,sizeof(time),"%.6f",pts);const char *c[]={"seek",time,"absolute+exact",NULL};return mpv_command(subtitle_service,c);}

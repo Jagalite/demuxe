@@ -21,6 +21,8 @@ headers and grants remain in force for every modified file.
 | `patches/0012-matroska-realaudio144.patch` | Matroska RealAudio 14.4 path |
 | `patches/0013-browser-no-subprocess.patch` | Select mpv's unsupported subprocess stub on Emscripten |
 | `patches/0014-subtitle-raw-timing.patch` | Internal numeric ASS event boundaries and decoder timing-change callback; public `sub-lines` unchanged |
+| `patches/0015-subtitle-static-profile.patch` | Conservative static text qualification and bounded ASS scan state |
+| `patches/0016-subtitle-visual-schedule.patch` | Decoder-owned visual mode and next boundary for ASS text, PGS, and DVD/VobSub |
 
 `native/ao_browser.c` and `native/audio_bridge.h` are Demuxe original LGPL
 integration sources copied into the mpv source tree by the patch replay script.

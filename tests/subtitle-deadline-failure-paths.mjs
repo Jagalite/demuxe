@@ -43,8 +43,8 @@ try{
   await open(fallback,'build/head-to-head/assets-component-isolation-01/fixtures/h264-ass/index.mkv');
   assert.equal(await fallback.evaluate(()=>player.current.backend.mpvSubs.stats.scheduler),'frame');
   await fallback.evaluate(()=>player.seek(1));await fallback.evaluate(()=>player.play());await sleep(1200);
-  const result=await fallback.evaluate(async()=>({text:await player.current.backend.mpvSubs.currentText(),renders:player.current.backend.mpvSubs.stats.renders,avChains:player.current.backend.mpvSubs.service.avChains}));
-  assert.ok(result.renders>35,JSON.stringify(result));assert.equal(result.avChains,0);
+  const result=await fallback.evaluate(()=>{const sub=player.current.backend.mpvSubs,c=document.querySelector('.demuxe-native-ass'),data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let pixels=0;for(let i=3;i<data.length;i+=4)if(data[i])pixels++;return {position:sub.stats.position,pixels,renders:sub.stats.renders,avChains:sub.service.avChains};});
+  assert.ok(result.renders>35,JSON.stringify(result));assert.ok(result.pixels>0,JSON.stringify(result));assert.equal(result.avChains,0);
   console.log('ASS scan seek failure fallback',JSON.stringify(result));
   await fallback.evaluate(()=>player.destroy());for(let i=0;i<50&&fallback.workers().length;i++)await sleep(100);assert.equal(fallback.workers().length,0);
  }finally{await fallback.close();}

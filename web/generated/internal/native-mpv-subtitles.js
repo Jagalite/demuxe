@@ -16,7 +16,7 @@ export class NativeMpvSubtitles {
     revision = 0;
     timingEpoch = 0;
     deadlineEpoch = -1;
-    staticQualified = false;
+    schedulerMode = 'fallback';
     pumpTimer;
     pumpBusy = false;
     stopped = false;
@@ -61,11 +61,11 @@ export class NativeMpvSubtitles {
                 return;
             } if (data.type === 'subtitleTimingChanged') {
                 this.timingEpoch = data.epoch >>> 0;
-                if (this.staticQualified)
+                if (this.schedulerMode !== 'fallback')
                     void this.pump();
                 return;
             } if (data.type === 'subtitleDeadline') {
-                if (this.staticQualified && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
+                if (this.schedulerMode === 'deadline' && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
                     if (this.time() + .004 >= data.target)
                         this.invalidate();
                     else
@@ -147,8 +147,17 @@ export class NativeMpvSubtitles {
         clearTimeout(p.timer);
         p.reject(error);
     } this.pending.clear(); this.destroy(); this.failed(error); }
+    applyMode(mode) {
+        const next = mode === 'deadline' || mode === 'animated' ? mode : 'fallback';
+        if (this.schedulerMode === next)
+            return;
+        this.schedulerMode = next;
+        this.stats.scheduler = next === 'fallback' ? 'frame' : next;
+        this.syncPump();
+        this.invalidate();
+    }
     syncPump() {
-        const running = this.staticQualified && this.enabled && !this.changingTrack && !this.video.paused && !this.video.ended && !document.hidden;
+        const running = this.schedulerMode !== 'fallback' && this.enabled && !this.changingTrack && !this.video.paused && !this.video.ended && !document.hidden;
         if (running) {
             if (!this.pumpTimer) {
                 this.pumpTimer = setInterval(() => { void this.pump(); }, 100);
@@ -161,12 +170,12 @@ export class NativeMpvSubtitles {
                 this.pumpTimer = undefined;
             }
             this.deadlineEpoch = -1;
-            if (this.staticQualified && !this.stopped)
+            if (this.schedulerMode === 'deadline' && !this.stopped)
                 void this.request('cancelDeadline').catch(error => this.fail(error));
         }
     }
     async pump() {
-        if (this.pumpBusy || this.stopped || !this.staticQualified || !this.enabled || this.changingTrack || this.video.paused || this.video.ended || document.hidden)
+        if (this.pumpBusy || this.stopped || this.schedulerMode === 'fallback' || !this.enabled || this.changingTrack || this.video.paused || this.video.ended || document.hidden)
             return;
         this.pumpBusy = true;
         try {
@@ -174,13 +183,7 @@ export class NativeMpvSubtitles {
             if (this.stopped)
                 return;
             this.service = result.service ?? this.service;
-            if (!result.qualified) {
-                this.staticQualified = false;
-                this.stats.scheduler = 'frame';
-                this.syncPump();
-                this.invalidate();
-                return;
-            }
+            this.applyMode(result.mode);
             this.stats.stateUpdates++;
             this.deadlineEpoch = result.schedule?.epoch ?? -1;
             if (result.timingChanged)
@@ -202,8 +205,7 @@ export class NativeMpvSubtitles {
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested subtitle track was not enumerated by mpv');
         const previous = this.tracks.find(t => t.selected);
         this.changingTrack = true;
-        this.staticQualified = false;
-        this.stats.scheduler = 'frame';
+        this.applyMode('fallback');
         this.syncPump();
         this.revision++;
         try {
@@ -213,8 +215,7 @@ export class NativeMpvSubtitles {
             if (track) {
                 await this.verify();
                 const profile = await this.request('profile');
-                this.staticQualified = !!profile.qualified;
-                this.stats.scheduler = this.staticQualified ? 'deadline' : 'frame';
+                this.applyMode(profile.mode);
             }
         }
         catch (error) {
@@ -264,7 +265,7 @@ export class NativeMpvSubtitles {
     async currentText() {
         await this.ready;
         const width = Math.min(1920, this.video.videoWidth || this.video.width), height = Math.min(1080, this.video.videoHeight || this.video.height);
-        const result = await this.request('render', { seconds: this.time(), width, height, force: false, static: this.staticQualified, rate: this.video.playbackRate, running: this.staticQualified && !this.video.paused && !document.hidden });
+        const result = await this.request('render', { seconds: this.time(), width, height, force: false, rate: this.video.playbackRate, running: !this.video.paused && !document.hidden });
         result.bitmap?.close();
         return String(result.text ?? '');
     }
@@ -291,7 +292,7 @@ export class NativeMpvSubtitles {
         this.frame = requestAnimationFrame(() => this.tick()); }
     tick() {
         this.frame = 0;
-        if (this.stopped || !this.enabled || this.changingTrack || this.staticQualified && document.hidden)
+        if (this.stopped || !this.enabled || this.changingTrack || this.schedulerMode === 'deadline' && document.hidden)
             return;
         const rect = this.video.getBoundingClientRect(), parent = this.video.parentElement.getBoundingClientRect();
         const ratio = this.video.videoWidth / this.video.videoHeight;
@@ -315,18 +316,11 @@ export class NativeMpvSubtitles {
         const seconds = this.time(), key = `${w}:${h}:${sourceWidth}:${sourceHeight}:${seconds}`, revision = this.revision;
         if (!this.busy && key !== this.last) {
             this.busy = true;
-            this.request('render', { seconds, width: w, height: h, sourceWidth, sourceHeight, force: this.lastRevision !== revision, static: this.staticQualified, rate: this.video.playbackRate, running: this.staticQualified && !this.video.paused && !this.video.ended && !document.hidden }).then(({ bitmap, size, unchanged, service, qualified, schedule }) => {
+            this.request('render', { seconds, width: w, height: h, sourceWidth, sourceHeight, force: this.lastRevision !== revision, rate: this.video.playbackRate, running: !this.video.paused && !this.video.ended && !document.hidden }).then(({ bitmap, size, unchanged, service, mode, schedule }) => {
                 this.service = service;
-                if (this.staticQualified) {
-                    if (!qualified) {
-                        this.staticQualified = false;
-                        this.stats.scheduler = 'frame';
-                        this.syncPump();
-                        this.invalidate();
-                    }
-                    else
-                        this.deadlineEpoch = schedule?.epoch ?? -1;
-                }
+                this.applyMode(mode);
+                if (this.schedulerMode === 'deadline')
+                    this.deadlineEpoch = schedule?.epoch ?? -1;
                 if (this.stopped || !this.enabled || revision !== this.revision) {
                     bitmap?.close();
                     this.stats.discarded++;
@@ -357,11 +351,11 @@ export class NativeMpvSubtitles {
                 this.busy = false;
                 // A static invalidation can arrive while this render is in flight.
                 // The old response is discarded above, so schedule its replacement.
-                if (this.staticQualified && !this.stopped && this.enabled && revision !== this.revision)
+                if (this.schedulerMode === 'deadline' && !this.stopped && this.enabled && revision !== this.revision)
                     this.invalidate();
             });
         }
-        if (!this.staticQualified && (!this.video.paused || this.busy || this.last !== key))
+        if (this.schedulerMode !== 'deadline' && (!this.video.paused || this.busy || this.last !== key))
             this.frame = requestAnimationFrame(() => this.tick());
     }
     destroy() {

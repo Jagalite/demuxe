@@ -38,7 +38,7 @@ try{
       if(d.text===undefined)throw Error(`${name} lost subtitle service: ${JSON.stringify(d.selection)}`);
       assert.equal(d.backend.mpvSubtitles.avChains,0);
       if(['h264-srt','h264-movtext','multi-srt'].includes(name))assert.equal(d.text,seconds>=.5&&seconds<35.8?'DE MUXE TEST 123':'');
-      const visible=name==='h264-pgs'?seconds<6:name==='h264-vobsub'?seconds<35.3:seconds>=.5&&seconds<35.8;
+      const visible=name==='h264-pgs'||name==='h264-vobsub'?seconds<35.3:seconds>=.5&&seconds<35.8;
       assert.equal(d.pixels>0,visible,`${name} ${seconds}: visible overlay`);
       if(visible&&['h264-ass','h264-pgs','h264-vobsub'].includes(name))assert.ok(d.magenta>1000,`${name} ${seconds}: marked palette/shape color`);
       console.log(name,lane,seconds,initial.plan,d.pixels,JSON.stringify(d.text),d.backend.mpvSubtitles.io?.cacheHits);

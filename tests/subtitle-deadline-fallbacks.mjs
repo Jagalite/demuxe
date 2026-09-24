@@ -21,10 +21,12 @@ try{
    await page.goto(server.origin+'/experiment/page.html');
    await page.evaluate(async()=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'));const input=document.createElement('input');input.type='file';input.id='media';document.body.append(input);});
    await page.locator('#media').setInputFiles(file);await page.evaluate(()=>player.open(document.querySelector('#media').files[0]));
-   const scheduler=await page.evaluate(()=>player.current.backend.mpvSubs.stats.scheduler);assert.equal(scheduler,'frame',name);
+   const scheduler=await page.evaluate(()=>player.current.backend.mpvSubs.stats.scheduler);assert.equal(scheduler,'deadline',name);
+   if(name==='animated-ass')await page.evaluate(()=>player.seek(4));
    await page.evaluate(()=>player.play());await page.waitForTimeout(1200);
    const result=await page.evaluate(()=>({route:player.diagnostics.plan.id,scheduler:player.current.backend.mpvSubs.stats.scheduler,renders:player.current.backend.mpvSubs.stats.renders,avChains:player.current.backend.mpvSubs.service.avChains}));
-   assert.equal(result.route,'native-direct-mpv');assert.equal(result.scheduler,'frame');assert.equal(result.avChains,0);assert.ok(result.renders>35,JSON.stringify(result));
+   assert.equal(result.route,'native-direct-mpv');assert.equal(result.scheduler,name==='animated-ass'?'animated':'deadline');assert.equal(result.avChains,0);
+   assert.ok(name==='animated-ass'?result.renders>35:result.renders<6,JSON.stringify(result));
    console.log(name,JSON.stringify(result));await page.evaluate(()=>player.destroy());
    for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);assert.equal(page.workers().length,0);
   }finally{await page.close();}

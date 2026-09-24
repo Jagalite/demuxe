@@ -1,0 +1,156 @@
+{
+  "createdAt": "2026-09-24T15:48:35.734Z",
+  "fixtures": {
+    "srt": {
+      "path": "build/head-to-head/assets-component-isolation-01/fixtures/h264-srt/index.mkv",
+      "sha256": "7ef668ade53656365e494dae9b726eafa84f742c94ad6b27c4099000433ce45c"
+    },
+    "mixed-ass": {
+      "path": "build/subtitle-mixed-animated.mkv",
+      "sha256": "b2d68afa5b5cf094fb5949841a69c724d6cbf3b3073b7b588c70ca8158197cd8"
+    },
+    "pgs": {
+      "path": "build/mpv-subtitle-service/generalization/h264-aac-pgs.mkv",
+      "sha256": "1b380e924c7396b771df9598f40126ac9f51e341a7cb88dec6a4a5bb9803cb72"
+    },
+    "vobsub": {
+      "path": "build/mpv-subtitle-service/generalization/h264-aac-vobsub.mkv",
+      "sha256": "92fe2d49a99740215e646ccaac6551bd8086aa7f65af3351642c665e42862aaf"
+    }
+  },
+  "runtime": {
+    "web/generated/internal/native-mpv-subtitles.js": "31b98b39698d6018fe855afe93b6b6b1aac7db81bf823f080c8e3065cf59feeb",
+    "web/mpv-subtitle-worker.js": "07a432e123083f46d2c196eb34bc6d5efa0bb40a870bad0d482336775560467b",
+    "web/engine-subtitles/service.mjs": "4ab53c51b647d3318fe832262d61d9efc1771d72a167d2831a2829cf9e3e0fde",
+    "web/engine-subtitles/service.wasm": "12d2a2495bb8013bc40995b6aa00f5bf11e7d4f043ef957cdd34c45df45e9c3e"
+  },
+  "protocol": {
+    "steadySeconds": 8,
+    "samples": 9,
+    "processMembership": "checked at each sample",
+    "modeIntervalMs": 50,
+    "route": "native-direct-mpv"
+  },
+  "trials": [
+    {
+      "name": "srt",
+      "pair": 1,
+      "mode": "old",
+      "passed": true,
+      "measure": {
+        "duration": 8.894991167,
+        "mediaAdvance": 8.766225,
+        "rendererCpu": 14.705770645988993,
+        "totalChromeCpu": 34.54456493897044,
+        "fullRendersPerSecond": 60.033786428154635,
+        "stateUpdatesPerSecond": 0,
+        "modeCounts": {
+          "deadline": 0,
+          "animated": 0,
+          "frame": 179
+        },
+        "modeSamples": 179,
+        "startTime": 2.174638,
+        "endTime": 10.940863
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 1,
+      "mode": "new",
+      "passed": true,
+      "measure": {
+        "duration": 8.867409459000001,
+        "mediaAdvance": 8.76365,
+        "rendererCpu": 5.757713144528426,
+        "totalChromeCpu": 27.437483418910205,
+        "fullRendersPerSecond": 0,
+        "stateUpdatesPerSecond": 10.036753170303781,
+        "modeCounts": {
+          "deadline": 179,
+          "animated": 0,
+          "frame": 0
+        },
+        "modeSamples": 179,
+        "startTime": 2.176306,
+        "endTime": 10.939956
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 2,
+      "mode": "new",
+      "passed": true,
+      "measure": {
+        "duration": 8.916186041000001,
+        "mediaAdvance": 9.031029,
+        "rendererCpu": 6.280297398742893,
+        "totalChromeCpu": 28.068750343384643,
+        "fullRendersPerSecond": 0,
+        "stateUpdatesPerSecond": 9.981846452142685,
+        "modeCounts": {
+          "deadline": 180,
+          "animated": 0,
+          "frame": 0
+        },
+        "modeSamples": 180,
+        "startTime": 2.174598,
+        "endTime": 11.205627
+      }
+    },
+    {
+      "name": "srt",
+      "pair": 2,
+      "mode": "old",
+      "passed": true,
+      "measure": {
+        "duration": 8.884103332999999,
+        "mediaAdvance": 8.765533,
+        "rendererCpu": 13.813830771659713,
+        "totalChromeCpu": 34.51733827328728,
+        "fullRendersPerSecond": 59.994799702539666,
+        "stateUpdatesPerSecond": 0,
+        "modeCounts": {
+          "deadline": 0,
+          "animated": 0,
+          "frame": 179
+        },
+        "modeSamples": 179,
+        "startTime": 2.18873,
+        "endTime": 10.954263
+      }
+    },
+    {
+      "name": "mixed-ass",
+      "pair": 1,
+      "mode": "old",
+      "passed": true,
+      "measure": {
+        "duration": 8.878037625000005,
+        "mediaAdvance": 8.765732,
+        "rendererCpu": 15.691722189564379,
+        "totalChromeCpu": 45.36300892281922,
+        "fullRendersPerSecond": 60.035789722168445,
+        "stateUpdatesPerSecond": 0,
+        "modeCounts": {
+          "deadline": 0,
+          "animated": 0,
+          "frame": 179
+        },
+        "modeSamples": 179,
+        "startTime": 3.576644,
+        "endTime": 12.342376
+      }
+    },
+    {
+      "name": "mixed-ass",
+      "pair": 1,
+      "mode": "new",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: process churn sample 1\n+ actual - expected\n\n+ '3077,3081,3082,3083,3085,3086,3088,3089,3105'\n- '3077,3081,3082,3083,3085,3086,3088,3089'\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/subtitle-visual-cpu.mjs:53:12"
+    }
+  ],
+  "browser": "Chrome 153.0.8010.53",
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: process churn sample 1\n+ actual - expected\n\n+ '3077,3081,3082,3083,3085,3086,3088,3089,3105'\n- '3077,3081,3082,3083,3085,3086,3088,3089'\n\n    at file:///Volumes/seed2/Projects/demuxe/tests/subtitle-visual-cpu.mjs:53:12"
+}

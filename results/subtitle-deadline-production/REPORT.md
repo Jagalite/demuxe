@@ -1,5 +1,10 @@
 # Production subtitle deadline scheduling
 
+**Historical static-text snapshot.** Current production uses the [unified
+mpv visual scheduler](../subtitle-visual-scheduling/REPORT.md), including
+dynamic ASS animation and bitmap deadlines. The measurements below belong to
+the earlier static-only artifact and are retained as raw campaign evidence.
+
 **Decision: keep the 10 Hz state pump and deadline renders for qualified static text.** mpv still owns demux, decode, timing, libass state, seek, and pixels. The host sends browser PTS at about 10 Hz; the subtitle worker calls `update_subtitles()` without rendering, uses the maintained raw event-boundary hook to keep one epoch-guarded timer, and performs a full render on a boundary or lifecycle invalidation. Animated ASS, PGS, VobSub, and unqualified tracks retain frame polling.
 
 ## Qualification and correctness

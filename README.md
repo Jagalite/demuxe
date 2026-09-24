@@ -180,7 +180,7 @@ not full passes.
 Every numeric cell shows median CPU usage as a percentage of one Chrome process-family core (it can exceed 100%), not a relative gain. The **bold numeric cell** identifies the lowest median among lanes from the same matched campaign. Exploratory †/‡ readings do not enter that ranking. Existing matched medians use three accepted rounds; this is not a claim about unmeasured players or statistical superiority. † marks the separate pass-cell campaign: median of 1–3 focused, stable-process 20-second windows that advanced at approximately 1×. ‡ marks a median from full, focused stable-process CPU windows that stalled instead of advancing at approximately 1×; it is a measured stalled window, not steady-playback CPU. Round counts, ranges and records are in the linked CPU report. **Green (Pass)** preserves the historical bounded-playback result; supplemental CPU windows did not rerun its content-fidelity checks. `(Pass)*` marks the historical bounded screen with its stated fidelity, profile or duration limit. `(Fail)` means that lane’s playback correctness check failed; it does not establish an unsupported format. N/A means no demonstrated playback result for this scope. Pinned Chrome/macOS evidence; supplemental real-bitstream screening is separate; renderer counters do not certify equal physical smoothness. Native in the original ASS case includes the host ASS renderer.
 
 The embedded SRT, mov_text and styled ASS Demuxe CPU cells come from the
-[production subtitle deadline campaign](results/subtitle-deadline-production/REPORT.md):
+[unified subtitle scheduling campaign](results/subtitle-visual-scheduling/REPORT.md):
 three accepted Native Direct old-scheduler versus new-scheduler pairs per row.
 Their other-player cells retain the separately cited historical screens; those
 CPU numbers are not a matched cross-player ranking for the new route.
@@ -276,15 +276,15 @@ Those measurements do not replace or combine with the compatibility matrix.
 | H.264 video-only / MP4 | 🟢 50.1% CPU | **🟢 20.8% CPU** | 🟠 22.6% CPU | 🟠 37.4% CPU | 🟠 32.1% CPU |
 | H.264 High 10 + AAC / MKV | 🟢 (Pass)* · 71.4% CPU | **🟢 (Pass)\* · 49.3% CPU** | 🟢 (Pass)* · 51.0% CPU · Native Direct | 🟠 Plays; EOF check failed | 🟢 (Pass)* · 65.8% CPU |
 | MPEG-2 video-only / MPEG-TS | 🟢 (Pass) · 51.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 52.8% CPU | 🟢 (Pass) · 43.2% CPU | **🟢 (Pass) · 32.9% CPU** |
-| H.264 + AAC + embedded SRT / MKV | 🟢 59.1% CPU | 🔴 (Fail) | **🟢 38.2% CPU (Native Direct + mpv subtitles)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + embedded SRT / MKV | 🟢 59.1% CPU | 🔴 (Fail) | **🟢 39.0% CPU (Native Direct + mpv subtitles)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AAC + external WebVTT / MP4 | 🟢 59.1% CPU | 🟠 23.4% CPU | **🟢 23.3% CPU** | 🟣 Native-first pass; default subtitle check failed | 🔴 open failed |
-| H.264 + AAC + embedded mov_text / MP4 | 🟢 64.2% CPU | 🔴 (Fail) | **🟢 Pass (Native Direct + mpv subtitles) · 35.8% CPU** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
-| H.264 + AAC + styled ASS / MKV | 🟢 54.6% CPU | 🔴 (Fail) | **🟢 37.5% CPU (Native Direct + mpv subtitles)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + embedded mov_text / MP4 | 🟢 64.2% CPU | 🔴 (Fail) | **🟢 Pass (Native Direct + mpv subtitles) · 39.0% CPU** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
+| H.264 + AAC + styled ASS / MKV | 🟢 54.6% CPU | 🔴 (Fail) | **🟢 39.5% CPU (Native Direct + mpv subtitles)** | 🟠 Plays; subtitle check failed | 🟠 Plays; seek check failed |
 | H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 62.2% CPU | 🔴 (Fail) | **🟢 (Pass) · 61.7% CPU** · Hybrid with WebCodecs video | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | HEVC + AC-3 + PGS / MKV | 🟢 49.2% CPU | 🔴 (Fail) | **🟢 (Pass)** · 69.8% CPU† | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
 | H.264 + AC-3 + VobSub / MKV | 🟢 57.0% CPU | 🔴 (Fail) | **🟢 (Pass)** · 65.0% CPU† | 🟠 Plays; subtitle check failed | 🟠 Plays; subtitle check failed |
-| H.264 + AAC + PGS / MKV (subtitle isolation) | 🔴 (Fail) | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** · 58.6% CPU† | Not tested | Not tested |
-| H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 70.9% CPU† | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** · 46.2% CPU† | Not tested | Not tested |
+| H.264 + AAC + PGS / MKV (subtitle isolation) | 🔴 (Fail) | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** · 44.1% CPU† | Not tested | Not tested |
+| H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 70.9% CPU† | Not tested | **🟢 Pass (Native Direct + mpv subtitles)** · 45.2% CPU† | Not tested | Not tested |
 | AAC audio-only / M4A | 🟢 44.0% CPU | **🟢 15.3% CPU** | 🟠 15.9% CPU | **🟢 (Pass)** · 40.1% CPU‡ | 🟠 20.7% CPU |
 | MP3 audio-only / MP3 | 🟢 39.3% CPU | 🟠 15.2% CPU | **🟢 14.9% CPU** | **🟢 (Pass)** · 44.0% CPU‡ | 🟠 Plays; seek check failed |
 | FLAC audio-only / FLAC | 🟢 34.9% CPU | 🟠 14.5% CPU | **🟢 13.5% CPU** | **🟢 (Pass)** · 49.8% CPU‡ | 🟠 18.5% CPU |
@@ -323,13 +323,14 @@ The SRT, mov_text and ASS Demuxe cells now use automatic browser A/V with the
 mpv subtitle-only service on the [exact local fixtures and current-tree
 qualification](results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
 The SRT, mov_text and ASS CPU figures are medians of three fresh, paired Chrome
-trials of the previous 60 Hz subtitle scheduler and the production deadline
+trials of the previous 60 Hz subtitle scheduler and the production visual
 scheduler; they are workload-specific and do not include competitor reruns.
 The two H.264/AAC bitmap rows isolate subtitles by copying PGS/VobSub
 from the older AC-3 cases onto browser-compatible A/V. The original AC-3
 rows retain Hybrid for their audio requirement. Other-player cells on the
 older rows retain their separately linked historical results; the new bitmap
-derivatives were not run through those players.
+derivatives were not run through those players. Their Demuxe CPU cells use
+fresh focused 20-second windows on the [unified subtitle scheduler](results/subtitle-visual-scheduling/REPORT.md).
 
 The [comparison gap follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) refreshes the seven Dolby Vision/PGS cells above. All four Dolby Vision combinations now pass bounded automatic playback through Software fallback. The three PGS fixtures pass in Hybrid, including subtitle recovery after seeking. These results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
 
